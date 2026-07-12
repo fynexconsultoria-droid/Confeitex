@@ -22,7 +22,6 @@ const State = {
       this.orders = savedOrders ? JSON.parse(savedOrders).map(migrateOrder) : [];
       this.catalog = savedCatalog ? JSON.parse(savedCatalog) : [...DEFAULT_CATALOG];
       if (!savedCatalog) this.saveCatalog();
-      if (this.orders.length === 0) this.loadDemo(false);
     } catch { this.catalog = [...DEFAULT_CATALOG]; }
   },
 
