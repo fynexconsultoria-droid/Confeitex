@@ -14,21 +14,19 @@
         const ver = v.trim();
         if (!ver) return;
         const atual = localStorage.getItem('fyntex_ver');
-        if (atual && atual !== ver) {
+        if (!atual || atual !== ver) {
+          localStorage.setItem('fyntex_ver', ver);
           UI.confirm({
             title: 'Nova versão disponível!',
-            message: `Versão v${ver} disponível. Deseja recarregar para atualizar?`,
+            message: atual
+              ? `Versão v${ver} disponível (você estava na v${atual}). Deseja recarregar para atualizar?`
+              : `Versão v${ver} disponível! Deseja recarregar o aplicativo para aplicar as atualizações?`,
             confirmText: 'Atualizar Agora',
             cancelText: 'Depois',
             variant: 'primary'
           }).then(res => {
-            if (res) {
-              localStorage.setItem('fyntex_ver', ver);
-              window.location.reload();
-            }
+            if (res) window.location.reload();
           });
-        } else {
-          localStorage.setItem('fyntex_ver', ver);
         }
       })
       .catch(() => {});
