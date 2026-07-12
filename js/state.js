@@ -17,6 +17,10 @@ const State = {
 
   load() {
     try {
+      if (!localStorage.getItem('fyntex_v2')) {
+        localStorage.removeItem('fyntex_orders');
+        localStorage.setItem('fyntex_v2', '1');
+      }
       const savedOrders = localStorage.getItem('fyntex_orders');
       const savedCatalog = localStorage.getItem('fyntex_catalog');
       this.orders = savedOrders ? JSON.parse(savedOrders).map(migrateOrder) : [];
@@ -30,33 +34,9 @@ const State = {
 
   loadDemo(force = false) {
     if (!force && this.orders.length > 0) return;
-    const names = ['Ana Costa', 'Carlos Silva', 'Beatriz Lima', 'Daniel Souza', 'Mariana Santos'];
-    const phones = ['(11) 98888-7777', '(11) 97777-6666', '(21) 96666-5555', '(31) 95555-4444', '(11) 94444-3333'];
-    const flavors = [
-      { name: 'Bolo Ninho com Morango', price: 75.00, type: 'Bolo de Kg', w: 2.0 },
-      { name: 'Bolo Chocolate Belga', price: 80.00, type: 'Bolo de Kg', w: 1.5 },
-      { name: 'Bolo Red Velvet', price: 90.00, type: 'Bolo de Kg', w: 1.8 },
-      { name: 'Cento de Brigadeiros Gourmet', price: 120.00, type: 'Doces / Brigadeiros', w: 1 },
-      { name: 'Bolo Prestígio', price: 70.00, type: 'Bolo de Kg', w: 2.5 }
-    ];
-    const today = new Date();
     this.catalog = [...DEFAULT_CATALOG];
     this.saveCatalog();
     this.orders = [];
-    [0, 0, -1, -2, -3, -4, -5, -7, 1, -3].forEach((offset, idx) => {
-      const d = new Date(today); d.setDate(today.getDate() + offset);
-      const f = flavors[idx % flavors.length];
-      const extra = idx % 3 === 0 ? 15 : 0;
-      this.orders.push({
-        id: 'o_demo_' + idx, clientName: names[idx % names.length],
-        clientPhone: phones[idx % phones.length], productType: f.type, flavor: f.name,
-        details: 'Decoração simples', weight: f.w, unitPrice: f.price, extraCharges: extra,
-        totalValue: f.w * f.price + extra, deliveryDate: d.toISOString().split('T')[0],
-        deliveryTime: `${10 + (idx % 8)}:00`, status: offset >= 0 ? (idx % 2 ? 'Em Produção' : 'Pendente') : 'Entregue',
-        notes: idx % 3 === 0 ? 'Retirada no local' : '', createdAt: d.toISOString(),
-        paymentMethod: 'Dinheiro', cost: 0, deliveredAt: null
-      });
-    });
     this.saveOrders();
   }
 };
