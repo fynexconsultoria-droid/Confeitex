@@ -80,7 +80,7 @@ body {
   display: flex;
   flex-direction: column;
   position: fixed;
-  height: 100vh;
+  height: 100dvh;
   z-index: 100;
   transition: var(--transition-normal);
 }
@@ -417,9 +417,67 @@ body {
 }
 
 @media (max-width: 1024px) {
-  .dashboard-grid {
-    grid-template-columns: 1fr;
-  }
+  .dashboard-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 900px) {
+  .main-content { padding: 1.5rem; }
+  .page-title h1 { font-size: 1.4rem; }
+  .page-title p { font-size: 0.8rem; }
+  .metric-value { font-size: 1.5rem; }
+  .filter-bar .form-control { min-width: 0; }
+  .filter-bar { gap: 0.5rem; }
+  .table-wrapper { margin: 0 -1.5rem; border-radius: 0; border-left: none; border-right: none; }
+  .config-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 580px) {
+  .page-title h1 { font-size: 1.2rem; }
+  .main-content { padding: 1rem; }
+  .top-header { gap: 0.75rem; }
+  .header-actions { flex-wrap: wrap; gap: 0.5rem; }
+  .header-actions .btn { flex: 1; min-width: 0; white-space: nowrap; padding: 0.6rem 1rem; font-size: 0.8rem; }
+  .date-badge { font-size: 0.75rem; padding: 0.4rem 0.8rem; }
+  .metric-card { padding: 1rem; }
+  .metric-value { font-size: 1.3rem; }
+  .metric-icon-wrapper { width: 36px; height: 36px; }
+  .metric-icon-wrapper svg { width: 16px; height: 16px; }
+  .panel { padding: 1rem; }
+  .panel-header { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+  .chart-container { height: 200px; }
+  .calc-bar { padding: 1rem; gap: 0.75rem; }
+  .empty-state { padding: 2rem 1rem; }
+  .empty-state svg { width: 48px; height: 48px; }
+  .btn { padding: 0.6rem 1rem; font-size: 0.8rem; gap: 0.35rem; }
+  .btn-icon-only { padding: 0.5rem; }
+  .btn svg { width: 16px; height: 16px; }
+  .form-control { padding: 0.6rem 0.85rem; font-size: 0.85rem; }
+  .modal-container { max-width: 100vw; max-height: 100dvh; height: 100dvh; border-radius: 0; }
+  .modal-header { padding: 1rem; }
+  .modal-header h2 { font-size: 1.1rem; }
+  .modal-body { padding: 1rem; gap: 1rem; }
+  .modal-footer { padding: 1rem; }
+  .client-history-item { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+  .client-history-item > div:last-child { flex-direction: row; width: 100%; justify-content: space-between; }
+  .config-card { padding: 1rem; }
+  .table-wrapper { margin: 0 -1rem; }
+  .custom-table th, .custom-table td { padding: 0.6rem 0.5rem; font-size: 0.8rem; }
+  .pwa-install-banner { padding: 1rem; gap: 0.75rem; bottom: 1rem; }
+  .pwa-install-banner .pwa-icon { width: 40px; height: 40px; }
+  .pwa-install-banner .pwa-icon svg { width: 22px; height: 22px; }
+  .search-input-wrapper { min-width: 0; }
+  .filter-bar > * { flex: 1; min-width: 0; }
+}
+
+@media (max-width: 380px) {
+  .main-content { padding: 0.75rem; }
+  .page-title h1 { font-size: 1rem; }
+  .metric-value { font-size: 1.1rem; }
+  .btn { padding: 0.5rem 0.75rem; font-size: 0.75rem; }
+  .brand-name { font-size: 1.1rem; }
+  .mobile-header { padding: 0.75rem 1rem; }
+  .panel-title { font-size: 0.95rem; }
+  .badge { font-size: 0.65rem; padding: 0.2rem 0.5rem; }
 }
 
 .panel {
@@ -638,7 +696,7 @@ select.form-control {
   top: 0;
   left: 0;
   width: 100vw;
-  height: 100vh;
+  height: 100dvh;
   background: rgba(10, 8, 19, 0.75);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
@@ -664,6 +722,7 @@ select.form-control {
   max-width: 600px;
   max-height: 90vh;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   box-shadow: var(--shadow-md), 0 0 50px rgba(0, 0, 0, 0.6);
   transform: scale(0.95);
   transition: transform var(--transition-normal);
@@ -891,40 +950,11 @@ select.form-control {
 }
 
 @media (max-width: 768px) {
-  body {
-    flex-direction: column;
-  }
-  
-  .sidebar {
-    transform: translateX(-100%);
-    width: 260px;
-    height: 100vh;
-  }
-  
-  .sidebar.open {
-    transform: translateX(0);
-  }
-  
-  .main-content {
-    margin-left: 0;
-    padding: 1.5rem;
-    padding-top: 1rem;
-  }
-  
-  .mobile-header {
-    display: flex;
-  }
-  
-  .top-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
-  }
-  
-  .header-actions {
-    width: 100%;
-    justify-content: space-between;
-  }
+  body { flex-direction: column; }
+  .sidebar { transform: translateX(-100%); width: 260px; height: 100dvh; }
+  .sidebar.open { transform: translateX(0); }
+  .main-content { margin-left: 0; }
+  .mobile-header { display: flex; }
 }
 
 /* Custom Table columns info */
@@ -971,7 +1001,7 @@ select.form-control {
   top: 0;
   left: 0;
   width: 100vw;
-  height: 100vh;
+  height: 100dvh;
   background: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(4px);
   z-index: 95;
@@ -995,6 +1025,7 @@ select.form-control {
   
   .sidebar {
     padding-top: calc(2rem + env(safe-area-inset-top));
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom));
   }
 }
 
@@ -1150,11 +1181,29 @@ select.form-control {
 #chartTooltip.visible { opacity: 1; }
 #chartTooltip strong { color: var(--color-accent-pink); }
 
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+  .metric-card:hover { transform: none; border-color: var(--border-color); box-shadow: none; }
+  .metric-card:hover::before { opacity: 0; }
+  .btn:hover { transform: none; box-shadow: none; }
+  .btn-primary:active { transform: scale(0.97); }
+  .btn-secondary:active { background: rgba(255,255,255,0.12); }
+  .nav-link:hover { background: transparent; color: var(--text-secondary); }
+  .nav-link.active { background: var(--gradient-card-glow); color: #fff; }
+}
+
 /* Table horizontal scroll on mobile */
 @media (max-width: 768px) {
-  .table-wrapper {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
+  .table-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
   .custom-table { min-width: 700px; }
+}
+
+/* Landscape phone optimization */
+@media (max-height: 500px) and (orientation: landscape) {
+  .mobile-header { padding: 0.5rem 1rem; }
+  .sidebar { padding-top: 0.5rem; }
+  .sidebar .brand { margin-bottom: 1rem; }
+  .nav-link { padding: 0.5rem 0.75rem; font-size: 0.8rem; }
+  .chart-container { height: 150px; }
+  #todayDeliveriesList { max-height: 150px; }
 }
