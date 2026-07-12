@@ -23,15 +23,40 @@ const Settings = {
 
   setup() {
     document.getElementById('btnExportData').addEventListener('click', () => {
-      const dataStr = JSON.stringify({ orders: State.orders, catalog: State.catalog }, null, 2);
-      const blob = new Blob([dataStr], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.download = `backup_fyntex_${new Date().toISOString().split('T')[0]}.json`;
-      link.href = url;
-      link.click();
-      URL.revokeObjectURL(url);
-      UI.toast('Backup baixado');
+      const win = window.open('', '_blank');
+      if (!win) { UI.alert('Permita pop-ups para gerar o PDF.'); return; }
+      const hoje = new Date().toLocaleDateString('pt-BR');
+      const linhas = State.orders.map(o =>
+        `<tr>
+          <td>${escapeHTML(o.clientName)}<br><small>${escapeHTML(o.clientPhone || '')}</small></td>
+          <td>${escapeHTML(o.flavor)}<br><small>${escapeHTML(o.productType)}</small></td>
+          <td>${fmtDateStr(o.deliveryDate)} ${o.deliveryTime}</td>
+          <td style="text-align:right">${o.weight}${o.productType === 'Bolo de Kg' ? ' Kg' : ' un'}</td>
+          <td style="text-align:right">${fmt(o.totalValue)}</td>
+          <td style="text-align:center">${o.status}</td>
+        </tr>`
+      ).join('');
+      win.document.write(`<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Backup Fyntex - ${hoje}</title>
+<style>
+  body{font-family:sans-serif;color:#222;padding:2rem}
+  h1{font-size:1.4rem;margin-bottom:0.25rem}
+  p{color:#666;font-size:0.85rem;margin-bottom:1.5rem}
+  table{width:100%;border-collapse:collapse;font-size:0.8rem}
+  th,td{padding:0.5rem;border:1px solid #ddd;text-align:left}
+  th{background:#f5f5f5;font-weight:700}
+  small{color:#999;font-size:0.7rem}
+  @media print{body{padding:0.5rem}th{background:#eee!important}}
+</style></head><body>
+<h1>Fyntex Confeitaria - Relatório de Pedidos</h1>
+<p>Gerado em ${hoje} — Total de ${State.orders.length} pedido(s)</p>
+<table><thead><tr>
+<th>Cliente</th><th>Produto</th><th>Entrega</th><th>Peso/Qtd</th><th>Valor</th><th>Status</th>
+</tr></thead><tbody>${linhas}</tbody></table>
+</body></html>`);
+      win.document.close();
+      setTimeout(() => { try { win.focus(); win.print(); } catch(e) {} }, 300);
+      UI.toast('PDF gerado — salve como PDF no diálogo de impressão');
     });
 
     document.getElementById('btnImportData').addEventListener('click', () => document.getElementById('importFileInput').click());
