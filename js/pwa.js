@@ -15,10 +15,18 @@
         if (!ver) return;
         const atual = localStorage.getItem('fyntex_ver');
         if (atual && atual !== ver) {
-          if (confirm('Nova versão disponível! Recarregar para atualizar?')) {
-            localStorage.setItem('fyntex_ver', ver);
-            window.location.reload();
-          }
+          UI.confirm({
+            title: 'Nova versão disponível!',
+            message: `Versão v${ver} disponível. Deseja recarregar para atualizar?`,
+            confirmText: 'Atualizar Agora',
+            cancelText: 'Depois',
+            variant: 'primary'
+          }).then(res => {
+            if (res) {
+              localStorage.setItem('fyntex_ver', ver);
+              window.location.reload();
+            }
+          });
         } else {
           localStorage.setItem('fyntex_ver', ver);
         }

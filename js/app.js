@@ -5,7 +5,8 @@
     dashboard: { title: 'Painel de Controle', subtitle: 'Estatísticas gerais e entregas de hoje.' },
     orders: { title: 'Encomendas', subtitle: 'Gerencie e busque todos os pedidos registrados.' },
     clients: { title: 'Banco de Clientes', subtitle: 'Histórico de compras e contatos de clientes.' },
-    settings: { title: 'Configurações', subtitle: 'Ajustes do catálogo de sabores e utilitários.' }
+    settings: { title: 'Configurações', subtitle: 'Ajustes do catálogo de sabores e utilitários.' },
+    updates: { title: 'Atualizações', subtitle: 'Verifique por novas versões do aplicativo.' }
   };
 
   function switchTab(tabId) {
@@ -18,6 +19,7 @@
     else if (tabId === 'orders') Orders.render();
     else if (tabId === 'clients') Clients.render();
     else if (tabId === 'settings') Settings.renderCatalog();
+    else if (tabId === 'updates') Updates.render();
 
     document.getElementById('sidebar').classList.remove('open');
     document.getElementById('sidebarOverlay').classList.remove('active');
@@ -63,6 +65,7 @@
   // Init
   Orders.setupForm();
   Settings.setup();
+  Updates.setup();
   Dashboard.update();
 
   // Notificações programadas
