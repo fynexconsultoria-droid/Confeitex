@@ -1,15 +1,25 @@
 // Fyntex Confeitaria - Service Worker (PWA Offline Support)
 // Estratégia: Cache-First — prioriza cache local, perfeito para app 100% offline
 
-const CACHE_NAME = 'fyntex-confeitaria-v1';
+const CACHE_NAME = 'fyntex-confeitaria-v1.0.0';
 
 // Arquivos que serão cacheados na instalação do Service Worker
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
   './style.css',
-  './app.js',
   './manifest.json',
+  './js/state.js',
+  './js/utils.js',
+  './js/ui.js',
+  './js/pwa.js',
+  './js/chart.js',
+  './js/notifications.js',
+  './js/dashboard.js',
+  './js/orders.js',
+  './js/clients.js',
+  './js/settings.js',
+  './js/app.js',
   './icons/icon-192x192.png',
   './icons/icon-512x512.png'
 ];
