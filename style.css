@@ -34,7 +34,7 @@
   
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
   --shadow-md: 0 8px 30px rgba(0, 0, 0, 0.5);
-  --shadow-glow: 0 0 20px rgba(236, 72, 153, 0.25);
+  --shadow-glow: none;
   
   --transition-fast: 0.2s ease;
   --transition-normal: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -165,7 +165,6 @@ body {
   color: #fff;
   background: var(--gradient-card-glow);
   border-color: rgba(236, 72, 153, 0.2);
-  box-shadow: 0 4px 20px rgba(139, 92, 246, 0.1);
 }
 
 .nav-link.active svg {
@@ -253,7 +252,6 @@ body {
 
 .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(236, 72, 153, 0.4);
 }
 
 .btn-primary:active {
@@ -278,7 +276,6 @@ body {
 
 .btn-danger:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(220, 38, 38, 0.4);
 }
 
 .btn-success {
@@ -288,7 +285,6 @@ body {
 
 .btn-success:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
 }
 
 .btn-icon-only {
@@ -614,7 +610,6 @@ body {
 
 .form-control:focus {
   border-color: var(--color-accent-pink);
-  box-shadow: 0 0 10px rgba(236, 72, 153, 0.15);
 }
 
 .form-control::placeholder {
@@ -1204,8 +1199,6 @@ select.form-control {
   .btn-secondary:active { background: rgba(255,255,255,0.12); }
   .nav-link:hover { background: transparent; color: var(--text-secondary); }
   .nav-link.active { background: var(--gradient-card-glow); color: #fff; }
-  .form-control:focus { box-shadow: none; }
-  .btn-primary { box-shadow: none; }
 }
 
 /* Table horizontal scroll on mobile */
