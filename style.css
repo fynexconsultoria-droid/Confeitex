@@ -470,6 +470,10 @@ body {
   .pwa-install-banner .pwa-icon svg { width: 22px; height: 22px; }
   .search-input-wrapper { min-width: 0; }
   .filter-bar > * { flex: 1; min-width: 0; }
+  .custom-table { min-width: 520px; }
+  .custom-table td .btn-icon-only { padding: 0.3rem; }
+  .custom-table td .btn-icon-only svg { width: 12px; height: 12px; }
+  .custom-table td .badge { font-size: 0.65rem; padding: 0.15rem 0.35rem; }
 }
 
 @media (max-width: 380px) {
@@ -481,8 +485,13 @@ body {
   .mobile-header { padding: 0.75rem 1rem; }
   .panel-title { font-size: 0.95rem; }
   .badge { font-size: 0.6rem; padding: 0.15rem 0.4rem; }
-  .custom-table th, .custom-table td { padding: 0.35rem 0.3rem; font-size: 0.7rem; }
-  .custom-table td .customer-name { font-size: 0.75rem; }
+  .custom-table th, .custom-table td { padding: 0.3rem 0.25rem; font-size: 0.65rem; }
+  .custom-table td .customer-name { font-size: 0.7rem; }
+  .custom-table td .customer-phone { font-size: 0.6rem; }
+  .custom-table td .product-desc { font-size: 0.6rem; }
+  .custom-table { min-width: 400px; }
+  .custom-table td .btn-icon-only { padding: 0.2rem; }
+  .custom-table td .btn-icon-only svg { width: 11px; height: 11px; }
 }
 
 .panel {
@@ -1202,7 +1211,7 @@ select.form-control {
 /* Table horizontal scroll on mobile */
 @media (max-width: 768px) {
   .table-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-  .custom-table { min-width: 700px; }
+  .custom-table { min-width: 600px; }
 }
 
 /* Landscape phone optimization */
