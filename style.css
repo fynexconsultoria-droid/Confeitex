@@ -76,7 +76,7 @@ body {
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-right: 1px solid var(--border-color);
-  padding: 2rem 1.5rem;
+  padding: 1.5rem 1.5rem;
   display: flex;
   flex-direction: column;
   position: fixed;
@@ -1218,7 +1218,6 @@ select.form-control {
 @media (max-height: 500px) and (orientation: landscape) {
   .mobile-header { padding: 0.5rem 1rem; }
   .sidebar { padding-top: 0.5rem; }
-  .sidebar .brand { margin-bottom: 1rem; }
   .nav-link { padding: 0.5rem 0.75rem; font-size: 0.8rem; }
   .chart-container { height: 150px; }
   #todayDeliveriesList { max-height: 150px; }
