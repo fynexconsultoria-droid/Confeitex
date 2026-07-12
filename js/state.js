@@ -17,15 +17,16 @@ const State = {
 
   load() {
     try {
-      if (!localStorage.getItem('fyntex_v2')) {
-        localStorage.removeItem('fyntex_orders');
-        localStorage.setItem('fyntex_v2', '1');
-      }
       const savedOrders = localStorage.getItem('fyntex_orders');
       const savedCatalog = localStorage.getItem('fyntex_catalog');
       this.orders = savedOrders ? JSON.parse(savedOrders).map(migrateOrder) : [];
       this.catalog = savedCatalog ? JSON.parse(savedCatalog) : [...DEFAULT_CATALOG];
       if (!savedCatalog) this.saveCatalog();
+      const temDemo = this.orders.some(o => o.id && o.id.startsWith('o_demo_'));
+      if (temDemo) {
+        this.orders = this.orders.filter(o => !o.id.startsWith('o_demo_'));
+        this.saveOrders();
+      }
     } catch { this.catalog = [...DEFAULT_CATALOG]; }
   },
 
