@@ -3,27 +3,28 @@
 
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      const SW_URL = './sw.js?v=20260712';
-      if (!localStorage.getItem('fyntex_sw_ver')) localStorage.setItem('fyntex_sw_ver', '1');
-      navigator.serviceWorker.register(SW_URL).then((reg) => {
-        if (reg.active) {
-          reg.update().catch(() => {});
-        }
-        reg.addEventListener('updatefound', () => {
-          const novoSW = reg.installing;
-          if (!novoSW) return;
-          novoSW.addEventListener('statechange', () => {
-            if (novoSW.state === 'installed' && navigator.serviceWorker.controller) {
-              localStorage.setItem('fyntex_sw_ver', Date.now().toString());
-              if (confirm('Nova versão disponível! Recarregar para atualizar?')) {
-                window.location.reload();
-              }
-            }
-          });
-        });
-      }).catch(() => {});
+      navigator.serviceWorker.register('./sw.js').catch(() => {});
     });
   }
+
+  window.addEventListener('load', () => {
+    fetch('./version.txt?t=' + Date.now(), { cache: 'no-store' })
+      .then(r => r.ok ? r.text() : '')
+      .then(v => {
+        const ver = v.trim();
+        if (!ver) return;
+        const atual = localStorage.getItem('fyntex_ver');
+        if (atual && atual !== ver) {
+          if (confirm('Nova versão disponível! Recarregar para atualizar?')) {
+            localStorage.setItem('fyntex_ver', ver);
+            window.location.reload();
+          }
+        } else {
+          localStorage.setItem('fyntex_ver', ver);
+        }
+      })
+      .catch(() => {});
+  });
 
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
