@@ -3,7 +3,18 @@
 
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js').catch(() => {});
+      navigator.serviceWorker.register('./sw.js').then((reg) => {
+        reg.addEventListener('updatefound', () => {
+          const novoSW = reg.installing;
+          novoSW.addEventListener('statechange', () => {
+            if (novoSW.state === 'installed' && navigator.serviceWorker.controller) {
+              if (confirm('Nova versão disponível! Recarregar para atualizar?')) {
+                window.location.reload();
+              }
+            }
+          });
+        });
+      }).catch(() => {});
     });
   }
 

@@ -1,7 +1,7 @@
 // Fyntex Confeitaria - Service Worker (PWA Offline Support)
-// Estratégia: Cache-First — prioriza cache local, perfeito para app 100% offline
+// Estratégia: Stale-While-Revalidate — rápido do cache mas sempre busca atualizações
 
-const CACHE_NAME = 'fyntex-confeitaria-v1.0.0';
+const CACHE_NAME = 'fyntex-confeitaria-v1.0.1';
 
 // Arquivos que serão cacheados na instalação do Service Worker
 const ASSETS_TO_CACHE = [
@@ -69,38 +69,19 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(event.request)
       .then((cachedResponse) => {
-        // Se encontrou no cache, retorna do cache
-        if (cachedResponse) {
-          return cachedResponse;
-        }
-
-        // Se não encontrou no cache, busca da rede e cacheia para o futuro
-        return fetch(event.request)
+        const fetchPromise = fetch(event.request)
           .then((networkResponse) => {
-            // Verifica se a resposta é válida
             if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
               return networkResponse;
             }
-
-            // Clona a resposta para guardar no cache (stream só pode ser lido uma vez)
             const responseToCache = networkResponse.clone();
-
             caches.open(CACHE_NAME)
-              .then((cache) => {
-                cache.put(event.request, responseToCache);
-              });
-
+              .then((cache) => cache.put(event.request, responseToCache));
             return networkResponse;
           })
-          .catch(() => {
-            // Se falhar na rede e não tem cache, retorna uma resposta offline genérica
-            // Como o Fyntex é 100% offline, isso raramente aconteceria
-            return new Response('Fyntex está offline. Recarregue a página.', {
-              status: 503,
-              statusText: 'Service Unavailable',
-              headers: new Headers({ 'Content-Type': 'text/plain; charset=utf-8' })
-            });
-          });
+          .catch(() => cachedResponse);
+
+        return cachedResponse || fetchPromise;
       })
   );
 });
