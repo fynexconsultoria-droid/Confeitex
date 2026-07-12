@@ -65,7 +65,7 @@ const Clients = {
         <div>
           <div style="font-weight:700;font-size:0.9rem;color:white;">${escapeHTML(o.flavor)} <span style="font-size:0.7rem;color:var(--text-muted);">(${o.productType})</span></div>
           <div style="font-size:0.75rem;color:var(--text-secondary);margin-top:0.2rem;">Entrega: ${fmtDateStr(o.deliveryDate)} às ${o.deliveryTime}</div>
-          ${o.address ? `<div style="font-size:0.7rem;color:var(--text-muted);">${escapeHTML(o.address)}, ${o.addressNumber}</div>` : ''}
+
         </div>
         <div style="text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:0.25rem;">
           <span class="badge ${badge}" style="font-size:0.65rem;padding:0.1rem 0.4rem;">${o.status}</span>

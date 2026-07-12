@@ -103,13 +103,12 @@ const Settings = {
 
     // CSV export
     document.getElementById('btnExportCSV').addEventListener('click', () => {
-      const headers = 'Cliente,Telefone,Produto,Sabor,Peso/Quant,Valor Unit.,Taxa Extra,Custo,Valor Total,Pagamento,Data Entrega,Hora,Status,Endereço,Número,Bairro,Cidade,Obs';
+      const headers = 'Cliente,Telefone,Produto,Sabor,Peso/Quant,Valor Unit.,Taxa Extra,Custo,Valor Total,Pagamento,Data Entrega,Hora,Status,Obs';
       const rows = State.orders.map(o => [
         `"${o.clientName}"`, `"${o.clientPhone || ''}"`, `"${o.productType}"`, `"${o.flavor}"`,
         o.weight, o.unitPrice.toFixed(2), o.extraCharges.toFixed(2), (o.cost || 0).toFixed(2),
         o.totalValue.toFixed(2), `"${o.paymentMethod || 'Dinheiro'}"`,
         o.deliveryDate, o.deliveryTime, `"${o.status}"`,
-        `"${o.address || ''}"`, `"${o.addressNumber || ''}"`, `"${o.neighborhood || ''}"`, `"${o.city || ''}"`,
         `"${(o.notes || '').replace(/"/g, '""')}"`
       ].join(','));
       const csv = '\uFEFF' + headers + '\n' + rows.join('\n');
@@ -123,15 +122,16 @@ const Settings = {
       UI.toast('Relatório CSV exportado');
     });
 
-    // Notifications
+    // Notificações programadas
     document.getElementById('btnEnableNotifications').addEventListener('click', async () => {
       if (!('Notification' in window)) { UI.alert('Notificações não suportadas neste navegador.'); return; }
       const perm = await Notification.requestPermission();
       if (perm === 'granted') {
-        UI.toast('Notificações ativadas!');
+        UI.toast('Notificações ativadas! Você receberá lembretes das entregas pendentes.');
+        Notifications.schedule();
         Notifications.check();
       } else {
-        UI.alert('Permissão de notificações negada.');
+        UI.alert('Permissão de notificações negada. Ative nas configurações do navegador.');
       }
     });
   }

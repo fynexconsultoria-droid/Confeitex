@@ -8,7 +8,7 @@ const DEFAULT_CATALOG = [
 ];
 
 function migrateOrder(o) {
-  return { address: '', addressNumber: '', neighborhood: '', city: '', paymentMethod: 'Dinheiro', cost: 0, deliveredAt: null, ...o };
+  return { paymentMethod: 'Dinheiro', cost: 0, deliveredAt: null, ...o };
 }
 
 const State = {
@@ -55,7 +55,7 @@ const State = {
         totalValue: f.w * f.price + extra, deliveryDate: d.toISOString().split('T')[0],
         deliveryTime: `${10 + (idx % 8)}:00`, status: offset >= 0 ? (idx % 2 ? 'Em Produção' : 'Pendente') : 'Entregue',
         notes: idx % 3 === 0 ? 'Retirada no local' : '', createdAt: d.toISOString(),
-        address: '', addressNumber: '', neighborhood: '', city: '', paymentMethod: 'Dinheiro', cost: 0, deliveredAt: null
+        paymentMethod: 'Dinheiro', cost: 0, deliveredAt: null
       });
     });
     this.saveOrders();

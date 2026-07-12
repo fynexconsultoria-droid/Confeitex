@@ -30,7 +30,7 @@ const Orders = {
           <div style="font-weight:600;color:white;">${escapeHTML(o.flavor)} <span style="font-size:0.75rem;color:var(--color-accent-pink);background:rgba(236,72,153,0.1);padding:0.1rem 0.4rem;border-radius:4px;margin-left:0.25rem;">${escapeHTML(o.productType)}</span></div>
           ${o.details ? `<div class="product-desc">${escapeHTML(o.details)}</div>` : ''}
           ${o.notes ? `<div style="font-size:0.75rem;color:var(--color-warning);margin-top:0.2rem;">Obs: ${escapeHTML(o.notes)}</div>` : ''}
-          ${o.address ? `<div style="font-size:0.75rem;color:var(--text-secondary);margin-top:0.2rem;">${escapeHTML(o.address)}, ${o.addressNumber}${o.neighborhood ? ' - ' + escapeHTML(o.neighborhood) : ''}</div>` : ''}
+
         </td>
         <td><div style="font-weight:500;">${fmtDateStr(o.deliveryDate)}</div><div style="font-size:0.8rem;color:var(--text-secondary);">${o.deliveryTime}</div></td>
         <td class="text-right" style="font-weight:500;">${formatWeight(o)}</td>
@@ -92,8 +92,7 @@ const Orders = {
       orderClientName: 'clientName', orderClientPhone: 'clientPhone', orderProductType: 'productType',
       orderFlavor: 'flavor', orderDetails: 'details', orderWeight: 'weight', orderUnitPrice: 'unitPrice',
       orderExtraCharges: 'extraCharges', orderDeliveryDate: 'deliveryDate', orderDeliveryTime: 'deliveryTime',
-      orderStatus: 'status', orderNotes: 'notes', orderAddress: 'address', orderAddressNumber: 'addressNumber',
-      orderNeighborhood: 'neighborhood', orderCity: 'city', orderPaymentMethod: 'paymentMethod', orderCost: 'cost'
+      orderStatus: 'status', orderNotes: 'notes', orderPaymentMethod: 'paymentMethod', orderCost: 'cost'
     };
     Object.entries(fieldMap).forEach(([elId, stateKey]) => {
       const el = document.getElementById(elId);
@@ -229,10 +228,6 @@ const Orders = {
         deliveryTime: document.getElementById('orderDeliveryTime').value,
         status: document.getElementById('orderStatus').value,
         notes: document.getElementById('orderNotes').value.trim(),
-        address: document.getElementById('orderAddress').value.trim(),
-        addressNumber: document.getElementById('orderAddressNumber').value.trim(),
-        neighborhood: document.getElementById('orderNeighborhood').value.trim(),
-        city: document.getElementById('orderCity').value.trim(),
         paymentMethod: document.getElementById('orderPaymentMethod').value
       };
       data.totalValue = (data.weight * data.unitPrice) + data.extraCharges;

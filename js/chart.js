@@ -4,8 +4,10 @@ const Chart = {
   render() {
     const canvas = document.getElementById('salesChart');
     if (!canvas) return;
-    const daysLimit = document.getElementById('chartPeriodSelect').value === '7days' ? 7 : 30;
+    const period = document.getElementById('chartPeriodSelect').value;
     const today = new Date();
+    const daysMap = { today: 1, '7days': 7, '15days': 15, '30days': 30 };
+    const daysLimit = daysMap[period] || 30;
 
     this.points = [];
     for (let i = daysLimit - 1; i >= 0; i--) {
@@ -13,7 +15,7 @@ const Chart = {
       const dateStr = d.toISOString().split('T')[0];
       const dayOrders = State.orders.filter(o => o.deliveryDate === dateStr && o.status !== 'Cancelado');
       this.points.push({
-        date: dateStr, label: d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
+        date: dateStr, label: period === 'today' ? 'Hoje' : d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
         sales: dayOrders.reduce((s, o) => s + o.totalValue, 0),
         count: dayOrders.length
       });
@@ -51,7 +53,7 @@ const Chart = {
 
     // X labels
     ctx.textAlign = 'center'; ctx.textBaseline = 'top';
-    const step = daysLimit === 30 ? 5 : 1;
+    const step = daysLimit >= 30 ? 5 : daysLimit >= 15 ? 3 : 1;
     this.points.forEach((p, i) => {
       if (i % step === 0 || i === this.points.length - 1) {
         const x = pl + cw * (i / (this.points.length - 1));

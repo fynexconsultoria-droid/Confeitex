@@ -65,8 +65,6 @@
   Settings.setup();
   Dashboard.update();
 
-  // Notifications
-  if ('Notification' in window && Notification.permission === 'granted') {
-    Notifications.check();
-  }
+  // Notificações programadas
+  Notifications.init();
 })();

@@ -38,7 +38,7 @@ const Dashboard = {
             <span class="customer-name" style="font-size:0.9rem;max-width:120px;">${escapeHTML(o.clientName)}</span>
           </div>
           <div style="font-size:0.75rem;color:var(--text-secondary);">${escapeHTML(o.flavor)} (${formatWeight(o)})${o.cost ? ` · Lucro: ${fmt(profit)}` : ''}</div>
-          ${o.address ? `<div style="font-size:0.7rem;color:var(--text-muted);">${escapeHTML(o.address)}, ${o.addressNumber}</div>` : ''}
+
         </div>
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:0.35rem;">
           <span class="badge ${badge}" style="font-size:0.65rem;padding:0.15rem 0.5rem;">${o.status}</span>
