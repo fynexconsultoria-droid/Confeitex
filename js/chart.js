@@ -98,27 +98,45 @@ const Chart = {
       }
     };
 
-    // Sales line (filled)
-    const salesData = this.pointPositions.map(p => ({ x: p.x, y: p.sY, v: p.sales }));
-    smoothLine(salesData, p => p.y, '#ec4899', 3, true);
+    if (this.points.length === 1) {
+      // Modo Hoje: exibe indicadores grandes em destaque
+      const p = this.pointPositions[0];
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.font = 'bold 14px system-ui, sans-serif';
+      ctx.fillStyle = '#ec4899';
+      ctx.fillText(`Vendas: ${fmt(p.sales)}`, p.x, p.sY - 30);
+      ctx.fillStyle = '#8b5cf6';
+      ctx.fillText(`Pedidos: ${p.count}`, p.x, p.sY + 30);
+      ctx.fillStyle = '#ec4899';
+      ctx.beginPath(); ctx.arc(p.x, p.sY, 20, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(236, 72, 153, 0.15)';
+      ctx.fill();
+      ctx.strokeStyle = '#ec4899'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(p.x, p.sY, 20, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.fillStyle = '#ec4899';
+      ctx.beginPath(); ctx.arc(p.x, p.sY, 6, 0, Math.PI * 2); ctx.fill();
+    } else {
+      // Sales line (filled)
+      const salesData = this.pointPositions.map(p => ({ x: p.x, y: p.sY, v: p.sales }));
+      smoothLine(salesData, p => p.y, '#ec4899', 3, true);
 
-    // Count line
-    const countData = this.pointPositions.map(p => ({ x: p.x, y: p.cY, v: p.count }));
-    smoothLine(countData, p => p.y, '#8b5cf6', 2);
+      // Count line
+      const countData = this.pointPositions.map(p => ({ x: p.x, y: p.cY, v: p.count }));
+      smoothLine(countData, p => p.y, '#8b5cf6', 2);
 
-    // Dots
-    this.pointPositions.forEach(p => {
-      if (p.sales > 0 || daysLimit <= 7) {
+      // Dots
+      this.pointPositions.forEach(p => {
         ctx.fillStyle = '#ec4899';
         ctx.beginPath(); ctx.arc(p.x, p.sY, 4, 0, Math.PI * 2); ctx.fill();
         ctx.fillStyle = '#fff';
         ctx.beginPath(); ctx.arc(p.x, p.sY, 2, 0, Math.PI * 2); ctx.fill();
-      }
-      if (p.count > 0 || daysLimit <= 7) {
-        ctx.fillStyle = '#8b5cf6';
-        ctx.beginPath(); ctx.arc(p.x, p.cY, 3, 0, Math.PI * 2); ctx.fill();
-      }
-    });
+        if (p.count > 0) {
+          ctx.fillStyle = '#8b5cf6';
+          ctx.beginPath(); ctx.arc(p.x, p.cY, 3, 0, Math.PI * 2); ctx.fill();
+        }
+      });
+    }
 
     this.setupTooltip(canvas);
   },
@@ -131,24 +149,40 @@ const Chart = {
       document.querySelector('.chart-container')?.appendChild(tooltip);
     }
 
-    canvas.onmousemove = (e) => {
+    if (this._tooltipCleanup) this._tooltipCleanup();
+
+    const showTooltip = (x) => {
       const rect = canvas.getBoundingClientRect();
-      const mx = e.clientX - rect.left;
+      const mx = x - rect.left;
       let closest = null, minDist = Infinity;
       this.pointPositions.forEach(p => {
         const d = Math.abs(p.x - mx);
         if (d < minDist) { minDist = d; closest = p; }
       });
-      if (closest && minDist < 40) {
+      if (closest && minDist < 50) {
         tooltip.innerHTML = `<strong>${closest.label}</strong><br>Vendas: ${fmt(closest.sales)}<br>Pedidos: ${closest.count}`;
         tooltip.style.left = Math.min(Math.max(closest.x - 60, 0), rect.width - 130) + 'px';
         tooltip.style.top = '30px';
         tooltip.classList.add('visible');
-      } else {
-        tooltip.classList.remove('visible');
       }
     };
 
-    canvas.onmouseleave = () => tooltip.classList.remove('visible');
+    const hideTooltip = () => tooltip.classList.remove('visible');
+
+    const onMove = (e) => showTooltip(e.touches ? e.touches[0].clientX : e.clientX);
+    const onLeave = () => hideTooltip();
+
+    canvas.addEventListener('mousemove', onMove);
+    canvas.addEventListener('mouseleave', onLeave);
+    canvas.addEventListener('touchmove', onMove, { passive: true });
+    canvas.addEventListener('touchend', onLeave);
+
+    this._tooltipCleanup = () => {
+      canvas.removeEventListener('mousemove', onMove);
+      canvas.removeEventListener('mouseleave', onLeave);
+      canvas.removeEventListener('touchmove', onMove);
+      canvas.removeEventListener('touchend', onLeave);
+      this._tooltipCleanup = null;
+    };
   }
 };

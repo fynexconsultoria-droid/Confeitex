@@ -1,23 +1,24 @@
 const Notifications = {
-  _checked: false,
+  _started: false,
 
   init() {
-    if (!('Notification' in window)) return;
-    if (Notification.permission === 'granted') this.schedule();
-    else if (Notification.permission === 'default') {
-      // Só pede permissão se o usuário já interagiu
+    if (this._started || !('Notification' in window)) return;
+    this._started = true;
+
+    if (Notification.permission === 'granted') {
+      this.check();
+    } else if (Notification.permission === 'default') {
       document.addEventListener('click', () => {
         if (Notification.permission === 'default') Notification.requestPermission();
       }, { once: true });
     }
-  },
 
-  schedule() {
-    this.check();
-    setInterval(() => this.check(), 3600000); // a cada 1h
-    // Também verifica quando a aba ganhar foco
+    setInterval(() => {
+      if (Notification.permission === 'granted') this.check();
+    }, 3600000);
+
     document.addEventListener('visibilitychange', () => {
-      if (!document.hidden) this.check();
+      if (!document.hidden && Notification.permission === 'granted') this.check();
     });
   },
 
@@ -32,8 +33,8 @@ const Notifications = {
     const sent = JSON.parse(localStorage.getItem('fyntex_notified') || '{}');
 
     if (pendingToday.length > 0 && !sent[today]) {
-      new Notification('Fyntex - Entregas de Hoje ' + today.replace(/-/g, '/'), {
-        body: `Você tem ${pendingToday.length} entrega(s) pendente(s) para hoje!\n${pendingToday.map(o => `${o.deliveryTime} - ${o.clientName}: ${o.flavor}`).join('\n')}`,
+      new Notification('Fyntex - Entregas de Hoje', {
+        body: `${pendingToday.length} entrega(s) pendente(s) hoje!\n${pendingToday.map(o => `${o.deliveryTime} ${o.clientName}: ${o.flavor}`).join('\n')}`,
         icon: 'icons/icon-192x192.png',
         tag: 'fyntex-today'
       });
@@ -42,8 +43,8 @@ const Notifications = {
     }
 
     if (pendingTomorrow.length > 0 && !sent[`prev_${tomorrow}`]) {
-      new Notification('Fyntex - Lembrete: Entregas de Amanhã ' + tomorrow.replace(/-/g, '/'), {
-        body: `Você tem ${pendingTomorrow.length} entrega(s) agendada(s) para amanhã!\n${pendingTomorrow.map(o => `${o.deliveryTime} - ${o.clientName}: ${o.flavor}`).join('\n')}`,
+      new Notification('Fyntex - Lembrete: Amanhã', {
+        body: `${pendingTomorrow.length} entrega(s) amanhã!\n${pendingTomorrow.map(o => `${o.deliveryTime} ${o.clientName}: ${o.flavor}`).join('\n')}`,
         icon: 'icons/icon-192x192.png',
         tag: 'fyntex-tomorrow'
       });

@@ -1,5 +1,7 @@
 const UI = {
   toast(message, variant = 'success') {
+    const existing = document.querySelector('.toast.visible');
+    if (existing) { existing.classList.remove('visible'); setTimeout(() => existing.remove(), 300); }
     const el = document.createElement('div');
     el.className = `toast toast-${variant}`;
     el.textContent = message;
@@ -17,7 +19,7 @@ const UI = {
           <div class="modal-header"><h2>${title}</h2></div>
           <div class="modal-body"><p style="color: var(--text-secondary);">${message}</p></div>
           <div class="modal-footer">
-            <button class="btn btn-secondary" data-action="cancel">${cancelText}</button>
+            ${cancelText ? `<button class="btn btn-secondary" data-action="cancel">${cancelText}</button>` : ''}
             <button class="btn ${variant === 'danger' ? 'btn-danger' : 'btn-primary'}" data-action="confirm">${confirmText}</button>
           </div>
         </div>`;

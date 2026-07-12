@@ -128,7 +128,7 @@ const Settings = {
       const perm = await Notification.requestPermission();
       if (perm === 'granted') {
         UI.toast('Notificações ativadas! Você receberá lembretes das entregas pendentes.');
-        Notifications.schedule();
+        Notifications.init();
         Notifications.check();
       } else {
         UI.alert('Permissão de notificações negada. Ative nas configurações do navegador.');
