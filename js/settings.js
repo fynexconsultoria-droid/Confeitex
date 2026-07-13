@@ -61,32 +61,102 @@ const Settings = {
 
     document.getElementById('btnImportData').addEventListener('click', () => document.getElementById('importFileInput').click());
 
-    document.getElementById('importFileInput').addEventListener('change', (e) => {
+    document.getElementById('importFileInput').addEventListener('change', async (e) => {
       const file = e.target.files[0];
       if (!file) return;
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        try {
-          const data = JSON.parse(ev.target.result);
-          if (!data.orders || !Array.isArray(data.orders) || data.orders.length === 0) throw new Error('invalid');
-          // Validate each order has required fields
-          const valid = data.orders.every(o => o.clientName && o.flavor && o.deliveryDate && o.totalValue !== undefined);
-          if (!valid) throw new Error('missing fields');
-          State.orders = data.orders.map(migrateOrder);
-          if (data.catalog && Array.isArray(data.catalog)) State.catalog = data.catalog;
-          State.saveOrders();
-          State.saveCatalog();
-          UI.toast('Dados importados com sucesso!');
-          const tab = document.querySelector('.nav-link.active')?.dataset.tab;
-          if (tab === 'dashboard') Dashboard.update();
-          else if (tab === 'orders') Orders.render();
-          else if (tab === 'clients') Clients.render();
-          else if (tab === 'settings') this.renderCatalog();
-        } catch {
-          UI.alert('Arquivo inválido. Verifique o formato do backup.');
+      try {
+        const arrayBuffer = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        let fullText = '';
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const content = await page.getTextContent();
+          fullText += content.items.map(item => item.str).join(' ') + '\n';
         }
-      };
-      reader.readAsText(file);
+
+        const lines = fullText.split('\n').map(l => l.trim()).filter(l => l);
+        const orders = [];
+        let inTable = false;
+
+        for (const line of lines) {
+          if (line.includes('Cliente') && line.includes('Produto') && line.includes('Entrega')) {
+            inTable = true;
+            continue;
+          }
+          if (!inTable) continue;
+          if (line.includes('Confeitex') || line.includes('Gerado em') || line.includes('Total')) continue;
+
+          const parts = line.split(/\s{2,}/).filter(p => p.trim());
+          if (parts.length < 4) continue;
+
+          const clientPart = parts[0];
+          const flavorPart = parts[1] || '';
+          const deliveryPart = parts[2] || '';
+          const weightPart = parts[3] || '';
+          const valuePart = parts[4] || '';
+          const statusPart = parts[5] || '';
+
+          const clientName = clientPart.replace(/\s*\(.*?\)\s*$/, '').trim();
+          const phoneMatch = clientPart.match(/\((\d{2,3})\)\s*(\d{4,5})-?(\d{4})/);
+          const clientPhone = phoneMatch ? `(${phoneMatch[1]}) ${phoneMatch[2]}-${phoneMatch[3]}` : '';
+
+          const flavor = flavorPart.replace(/\s*\(.*?\)\s*$/, '').trim();
+          const productTypeMatch = flavorPart.match(/\(([^)]+)\)/);
+          const productType = productTypeMatch ? productTypeMatch[1] : 'Bolo de Kg';
+
+          const dateMatch = deliveryPart.match(/(\d{2}\/\d{2}\/\d{4})\s*(\d{2}:\d{2})/);
+          const deliveryDate = dateMatch ? dateMatch[1].split('/').reverse().join('-') : '';
+          const deliveryTime = dateMatch ? dateMatch[2] : '';
+
+          const weight = parseFloat(weightPart.replace(/[^0-9,]/g, '').replace(',', '.')) || 0;
+          const totalValue = parseFloat(valuePart.replace(/[^0-9,]/g, '').replace(',', '.')) || 0;
+          const unitPrice = productType === 'Bolo de Kg' ? totalValue / (weight || 1) : totalValue;
+
+          if (clientName && flavor && deliveryDate) {
+            orders.push({
+              id: 'o_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+              clientName,
+              clientPhone,
+              productType,
+              flavor,
+              details: '',
+              weight,
+              unitPrice: Math.round(unitPrice * 100) / 100,
+              extraCharges: 0,
+              cost: 0,
+              deliveryDate,
+              deliveryTime,
+              status: statusPart || 'Pendente',
+              notes: '',
+              paymentMethod: 'Dinheiro',
+              totalValue,
+              createdAt: new Date().toISOString(),
+              deliveredAt: statusPart === 'Entregue' ? new Date().toISOString() : null
+            });
+          }
+        }
+
+        if (orders.length === 0) throw new Error('no orders found');
+
+        const ok = await UI.confirm({
+          title: 'Importar Dados do PDF',
+          message: `Foram encontrados ${orders.length} pedido(s) no PDF. Deseja importá-los? (Os dados atuais serão substituídos.)`,
+          confirmText: 'Importar',
+          variant: 'danger'
+        });
+        if (!ok) { e.target.value = ''; return; }
+
+        State.orders = orders.map(migrateOrder);
+        State.saveOrders();
+        UI.toast(`${orders.length} pedido(s) importados do PDF com sucesso!`);
+        const tab = document.querySelector('.nav-link.active')?.dataset.tab;
+        if (tab === 'dashboard') Dashboard.update();
+        else if (tab === 'orders') Orders.render();
+        else if (tab === 'clients') Clients.render();
+        else if (tab === 'settings') this.renderCatalog();
+      } catch (err) {
+        UI.alert('Não foi possível ler o PDF. Verifique se é um relatório exportado do Confeitex.');
+      }
       e.target.value = '';
     });
 
@@ -158,20 +228,78 @@ const Settings = {
       UI.toast('Relatório CSV exportado');
     });
 
-    // Notificações programadas
-    // Security settings
-    Auth.renderSecuritySettings();
+    // Notificações
+    this.renderNotificationStatus();
+    Notifications.init();
 
-    document.getElementById('btnEnableNotifications').addEventListener('click', async () => {
-      if (!('Notification' in window)) { UI.alert('Notificações não suportadas neste navegador.'); return; }
-      const perm = await Notification.requestPermission();
-      if (perm === 'granted') {
-        UI.toast('Notificações ativadas! Você receberá lembretes das entregas pendentes.');
-        Notifications.init();
-        Notifications.check();
+    document.getElementById('btnToggleNotifications').addEventListener('click', async () => {
+      if (Notifications.status === 'unsupported') {
+        UI.alert('Notificações não são suportadas neste navegador.');
+        return;
+      }
+      if (Notifications.status === 'denied') {
+        UI.alert('A permissão de notificações foi negada. Ative nas configurações do navegador.');
+        return;
+      }
+      if (Notifications.enabled) {
+        Notifications.disable();
+        this.renderNotificationStatus();
+        UI.toast('Notificações desativadas.');
       } else {
-        UI.alert('Permissão de notificações negada. Ative nas configurações do navegador.');
+        const ok = await Notifications.enable();
+        this.renderNotificationStatus();
+        if (ok) {
+          UI.toast('Notificações ativadas! Você receberá lembretes das entregas pendentes.');
+        } else {
+          UI.alert('Não foi possível ativar as notificações. Verifique a permissão no navegador.');
+        }
       }
     });
+  },
+
+  renderNotificationStatus() {
+    const dot = document.getElementById('notificationStatusDot');
+    const text = document.getElementById('notificationStatusText');
+    const info = document.getElementById('notificationInfoText');
+    const btnText = document.getElementById('btnNotificationsText');
+    const btn = document.getElementById('btnToggleNotifications');
+    if (!dot || !text || !info || !btnText || !btn) return;
+
+    if (Notifications.status === 'unsupported') {
+      dot.style.background = 'var(--color-danger)';
+      text.textContent = 'Não suportado';
+      text.style.color = 'var(--color-danger)';
+      info.textContent = 'Seu navegador não suporta notificações.';
+      btnText.textContent = 'Não suportado';
+      btn.disabled = true;
+      return;
+    }
+
+    if (Notifications.status === 'denied') {
+      dot.style.background = 'var(--color-danger)';
+      text.textContent = 'Permissão negada';
+      text.style.color = 'var(--color-danger)';
+      info.textContent = 'Ative as notificações nas configurações do navegador.';
+      btnText.textContent = 'Permissão Negada';
+      btn.disabled = false;
+      btn.className = 'btn btn-secondary';
+      return;
+    }
+
+    if (Notifications.enabled) {
+      dot.style.background = 'var(--color-success)';
+      text.textContent = 'Notificações ativas';
+      text.style.color = 'var(--color-success)';
+      info.textContent = 'Você receberá lembretes automáticos de entregas pendentes.';
+      btnText.textContent = 'Desativar Notificações';
+      btn.className = 'btn btn-secondary';
+    } else {
+      dot.style.background = 'var(--text-muted)';
+      text.textContent = 'Notificações inativas';
+      text.style.color = 'var(--text-muted)';
+      info.textContent = 'Ative para receber lembretes de entregas pendentes.';
+      btnText.textContent = 'Ativar Notificações';
+      btn.className = 'btn btn-primary';
+    }
   }
 };

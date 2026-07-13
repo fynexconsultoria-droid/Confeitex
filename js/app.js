@@ -76,6 +76,7 @@
   Orders.setupForm();
   Settings.setup();
   Updates.setup();
+  Clients.setupEditModal();
   Dashboard.update();
 
   // Notificações programadas

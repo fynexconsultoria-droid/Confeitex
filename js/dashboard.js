@@ -8,6 +8,19 @@ const Dashboard = {
 
     const pending = State.orders.filter(o => o.status === 'Pendente' || o.status === 'Em Produção').length;
     document.getElementById('kpiPendingOrders').textContent = pending;
+    document.getElementById('kpiPendingCard').style.cursor = 'pointer';
+    document.getElementById('kpiPendingCard').onclick = () => {
+      document.querySelectorAll('.nav-link').forEach(l => l.classList.toggle('active', l.dataset.tab === 'orders'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.toggle('active', c.id === 'orders'));
+      document.getElementById('mainTitle').textContent = 'Encomendas';
+      document.getElementById('mainSubtitle').textContent = 'Gerencie e busque todos os pedidos registrados.';
+      document.getElementById('orderFilterStatus').value = 'Pendente';
+      document.getElementById('orderSearchInput').value = '';
+      document.getElementById('orderFilterDate').value = '';
+      Orders.render();
+      document.getElementById('sidebar').classList.remove('open');
+      document.getElementById('sidebarOverlay').classList.remove('active');
+    });
 
     document.getElementById('kpiTotalEarnings').textContent = fmt(State.orders.filter(o => o.status !== 'Cancelado').reduce((s, o) => s + o.totalValue, 0));
 

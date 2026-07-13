@@ -1,29 +1,77 @@
 const Notifications = {
   _started: false,
+  _intervalId: null,
+  _enabled: false,
+
+  get enabled() {
+    return this._enabled;
+  },
+
+  get status() {
+    if (!('Notification' in window)) return 'unsupported';
+    return Notification.permission;
+  },
 
   init() {
     if (this._started || !('Notification' in window)) return;
     this._started = true;
 
-    if (Notification.permission === 'granted') {
-      this.check();
-    } else if (Notification.permission === 'default') {
-      document.addEventListener('click', () => {
-        if (Notification.permission === 'default') Notification.requestPermission();
-      }, { once: true });
+    const stored = localStorage.getItem('confeitex_notifications_enabled');
+    if (stored === 'true' && Notification.permission === 'granted') {
+      this._enable();
     }
 
-    setInterval(() => {
-      if (Notification.permission === 'granted') this.check();
-    }, 3600000);
-
     document.addEventListener('visibilitychange', () => {
-      if (!document.hidden && Notification.permission === 'granted') this.check();
+      if (!document.hidden && this._enabled) this.check();
     });
   },
 
+  _enable() {
+    if (this._enabled) return;
+    this._enabled = true;
+    localStorage.setItem('confeitex_notifications_enabled', 'true');
+    this.check();
+    this._intervalId = setInterval(() => {
+      if (this._enabled) this.check();
+    }, 3600000);
+  },
+
+  _disable() {
+    this._enabled = false;
+    localStorage.setItem('confeitex_notifications_enabled', 'false');
+    if (this._intervalId) {
+      clearInterval(this._intervalId);
+      this._intervalId = null;
+    }
+  },
+
+  async enable() {
+    if (!('Notification' in window)) return false;
+    if (Notification.permission === 'denied') return false;
+    if (Notification.permission === 'default') {
+      const perm = await Notification.requestPermission();
+      if (perm !== 'granted') return false;
+    }
+    this._enable();
+    this.check();
+    return true;
+  },
+
+  disable() {
+    this._disable();
+  },
+
+  toggle() {
+    if (this._enabled) {
+      this.disable();
+      return false;
+    } else {
+      return this.enable();
+    }
+  },
+
   check() {
-    if (!('Notification' in window) || Notification.permission !== 'granted') return;
+    if (!this._enabled || !('Notification' in window) || Notification.permission !== 'granted') return;
     const today = new Date().toISOString().split('T')[0];
     const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
 

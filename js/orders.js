@@ -8,7 +8,8 @@ const Orders = {
 
     let filtered = State.orders.filter(o => {
       const matchSearch = o.clientName.toLowerCase().includes(search) || o.flavor.toLowerCase().includes(search) || o.clientPhone?.includes(search);
-      return matchSearch && (filterStatus === 'all' || o.status === filterStatus) && (!filterDate || o.deliveryDate === filterDate);
+      const matchStatus = filterStatus === 'all' ? true : filterStatus === 'Pendente' ? (o.status === 'Pendente' || o.status === 'Em Produção') : o.status === filterStatus;
+      return matchSearch && matchStatus && (!filterDate || o.deliveryDate === filterDate);
     });
 
     filtered.sort((a, b) => b.deliveryDate.localeCompare(a.deliveryDate) || b.deliveryTime.localeCompare(a.deliveryTime));
