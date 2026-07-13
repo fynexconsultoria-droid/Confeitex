@@ -19,12 +19,14 @@ const Clients = {
     if (clients.length === 0) {
       tbody.innerHTML = '';
       empty.style.display = 'flex';
-      tbody.closest('table').style.display = 'none';
+      const table = tbody.closest('table');
+      if (table) table.style.display = 'none';
       return;
     }
 
     empty.style.display = 'none';
-    tbody.closest('table').style.display = 'table';
+    const table = tbody.closest('table');
+    if (table) table.style.display = 'table';
     const clientMap = {};
     tbody.innerHTML = clients.map((c, idx) => {
       clientMap[idx] = c;

@@ -64,8 +64,7 @@
   // Chart period
   document.getElementById('chartPeriodSelect').addEventListener('change', () => Chart.render());
 
-  // Auto-fill filter date to today
-  document.getElementById('orderFilterDate').value = new Date().toISOString().split('T')[0];
+
 
   // Init
   Orders.setupForm();

@@ -116,6 +116,7 @@ const Updates = {
 
   async check() {
     const btn = document.getElementById('btnCheckUpdates');
+    const btnHtml = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg> Verificar Agora';
     btn.disabled = true;
     btn.innerHTML = '<span class="login-spinner"></span> Verificando...';
     this.updateStatus('Verificando...');
@@ -128,15 +129,21 @@ const Updates = {
       document.getElementById('updatesLastCheck').textContent = localStorage.getItem('fyntex_last_check');
 
       if (serverVer && serverVer !== this.verAtual) {
-        if (!confirm(`Nova versão v${serverVer} disponível! Deseja baixar e instalar?`)) {
+        const confirmado = await UI.confirm({
+          title: 'Nova versão disponível',
+          message: `Atualização v${serverVer} encontrada! Deseja baixar e instalar agora?`,
+          confirmText: 'Atualizar',
+          variant: 'primary'
+        });
+        if (!confirmado) {
           this.updateStatus('Atualização cancelada.');
           btn.disabled = false;
-          btn.textContent = 'Verificar Agora';
+          btn.innerHTML = btnHtml;
           return;
         }
         this.updateStatus(`Nova versão v${serverVer} encontrada! Baixando...`);
         btn.disabled = false;
-        btn.textContent = 'Verificar Agora';
+        btn.innerHTML = btnHtml;
         localStorage.setItem('fyntex_ver', serverVer);
         this.downloadUpdate();
         return;
@@ -150,6 +157,6 @@ const Updates = {
     }
 
     btn.disabled = false;
-    btn.textContent = 'Verificar Agora';
+    btn.innerHTML = btnHtml;
   }
 };

@@ -282,9 +282,12 @@ const Orders = {
 
       if (id) {
         const idx = State.orders.findIndex(o => o.id === id);
-        if (idx !== -1) Object.assign(State.orders[idx], data);
+        if (idx !== -1) {
+          Object.assign(State.orders[idx], data);
+          if (data.status !== 'Entregue') State.orders[idx].deliveredAt = null;
+        }
       } else {
-        data.id = 'o_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
+        data.id = 'o_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);
         data.createdAt = new Date().toISOString();
         data.deliveredAt = null;
         State.orders.push(data);

@@ -87,8 +87,7 @@ input:-webkit-autofill:active {
 body {
   background-color: var(--bg-primary);
   background-image: 
-    radial-gradient(at 0% 0%, rgba(139, 92, 246, 0.12) 0px, transparent 50%),
-    radial-gradient(at 100% 100%, rgba(236, 72, 153, 0.1) 0px, transparent 50%);
+    radial-gradient(at 0% 0%, rgba(139, 92, 246, 0.12) 0px, transparent 50%);
   background-attachment: fixed;
   color: var(--text-primary);
   min-height: 100vh;
@@ -1506,11 +1505,11 @@ select.form-control {
 }
 
 .login-overlay::before {
-  width: 400px;
-  height: 400px;
-  background: rgba(236, 72, 153, 0.15);
-  top: -100px;
-  right: -100px;
+  width: 350px;
+  height: 350px;
+  background: rgba(139, 92, 246, 0.12);
+  top: -80px;
+  right: -80px;
   animation: loginOrbA 8s ease-in-out infinite alternate;
 }
 

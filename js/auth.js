@@ -108,6 +108,7 @@ const Auth = {
           error.style.display = 'block';
           input.value = '';
           input.focus();
+          submit.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M13 12H3"/></svg>\n            Entrar';
         }
       };
 
