@@ -14,6 +14,16 @@ const Updates = {
     document.getElementById('btnCheckUpdates').addEventListener('click', () => this.check());
   },
 
+  async checkSilent() {
+    try {
+      const r = await fetch('./version.txt?t=' + Date.now(), { cache: 'no-store' });
+      if (!r.ok) return null;
+      const serverVer = (await r.text()).trim();
+      if (serverVer && serverVer !== this.verAtual) return serverVer;
+    } catch {}
+    return null;
+  },
+
   formatBytes(bytes) {
     if (bytes < 1024) return `${bytes} B`;
     if (bytes < 1048576) return `${(bytes / 1024).toFixed(1)} KB`;

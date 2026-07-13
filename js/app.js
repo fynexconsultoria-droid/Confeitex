@@ -80,4 +80,27 @@
 
   // Notificações programadas
   Notifications.init();
+
+  // Verifica atualização ao abrir o app (máx 1x por hora)
+  (async () => {
+    const lastPrompt = localStorage.getItem('fyntex_update_prompt');
+    const oneHour = 3600000;
+    if (lastPrompt && Date.now() - parseInt(lastPrompt) < oneHour) return;
+
+    const newVer = await Updates.checkSilent();
+    if (newVer) {
+      localStorage.setItem('fyntex_update_prompt', String(Date.now()));
+      const ok = await UI.confirm({
+        title: 'Nova versão disponível',
+        message: `Atualização v${newVer} encontrada! Deseja baixar e instalar agora?`,
+        confirmText: 'Atualizar',
+        variant: 'primary'
+      });
+      if (ok) {
+        localStorage.setItem('fyntex_ver', newVer);
+        Updates.verAtual = newVer;
+        Updates.downloadUpdate();
+      }
+    }
+  })();
 })();
