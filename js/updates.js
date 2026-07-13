@@ -28,49 +28,54 @@ const Updates = {
     const statusEl = document.getElementById('updateStatusText');
 
     overlay.classList.add('active');
-    bar.style.width = '10%';
-    percentEl.textContent = '10%';
-    statusEl.textContent = 'Registrando nova versão...';
 
-    // Registra o novo Service Worker com versão no nome do cache
-    // O SW faz cache.addAll() de todos os assets, skipWaiting(), e clients.claim()
-    // O controllerchange no pwa.js detecta e recarrega a página automaticamente
+    // 1. Limpa todos os caches do app
+    bar.style.width = '15%';
+    percentEl.textContent = '15%';
+    statusEl.textContent = 'Limpando caches antigos...';
+    try {
+      await caches.keys().then(keys => Promise.all(keys.map(k => caches.delete(k))));
+    } catch {}
+    bar.style.width = '35%';
+    percentEl.textContent = '35%';
+
+    // 2. Desregistra o Service Worker atual para evitar conflito
+    statusEl.textContent = 'Removendo Service Worker antigo...';
     if ('serviceWorker' in navigator) {
       try {
-        const swUrl = './sw.js?v=' + this.verAtual;
-        await navigator.serviceWorker.register(swUrl, { scope: './' });
-        bar.style.width = '60%';
-        percentEl.textContent = '60%';
-        statusEl.textContent = 'Nova versão instalada. Aplicando...';
-      } catch {
-        bar.style.width = '60%';
-        percentEl.textContent = '60%';
-      }
+        const reg = await navigator.serviceWorker.getRegistration();
+        if (reg) await reg.unregister();
+      } catch {}
     }
+    bar.style.width = '55%';
+    percentEl.textContent = '55%';
 
-    bar.style.width = '100%';
-    percentEl.textContent = '100%';
-    bytesEl.textContent = 'Concluído';
+    // 3. Marca no localStorage que foi atualizado (para feedback pós-reload)
+    statusEl.textContent = 'Preparando nova versão...';
+    localStorage.setItem('fyntex_updated', 'true');
+    bar.style.width = '75%';
+    percentEl.textContent = '75%';
 
-    // Contagem regressiva antes de recarregar
+    // 4. Contagem regressiva e recarrega
     let segundos = 3;
     statusEl.textContent = `Atualização concluída! Recarregando em ${segundos}s...`;
-
     const intervalo = setInterval(() => {
       segundos--;
       if (segundos > 0) {
         statusEl.textContent = `Atualização concluída! Recarregando em ${segundos}s...`;
       } else {
         clearInterval(intervalo);
+        bar.style.width = '100%';
+        percentEl.textContent = '100%';
+        bytesEl.textContent = 'Concluído';
         statusEl.textContent = 'Recarregando...';
-        // O controllerchange em pwa.js pode recarregar antes do timeout
-        window.location.href = window.location.href.split('?')[0].split('#')[0] + '?t=' + Date.now();
+        window.location.href = window.location.href.split('?')[0].split('#')[0] + '?v=' + Date.now();
       }
     }, 1000);
   },
 
   changelog: [
-    { ver: '15', date: '13/07/2026', items: ['Gradiente vermelho/rosa do canto inferior direito e do login removido', 'Filtro de pedidos não começa mais com data de hoje — mostra todos', 'SVG dos botões preservado após loading/erro no login e atualizações', 'deliveredAt limpo ao mudar status de "Entregue" para outro', 'Contagem regressiva de 3s antes de recarregar após atualização', 'substr() substituído por slice(), segurança em closest()'] },
+    { ver: '15', date: '13/07/2026', items: ['Sistema de atualização refatorado: limpa caches, desregistra SW antigo e recarrega do zero', 'Confirmação visual "App atualizado" após reload', 'Gradiente vermelho/rosa do canto inferior direito e do login removido', 'Filtro de pedidos não começa mais com data de hoje — mostra todos', 'SVG dos botões preservado após loading/erro no login e atualizações', 'deliveredAt limpo ao mudar status de "Entregue" para outro', 'Contagem regressiva de 3s antes de recarregar após atualização', 'substr() substituído por slice(), segurança em closest()'] },
     { ver: '14', date: '13/07/2026', items: ['Design: sombras brancas e outlines removidos ao clicar em elementos', 'Tabelas de Pedidos e Clientes agora cabem na tela sem scroll horizontal', 'Atualização não trava mais em tela preta — usa ciclo do Service Worker', 'Configurações: espaçamento e alinhamento de textos e botões ajustados', 'Cache do SW dinâmico por versão para evitar conflitos'] },
     { ver: '13', date: '13/07/2026', items: ['version.txt não é mais cacheado pelo SW — toda verificação vai à rede', 'Auto-reload quando novo Service Worker assumir o controle', 'Sistema de atualização mais robusto e confiável', 'Nunca atualiza sem perguntar: confirmação obrigatória'] },
     { ver: '12', date: '13/07/2026', items: ['Força atualização do Service Worker com novo cache v1.6.0'] },

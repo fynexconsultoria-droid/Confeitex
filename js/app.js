@@ -48,6 +48,12 @@
     document.getElementById('sidebarOverlay').classList.remove('active');
   });
 
+  // Se veio de uma atualização, mostra confirmação
+  if (localStorage.getItem('fyntex_updated')) {
+    localStorage.removeItem('fyntex_updated');
+    UI.toast('App atualizado para a nova versão!');
+  }
+
   // Date display
   document.getElementById('currentDateDisplay').textContent = fmtDate(new Date());
 

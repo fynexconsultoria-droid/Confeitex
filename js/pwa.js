@@ -7,13 +7,6 @@
     });
   }
 
-  // Quando um novo SW assumir o controle, recarrega para pegar conteúdo fresco
-  if (navigator.serviceWorker) {
-    navigator.serviceWorker.addEventListener('controllerchange', () => {
-      window.location.reload();
-    });
-  }
-
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredInstall = e;
