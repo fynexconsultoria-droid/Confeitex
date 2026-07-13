@@ -1,5 +1,5 @@
 const Updates = {
-  verAtual: '13',
+  verAtual: '14',
 
   assets: [
     './', './index.html', './style.css', './manifest.json',
@@ -61,6 +61,7 @@ const Updates = {
   },
 
   changelog: [
+    { ver: '14', date: '13/07/2026', items: ['Design: sombras brancas e outlines removidos ao clicar em elementos', 'Tabelas de Pedidos e Clientes agora cabem na tela sem scroll horizontal', 'Atualização não trava mais em tela preta — usa ciclo do Service Worker', 'Configurações: espaçamento e alinhamento de textos e botões ajustados', 'Cache do SW dinâmico por versão para evitar conflitos'] },
     { ver: '13', date: '13/07/2026', items: ['version.txt não é mais cacheado pelo SW — toda verificação vai à rede', 'Auto-reload quando novo Service Worker assumir o controle', 'Sistema de atualização mais robusto e confiável', 'Nunca atualiza sem perguntar: confirmação obrigatória'] },
     { ver: '12', date: '13/07/2026', items: ['Força atualização do Service Worker com novo cache v1.6.0'] },
     { ver: '11', date: '12/07/2026', items: ['App fecha completamente após atualizar', 'Funciona em PWA standalone (mobile)', 'Fallback para reload se não conseguir fechar'] },
