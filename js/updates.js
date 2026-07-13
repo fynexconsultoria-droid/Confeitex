@@ -1,5 +1,5 @@
 const Updates = {
-  verAtual: '7',
+  verAtual: '8',
 
   assets: [
     './', './index.html', './style.css', './manifest.json',
@@ -88,6 +88,7 @@ const Updates = {
   },
 
   changelog: [
+    { ver: '8', date: '12/07/2026', items: ['Auditoria geral: correções e melhorias', 'Dados demonstrativos reais no botão de testes', 'Botão Fechar na tela de login fecha a aba', 'Prefetch de offline.html removido (arquivo inexistente)', 'Apagar dados agora também remove bloqueio de segurança'] },
     { ver: '7', date: '12/07/2026', items: ['Bloqueio por senha (login offline) com SHA-256', 'Tela de login com proteção do app', 'Gerenciamento de senha nas Configurações'] },
     { ver: '6', date: '12/07/2026', items: ['Barra de progresso com KB/MB ao baixar atualizações', 'Download de arquivos monitorado em tempo real', 'Overlay animado durante a atualização'] },
     { ver: '5', date: '12/07/2026', items: ['Correções de bugs e melhorias gerais de performance'] },

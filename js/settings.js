@@ -94,7 +94,10 @@ const Settings = {
       const ok = await UI.confirm({ title: 'Carregar Dados Demo', message: 'Isso substituirá TODOS os dados atuais pelos dados de demonstração. Deseja continuar?', confirmText: 'Carregar', variant: 'danger' });
       if (!ok) return;
       State.loadDemo(true);
-      Dashboard.update();
+      const tab = document.querySelector('.nav-link.active')?.dataset.tab;
+      if (tab === 'dashboard') Dashboard.update();
+      else if (tab === 'orders') Orders.render();
+      else if (tab === 'clients') Clients.render();
       UI.toast('Dados de demonstração carregados');
     });
 
@@ -103,8 +106,16 @@ const Settings = {
       if (!ok) return;
       State.orders = [];
       State.saveOrders();
+      if (Auth.lockEnabled) {
+        Auth.disable();
+        localStorage.removeItem('fyntex_lock_hash');
+        Auth.lockHash = '';
+        if (Auth.renderSecuritySettings) Auth.renderSecuritySettings();
+        UI.toast('Dados e bloqueio removidos');
+      } else {
+        UI.toast('Todos os dados foram excluídos');
+      }
       Dashboard.update();
-      UI.toast('Todos os dados foram excluídos');
     });
 
     // Catalog add with type selection

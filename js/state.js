@@ -37,7 +37,38 @@ const State = {
     if (!force && this.orders.length > 0) return;
     this.catalog = [...DEFAULT_CATALOG];
     this.saveCatalog();
+    const nomes = ['Maria Oliveira', 'João Silva', 'Ana Costa', 'Carlos Santos', 'Fernanda Lima'];
+    const sabores = ['Bolo Ninho com Morango', 'Bolo Chocolate Belga', 'Bolo Red Velvet', 'Bolo Prestígio'];
+    const hoje = new Date();
     this.orders = [];
+    for (let i = 0; i < 12; i++) {
+      const d = new Date(hoje);
+      d.setDate(d.getDate() - Math.floor(Math.random() * 15));
+      const peso = +(1 + Math.random() * 4).toFixed(2);
+      const precoKg = 60 + Math.floor(Math.random() * 30);
+      const statusList = ['Pendente', 'Em Produção', 'Entregue'];
+      const cliente = nomes[Math.floor(Math.random() * nomes.length)];
+      this.orders.push({
+        id: 'o_demo_' + Date.now() + '_' + i,
+        clientName: cliente,
+        clientPhone: `(11) 9${String(Math.floor(7000 + Math.random() * 3000)).padStart(4, '0')}-${String(Math.floor(1000 + Math.random() * 9000)).padStart(4, '0')}`,
+        productType: 'Bolo de Kg',
+        flavor: sabores[Math.floor(Math.random() * sabores.length)],
+        details: '',
+        weight: peso,
+        unitPrice: precoKg,
+        extraCharges: 0,
+        cost: +(precoKg * peso * 0.4).toFixed(2),
+        deliveryDate: d.toISOString().split('T')[0],
+        deliveryTime: `${String(8 + Math.floor(Math.random() * 10)).padStart(2, '0')}:00`,
+        status: statusList[Math.floor(Math.random() * statusList.length)],
+        notes: '',
+        paymentMethod: ['Dinheiro', 'Pix', 'Cartão de Crédito'][Math.floor(Math.random() * 3)],
+        totalValue: +(peso * precoKg).toFixed(2),
+        createdAt: d.toISOString(),
+        deliveredAt: null
+      });
+    }
     this.saveOrders();
   }
 };

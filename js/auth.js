@@ -84,19 +84,12 @@ const Auth = {
       };
 
       document.getElementById('loginCancel').onclick = () => {
-        if (UI.confirm) {
-          UI.confirm({
-            title: 'Sair do App',
-            message: 'Sem autenticação você não pode acessar o Fyntex.',
-            confirmText: 'Fechar',
-            cancelText: ''
-          });
-        }
+        window.close();
       };
     });
   },
 
-  async promptSetPassword(title) {
+  async promptSetPassword(title, message) {
     return new Promise(resolve => {
       const overlay = document.createElement('div');
       overlay.className = 'modal-overlay';
@@ -104,7 +97,7 @@ const Auth = {
         <div class="modal-container" style="max-width:400px;">
           <div class="modal-header"><h2>${title}</h2></div>
           <div class="modal-body" style="gap:1rem;">
-            <p style="color:var(--text-secondary);">Escolha uma senha para proteger o aplicativo.</p>
+            <p style="color:var(--text-secondary);">${message || 'Escolha uma senha para proteger o aplicativo.'}</p>
             <div class="form-group">
               <label>Nova senha</label>
               <input type="password" class="form-control" id="pwSetNew" placeholder="Digite a senha">
@@ -242,7 +235,7 @@ const Auth = {
       document.getElementById('btnChangePassword')?.addEventListener('click', async () => {
         const pw = await this.promptCurrentPassword('Alterar Senha');
         if (pw) {
-          const newPw = await this.promptSetPassword('Alterar Senha');
+          const newPw = await this.promptSetPassword('Alterar Senha', 'Digite a nova senha.');
           if (newPw) {
             UI.toast('Senha alterada com sucesso.');
           }
