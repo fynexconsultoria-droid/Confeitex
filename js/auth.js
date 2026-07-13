@@ -43,7 +43,11 @@ const Auth = {
     return this.lockEnabled && !!this.lockHash;
   },
 
+  _loginShown: false,
+
   showLogin() {
+    if (this._loginShown) return Promise.resolve();
+    this._loginShown = true;
     return new Promise(resolve => {
       const overlay = document.createElement('div');
       overlay.className = 'login-overlay';
