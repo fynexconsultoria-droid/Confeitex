@@ -40,7 +40,7 @@ const Auth = {
   },
 
   isLocked() {
-    return this.lockEnabled && !!this.lockHash;
+    return this.lockEnabled && !!this.lockHash && !sessionStorage.getItem('fyntex_auth');
   },
 
   _loginShown: false,
@@ -101,6 +101,7 @@ const Auth = {
         submit.disabled = false;
         submit.textContent = 'Entrar';
         if (ok) {
+          sessionStorage.setItem('fyntex_auth', 'true');
           cleanup();
           resolve();
         } else {
