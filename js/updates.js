@@ -1,5 +1,5 @@
 const Updates = {
-  verAtual: '12',
+  verAtual: '13',
 
   assets: [
     './', './index.html', './style.css', './manifest.json',
@@ -94,6 +94,8 @@ const Updates = {
   },
 
   changelog: [
+    { ver: '13', date: '13/07/2026', items: ['version.txt não é mais cacheado pelo SW — toda verificação vai à rede', 'Auto-reload quando novo Service Worker assumir o controle', 'Sistema de atualização mais robusto e confiável', 'Nunca atualiza sem perguntar: confirmação obrigatória'] },
+    { ver: '12', date: '13/07/2026', items: ['Força atualização do Service Worker com novo cache v1.6.0'] },
     { ver: '11', date: '12/07/2026', items: ['App fecha completamente após atualizar', 'Funciona em PWA standalone (mobile)', 'Fallback para reload se não conseguir fechar'] },
     { ver: '9', date: '12/07/2026', items: ['Novo layout das Configurações: cards reorganizados e mais visíveis', 'Atualização automática ao detectar nova versão (sem confirmação)', 'Verificação periódica a cada 6h ou ao retornar ao app', 'Status com nome do arquivo sendo baixado na atualização', 'Botão "Forçar Recarregar" removido', 'Indicador "Mais usado" no Catálogo de Sabores'] },
     { ver: '8', date: '12/07/2026', items: ['Auditoria geral: correções e melhorias', 'Dados demonstrativos reais no botão de testes', 'Botão Fechar na tela de login fecha a aba', 'Prefetch de offline.html removido (arquivo inexistente)', 'Apagar dados agora também remove bloqueio de segurança'] },
@@ -149,6 +151,12 @@ const Updates = {
       document.getElementById('updatesLastCheck').textContent = localStorage.getItem('fyntex_last_check');
 
       if (serverVer && serverVer !== this.verAtual) {
+        if (!confirm(`Nova versão v${serverVer} disponível! Deseja baixar e instalar?`)) {
+          this.updateStatus('Atualização cancelada.');
+          btn.disabled = false;
+          btn.textContent = 'Verificar Agora';
+          return;
+        }
         this.updateStatus(`Nova versão v${serverVer} encontrada! Baixando...`);
         btn.disabled = false;
         btn.textContent = 'Verificar Agora';

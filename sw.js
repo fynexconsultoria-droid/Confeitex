@@ -1,7 +1,7 @@
-// Fyntex Confeitaria - Service Worker (PWA Offline Support)
-// Estratégia: Stale-While-Revalidate — rápido do cache mas sempre busca atualizações
+// Fyntex Confeitaria - Service Worker (PWA Offline Support) v1.6.1
+// Estratégia: Stale-While-Revalidate — version.txt sempre vai à rede
 
-const CACHE_NAME = 'fyntex-confeitaria-v1.6.0';
+const CACHE_NAME = 'fyntex-confeitaria-v1.6.1';
 
 // Arquivos que serão cacheados na instalação do Service Worker
 const ASSETS_TO_CACHE = [
@@ -62,11 +62,14 @@ self.addEventListener('activate', (event) => {
 
 // FETCH — intercepta requisições e serve do cache (Cache-First)
 self.addEventListener('fetch', (event) => {
-  // Ignora requisições que não são GET (POST, PUT, etc.)
   if (event.request.method !== 'GET') return;
-
-  // Ignora requisições para URLs externas (chrome-extension://, etc.)
   if (!event.request.url.startsWith('http')) return;
+
+  // version.txt sempre vai à rede — essencial para detectar atualizações
+  if (event.request.url.includes('version.txt')) {
+    event.respondWith(fetch(event.request));
+    return;
+  }
 
   event.respondWith(
     caches.match(event.request)

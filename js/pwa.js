@@ -7,28 +7,12 @@
     });
   }
 
-  async function checkOnOpen() {
-    try {
-      const r = await fetch('./version.txt?t=' + Date.now(), { cache: 'no-store' });
-      if (!r.ok) return;
-      const ver = (await r.text()).trim();
-      if (!ver) return;
-      const atual = localStorage.getItem('fyntex_ver');
-      if (atual === ver) return;
-      localStorage.setItem('fyntex_ver', ver);
-      if (confirm('Nova versão disponível! Deseja atualizar o aplicativo?')) {
-        if (typeof Updates !== 'undefined' && Updates.downloadUpdate) {
-          await Updates.downloadUpdate();
-        } else {
-          window.location.reload();
-        }
-      }
-    } catch {}
+  // Quando um novo SW assumir o controle, recarrega para pegar conteúdo fresco
+  if (navigator.serviceWorker) {
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      window.location.reload();
+    });
   }
-
-  window.addEventListener('load', () => {
-    setTimeout(checkOnOpen, 2000);
-  });
 
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
