@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Fyntex Confeitaria - Controle de Encomendas</title>
   <meta name="description" content="Controle de encomendas para confeitaria — gerencie pedidos, clientes e entregas. 100% offline.">
-  <meta name="version" content="1.1.0">
+  <meta name="version" content="1.2.0">
 
   <!-- SEO: Canonical -->
   <link rel="canonical" href="https://fynexconsultoria-droid.github.io/Fyntex/">
@@ -123,7 +123,7 @@
       </nav>
       
       <div style="font-size: 0.7rem; color: var(--text-muted); text-align: center; border-top: 1px solid var(--border-color); padding-top: 0.75rem;">
-        Fyntex Confeitaria v1.1.0<br>Modo 100% Offline
+        Fyntex Confeitaria v1.2.0<br>Modo 100% Offline
       </div>
     </aside>
 
@@ -682,6 +682,24 @@
       </div>
       <div class="modal-footer">
         <button class="btn btn-secondary" id="btnModalClientCloseBtn">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Update Progress Overlay -->
+  <div class="update-overlay" id="updateOverlay">
+    <div class="update-modal">
+      <div class="update-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+      </div>
+      <h3>Atualizando Fyntex</h3>
+      <p id="updateStatusText">Preparando...</p>
+      <div class="update-progress-track">
+        <div class="update-progress-bar" id="updateProgressBar"></div>
+      </div>
+      <div class="update-progress-info">
+        <span id="updateProgressPercent">0%</span>
+        <span id="updateProgressBytes">0 KB / 0 KB</span>
       </div>
     </div>
   </div>

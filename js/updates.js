@@ -1,5 +1,14 @@
 const Updates = {
-  verAtual: '5',
+  verAtual: '6',
+
+  assets: [
+    './', './index.html', './style.css', './manifest.json',
+    './js/state.js', './js/utils.js', './js/ui.js',
+    './js/pwa.js', './js/chart.js', './js/notifications.js',
+    './js/dashboard.js', './js/orders.js', './js/clients.js',
+    './js/settings.js', './js/updates.js', './js/app.js',
+    './icons/icon-192x192.png', './icons/icon-512x512.png'
+  ],
 
   setup() {
     document.getElementById('btnCheckUpdates').addEventListener('click', () => this.check());
@@ -10,11 +19,76 @@ const Updates = {
         confirmText: 'Recarregar',
         cancelText: 'Cancelar',
         variant: 'primary'
-      }).then(res => { if (res) window.location.reload(); });
+      }).then(res => { if (res) this.downloadUpdate(); });
     });
   },
 
+  formatBytes(bytes) {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1048576) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / 1048576).toFixed(1)} MB`;
+  },
+
+  async downloadUpdate() {
+    const overlay = document.getElementById('updateOverlay');
+    const bar = document.getElementById('updateProgressBar');
+    const percentEl = document.getElementById('updateProgressPercent');
+    const bytesEl = document.getElementById('updateProgressBytes');
+    const statusEl = document.getElementById('updateStatusText');
+
+    overlay.classList.add('active');
+
+    let totalBytes = 0;
+    const sizes = {};
+
+    statusEl.textContent = 'Verificando tamanho dos arquivos...';
+
+    for (const url of this.assets) {
+      try {
+        const r = await fetch(url, { method: 'HEAD', cache: 'no-store' });
+        const size = parseInt(r.headers.get('content-length') || '0', 10);
+        sizes[url] = size;
+        totalBytes += size;
+      } catch {
+        sizes[url] = 0;
+      }
+    }
+
+    statusEl.textContent = 'Baixando atualização...';
+    let loadedBytes = 0;
+
+    for (const url of this.assets) {
+      try {
+        const r = await fetch(url);
+        const total = parseInt(r.headers.get('content-length') || '0', 10);
+        const reader = r.body.getReader();
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          loadedBytes += value.length;
+
+          const pct = totalBytes > 0 ? Math.min(100, Math.round((loadedBytes / totalBytes) * 100)) : 0;
+          bar.style.width = `${pct}%`;
+          percentEl.textContent = `${pct}%`;
+          bytesEl.textContent = `${this.formatBytes(loadedBytes)} / ${this.formatBytes(totalBytes)}`;
+        }
+      } catch {
+        // skip failed assets
+      }
+    }
+
+    statusEl.textContent = 'Aplicando atualização...';
+    bar.style.width = '100%';
+    percentEl.textContent = '100%';
+    bytesEl.textContent = `${this.formatBytes(totalBytes)} / ${this.formatBytes(totalBytes)}`;
+
+    await new Promise(r => setTimeout(r, 600));
+    window.location.reload();
+  },
+
   changelog: [
+    { ver: '6', date: '12/07/2026', items: ['Barra de progresso com KB/MB ao baixar atualizações', 'Download de arquivos monitorado em tempo real', 'Overlay animado durante a atualização'] },
     { ver: '5', date: '12/07/2026', items: ['Correções de bugs e melhorias gerais de performance'] },
     { ver: '4', date: '12/07/2026', items: ['Correções de bugs e melhorias de performance'] },
     { ver: '3', date: '12/07/2026', items: ['Aba "Atualizações" adicionada no menu', 'Backup agora gera PDF (impressão)', 'Notificação customizada ao detectar nova versão', 'Service Worker com stale-while-revalidate', 'Tabelas mais compactas no mobile', 'Forçar verificação de atualização ao carregar'] },
@@ -74,7 +148,7 @@ const Updates = {
         });
         if (atualizar) {
           localStorage.setItem('fyntex_ver', serverVer);
-          window.location.reload();
+          this.downloadUpdate();
         } else {
           this.updateStatus('Nova versão disponível. Recarregue quando quiser.');
         }

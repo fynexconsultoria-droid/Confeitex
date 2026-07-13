@@ -25,7 +25,11 @@
             cancelText: 'Depois',
             variant: 'primary'
           }).then(res => {
-            if (res) window.location.reload();
+            if (res && typeof Updates !== 'undefined' && Updates.downloadUpdate) {
+              Updates.downloadUpdate();
+            } else if (res) {
+              window.location.reload();
+            }
           });
         }
       })
