@@ -36,7 +36,7 @@ const Orders = {
         <td class="text-right" style="font-weight:700;color:var(--color-accent-pink);font-size:0.9rem;">${fmt(o.totalValue)}</td>
         <td class="text-center"><span class="badge ${badge}" style="font-size:0.65rem;padding:0.15rem 0.4rem;">${o.status}</span></td>
       </tr>
-      <tr class="order-detail-row" id="detail-${CSS.escape(o.id)}" style="display:none;">
+      <tr class="order-detail-row" id="detail-${o.id.replace(/[^a-zA-Z0-9_-]/g, '')}" style="display:none;">
         <td colspan="5">
           <div class="order-detail-content">
             <div class="order-detail-grid">
@@ -90,7 +90,7 @@ const Orders = {
       row.addEventListener('click', (e) => {
         if (e.target.closest('button')) return;
         const id = row.dataset.id;
-        const detail = document.getElementById('detail-' + CSS.escape(id));
+        const detail = document.getElementById('detail-' + id.replace(/[^a-zA-Z0-9_-]/g, ''));
         if (detail) {
           const isVisible = detail.style.display !== 'none';
           detail.style.display = isVisible ? 'none' : 'table-row';

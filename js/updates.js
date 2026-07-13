@@ -1,5 +1,5 @@
 const Updates = {
-  verAtual: '9',
+  verAtual: '10',
 
   assets: [
     './', './index.html', './style.css', './manifest.json',
@@ -77,11 +77,20 @@ const Updates = {
     percentEl.textContent = '100%';
     bytesEl.textContent = `${this.formatBytes(totalBytes)} / ${this.formatBytes(totalBytes)}`;
 
+    // Limpa caches antigos do app
+    try {
+      const keys = await caches.keys();
+      await Promise.all(keys.filter(k => k.startsWith('fyntex')).map(k => caches.delete(k)));
+    } catch {}
+
+    // Força reinício completo com URL limpa
     await new Promise(r => setTimeout(r, 600));
-    window.location.reload();
+    const cleanUrl = window.location.href.split('?')[0].split('#')[0];
+    window.location.href = cleanUrl + '?v=' + Date.now();
   },
 
   changelog: [
+    { ver: '10', date: '12/07/2026', items: ['Reinício forçado do app após atualização completa', 'Cache do Service Worker limpo antes de reiniciar', 'URL com cache-busting para carregar versão nova'] },
     { ver: '9', date: '12/07/2026', items: ['Novo layout das Configurações: cards reorganizados e mais visíveis', 'Atualização automática ao detectar nova versão (sem confirmação)', 'Verificação periódica a cada 6h ou ao retornar ao app', 'Status com nome do arquivo sendo baixado na atualização', 'Botão "Forçar Recarregar" removido', 'Indicador "Mais usado" no Catálogo de Sabores'] },
     { ver: '8', date: '12/07/2026', items: ['Auditoria geral: correções e melhorias', 'Dados demonstrativos reais no botão de testes', 'Botão Fechar na tela de login fecha a aba', 'Prefetch de offline.html removido (arquivo inexistente)', 'Apagar dados agora também remove bloqueio de segurança'] },
     { ver: '7', date: '12/07/2026', items: ['Bloqueio por senha (login offline) com SHA-256', 'Tela de login com proteção do app', 'Gerenciamento de senha nas Configurações'] },
