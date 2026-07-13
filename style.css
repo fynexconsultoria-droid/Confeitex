@@ -1201,10 +1201,18 @@ select.form-control {
   .nav-link.active { background: var(--gradient-card-glow); color: #fff; }
 }
 
-/* Table horizontal scroll on mobile */
+/* Custom table compact on mobile */
 @media (max-width: 768px) {
-  .table-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-  .custom-table { min-width: 600px; }
+  .custom-table th, .custom-table td {
+    padding: 0.6rem 0.5rem;
+    font-size: 0.8rem;
+  }
+  .custom-table th:first-child, .custom-table td:first-child {
+    padding-left: 0.75rem;
+  }
+  .custom-table th:last-child, .custom-table td:last-child {
+    padding-right: 0.75rem;
+  }
 }
 
 /* Landscape phone optimization */
@@ -1214,6 +1222,128 @@ select.form-control {
   .nav-link { padding: 0.5rem 0.75rem; font-size: 0.8rem; }
   .chart-container { height: 150px; }
   #todayDeliveriesList { max-height: 150px; }
+}
+
+/* Order row expandable */
+.order-row {
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.order-row:hover td {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.order-row.expanded td {
+  background: rgba(236, 72, 153, 0.05);
+  border-bottom-color: transparent;
+}
+
+.order-detail-row td {
+  padding: 0 !important;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.order-detail-content {
+  padding: 1rem 1.25rem;
+  background: rgba(10, 8, 19, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  animation: fadeIn 0.2s ease;
+}
+
+.order-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+@media (max-width: 480px) {
+  .order-detail-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+}
+
+.order-detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.order-detail-label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.order-detail-item span:last-child {
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.order-detail-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.btn-sm {
+  padding: 0.4rem 0.75rem !important;
+  font-size: 0.75rem !important;
+  border-radius: var(--border-radius-sm) !important;
+  gap: 0.35rem !important;
+}
+
+.btn-sm svg {
+  width: 14px !important;
+  height: 14px !important;
+}
+
+/* Header actions compact */
+@media (max-width: 580px) {
+  .top-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+  .page-title h1 {
+    font-size: 1.2rem;
+  }
+  .page-title p {
+    display: none;
+  }
+  .header-actions {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.5rem;
+  }
+  .header-actions .date-badge {
+    font-size: 0.7rem;
+    padding: 0.35rem 0.6rem;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  .header-actions .date-badge svg {
+    width: 14px;
+    height: 14px;
+  }
+  .header-actions #btnNewOrder {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    min-width: 0;
+  }
+  .header-actions #btnNewOrder svg {
+    width: 16px;
+    height: 16px;
+  }
 }
 
 /* Config card enhancements */

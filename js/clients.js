@@ -26,16 +26,15 @@ const Clients = {
     empty.style.display = 'none';
     tbody.closest('table').style.display = 'table';
     const clientMap = {};
-    tbody.innerHTML = clients.map(c => {
-      const idx = Object.keys(clientMap).length;
+    tbody.innerHTML = clients.map((c, idx) => {
       clientMap[idx] = c;
       return `<tr>
-        <td><span style="font-weight:700;color:white;">${escapeHTML(c.name)}</span></td>
-        <td>${escapeHTML(c.phone)}</td>
-        <td class="text-center" style="font-weight:500;">${c.totalOrders}</td>
-        <td class="text-right" style="font-weight:700;color:var(--color-accent-pink);">${fmt(c.totalSpent)}</td>
-        <td class="text-center"><button class="btn btn-secondary btn-icon-only btn-view-history" data-idx="${idx}" title="Histórico" style="padding:0.4rem;">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+        <td><span style="font-weight:600;color:white;font-size:0.85rem;">${escapeHTML(c.name)}</span></td>
+        <td style="font-size:0.8rem;color:var(--text-secondary);">${escapeHTML(c.phone)}</td>
+        <td class="text-center" style="font-weight:600;font-size:0.85rem;">${c.totalOrders}</td>
+        <td class="text-right" style="font-weight:700;color:var(--color-accent-pink);font-size:0.85rem;">${fmt(c.totalSpent)}</td>
+        <td class="text-center"><button class="btn btn-secondary btn-icon-only btn-view-history" data-idx="${idx}" title="Histórico" style="padding:0.35rem;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
         </button></td>
       </tr>`;
     }).join('');
