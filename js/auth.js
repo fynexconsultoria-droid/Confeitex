@@ -54,18 +54,22 @@ const Auth = {
               <svg viewBox="0 0 24 24"><path d="M12 2a2 2 0 0 1 2 2v2h-4V4a2 2 0 0 1 2-2zM5 20h14a2 2 0 0 0 2-2v-4a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2zM3 10h18v2H3zM9 14h6v2H9z"/></svg>
             </div>
             <h2>Fyntex</h2>
-            <p>Digite a senha para acessar</p>
+            <span class="login-tagline">Confeitaria Digital</span>
           </div>
+          <div class="login-divider"></div>
           <div class="login-input-group">
             <div class="login-password-wrapper">
-              <input type="password" class="form-control login-input" id="loginPasswordInput" placeholder="Senha" autocomplete="off">
+              <input type="password" class="form-control login-input" id="loginPasswordInput" placeholder="Digite sua senha" autocomplete="off">
               <button class="login-toggle-visibility" id="loginToggleVisibility" type="button" aria-label="Mostrar senha">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
               </button>
             </div>
             <div class="login-error" id="loginError">Senha incorreta. Tente novamente.</div>
           </div>
-          <button class="btn btn-primary login-submit" id="loginSubmit">Entrar</button>
+          <button class="btn btn-primary login-submit" id="loginSubmit">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M13 12H3"/></svg>
+            Entrar
+          </button>
         </div>`;
       document.body.appendChild(overlay);
       requestAnimationFrame(() => overlay.classList.add('active'));
