@@ -45,16 +45,44 @@ const Auth = {
 
   showLogin() {
     return new Promise(resolve => {
-      const overlay = document.getElementById('loginOverlay');
+      const overlay = document.createElement('div');
+      overlay.className = 'login-overlay';
+      overlay.innerHTML = `
+        <div class="login-modal">
+          <div class="login-brand">
+            <div class="login-brand-icon">
+              <svg viewBox="0 0 24 24"><path d="M12 2a2 2 0 0 1 2 2v2h-4V4a2 2 0 0 1 2-2zM5 20h14a2 2 0 0 0 2-2v-4a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2zM3 10h18v2H3zM9 14h6v2H9z"/></svg>
+            </div>
+            <h2>Fyntex</h2>
+            <p>Digite a senha para acessar</p>
+          </div>
+          <div class="login-input-group">
+            <div class="login-password-wrapper">
+              <input type="password" class="form-control login-input" id="loginPasswordInput" placeholder="Senha" autocomplete="off">
+              <button class="login-toggle-visibility" id="loginToggleVisibility" type="button" aria-label="Mostrar senha">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+            <div class="login-error" id="loginError">Senha incorreta. Tente novamente.</div>
+          </div>
+          <button class="btn btn-primary login-submit" id="loginSubmit">Entrar</button>
+        </div>`;
+      document.body.appendChild(overlay);
+      requestAnimationFrame(() => overlay.classList.add('active'));
+
       const input = document.getElementById('loginPasswordInput');
       const submit = document.getElementById('loginSubmit');
       const error = document.getElementById('loginError');
       const toggle = document.getElementById('loginToggleVisibility');
 
-      overlay.classList.add('active');
       input.value = '';
       error.style.display = 'none';
       setTimeout(() => input.focus(), 300);
+
+      const cleanup = () => {
+        overlay.classList.remove('active');
+        setTimeout(() => overlay.remove(), 400);
+      };
 
       const doLogin = async () => {
         const pw = input.value;
@@ -65,7 +93,7 @@ const Auth = {
         submit.disabled = false;
         submit.textContent = 'Entrar';
         if (ok) {
-          overlay.classList.remove('active');
+          cleanup();
           resolve();
         } else {
           error.style.display = 'block';
@@ -82,8 +110,6 @@ const Auth = {
           ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>'
           : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
       };
-
-      // No cancel button — login required to access
     });
   },
 
