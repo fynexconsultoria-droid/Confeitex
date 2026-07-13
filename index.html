@@ -330,12 +330,12 @@
 
         <!-- Clients Table -->
         <div class="table-wrapper">
-          <table class="custom-table">
+          <table class="custom-table" id="clientsTable">
             <thead>
               <tr>
                 <th>Nome do Cliente</th>
                 <th>Telefone</th>
-                <th class="text-center">Total de Pedidos</th>
+                <th class="text-center">Pedidos</th>
                 <th class="text-right">Total Gasto</th>
                 <th class="text-center">Histórico</th>
               </tr>
@@ -400,7 +400,7 @@
               Catálogo de Sabores
               <span class="config-card-badge">Mais usado</span>
             </div>
-            <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.4;">
+            <p class="config-desc">
               Defina sabores e preços para preenchimento rápido ao criar pedidos.
             </p>
             <div style="display: flex; flex-direction: column; gap: 0.5rem; max-height: 150px; overflow-y: auto;" id="catalogListContainer">
@@ -427,7 +427,7 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
               Gerenciar Dados
             </div>
-            <p style="font-size:0.9rem;color:var(--text-secondary);line-height:1.4;">
+            <p class="config-desc">
               Faça backup, importe dados ou exporte relatórios. Tudo salvo localmente no seu dispositivo.
             </p>
             <div class="config-card-actions">
@@ -455,7 +455,7 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
               Notificações
             </div>
-            <p style="font-size:0.9rem;color:var(--text-secondary);line-height:1.4;">
+            <p class="config-desc">
               Receba lembretes no navegador sobre entregas pendentes do dia e do dia seguinte.
             </p>
             <button class="btn btn-primary" id="btnEnableNotifications" style="width:100%;">
@@ -481,7 +481,7 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
               Avançado
             </div>
-            <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.4;">
+            <p class="config-desc">
               Ações que alteram dados permanentemente. Use com cuidado.
             </p>
             <div class="config-btn-group">

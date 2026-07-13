@@ -234,7 +234,7 @@ const Auth = {
         <div style="width:10px;height:10px;border-radius:50%;background:${enabled ? 'var(--color-success)' : 'var(--text-muted)'};"></div>
         <span style="font-weight:600;color:${enabled ? 'var(--color-success)' : 'var(--text-muted)'};">${enabled ? 'Bloqueio ativado' : 'Bloqueio desativado'}</span>
       </div>
-      <p style="font-size:0.85rem;color:var(--text-secondary);line-height:1.4;">
+      <p class="config-desc" style="font-size:0.85rem;">
         Ao ativar o bloqueio, será solicitada uma senha toda vez que abrir o aplicativo.
       </p>
       <div class="config-btn-group">

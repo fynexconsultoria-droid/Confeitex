@@ -28,69 +28,36 @@ const Updates = {
     const statusEl = document.getElementById('updateStatusText');
 
     overlay.classList.add('active');
+    bar.style.width = '10%';
+    percentEl.textContent = '10%';
+    statusEl.textContent = 'Registrando nova versão...';
 
-    let totalBytes = 0;
-    const sizes = {};
-
-    statusEl.textContent = 'Verificando tamanho dos arquivos...';
-
-    for (const url of this.assets) {
+    // Registra o novo Service Worker com versão no nome do cache
+    // O SW faz cache.addAll() de todos os assets, skipWaiting(), e clients.claim()
+    // O controllerchange no pwa.js detecta e recarrega a página automaticamente
+    if ('serviceWorker' in navigator) {
       try {
-        const r = await fetch(url, { method: 'HEAD', cache: 'no-store' });
-        const size = parseInt(r.headers.get('content-length') || '0', 10);
-        sizes[url] = size;
-        totalBytes += size;
+        const swUrl = './sw.js?v=' + this.verAtual;
+        await navigator.serviceWorker.register(swUrl, { scope: './' });
+        bar.style.width = '60%';
+        percentEl.textContent = '60%';
+        statusEl.textContent = 'Nova versão instalada. Aplicando...';
       } catch {
-        sizes[url] = 0;
+        bar.style.width = '60%';
+        percentEl.textContent = '60%';
       }
     }
 
-    statusEl.textContent = 'Baixando atualização...';
-    let loadedBytes = 0;
-    let fileIndex = 0;
-
-    for (const url of this.assets) {
-      fileIndex++;
-      const fileName = url.split('/').pop() || url;
-      statusEl.textContent = `Baixando (${fileIndex}/${this.assets.length}): ${fileName}`;
-      try {
-        const r = await fetch(url);
-        const reader = r.body.getReader();
-
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          loadedBytes += value.length;
-
-          const pct = totalBytes > 0 ? Math.min(100, Math.round((loadedBytes / totalBytes) * 100)) : 0;
-          bar.style.width = `${pct}%`;
-          percentEl.textContent = `${pct}%`;
-          bytesEl.textContent = `${this.formatBytes(loadedBytes)} / ${this.formatBytes(totalBytes)}`;
-        }
-      } catch {
-        // skip failed assets
-      }
-    }
-
-    statusEl.textContent = 'Aplicando atualização...';
     bar.style.width = '100%';
     percentEl.textContent = '100%';
-    bytesEl.textContent = `${this.formatBytes(totalBytes)} / ${this.formatBytes(totalBytes)}`;
+    bytesEl.textContent = 'Concluído';
+    statusEl.textContent = 'Atualização concluída! Recarregando...';
 
-    // Limpa caches antigos do app
-    try {
-      const keys = await caches.keys();
-      await Promise.all(keys.filter(k => k.startsWith('fyntex')).map(k => caches.delete(k)));
-    } catch {}
-
-    // Tenta fechar o app completamente (funciona em PWA standalone)
-    statusEl.textContent = 'Fechando aplicativo...';
-    await new Promise(r => setTimeout(r, 800));
-    window.close();
-    // Fallback: se não fechar, recarrega
+    // O controllerchange em pwa.js vai recarregar automaticamente quando o
+    // novo SW assumir controle. Timeout de segurança caso não recarregue.
     setTimeout(() => {
-      window.location.href = window.location.href.split('?')[0].split('#')[0] + '?v=' + Date.now();
-    }, 1500);
+      window.location.href = window.location.href.split('?')[0].split('#')[0] + '?t=' + Date.now();
+    }, 3000);
   },
 
   changelog: [
