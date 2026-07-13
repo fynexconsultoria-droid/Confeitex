@@ -1,6 +1,6 @@
 {
-  "name": "Fyntex Confeitaria",
-  "short_name": "Fyntex",
+  "name": "Confeitex",
+  "short_name": "Confeitex",
   "description": "Controle de encomendas para confeitaria — 100% offline",
   "start_url": "./index.html",
   "display": "standalone",

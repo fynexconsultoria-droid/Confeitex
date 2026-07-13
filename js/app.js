@@ -49,8 +49,8 @@
   });
 
   // Se veio de uma atualização, mostra confirmação
-  if (localStorage.getItem('fyntex_updated')) {
-    localStorage.removeItem('fyntex_updated');
+  if (localStorage.getItem('confeitex_updated')) {
+    localStorage.removeItem('confeitex_updated');
     UI.toast('App atualizado para a nova versão!');
   }
 
@@ -83,13 +83,13 @@
 
   // Verifica atualização ao abrir o app (máx 1x por hora)
   (async () => {
-    const lastPrompt = localStorage.getItem('fyntex_update_prompt');
+    const lastPrompt = localStorage.getItem('confeitex_update_prompt');
     const oneHour = 3600000;
     if (lastPrompt && Date.now() - parseInt(lastPrompt) < oneHour) return;
 
     const newVer = await Updates.checkSilent();
     if (newVer) {
-      localStorage.setItem('fyntex_update_prompt', String(Date.now()));
+      localStorage.setItem('confeitex_update_prompt', String(Date.now()));
       const ok = await UI.confirm({
         title: 'Nova versão disponível',
         message: `Atualização v${newVer} encontrada! Deseja baixar e instalar agora?`,
@@ -97,7 +97,7 @@
         variant: 'primary'
       });
       if (ok) {
-        localStorage.setItem('fyntex_ver', newVer);
+        localStorage.setItem('confeitex_ver', newVer);
         Updates.verAtual = newVer;
         Updates.downloadUpdate();
       }

@@ -17,8 +17,8 @@ const State = {
 
   load() {
     try {
-      const savedOrders = localStorage.getItem('fyntex_orders');
-      const savedCatalog = localStorage.getItem('fyntex_catalog');
+      const savedOrders = localStorage.getItem('confeitex_orders');
+      const savedCatalog = localStorage.getItem('confeitex_catalog');
       this.orders = savedOrders ? JSON.parse(savedOrders).map(migrateOrder) : [];
       this.catalog = savedCatalog ? JSON.parse(savedCatalog) : [...DEFAULT_CATALOG];
       if (!savedCatalog) this.saveCatalog();
@@ -30,8 +30,8 @@ const State = {
     } catch { this.catalog = [...DEFAULT_CATALOG]; }
   },
 
-  saveOrders() { localStorage.setItem('fyntex_orders', JSON.stringify(this.orders)); },
-  saveCatalog() { localStorage.setItem('fyntex_catalog', JSON.stringify(this.catalog)); },
+  saveOrders() { localStorage.setItem('confeitex_orders', JSON.stringify(this.orders)); },
+  saveCatalog() { localStorage.setItem('confeitex_catalog', JSON.stringify(this.catalog)); },
 
   loadDemo(force = false) {
     if (!force && this.orders.length > 0) return;

@@ -37,7 +37,7 @@ const Settings = {
         </tr>`
       ).join('');
       win.document.write(`<!DOCTYPE html>
-<html><head><meta charset="utf-8"><title>Backup Fyntex - ${hoje}</title>
+<html><head><meta charset="utf-8"><title>Backup Confeitex - ${hoje}</title>
 <style>
   body{font-family:sans-serif;color:#222;padding:2rem}
   h1{font-size:1.4rem;margin-bottom:0.25rem}
@@ -48,7 +48,7 @@ const Settings = {
   small{color:#999;font-size:0.7rem}
   @media print{body{padding:0.5rem}th{background:#eee!important}}
 </style></head><body>
-<h1>Fyntex Confeitaria - Relatório de Pedidos</h1>
+<h1>Confeitex - Relatório de Pedidos</h1>
 <p>Gerado em ${hoje} — Total de ${State.orders.length} pedido(s)</p>
 <table><thead><tr>
 <th>Cliente</th><th>Produto</th><th>Entrega</th><th>Peso/Qtd</th><th>Valor</th><th>Status</th>
@@ -108,7 +108,7 @@ const Settings = {
       State.saveOrders();
       if (Auth.lockEnabled) {
         Auth.disable();
-        localStorage.removeItem('fyntex_lock_hash');
+        localStorage.removeItem('confeitex_lock_hash');
         Auth.lockHash = '';
         if (Auth.renderSecuritySettings) Auth.renderSecuritySettings();
         UI.toast('Dados e bloqueio removidos');
@@ -151,7 +151,7 @@ const Settings = {
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
-      link.download = `fyntex_relatorio_${new Date().toISOString().split('T')[0]}.csv`;
+      link.download = `confeitex_relatorio_${new Date().toISOString().split('T')[0]}.csv`;
       link.href = url;
       link.click();
       URL.revokeObjectURL(url);

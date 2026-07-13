@@ -1,7 +1,7 @@
-// Fyntex Confeitaria - Service Worker (PWA Offline Support)
+// Confeitex - Service Worker (PWA Offline Support)
 // Estratégia: Stale-While-Revalidate — version.txt sempre vai à rede
 
-const CACHE_NAME = 'fyntex-cache-v' + (self.location.search.match(/v=([\w.]+)/)?.[1] || '1');
+const CACHE_NAME = 'confeitex-cache-v' + (self.location.search.match(/v=([\w.]+)/)?.[1] || '1');
 
 // Arquivos que serão cacheados na instalação do Service Worker
 const ASSETS_TO_CACHE = [
@@ -31,7 +31,7 @@ self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
-        console.log('[SW] Cacheando arquivos do Fyntex...');
+        console.log('[SW] Cacheando arquivos do Confeitex...');
         return cache.addAll(ASSETS_TO_CACHE);
       })
       .then(() => {

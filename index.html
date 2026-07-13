@@ -3,35 +3,35 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Fyntex Confeitaria - Controle de Encomendas</title>
+  <title>Confeitex - Controle de Encomendas</title>
   <meta name="description" content="Controle de encomendas para confeitaria — gerencie pedidos, clientes e entregas. 100% offline.">
-  <meta name="version" content="1.7.2">
+  <meta name="version" content="1.8.0">
 
   <!-- SEO: Canonical -->
-  <link rel="canonical" href="https://fynexconsultoria-droid.github.io/Fyntex/">
+  <link rel="canonical" href="https://fynexconsultoria-droid.github.io/Confeitex/">
 
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website">
-  <meta property="og:url" content="https://fynexconsultoria-droid.github.io/Fyntex/">
-  <meta property="og:title" content="Fyntex Confeitaria - Controle de Encomendas">
+  <meta property="og:url" content="https://fynexconsultoria-droid.github.io/Confeitex/">
+  <meta property="og:title" content="Confeitex - Controle de Encomendas">
   <meta property="og:description" content="Gerencie pedidos, clientes e entregas da sua confeitaria. App 100% offline, instala no celular.">
-  <meta property="og:image" content="https://fynexconsultoria-droid.github.io/Fyntex/icons/icon-512x512.png">
+  <meta property="og:image" content="https://fynexconsultoria-droid.github.io/Confeitex/icons/icon-512x512.png">
   <meta property="og:locale" content="pt_BR">
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Fyntex Confeitaria - Controle de Encomendas">
+  <meta name="twitter:title" content="Confeitex - Controle de Encomendas">
   <meta name="twitter:description" content="Gerencie pedidos, clientes e entregas da sua confeitaria. App 100% offline, instala no celular.">
-  <meta name="twitter:image" content="https://fynexconsultoria-droid.github.io/Fyntex/icons/icon-512x512.png">
+  <meta name="twitter:image" content="https://fynexconsultoria-droid.github.io/Confeitex/icons/icon-512x512.png">
 
   <!-- Schema.org Structured Data -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "WebApplication",
-    "name": "Fyntex Confeitaria",
+    "name": "Confeitex",
     "description": "Controle de encomendas para confeitaria — gerencie pedidos, clientes e entregas. 100% offline.",
-    "url": "https://fynexconsultoria-droid.github.io/Fyntex/",
+    "url": "https://fynexconsultoria-droid.github.io/Confeitex/",
     "applicationCategory": "BusinessApplication",
     "operatingSystem": "Web, Android, iOS",
     "offers": { "@type": "Offer", "price": "0", "priceCurrency": "BRL" }
@@ -48,7 +48,7 @@
   <!-- iOS / Safari PWA Support -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Fyntex">
+  <meta name="apple-mobile-web-app-title" content="Confeitex">
   <link rel="apple-touch-icon" href="icons/icon-192x192.png">
 
   <!-- Favicon -->
@@ -76,7 +76,7 @@
         <!-- Cake SVG Icon -->
         <svg viewBox="0 0 24 24"><path d="M12 2a2 2 0 0 1 2 2v2h-4V4a2 2 0 0 1 2-2zM5 20h14a2 2 0 0 0 2-2v-4a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2zM3 10h18v2H3zM9 14h6v2H9z"/></svg>
       </div>
-      <span class="brand-name">Fyntex</span>
+      <span class="brand-name">Confeitex</span>
     </div>
     <button class="menu-toggle" id="menuToggle" aria-label="Abrir Menu">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
@@ -122,7 +122,7 @@
       </nav>
       
       <div style="font-size: 0.7rem; color: var(--text-muted); text-align: center; border-top: 1px solid var(--border-color); padding-top: 0.75rem;">
-        Fyntex Confeitaria v1.7.2<br>Modo 100% Offline
+        Confeitex v1.8.0<br>Modo 100% Offline
       </div>
     </aside>
 
@@ -694,7 +694,7 @@
       <div class="update-icon">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
       </div>
-      <h3>Atualizando Fyntex</h3>
+      <h3>Atualizando Confeitex</h3>
       <p id="updateStatusText">Preparando...</p>
       <div class="update-progress-track">
         <div class="update-progress-bar" id="updateProgressBar"></div>
@@ -706,6 +706,41 @@
     </div>
   </div>
 
+  <!-- Migrate old localStorage keys (fyntex_*) to new keys (confeitex_*) -->
+  <script>
+  (function() {
+    var prefixOld = 'fyntex_';
+    var prefixNew = 'confeitex_';
+    var keys = [
+      'orders', 'catalog', 'lock_enabled', 'lock_hash',
+      'notified', 'pwa_dismissed', 'updated', 'update_prompt',
+      'ver', 'last_check'
+    ];
+    var migrated = false;
+    for (var i = 0; i < keys.length; i++) {
+      var oldKey = prefixOld + keys[i];
+      var newKey = prefixNew + keys[i];
+      var val = localStorage.getItem(oldKey);
+      if (val !== null) {
+        if (localStorage.getItem(newKey) === null) {
+          localStorage.setItem(newKey, val);
+        }
+        localStorage.removeItem(oldKey);
+        migrated = true;
+      }
+    }
+    // Migrate sessionStorage
+    var sessVal = sessionStorage.getItem(prefixOld + 'auth');
+    if (sessVal !== null) {
+      if (sessionStorage.getItem(prefixNew + 'auth') === null) {
+        sessionStorage.setItem(prefixNew + 'auth', sessVal);
+      }
+      sessionStorage.removeItem(prefixOld + 'auth');
+      migrated = true;
+    }
+    if (migrated) console.log('[Migrate] Dados antigos migrados para Confeitex');
+  })();
+  </script>
   <script src="js/state.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/utils.js"></script>

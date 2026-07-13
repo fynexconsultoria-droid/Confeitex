@@ -3,8 +3,8 @@ const Auth = {
   lockHash: '',
 
   init() {
-    this.lockEnabled = localStorage.getItem('fyntex_lock_enabled') === 'true';
-    this.lockHash = localStorage.getItem('fyntex_lock_hash') || '';
+    this.lockEnabled = localStorage.getItem('confeitex_lock_enabled') === 'true';
+    this.lockHash = localStorage.getItem('confeitex_lock_hash') || '';
   },
 
   supported() {
@@ -21,7 +21,7 @@ const Auth = {
 
   async setPassword(password) {
     this.lockHash = await this._hash(password);
-    localStorage.setItem('fyntex_lock_hash', this.lockHash);
+    localStorage.setItem('confeitex_lock_hash', this.lockHash);
   },
 
   async verify(password) {
@@ -31,16 +31,16 @@ const Auth = {
 
   enable() {
     this.lockEnabled = true;
-    localStorage.setItem('fyntex_lock_enabled', 'true');
+    localStorage.setItem('confeitex_lock_enabled', 'true');
   },
 
   disable() {
     this.lockEnabled = false;
-    localStorage.setItem('fyntex_lock_enabled', 'false');
+    localStorage.setItem('confeitex_lock_enabled', 'false');
   },
 
   isLocked() {
-    return this.lockEnabled && !!this.lockHash && !sessionStorage.getItem('fyntex_auth');
+    return this.lockEnabled && !!this.lockHash && !sessionStorage.getItem('confeitex_auth');
   },
 
   _loginShown: false,
@@ -57,7 +57,7 @@ const Auth = {
             <div class="login-brand-icon">
               <svg viewBox="0 0 24 24"><path d="M12 2a2 2 0 0 1 2 2v2h-4V4a2 2 0 0 1 2-2zM5 20h14a2 2 0 0 0 2-2v-4a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2zM3 10h18v2H3zM9 14h6v2H9z"/></svg>
             </div>
-            <h2>Fyntex</h2>
+            <h2>Confeitex</h2>
             <span class="login-tagline">Confeitaria Digital</span>
           </div>
           <div class="login-divider"></div>
@@ -101,7 +101,7 @@ const Auth = {
         submit.disabled = false;
         submit.textContent = 'Entrar';
         if (ok) {
-          sessionStorage.setItem('fyntex_auth', 'true');
+          sessionStorage.setItem('confeitex_auth', 'true');
           cleanup();
           resolve();
         } else {

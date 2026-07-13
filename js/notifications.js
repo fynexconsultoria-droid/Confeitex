@@ -30,26 +30,26 @@ const Notifications = {
     const pendingToday = State.orders.filter(o => o.deliveryDate === today && (o.status === 'Pendente' || o.status === 'Em Produção'));
     const pendingTomorrow = State.orders.filter(o => o.deliveryDate === tomorrow && (o.status === 'Pendente' || o.status === 'Em Produção'));
 
-    const sent = JSON.parse(localStorage.getItem('fyntex_notified') || '{}');
+    const sent = JSON.parse(localStorage.getItem('confeitex_notified') || '{}');
 
     if (pendingToday.length > 0 && !sent[today]) {
-      new Notification('Fyntex - Entregas de Hoje', {
+      new Notification('Confeitex - Entregas de Hoje', {
         body: `${pendingToday.length} entrega(s) pendente(s) hoje!\n${pendingToday.map(o => `${o.deliveryTime} ${o.clientName}: ${o.flavor}`).join('\n')}`,
         icon: 'icons/icon-192x192.png',
-        tag: 'fyntex-today'
+        tag: 'confeitex-today'
       });
       sent[today] = true;
-      localStorage.setItem('fyntex_notified', JSON.stringify(sent));
+      localStorage.setItem('confeitex_notified', JSON.stringify(sent));
     }
 
     if (pendingTomorrow.length > 0 && !sent[`prev_${tomorrow}`]) {
-      new Notification('Fyntex - Lembrete: Amanhã', {
+      new Notification('Confeitex - Lembrete: Amanhã', {
         body: `${pendingTomorrow.length} entrega(s) amanhã!\n${pendingTomorrow.map(o => `${o.deliveryTime} ${o.clientName}: ${o.flavor}`).join('\n')}`,
         icon: 'icons/icon-192x192.png',
-        tag: 'fyntex-tomorrow'
+        tag: 'confeitex-tomorrow'
       });
       sent[`prev_${tomorrow}`] = true;
-      localStorage.setItem('fyntex_notified', JSON.stringify(sent));
+      localStorage.setItem('confeitex_notified', JSON.stringify(sent));
     }
   }
 };

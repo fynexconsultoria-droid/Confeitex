@@ -1,5 +1,5 @@
 const Updates = {
-  verAtual: '16',
+  verAtual: '17',
 
   assets: [
     './', './index.html', './style.css', './manifest.json',
@@ -62,7 +62,7 @@ const Updates = {
 
     // 3. Marca no localStorage que foi atualizado (para feedback pós-reload)
     statusEl.textContent = 'Preparando nova versão...';
-    localStorage.setItem('fyntex_updated', 'true');
+    localStorage.setItem('confeitex_updated', 'true');
     bar.style.width = '75%';
     percentEl.textContent = '75%';
 
@@ -85,6 +85,7 @@ const Updates = {
   },
 
   changelog: [
+    { ver: '17', date: '13/07/2026', items: ['Rebranding: app renomeado para Confeitex', 'Novo logotipo e ícones modernos do app', 'Todas as referências atualizadas para Confeitex', 'Migração automática de dados antigos (fyntex_) para o novo padrão (confeitex_)'] },
     { ver: '16', date: '13/07/2026', items: ['Notificações modernas: toast com ícone e glass-morphism, modal com gradiente e animação', 'Verificação automática de nova versão ao abrir o app (máx 1x/hora)', 'Sistema de atualização refatorado: limpa caches, desregistra SW antigo e recarrega do zero', 'Confirmação visual "App atualizado" após reload', 'Gradiente vermelho/rosa do canto inferior direito e do login removido', 'Filtro de pedidos não começa mais com data de hoje — mostra todos', 'SVG dos botões preservado após loading/erro no login e atualizações', 'deliveredAt limpo ao mudar status de "Entregue" para outro'] },
     { ver: '15', date: '13/07/2026', items: ['Sistema de atualização refatorado: limpa caches, desregistra SW antigo e recarrega do zero', 'Confirmação visual "App atualizado" após reload', 'Gradiente vermelho/rosa do canto inferior direito e do login removido', 'Filtro de pedidos não começa mais com data de hoje — mostra todos', 'SVG dos botões preservado após loading/erro no login e atualizações', 'deliveredAt limpo ao mudar status de "Entregue" para outro', 'Contagem regressiva de 3s antes de recarregar após atualização', 'substr() substituído por slice(), segurança em closest()'] },
     { ver: '14', date: '13/07/2026', items: ['Design: sombras brancas e outlines removidos ao clicar em elementos', 'Tabelas de Pedidos e Clientes agora cabem na tela sem scroll horizontal', 'Atualização não trava mais em tela preta — usa ciclo do Service Worker', 'Configurações: espaçamento e alinhamento de textos e botões ajustados', 'Cache do SW dinâmico por versão para evitar conflitos'] },
@@ -99,12 +100,12 @@ const Updates = {
     { ver: '4', date: '12/07/2026', items: ['Correções de bugs e melhorias de performance'] },
     { ver: '3', date: '12/07/2026', items: ['Aba "Atualizações" adicionada no menu', 'Backup agora gera PDF (impressão)', 'Notificação customizada ao detectar nova versão', 'Service Worker com stale-while-revalidate', 'Tabelas mais compactas no mobile', 'Forçar verificação de atualização ao carregar'] },
     { ver: '2', date: '11/07/2026', items: ['Remoção de dados demo na inicialização', 'Textos otimizados para mobile', 'Sombras removidas no toque'] },
-    { ver: '1', date: '10/07/2026', items: ['Versão inicial do Fyntex Confeitaria'] }
+    { ver: '1', date: '10/07/2026', items: ['Versão inicial do Confeitex'] }
   ],
 
   render() {
     document.getElementById('updatesCurrentVer').textContent = `v${this.verAtual}`;
-    const lastCheck = localStorage.getItem('fyntex_last_check');
+    const lastCheck = localStorage.getItem('confeitex_last_check');
     document.getElementById('updatesLastCheck').textContent = lastCheck || 'Nunca verificada';
     this.renderChangelog();
     this.updateStatus('');
@@ -142,8 +143,8 @@ const Updates = {
       const r = await fetch('./version.txt?t=' + Date.now(), { cache: 'no-store' });
       if (!r.ok) throw new Error('Sem conexão');
       const serverVer = (await r.text()).trim();
-      localStorage.setItem('fyntex_last_check', new Date().toLocaleString('pt-BR'));
-      document.getElementById('updatesLastCheck').textContent = localStorage.getItem('fyntex_last_check');
+      localStorage.setItem('confeitex_last_check', new Date().toLocaleString('pt-BR'));
+      document.getElementById('updatesLastCheck').textContent = localStorage.getItem('confeitex_last_check');
 
       if (serverVer && serverVer !== this.verAtual) {
         const confirmado = await UI.confirm({
@@ -161,7 +162,7 @@ const Updates = {
         this.updateStatus(`Nova versão v${serverVer} encontrada! Baixando...`);
         btn.disabled = false;
         btn.innerHTML = btnHtml;
-        localStorage.setItem('fyntex_ver', serverVer);
+        localStorage.setItem('confeitex_ver', serverVer);
         this.downloadUpdate();
         return;
       } else if (serverVer === this.verAtual) {
