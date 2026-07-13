@@ -1,5 +1,5 @@
 const Updates = {
-  verAtual: '11',
+  verAtual: '12',
 
   assets: [
     './', './index.html', './style.css', './manifest.json',
