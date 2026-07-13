@@ -51,13 +51,22 @@ const Updates = {
     bar.style.width = '100%';
     percentEl.textContent = '100%';
     bytesEl.textContent = 'Concluído';
-    statusEl.textContent = 'Atualização concluída! Recarregando...';
 
-    // O controllerchange em pwa.js vai recarregar automaticamente quando o
-    // novo SW assumir controle. Timeout de segurança caso não recarregue.
-    setTimeout(() => {
-      window.location.href = window.location.href.split('?')[0].split('#')[0] + '?t=' + Date.now();
-    }, 3000);
+    // Contagem regressiva antes de recarregar
+    let segundos = 3;
+    statusEl.textContent = `Atualização concluída! Recarregando em ${segundos}s...`;
+
+    const intervalo = setInterval(() => {
+      segundos--;
+      if (segundos > 0) {
+        statusEl.textContent = `Atualização concluída! Recarregando em ${segundos}s...`;
+      } else {
+        clearInterval(intervalo);
+        statusEl.textContent = 'Recarregando...';
+        // O controllerchange em pwa.js pode recarregar antes do timeout
+        window.location.href = window.location.href.split('?')[0].split('#')[0] + '?t=' + Date.now();
+      }
+    }, 1000);
   },
 
   changelog: [
