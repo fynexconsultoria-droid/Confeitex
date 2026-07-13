@@ -1,5 +1,5 @@
 const Updates = {
-  verAtual: '3',
+  verAtual: '5',
 
   setup() {
     document.getElementById('btnCheckUpdates').addEventListener('click', () => this.check());
@@ -15,6 +15,8 @@ const Updates = {
   },
 
   changelog: [
+    { ver: '5', date: '12/07/2026', items: ['Correções de bugs e melhorias gerais de performance'] },
+    { ver: '4', date: '12/07/2026', items: ['Correções de bugs e melhorias de performance'] },
     { ver: '3', date: '12/07/2026', items: ['Aba "Atualizações" adicionada no menu', 'Backup agora gera PDF (impressão)', 'Notificação customizada ao detectar nova versão', 'Service Worker com stale-while-revalidate', 'Tabelas mais compactas no mobile', 'Forçar verificação de atualização ao carregar'] },
     { ver: '2', date: '11/07/2026', items: ['Remoção de dados demo na inicialização', 'Textos otimizados para mobile', 'Sombras removidas no toque'] },
     { ver: '1', date: '10/07/2026', items: ['Versão inicial do Fyntex Confeitaria'] }
