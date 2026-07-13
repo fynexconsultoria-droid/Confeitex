@@ -1,5 +1,10 @@
-(() => {
+(async () => {
   State.load();
+  Auth.init();
+
+  if (Auth.isLocked()) {
+    await Auth.showLogin();
+  }
 
   const tabTitles = {
     dashboard: { title: 'Painel de Controle', subtitle: 'Estatísticas gerais e entregas de hoje.' },

@@ -1,7 +1,7 @@
 // Fyntex Confeitaria - Service Worker (PWA Offline Support)
 // Estratégia: Stale-While-Revalidate — rápido do cache mas sempre busca atualizações
 
-const CACHE_NAME = 'fyntex-confeitaria-v1.2.0';
+const CACHE_NAME = 'fyntex-confeitaria-v1.3.0';
 
 // Arquivos que serão cacheados na instalação do Service Worker
 const ASSETS_TO_CACHE = [
@@ -10,6 +10,7 @@ const ASSETS_TO_CACHE = [
   './style.css',
   './manifest.json',
   './js/state.js',
+  './js/auth.js',
   './js/utils.js',
   './js/ui.js',
   './js/pwa.js',

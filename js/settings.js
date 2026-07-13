@@ -148,6 +148,9 @@ const Settings = {
     });
 
     // Notificações programadas
+    // Security settings
+    Auth.renderSecuritySettings();
+
     document.getElementById('btnEnableNotifications').addEventListener('click', async () => {
       if (!('Notification' in window)) { UI.alert('Notificações não suportadas neste navegador.'); return; }
       const perm = await Notification.requestPermission();

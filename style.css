@@ -1216,6 +1216,174 @@ select.form-control {
   #todayDeliveriesList { max-height: 150px; }
 }
 
+/* Login Overlay */
+.login-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100dvh;
+  background: var(--bg-primary);
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(139, 92, 246, 0.15) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(236, 72, 153, 0.12) 0px, transparent 50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s ease;
+}
+
+.login-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.login-modal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  max-width: 360px;
+  width: calc(100% - 2rem);
+  padding: 2rem;
+}
+
+.login-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  text-align: center;
+}
+
+.login-brand-icon {
+  width: 64px;
+  height: 64px;
+  background: var(--gradient-primary);
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 30px rgba(236, 72, 153, 0.3);
+}
+
+.login-brand-icon svg {
+  width: 32px;
+  height: 32px;
+  fill: none;
+  stroke: white;
+  stroke-width: 2;
+}
+
+.login-brand h2 {
+  font-size: 1.8rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-top: 0.25rem;
+}
+
+.login-brand p {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.login-input-group {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.login-password-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.login-input {
+  padding-right: 3rem !important;
+  text-align: center;
+  font-size: 1.1rem !important;
+  letter-spacing: 0.25rem;
+}
+
+.login-toggle-visibility {
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0.4rem;
+  display: flex;
+  transition: var(--transition-fast);
+}
+
+.login-toggle-visibility:hover {
+  color: var(--text-secondary);
+}
+
+.login-toggle-visibility svg {
+  width: 20px;
+  height: 20px;
+}
+
+.login-error {
+  color: var(--color-danger);
+  font-size: 0.85rem;
+  text-align: center;
+  display: none;
+  animation: shake 0.4s ease;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-8px); }
+  40% { transform: translateX(8px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+}
+
+.login-submit {
+  width: 100%;
+  padding: 1rem !important;
+  font-size: 1rem !important;
+}
+
+.login-cancel {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  cursor: pointer;
+  padding: 0.25rem;
+}
+
+.login-cancel:hover {
+  color: var(--text-secondary);
+}
+
+.login-spinner {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: loginSpin 0.6s linear infinite;
+}
+
+@keyframes loginSpin {
+  to { transform: rotate(360deg); }
+}
+
 /* Update Progress Overlay */
 .update-overlay {
   position: fixed;

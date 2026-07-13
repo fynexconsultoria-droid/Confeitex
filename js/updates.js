@@ -1,9 +1,9 @@
 const Updates = {
-  verAtual: '6',
+  verAtual: '7',
 
   assets: [
     './', './index.html', './style.css', './manifest.json',
-    './js/state.js', './js/utils.js', './js/ui.js',
+    './js/state.js', './js/auth.js', './js/utils.js', './js/ui.js',
     './js/pwa.js', './js/chart.js', './js/notifications.js',
     './js/dashboard.js', './js/orders.js', './js/clients.js',
     './js/settings.js', './js/updates.js', './js/app.js',
@@ -88,6 +88,7 @@ const Updates = {
   },
 
   changelog: [
+    { ver: '7', date: '12/07/2026', items: ['Bloqueio por senha (login offline) com SHA-256', 'Tela de login com proteção do app', 'Gerenciamento de senha nas Configurações'] },
     { ver: '6', date: '12/07/2026', items: ['Barra de progresso com KB/MB ao baixar atualizações', 'Download de arquivos monitorado em tempo real', 'Overlay animado durante a atualização'] },
     { ver: '5', date: '12/07/2026', items: ['Correções de bugs e melhorias gerais de performance'] },
     { ver: '4', date: '12/07/2026', items: ['Correções de bugs e melhorias de performance'] },
