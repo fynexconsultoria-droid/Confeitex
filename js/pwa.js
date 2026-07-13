@@ -7,33 +7,35 @@
     });
   }
 
+  async function autoCheck() {
+    try {
+      const r = await fetch('./version.txt?t=' + Date.now(), { cache: 'no-store' });
+      if (!r.ok) return;
+      const ver = (await r.text()).trim();
+      if (!ver) return;
+      localStorage.setItem('fyntex_last_check', new Date().toLocaleString('pt-BR'));
+      const atual = localStorage.getItem('fyntex_ver');
+      if (atual === ver) return;
+      localStorage.setItem('fyntex_ver', ver);
+      if (typeof Updates !== 'undefined' && Updates.downloadUpdate) {
+        await Updates.downloadUpdate();
+      } else {
+        window.location.reload();
+      }
+    } catch {}
+  }
+
   window.addEventListener('load', () => {
-    fetch('./version.txt?t=' + Date.now(), { cache: 'no-store' })
-      .then(r => r.ok ? r.text() : '')
-      .then(v => {
-        const ver = v.trim();
-        if (!ver) return;
-        const atual = localStorage.getItem('fyntex_ver');
-        if (!atual || atual !== ver) {
-          localStorage.setItem('fyntex_ver', ver);
-          UI.confirm({
-            title: 'Nova versão disponível!',
-            message: atual
-              ? `Versão v${ver} disponível (você estava na v${atual}). Deseja recarregar para atualizar?`
-              : `Versão v${ver} disponível! Deseja recarregar o aplicativo para aplicar as atualizações?`,
-            confirmText: 'Atualizar Agora',
-            cancelText: 'Depois',
-            variant: 'primary'
-          }).then(res => {
-            if (res && typeof Updates !== 'undefined' && Updates.downloadUpdate) {
-              Updates.downloadUpdate();
-            } else if (res) {
-              window.location.reload();
-            }
-          });
-        }
-      })
-      .catch(() => {});
+    setTimeout(autoCheck, 2000);
+  });
+
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) {
+      const lastCheck = localStorage.getItem('fyntex_last_check');
+      if (!lastCheck || Date.now() - new Date(lastCheck).getTime() > 21600000) {
+        autoCheck();
+      }
+    }
   });
 
   window.addEventListener('beforeinstallprompt', (e) => {

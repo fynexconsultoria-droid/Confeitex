@@ -1,5 +1,5 @@
 const Updates = {
-  verAtual: '8',
+  verAtual: '9',
 
   assets: [
     './', './index.html', './style.css', './manifest.json',
@@ -12,15 +12,6 @@ const Updates = {
 
   setup() {
     document.getElementById('btnCheckUpdates').addEventListener('click', () => this.check());
-    document.getElementById('btnForceUpdate').addEventListener('click', () => {
-      UI.confirm({
-        title: 'Recarregar App',
-        message: 'Isso vai recarregar o aplicativo para buscar a versão mais recente. Continuar?',
-        confirmText: 'Recarregar',
-        cancelText: 'Cancelar',
-        variant: 'primary'
-      }).then(res => { if (res) this.downloadUpdate(); });
-    });
   },
 
   formatBytes(bytes) {
@@ -56,11 +47,14 @@ const Updates = {
 
     statusEl.textContent = 'Baixando atualização...';
     let loadedBytes = 0;
+    let fileIndex = 0;
 
     for (const url of this.assets) {
+      fileIndex++;
+      const fileName = url.split('/').pop() || url;
+      statusEl.textContent = `Baixando (${fileIndex}/${this.assets.length}): ${fileName}`;
       try {
         const r = await fetch(url);
-        const total = parseInt(r.headers.get('content-length') || '0', 10);
         const reader = r.body.getReader();
 
         while (true) {
@@ -88,6 +82,7 @@ const Updates = {
   },
 
   changelog: [
+    { ver: '9', date: '12/07/2026', items: ['Novo layout das Configurações: cards reorganizados e mais visíveis', 'Atualização automática ao detectar nova versão (sem confirmação)', 'Verificação periódica a cada 6h ou ao retornar ao app', 'Status com nome do arquivo sendo baixado na atualização', 'Botão "Forçar Recarregar" removido', 'Indicador "Mais usado" no Catálogo de Sabores'] },
     { ver: '8', date: '12/07/2026', items: ['Auditoria geral: correções e melhorias', 'Dados demonstrativos reais no botão de testes', 'Botão Fechar na tela de login fecha a aba', 'Prefetch de offline.html removido (arquivo inexistente)', 'Apagar dados agora também remove bloqueio de segurança'] },
     { ver: '7', date: '12/07/2026', items: ['Bloqueio por senha (login offline) com SHA-256', 'Tela de login com proteção do app', 'Gerenciamento de senha nas Configurações'] },
     { ver: '6', date: '12/07/2026', items: ['Barra de progresso com KB/MB ao baixar atualizações', 'Download de arquivos monitorado em tempo real', 'Overlay animado durante a atualização'] },
@@ -130,7 +125,7 @@ const Updates = {
   async check() {
     const btn = document.getElementById('btnCheckUpdates');
     btn.disabled = true;
-    btn.textContent = 'Verificando...';
+    btn.innerHTML = '<span class="login-spinner"></span> Verificando...';
     this.updateStatus('Verificando...');
 
     try {
@@ -141,26 +136,19 @@ const Updates = {
       document.getElementById('updatesLastCheck').textContent = localStorage.getItem('fyntex_last_check');
 
       if (serverVer && serverVer !== this.verAtual) {
-        const atualizar = await UI.confirm({
-          title: 'Nova versão disponível!',
-          message: `Versão v${serverVer} disponível (você está na v${this.verAtual}). Deseja recarregar o aplicativo para atualizar?`,
-          confirmText: 'Atualizar Agora',
-          cancelText: 'Depois',
-          variant: 'primary'
-        });
-        if (atualizar) {
-          localStorage.setItem('fyntex_ver', serverVer);
-          this.downloadUpdate();
-        } else {
-          this.updateStatus('Nova versão disponível. Recarregue quando quiser.');
-        }
+        this.updateStatus(`Nova versão v${serverVer} encontrada! Baixando...`);
+        btn.disabled = false;
+        btn.textContent = 'Verificar Agora';
+        localStorage.setItem('fyntex_ver', serverVer);
+        this.downloadUpdate();
+        return;
       } else if (serverVer === this.verAtual) {
-        this.updateStatus('App atualizado! Você já está na versão mais recente.');
+        this.updateStatus('App atualizado! Você está na versão mais recente.');
       } else {
         this.updateStatus('Não foi possível verificar a versão.', true);
       }
     } catch {
-      this.updateStatus('Sem conexão com a internet. Verifique mais tarde.', true);
+      this.updateStatus('Sem conexão com a internet.', true);
     }
 
     btn.disabled = false;

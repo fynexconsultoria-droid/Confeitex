@@ -374,16 +374,10 @@
                   <div style="font-size:1rem;font-weight:600;color:var(--text-primary);" id="updatesLastCheck">—</div>
                 </div>
               </div>
-              <div style="display:flex;gap:0.75rem;flex-wrap:wrap;">
-                <button class="btn btn-primary" id="btnCheckUpdates">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-                  Verificar Agora
-                </button>
-                <button class="btn btn-secondary" id="btnForceUpdate" style="border-color:rgba(236,72,153,0.3);color:var(--color-accent-pink);">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
-                  Forçar Recarregar
-                </button>
-              </div>
+              <button class="btn btn-primary" id="btnCheckUpdates" style="width:100%;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                Verificar Agora
+              </button>
               <div id="updatesStatus" style="font-size:0.85rem;color:var(--color-success);"></div>
             </div>
           </div>
@@ -400,40 +394,16 @@
       <!-- TAB 4: SETTINGS / CONFIG -->
       <section id="settings" class="tab-content">
         <div class="config-grid">
-          <!-- Backup Card -->
-          <div class="config-card">
-            <div class="config-card-header">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-              Backup & Dados (100% Offline)
-            </div>
-            <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.4;">
-              Como este aplicativo funciona de forma local em seu computador, é recomendável fazer cópias de segurança (backup) periódicas dos seus pedidos para não perder suas informações.
-            </p>
-            <div class="config-btn-group">
-              <button class="btn btn-primary" id="btnExportData">
-                <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                Exportar Backup (PDF)
-              </button>
-              
-              <div style="position: relative;">
-                <input type="file" id="importFileInput" accept=".json" style="display: none;">
-                <button class="btn btn-secondary" id="btnImportData" style="width: 100%;">
-                  <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                  Importar Backup (Carregar JSON)
-                </button>
-              </div>
-            </div>
-          </div>
 
           <!-- Catalog Management Card -->
-          <div class="config-card">
+          <div class="config-card config-card-highlight">
             <div class="config-card-header">
-              <!-- Cake Catalog -->
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-              Sugestões Rápidas de Sabores e Preços
+              Catálogo de Sabores
+              <span class="config-card-badge">Mais usado</span>
             </div>
             <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.4;">
-              Defina os sabores padrão e seus respectivos preços por quilo para preenchimento rápido ao criar novos pedidos.
+              Defina sabores e preços para preenchimento rápido ao criar pedidos.
             </p>
             <div style="display: flex; flex-direction: column; gap: 0.5rem; max-height: 150px; overflow-y: auto;" id="catalogListContainer">
               <!-- Flavors list -->
@@ -453,56 +423,80 @@
             </div>
           </div>
 
-          <!-- Export & Notifications Card -->
+          <!-- Data Management Card (Backup + Import + Export) -->
           <div class="config-card">
             <div class="config-card-header">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-              Exportar & Notificações
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              Gerenciar Dados
             </div>
             <p style="font-size:0.9rem;color:var(--text-secondary);line-height:1.4;">
-              Exporte relatórios detalhados em CSV ou ative notificações do navegador para lembrar das entregas do dia.
+              Faça backup, importe dados ou exporte relatórios. Tudo salvo localmente no seu dispositivo.
             </p>
-            <div class="config-btn-group">
-              <button class="btn btn-primary" id="btnExportCSV">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-                Exportar Relatório CSV
+            <div class="config-card-actions">
+              <button class="btn btn-primary" id="btnExportData" style="flex:1;">
+                <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Backup PDF
               </button>
-              <button class="btn btn-secondary" id="btnEnableNotifications">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-                Ativar Notificações de Entrega
+              <button class="btn btn-secondary" id="btnExportCSV" style="flex:1;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                CSV
               </button>
             </div>
+            <div style="position:relative;">
+              <input type="file" id="importFileInput" accept=".json" style="display:none;">
+              <button class="btn btn-secondary" id="btnImportData" style="width:100%;">
+                <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                Importar Dados (JSON)
+              </button>
+            </div>
+          </div>
+
+          <!-- Notifications Card -->
+          <div class="config-card">
+            <div class="config-card-header">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+              Notificações
+            </div>
+            <p style="font-size:0.9rem;color:var(--text-secondary);line-height:1.4;">
+              Receba lembretes no navegador sobre entregas pendentes do dia e do dia seguinte.
+            </p>
+            <button class="btn btn-primary" id="btnEnableNotifications" style="width:100%;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+              Ativar Notificações
+            </button>
           </div>
 
           <!-- Security Card -->
           <div class="config-card">
             <div class="config-card-header">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-              Segurança & Privacidade
+              Segurança
             </div>
             <div id="securitySettingsContainer">
               <!-- Populated by Auth.renderSecuritySettings() -->
             </div>
           </div>
 
-          <!-- Dangerous Actions Card -->
+          <!-- Advanced / Danger Zone -->
           <div class="config-card" style="border-color: rgba(239, 68, 68, 0.2);">
             <div class="config-card-header" style="color: var(--color-danger);">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-              Zona de Risco
+              Avançado
             </div>
             <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.4;">
-              Estas ações apagam dados permanentemente. Tenha certeza do que está fazendo antes de prosseguir.
+              Ações que alteram dados permanentemente. Use com cuidado.
             </p>
             <div class="config-btn-group">
               <button class="btn btn-secondary" id="btnLoadDemo" style="border-color: rgba(139, 92, 246, 0.3); color: var(--color-accent-purple);">
-                Carregar Dados Demonstrativos (Testes)
+                Carregar Dados de Exemplo
               </button>
               <button class="btn btn-danger" id="btnClearAllData">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
                 Apagar Todos os Dados
               </button>
             </div>
           </div>
+
         </div>
       </section>
 
