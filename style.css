@@ -2016,7 +2016,7 @@ select.form-control {
   width: 0%;
   background: var(--gradient-primary);
   border-radius: 50px;
-  transition: width 0.3s ease;
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .update-progress-info {
@@ -2026,4 +2026,27 @@ select.form-control {
   font-size: 0.75rem;
   color: var(--text-muted);
   font-weight: 600;
+}
+
+.update-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.update-actions .btn {
+  border: none;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  font-weight: 600;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.update-actions .btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.update-actions .btn:active {
+  transform: translateY(0);
 }

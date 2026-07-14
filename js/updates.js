@@ -1,33 +1,49 @@
 const Updates = {
-  verAtual: '1.10.2',
+  verAtual: '1.11.0',
 
   setup() {
     document.getElementById('btnCheckUpdates').addEventListener('click', () => this.check());
-  },
-
-  async checkSilent() {
-    try {
-      const r = await fetch('./version.txt?t=' + Date.now(), { cache: 'no-store' });
-      if (!r.ok) return null;
-      const serverVer = (await r.text()).trim();
-      if (serverVer && serverVer !== this.verAtual) return serverVer;
-    } catch {}
-    return null;
   },
 
   _delay(ms) {
     return new Promise(r => setTimeout(r, ms));
   },
 
+  // Verifica nova versão (retorna versão ou null)
+  async _fetchVersion() {
+    try {
+      const r = await fetch('./version.txt?t=' + Date.now(), { cache: 'no-store' });
+      if (!r.ok) return null;
+      return (await r.text()).trim();
+    } catch { return null; }
+  },
+
+  // Auto-verificação silenciosa (chamada pelo app.js)
+  async checkSilent() {
+    const serverVer = await this._fetchVersion();
+    return (serverVer && serverVer !== this.verAtual) ? serverVer : null;
+  },
+
+  async _fail(overlay, msg) {
+    overlay.classList.remove('active');
+    overlay.style.display = 'none';
+    await this._delay(400);
+    UI.alert(msg || 'Erro ao atualizar. Tente novamente.');
+  },
+
   async downloadUpdate() {
     const overlay = document.getElementById('updateOverlay');
     const bar = document.getElementById('updateProgressBar');
     const percentEl = document.getElementById('updateProgressPercent');
-    const bytesEl = document.getElementById('updateProgressBytes');
     const statusEl = document.getElementById('updateStatusText');
     const stageEl = document.getElementById('updateStageText');
+    const bytesEl = document.getElementById('updateProgressBytes');
+    const actionsEl = document.getElementById('updateActions');
+    const btnReload = document.getElementById('btnReloadNow');
+    const btnClose = document.getElementById('btnCloseApp');
 
     overlay.classList.add('active');
+    actionsEl.style.display = 'none';
     bytesEl.textContent = '';
 
     const newVer = localStorage.getItem('confeitex_ver') || this.verAtual;
@@ -40,127 +56,125 @@ const Updates = {
       if (stageEl) stageEl.textContent = detail || '';
     };
 
-    // Timer para exibir tempo decorrido em tempo real
-    let timerInterval = setInterval(() => {
-      const sec = Math.floor((Date.now() - startedAt) / 1000);
-      const min = Math.floor(sec / 60);
-      const s = sec % 60;
-      const display = min > 0 ? `${min}m ${s}s` : `${s}s`;
-      bytesEl.textContent = '⏱ ' + display;
-    }, 500);
+    const timeStr = () => {
+      const s = Math.floor((Date.now() - startedAt) / 1000);
+      return s >= 60 ? `${Math.floor(s/60)}m ${s%60}s` : `${s}s`;
+    };
 
+    let timerInterval = setInterval(() => { bytesEl.textContent = '⏱ ' + timeStr(); }, 500);
     const stopTimer = () => { clearInterval(timerInterval); timerInterval = null; };
 
-    // Função helper: executa com timeout (fallback silencioso se estourar)
-    const waitOrTimeout = (promise, ms) => Promise.race([
-      promise,
-      this._delay(ms).then(() => { throw new Error('timeout'); })
-    ]).catch(() => {});
-
-    // Step 1: Preparação
-    setProgress(5, 'Preparando atualização...', 'Limpando versão anterior');
+    // --- Step 1: Preparação ---
+    setProgress(5, 'Preparando...', '');
     localStorage.removeItem('confeitex_notified');
     localStorage.removeItem('confeitex_update_prompt');
     localStorage.removeItem('confeitex_pwa_dismissed');
-    await this._delay(300);
 
-    // Step 2: Remove Service Worker antigo
+    // --- Step 2: Remove Service Worker antigo ---
     setProgress(20, 'Removendo versão anterior...', '');
-    let swSupported = 'serviceWorker' in navigator;
-    if (swSupported) {
-      try {
-        const reg = await navigator.serviceWorker.getRegistration();
-        if (reg) await reg.unregister();
-      } catch {}
+    let swOk = 'serviceWorker' in navigator;
+    if (swOk) {
+      try { const r = await navigator.serviceWorker.getRegistration(); if (r) await r.unregister(); } catch {}
     }
-    await this._delay(200);
 
-    // Step 3: Registra novo Service Worker
+    // --- Step 3: Registra novo SW ---
     setProgress(40, 'Registrando nova versão...', '');
 
-    if (!swSupported) {
-      // Sem suporte a SW: marca como atualizado e encerra
+    if (!swOk) {
       stopTimer();
-      setProgress(100, 'Atualização concluída!', 'Recarregue a página para aplicar.');
       localStorage.setItem('confeitex_updated', 'true');
-      await this._delay(1000);
+      setProgress(100, 'Concluído!', '');
+      await this._delay(400);
       overlay.classList.remove('active');
       overlay.style.display = 'none';
-      await UI.confirm({
-        title: '✅ Atualização concluída!',
-        message: `Versão v${newVer} marcada.\n\nFeche e abra o app novamente.`,
-        confirmText: 'OK', cancelText: '', variant: 'primary'
-      });
+      UI.toast(`Versão v${newVer} registrada. Feche e abra o app novamente.`);
       return;
     }
 
-    const swUrl = './sw.js?v=' + newVer;
-    let newReg;
-    try {
-      newReg = await navigator.serviceWorker.register(swUrl);
-    } catch (e) {
-      stopTimer();
-      setProgress(0, 'Erro ao atualizar.', 'Verifique sua conexão');
-      await this._delay(1500);
-      overlay.classList.remove('active');
-      overlay.style.display = 'none';
-      UI.alert('Erro ao atualizar. Verifique sua conexão e tente novamente.');
-      return;
-    }
+    let reg;
+    try { reg = await navigator.serviceWorker.register('./sw.js?v=' + newVer); }
+    catch { stopTimer(); return this._fail(overlay, 'Erro de conexão. Verifique sua internet e tente novamente.'); }
 
-    // Step 4: Aguarda instalação/ativação com timeout de 30s
-    setProgress(60, 'Baixando novos arquivos...', 'Aguardando download...');
+    // --- Step 4: Aguarda instalação/ativação (máx 25s) ---
+    setProgress(60, 'Baixando novos arquivos...', 'Isso leva alguns segundos...');
 
-    await waitOrTimeout(new Promise(resolve => {
-      let done = false;
-      const finish = () => { if (!done) { done = true; resolve(); } };
-
-      if (newReg.installing) {
-        newReg.installing.addEventListener('statechange', () => {
-          const st = newReg.installing.state;
-          if (st === 'installed' || st === 'activated') finish();
-          else if (st === 'redundant') {
-            setTimeout(() => { if (newReg.active && newReg.active.state === 'activated') finish(); else finish(); }, 1000);
-          }
-        });
-      } else if (newReg.active) {
-        if (newReg.active.state === 'activated') finish();
-        else {
-          newReg.active.addEventListener('statechange', () => {
-            if (newReg.active.state === 'activated') finish();
+    const ativado = await Promise.race([
+      new Promise(resolve => {
+        if (reg.installing) {
+          reg.installing.addEventListener('statechange', () => {
+            const st = reg.installing.state;
+            if (st === 'installed' || st === 'activated') resolve(true);
+            else if (st === 'redundant') {
+              setTimeout(() => resolve(!!(reg.active && reg.active.state === 'activated')), 1000);
+            }
           });
+        } else if (reg.active) {
+          resolve(reg.active.state === 'activated');
+        } else {
+          setTimeout(() => resolve(false), 1500);
         }
-      } else {
-        setTimeout(finish, 2000);
-      }
-
-      setTimeout(finish, 30000); // segurança: nunca trava mais que 30s
-    }), 35000);
-
-    const elapsed = Math.floor((Date.now() - startedAt) / 1000);
-    const elapsedMin = Math.floor(elapsed / 60);
-    const elapsedStr = elapsedMin > 0 ? `${elapsedMin}m ${elapsed % 60}s` : `${elapsed}s`;
+      }),
+      this._delay(25000).then(() => false)
+    ]);
 
     stopTimer();
-    setProgress(100, 'Atualização concluída com sucesso!', `Versão v${newVer} instalada`);
-    bytesEl.textContent = '✅ Pronto! (' + elapsedStr + ')';
+
+    if (!ativado) {
+      localStorage.setItem('confeitex_updated', 'true');
+      setProgress(100, 'Concluído (2º plano)', 'Será aplicado ao reabrir');
+      bytesEl.textContent = '⏱ ' + timeStr();
+      await this._delay(600);
+      overlay.classList.remove('active');
+      overlay.style.display = 'none';
+      UI.toast(`📦 v${newVer} em segundo plano — será aplicado na próxima abertura.`);
+      return;
+    }
+
+    // --- Concluído com sucesso ---
+    setProgress(100, '✅ Atualização concluída!', `Versão v${newVer} instalada`);
+    bytesEl.textContent = '⏱ ' + timeStr();
 
     localStorage.setItem('confeitex_updated', 'true');
 
-    await this._delay(1200);
-    overlay.classList.remove('active');
-    overlay.style.display = 'none';
+    // Esconde progresso, mostra botões
+    document.querySelector('.update-progress-track').style.display = 'none';
+    document.querySelector('.update-progress-info').style.display = 'none';
+    document.getElementById('updateStageText').style.display = 'none';
+    statusEl.textContent = '✅ Atualização concluída!';
+    stageEl.textContent = '';
 
-    await UI.confirm({
-      title: '✅ Atualização concluída!',
-      message: `Versão v${newVer} instalada com sucesso (${elapsedStr}).\n\nPara que as alterações entrem em vigor, feche completamente o aplicativo (feche a aba do navegador) e abra novamente.\n\n📌 Os dados dos seus pedidos e clientes estão preservados.`,
-      confirmText: 'Fechar e Abrir Depois',
-      cancelText: '',
-      variant: 'primary'
+    actionsEl.style.display = 'flex';
+
+    return new Promise(resolve => {
+      const cleanup = () => {
+        btnReload.removeEventListener('click', onReload);
+        btnClose.removeEventListener('click', onClose);
+        resolve();
+      };
+
+      const onReload = () => {
+        cleanup();
+        overlay.classList.remove('active');
+        overlay.style.display = 'none';
+        window.location.href = window.location.href.split('?')[0].split('#')[0] + '?v=' + Date.now();
+      };
+
+      const onClose = () => {
+        cleanup();
+        overlay.classList.remove('active');
+        overlay.style.display = 'none';
+        try { window.close(); } catch {}
+        // Se window.close() não funcionar, mostra instrução
+        UI.toast('Feche a aba do navegador manualmente para concluir a atualização.');
+      };
+
+      btnReload.addEventListener('click', onReload);
+      btnClose.addEventListener('click', onClose);
     });
   },
 
   changelog: [
+    { ver: '1.11.0', date: '14/07/2026', items: ['NOVO: Botão "Recarregar Agora" e "Fechar App" no final da atualização — sem precisar fechar manualmente', 'NOVO: Transição suave na barra de progresso (cubic-bezier) para feedback visual mais agradável', 'Melhoria: Atualização mais rápida — delays artificiais de 300ms/400ms removidos', 'Melhoria: Timeout reduzido de 30s para 25s — não trava mais que o necessário', 'Melhoria: Mensagem clara se window.close() não funcionar (navegador não permite)', 'Refatoração: check() e checkSilent() agora compartilham _fetchVersion() — menos duplicação', 'Refatoração: Código de downloadUpdate() simplificado e mais legível'] },
     { ver: '1.10.2', date: '14/07/2026', items: ['Correção: Atualização não trava mais em "Baixando arquivos" — adicionado timeout de 30s e fallback', 'NOVO: Timer com tempo decorrido em tempo real durante a instalação', 'Otimização: Service Worker agora usa Promise.allSettled — se um arquivo falhar, os outros continuam', 'Otimização: Google Fonts removido (nunca era usado — app já usa fontes do sistema)', 'Otimização: ResizeObserver do gráfico criado apenas uma vez, não a cada render'] },
     { ver: '1.10.1', date: '14/07/2026', items: ['Correção: Configurações de Segurança (bloqueio por senha) estavam ocultas — agora aparecem novamente', 'Correção: Ícones PWA (atalho da tela inicial e favicon) regenerados com o bolo centralizado', 'Correção: Adicionado favicon SVG inline para garantir ícone correto na aba do navegador', 'Melhoria: Ícones PWA agora usam gradiente rosa/roxo com bolo branco — visual moderno e consistente'] },
     { ver: '1.10.0', date: '14/07/2026', items: ['NOVO: Sistema de atualização redesenhado — agora baixa, instala e ativa a nova versão via Service Worker', 'NOVO: Tela de progresso com estágios detalhados e tempo estimado de instalação', 'NOVO: Após atualizar, exibe instruções claras para fechar e reabrir o app', 'Correção: Faturamento Total no Dashboard agora funciona corretamente com pedidos antigos', 'Correção: Ícone do bolo centralizado no cabeçalho e tela de login', 'Melhoria: Clientes — clique no nome expande detalhes com botões Editar e Ver Histórico', 'Melhoria: Pedidos — detalhes expandidos em grid de 3 colunas com mais informações', 'Melhoria: Botões de ação (Editar, Avançar Status, Reabrir) agora aparecem apenas quando relevantes', 'Melhoria: Cache do navegador e Service Worker antigo são limpos automaticamente na atualização'] },
@@ -220,38 +234,32 @@ const Updates = {
     btn.innerHTML = '<span class="login-spinner"></span> Verificando...';
     this.updateStatus('Verificando...');
 
-    try {
-      const r = await fetch('./version.txt?t=' + Date.now(), { cache: 'no-store' });
-      if (!r.ok) throw new Error('Sem conexão');
-      const serverVer = (await r.text()).trim();
-      localStorage.setItem('confeitex_last_check', new Date().toLocaleString('pt-BR'));
-      document.getElementById('updatesLastCheck').textContent = localStorage.getItem('confeitex_last_check');
+    const serverVer = await this._fetchVersion();
+    localStorage.setItem('confeitex_last_check', new Date().toLocaleString('pt-BR'));
+    document.getElementById('updatesLastCheck').textContent = localStorage.getItem('confeitex_last_check');
 
-      if (serverVer && serverVer !== this.verAtual) {
-        const confirmado = await UI.confirm({
-          title: 'Nova versão disponível',
-          message: `Atualização v${serverVer} encontrada!\n\nClique em "Atualizar" para baixar e instalar a nova versão. Após a instalação, feche e abra o app novamente.`,
-          confirmText: 'Atualizar',
-          variant: 'primary'
-        });
-        if (!confirmado) {
-          this.updateStatus('Atualização cancelada.');
-          btn.disabled = false;
-          btn.innerHTML = btnHtml;
-          return;
-        }
-        this.updateStatus(`Nova versão v${serverVer} encontrada! Instalando...`);
+    if (serverVer && serverVer !== this.verAtual) {
+      const confirmado = await UI.confirm({
+        title: 'Nova versão disponível',
+        message: `Atualização v${serverVer} encontrada!\n\nClique em "Atualizar" para baixar e instalar. Após a conclusão, você poderá recarregar ou fechar o app.`,
+        confirmText: 'Atualizar',
+        variant: 'primary'
+      });
+      if (!confirmado) {
+        this.updateStatus('Atualização cancelada.');
         btn.disabled = false;
         btn.innerHTML = btnHtml;
-        localStorage.setItem('confeitex_ver', serverVer);
-        this.downloadUpdate();
         return;
-      } else if (serverVer === this.verAtual) {
-        this.updateStatus('App atualizado! Você está na versão mais recente.');
-      } else {
-        this.updateStatus('Não foi possível verificar a versão.', true);
       }
-    } catch {
+      this.updateStatus(`Nova versão v${serverVer} encontrada! Instalando...`);
+      btn.disabled = false;
+      btn.innerHTML = btnHtml;
+      localStorage.setItem('confeitex_ver', serverVer);
+      this.downloadUpdate();
+      return;
+    } else if (serverVer === this.verAtual) {
+      this.updateStatus('App atualizado! Você está na versão mais recente.');
+    } else {
       this.updateStatus('Sem conexão com a internet.', true);
     }
 
