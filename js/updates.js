@@ -65,9 +65,10 @@ const Updates = {
     // Aguarda instalação/ativação (máx 25s)
     const ativado = await Promise.race([
       new Promise(resolve => {
-        if (reg.installing) {
-          reg.installing.addEventListener('statechange', () => {
-            const st = reg.installing.state;
+        const w = reg.installing;
+        if (w) {
+          w.addEventListener('statechange', () => {
+            const st = w.state;
             if (st === 'installed' || st === 'activated') resolve(true);
             else if (st === 'redundant') {
               setTimeout(() => resolve(!!(reg.active && reg.active.state === 'activated')), 1000);
@@ -100,12 +101,14 @@ const Updates = {
     const banner = document.getElementById('updateNotification');
     if (!banner) return;
 
-    const text = document.getElementById('updateNotifText');
-    const btnNow = document.getElementById('btnUpdateNow');
-    const btnLater = document.getElementById('btnUpdateLater');
-    const btnClose = document.getElementById('btnUpdateCloseApp');
+      const text = document.getElementById('updateNotifText');
+      const btnNow = document.getElementById('btnUpdateNow');
+      const btnLater = document.getElementById('btnUpdateLater');
+      const btnClose = document.getElementById('btnUpdateCloseApp');
 
-    text.textContent = `Atualização Confeitex v${ver} instalada! Deseja recarregar agora para aplicar as mudanças?`;
+      if (!text || !btnNow || !btnLater || !btnClose) return;
+
+      text.textContent = `Atualização Confeitex v${ver} instalada! Deseja recarregar agora para aplicar as mudanças?`;
 
     // Exibe e anima o banner (double rAF para garantir transição)
     banner.style.display = 'flex';
@@ -228,7 +231,7 @@ const Updates = {
       btn.disabled = false;
       btn.innerHTML = btnHtml;
       localStorage.setItem('confeitex_ver', serverVer);
-      this.downloadUpdate();
+      await this.downloadUpdate();
       return;
     } else if (serverVer === this.verAtual) {
       this.updateStatus('App atualizado! Você está na versão mais recente.');

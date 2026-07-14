@@ -105,7 +105,7 @@
       if (ok) {
         localStorage.setItem('confeitex_ver', newVer);
         Updates.verAtual = newVer;
-        Updates.downloadUpdate();
+        await Updates.downloadUpdate();
       }
     }
   })();
