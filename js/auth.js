@@ -25,8 +25,8 @@ const Auth = {
   },
 
   async verify(password) {
-    if (!this.lockHash) return false;
-    return (await this._hash(password)) === this.lockHash;
+    if (!this.supported() || !this.lockHash) return false;
+    try { return (await this._hash(password)) === this.lockHash; } catch { return false; }
   },
 
   enable() {
@@ -97,19 +97,20 @@ const Auth = {
         if (!pw) return;
         submit.disabled = true;
         submit.innerHTML = '<span class="login-spinner"></span>';
-        const ok = await this.verify(pw);
-        submit.disabled = false;
-        submit.textContent = 'Entrar';
-        if (ok) {
-          sessionStorage.setItem('confeitex_auth', 'true');
-          cleanup();
-          resolve();
-        } else {
+        try {
+          const ok = await this.verify(pw);
+          if (ok) {
+            sessionStorage.setItem('confeitex_auth', 'true');
+            cleanup();
+            resolve();
+            return;
+          }
           error.style.display = 'block';
           input.value = '';
           input.focus();
-          submit.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M13 12H3"/></svg>\n            Entrar';
-        }
+        } catch {}
+        submit.disabled = false;
+        submit.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M13 12H3"/></svg>\n            Entrar';
       };
 
       submit.onclick = doLogin;

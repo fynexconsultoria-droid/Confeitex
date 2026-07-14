@@ -50,14 +50,13 @@
 
   // Se veio de uma atualização, mostra confirmação e limpa flag
   if (localStorage.getItem('confeitex_updated')) {
-    localStorage.removeItem('confeitex_updated');
     UI.confirm({
       title: '🔄 Atualização detectada!',
       message: 'Uma nova versão do Confeitex foi instalada na última atualização.\n\nSe notar algo diferente, feche e abra o app novamente para garantir que tudo esteja funcionando corretamente.',
       confirmText: 'OK, Entendi',
       cancelText: '',
       variant: 'primary'
-    });
+    }).then(() => localStorage.removeItem('confeitex_updated'));
   }
 
   // Date display

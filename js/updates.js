@@ -1,5 +1,5 @@
 const Updates = {
-  verAtual: '1.11.0',
+  verAtual: '1.12.0',
 
   setup() {
     document.getElementById('btnCheckUpdates').addEventListener('click', () => this.check());
@@ -138,8 +138,8 @@ const Updates = {
     localStorage.setItem('confeitex_ver', newVer);
 
     // Esconde progresso, mostra botões
-    document.querySelector('.update-progress-track').style.display = 'none';
-    document.querySelector('.update-progress-info').style.display = 'none';
+    document.querySelector('.update-progress-track')?.style?.display = 'none';
+    document.querySelector('.update-progress-info')?.style?.display = 'none';
     document.getElementById('updateStageText').style.display = 'none';
     statusEl.textContent = '✅ Atualização concluída!';
     stageEl.textContent = '';
@@ -176,6 +176,7 @@ const Updates = {
   },
 
   changelog: [
+    { ver: '1.12.0', date: '14/07/2026', items: ['Correção: Faturamento Total agora calcula totalValue para pedidos antigos (weight * unitPrice)', 'Correção: Versão atual exibida imediatamente nas Atualizações após o update (via localStorage)', 'Correção: Div `.config-card` de Notificações sem fechamento — Security settings aninhado erroneamente', 'Correção: deliveredAt agora é salvo ao criar/editar pedido com status "Entregue"', 'Correção: Gráfico não renderizava no período "Hoje" (divisão por zero no eixo X)', 'Correção: Login não trava mais se crypto.subtle falhar (try-catch + finally no botão)', 'Correção: Flag confeitex_updated removida só após confirmação do usuário', 'Correção: Acesso seguro aos elementos do overlay de update (optional chaining)', 'Otimização: Botões com min-height:44px para toque preciso em celulares', 'Otimização: Inputs com font-size:16px evitam zoom automático no iOS', 'Otimização: touch-action:manipulation elimina delay de 300ms em toques', 'Otimização: overscroll-behavior:contain e -webkit-overflow-scrolling:touch para scroll suave'] },
     { ver: '1.11.0', date: '14/07/2026', items: ['NOVO: Botão "Recarregar Agora" e "Fechar App" no final da atualização — sem precisar fechar manualmente', 'NOVO: Transição suave na barra de progresso (cubic-bezier) para feedback visual mais agradável', 'Melhoria: Atualização mais rápida — delays artificiais de 300ms/400ms removidos', 'Melhoria: Timeout reduzido de 30s para 25s — não trava mais que o necessário', 'Melhoria: Mensagem clara se window.close() não funcionar (navegador não permite)', 'Refatoração: check() e checkSilent() agora compartilham _fetchVersion() — menos duplicação', 'Refatoração: Código de downloadUpdate() simplificado e mais legível'] },
     { ver: '1.10.2', date: '14/07/2026', items: ['Correção: Atualização não trava mais em "Baixando arquivos" — adicionado timeout de 30s e fallback', 'NOVO: Timer com tempo decorrido em tempo real durante a instalação', 'Otimização: Service Worker agora usa Promise.allSettled — se um arquivo falhar, os outros continuam', 'Otimização: Google Fonts removido (nunca era usado — app já usa fontes do sistema)', 'Otimização: ResizeObserver do gráfico criado apenas uma vez, não a cada render'] },
     { ver: '1.10.1', date: '14/07/2026', items: ['Correção: Configurações de Segurança (bloqueio por senha) estavam ocultas — agora aparecem novamente', 'Correção: Ícones PWA (atalho da tela inicial e favicon) regenerados com o bolo centralizado', 'Correção: Adicionado favicon SVG inline para garantir ícone correto na aba do navegador', 'Melhoria: Ícones PWA agora usam gradiente rosa/roxo com bolo branco — visual moderno e consistente'] },

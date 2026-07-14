@@ -68,15 +68,16 @@ const Chart = {
     const step = daysLimit >= 30 ? 5 : daysLimit >= 15 ? 3 : 1;
     this.points.forEach((p, i) => {
       if (i % step === 0 || i === this.points.length - 1) {
-        const x = pl + cw * (i / (this.points.length - 1));
+        const x = pl + cw * (i / xDivisor);
         ctx.fillText(p.label, x, h - pb + 8);
       }
     });
 
     // Store positions for tooltips
+    const xDivisor = Math.max(this.points.length - 1, 1);
     this.pointPositions = this.points.map((p, i) => ({
       ...p,
-      x: pl + cw * (i / (this.points.length - 1)),
+      x: pl + cw * (i / xDivisor),
       sY: pt + ch * (1 - (p.sales / maxSales)),
       cY: pt + ch * (1 - (p.count / maxCount))
     }));

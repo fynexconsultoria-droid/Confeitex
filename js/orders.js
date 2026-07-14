@@ -316,12 +316,12 @@ const Orders = {
         const idx = State.orders.findIndex(o => o.id === id);
         if (idx !== -1) {
           Object.assign(State.orders[idx], data);
-          if (data.status !== 'Entregue') State.orders[idx].deliveredAt = null;
+          State.orders[idx].deliveredAt = data.status === 'Entregue' ? new Date().toISOString() : null;
         }
       } else {
         data.id = 'o_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);
         data.createdAt = new Date().toISOString();
-        data.deliveredAt = null;
+        data.deliveredAt = data.status === 'Entregue' ? new Date().toISOString() : null;
         State.orders.push(data);
       }
 
