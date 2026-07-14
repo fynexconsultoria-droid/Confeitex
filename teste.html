@@ -161,7 +161,8 @@
       this.groupName('DOM - Elementos essenciais');
 
       const domIds = [
-        'btnCheckUpdates', 'updateNotification', 'updateNotifText', 'btnUpdateNow', 'btnUpdateLater', 'btnUpdateCloseApp',
+        'btnCheckUpdates', 'updateNotification', 'updateNotifText', 'updateProgress', 'updateProgressFill', 'updateProgressLabel', 'updateActions',
+        'btnUpdateNow', 'btnUpdateLater', 'btnUpdateCloseApp',
         'updatesCurrentVer', 'updatesLastCheck', 'updatesChangelog', 'updatesStatus',
         'orderModal', 'orderForm', 'orderSearchInput', 'orderFilterStatus', 'orderFilterDate', 'btnClearFilters',
         'clientSearchInput', 'clientEditModal',
@@ -304,7 +305,7 @@
       this.groupName('Codigo morto - Overlay antigo');
 
       this.assert(!document.getElementById('updateOverlay'), 'Overlay antigo removido do HTML', '');
-      const deadIds = ['updateProgressBar', 'updateProgressPercent', 'updateStatusText', 'updateStageText', 'updateProgressBytes', 'updateActions', 'btnReloadNow', 'btnCloseApp'];
+      const deadIds = ['updateProgressBar', 'updateProgressPercent', 'updateStatusText', 'updateStageText', 'updateProgressBytes', 'btnReloadNow', 'btnCloseApp'];
       const stillExist = deadIds.filter(id => !!document.getElementById(id));
       this.assert(stillExist.length === 0, 'IDs do overlay antigo nao existem', stillExist.length > 0 ? stillExist.join(', ') : 'OK');
 

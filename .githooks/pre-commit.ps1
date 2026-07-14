@@ -33,7 +33,7 @@ if ($verAtualMatch.Success -and $changelogVerMatch.Success) {
 $deadIds = @(
     'updateOverlay', 'updateProgressBar', 'updateProgressPercent',
     'updateStatusText', 'updateStageText', 'updateProgressBytes',
-    'updateActions', 'btnReloadNow', 'btnCloseApp'
+    'btnReloadNow', 'btnCloseApp'
 )
 
 $jsFiles = Get-ChildItem "$rootDir\js\*.js" -Exclude "*.min.js"

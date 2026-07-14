@@ -124,13 +124,23 @@
 
     <!-- Main Content -->
     <main class="main-content">
-      <!-- Update Notification Banner (mostrado após instalação em segundo plano) -->
+      <!-- Update Notification Banner (instalação em segundo plano + ações) -->
       <div class="update-notif-bar" id="updateNotification" style="display:none;">
-        <div class="update-notif-content">
-          <span class="update-notif-icon">✅</span>
+        <div class="update-notif-header">
+          <span class="update-notif-icon">📦</span>
           <span class="update-notif-text" id="updateNotifText"></span>
         </div>
-        <div class="update-notif-actions">
+
+        <!-- Progresso durante instalação -->
+        <div class="update-progress" id="updateProgress">
+          <div class="update-progress-track">
+            <div class="update-progress-fill" id="updateProgressFill"></div>
+          </div>
+          <span class="update-progress-label" id="updateProgressLabel">Preparando...</span>
+        </div>
+
+        <!-- Ações após instalação concluída -->
+        <div class="update-notif-actions" id="updateActions" style="display:none;">
           <button class="btn btn-primary btn-sm" id="btnUpdateNow">🔄 Atualizar Agora</button>
           <button class="btn btn-secondary btn-sm" id="btnUpdateLater">Continuar sem atualizar</button>
           <button class="btn btn-sm update-notif-btn-close" id="btnUpdateCloseApp">✕ Fechar App</button>

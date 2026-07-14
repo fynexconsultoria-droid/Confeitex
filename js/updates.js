@@ -27,8 +27,7 @@ const Updates = {
   async downloadUpdate() {
     const newVer = localStorage.getItem('confeitex_ver') || this.verAtual;
 
-    // Toast inicial informando instalação em segundo plano
-    UI.toast(`📦 Instalando Confeitex v${newVer} em segundo plano...`);
+    this._showProgress(newVer);
 
     // Limpa flags de cache/notificações antigas
     localStorage.removeItem('confeitex_notified');
@@ -36,6 +35,7 @@ const Updates = {
     localStorage.removeItem('confeitex_pwa_dismissed');
 
     // Remove Service Worker antigo
+    this._updateProgress(15, 'Limpando cache anterior...');
     let swOk = 'serviceWorker' in navigator;
     if (swOk) {
       try {
@@ -48,21 +48,25 @@ const Updates = {
     if (!swOk) {
       localStorage.setItem('confeitex_updated', 'true');
       localStorage.setItem('confeitex_ver', newVer);
-      UI.toast(`✅ v${newVer} registrada. Feche e abra o app novamente.`);
+      this._updateProgress(100, '✅ Atualização registrada!');
+      await this._delay(600);
       this._showUpdateBanner(newVer);
       return;
     }
 
     // Registra novo Service Worker
+    this._updateProgress(40, 'Registrando novo Service Worker...');
     let reg;
     try {
       reg = await navigator.serviceWorker.register('./sw.js?v=' + newVer);
     } catch {
+      this._hideProgress();
       UI.alert('Erro de conexão. Verifique sua internet e tente novamente.');
       return;
     }
 
     // Aguarda instalação/ativação (máx 25s)
+    this._updateProgress(60, 'Ativando nova versão...');
     const ativado = await Promise.race([
       new Promise(resolve => {
         const w = reg.installing;
@@ -87,32 +91,68 @@ const Updates = {
     localStorage.setItem('confeitex_updated', 'true');
     localStorage.setItem('confeitex_ver', newVer);
 
-    if (!ativado) {
-      UI.toast(`📦 Confeitex v${newVer} instalado em segundo plano — será ativado ao reabrir o app.`);
-    } else {
-      UI.toast(`✅ Confeitex v${newVer} instalado com sucesso!`);
-    }
+    this._updateProgress(100, ativado ? '✅ Instalação concluída!' : '📦 Instalação concluída (ativará ao reabrir)');
+    await this._delay(800);
 
     // Mostra banner de notificação para o usuário decidir
     this._showUpdateBanner(newVer);
   },
 
-  _showUpdateBanner(ver) {
+  _showProgress(ver) {
     const banner = document.getElementById('updateNotification');
-    if (!banner) return;
+    const text = document.getElementById('updateNotifText');
+    const progress = document.getElementById('updateProgress');
+    const actions = document.getElementById('updateActions');
+    const fill = document.getElementById('updateProgressFill');
+    const label = document.getElementById('updateProgressLabel');
+    if (!banner || !text || !progress || !actions || !fill || !label) return;
 
-      const text = document.getElementById('updateNotifText');
-      const btnNow = document.getElementById('btnUpdateNow');
-      const btnLater = document.getElementById('btnUpdateLater');
-      const btnClose = document.getElementById('btnUpdateCloseApp');
+    text.textContent = `Baixando Confeitex v${ver}...`;
+    progress.style.display = 'flex';
+    actions.style.display = 'none';
+    fill.style.width = '0%';
+    label.textContent = 'Preparando...';
 
-      if (!text || !btnNow || !btnLater || !btnClose) return;
-
-      text.textContent = `Atualização Confeitex v${ver} instalada! Deseja recarregar agora para aplicar as mudanças?`;
-
-    // Exibe e anima o banner (double rAF para garantir transição)
     banner.style.display = 'flex';
     requestAnimationFrame(() => requestAnimationFrame(() => banner.classList.add('visible')));
+  },
+
+  _updateProgress(pct, msg) {
+    const fill = document.getElementById('updateProgressFill');
+    const label = document.getElementById('updateProgressLabel');
+    if (fill) fill.style.width = Math.min(pct, 100) + '%';
+    if (label) label.textContent = msg;
+  },
+
+  _hideProgress() {
+    const banner = document.getElementById('updateNotification');
+    if (banner) {
+      banner.classList.remove('visible');
+      banner.addEventListener('transitionend', () => {
+        banner.style.display = 'none';
+      }, { once: true });
+    }
+  },
+
+  _showUpdateBanner(ver) {
+    const banner = document.getElementById('updateNotification');
+    const text = document.getElementById('updateNotifText');
+    const progress = document.getElementById('updateProgress');
+    const actions = document.getElementById('updateActions');
+    const btnNow = document.getElementById('btnUpdateNow');
+    const btnLater = document.getElementById('btnUpdateLater');
+    const btnClose = document.getElementById('btnUpdateCloseApp');
+    if (!banner || !text || !progress || !actions || !btnNow || !btnLater || !btnClose) return;
+
+    progress.style.display = 'none';
+    actions.style.display = 'flex';
+    text.textContent = `✅ Atualização Confeitex v${ver} instalada! Deseja recarregar agora para aplicar as mudanças?`;
+
+    // Se o banner ainda não estiver visível (ex: sem SW), exibe
+    if (!banner.classList.contains('visible')) {
+      banner.style.display = 'flex';
+      requestAnimationFrame(() => requestAnimationFrame(() => banner.classList.add('visible')));
+    }
 
     const hide = () => {
       banner.classList.remove('visible');
@@ -121,7 +161,6 @@ const Updates = {
       }, { once: true });
     };
 
-    // Atualizar Agora → recarrega a página
     btnNow.onclick = () => {
       localStorage.removeItem('confeitex_updated');
       hide();
@@ -130,12 +169,10 @@ const Updates = {
       }, 300);
     };
 
-    // Continuar sem atualizar → apenas esconde o banner
     btnLater.onclick = () => {
       hide();
     };
 
-    // Fechar App → força fechamento para aplicar atualizações
     btnClose.onclick = () => {
       localStorage.removeItem('confeitex_updated');
       hide();
