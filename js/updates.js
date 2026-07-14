@@ -163,9 +163,10 @@ const Updates = {
         cleanup();
         overlay.classList.remove('active');
         overlay.style.display = 'none';
-        try { window.close(); } catch {}
-        // Se window.close() não funcionar, mostra instrução
-        UI.toast('Feche a aba do navegador manualmente para concluir a atualização.');
+        // Tenta fechar a janela (funciona em PWA standalone)
+        try { window.open('', '_self'); window.close(); } catch {}
+        // Fallback: redireciona para página vazia (fecha o app visualmente)
+        setTimeout(() => { window.location.replace('about:blank'); }, 500);
       };
 
       btnReload.addEventListener('click', onReload);
