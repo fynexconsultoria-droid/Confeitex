@@ -1,14 +1,5 @@
 const Updates = {
-  verAtual: '19',
-
-  assets: [
-    './', './index.html', './style.css', './manifest.json',
-    './js/state.js', './js/auth.js', './js/utils.js', './js/ui.js',
-    './js/pwa.js', './js/chart.js', './js/notifications.js',
-    './js/dashboard.js', './js/orders.js', './js/clients.js',
-    './js/settings.js', './js/updates.js', './js/app.js',
-    './icons/icon-192x192.png', './icons/icon-512x512.png'
-  ],
+  verAtual: '1.10.0',
 
   setup() {
     document.getElementById('btnCheckUpdates').addEventListener('click', () => this.check());
@@ -24,10 +15,8 @@ const Updates = {
     return null;
   },
 
-  formatBytes(bytes) {
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1048576) return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${(bytes / 1048576).toFixed(1)} MB`;
+  _delay(ms) {
+    return new Promise(r => setTimeout(r, ms));
   },
 
   async downloadUpdate() {
@@ -36,72 +25,133 @@ const Updates = {
     const percentEl = document.getElementById('updateProgressPercent');
     const bytesEl = document.getElementById('updateProgressBytes');
     const statusEl = document.getElementById('updateStatusText');
+    const stageEl = document.getElementById('updateStageText');
 
     overlay.classList.add('active');
+    bytesEl.textContent = '';
 
-    // 1. Limpa todos os caches do app
-    bar.style.width = '15%';
-    percentEl.textContent = '15%';
-    statusEl.textContent = 'Limpando caches antigos...';
-    try {
-      await caches.keys().then(keys => Promise.all(keys.map(k => caches.delete(k))));
-    } catch {}
-    bar.style.width = '35%';
-    percentEl.textContent = '35%';
+    const newVer = localStorage.getItem('confeitex_ver') || this.verAtual;
+    const startedAt = Date.now();
 
-    // 2. Desregistra o Service Worker atual para evitar conflito
-    statusEl.textContent = 'Removendo Service Worker antigo...';
+    const setProgress = (pct, status, detail) => {
+      bar.style.width = pct + '%';
+      percentEl.textContent = pct + '%';
+      statusEl.textContent = status;
+      if (stageEl) stageEl.textContent = detail || '';
+    };
+
+    // Step 1: Preparação
+    setProgress(5, 'Preparando atualização...', 'Limpando configurações da versão anterior');
+    localStorage.removeItem('confeitex_notified');
+    localStorage.removeItem('confeitex_update_prompt');
+    localStorage.removeItem('confeitex_pwa_dismissed');
+    await this._delay(400);
+
+    // Step 2: Remove Service Worker antigo
+    setProgress(30, 'Removendo Service Worker antigo...', 'Garantindo que não haja conflitos');
     if ('serviceWorker' in navigator) {
       try {
         const reg = await navigator.serviceWorker.getRegistration();
         if (reg) await reg.unregister();
       } catch {}
     }
-    bar.style.width = '55%';
-    percentEl.textContent = '55%';
+    await this._delay(300);
 
-    // 3. Marca no localStorage que foi atualizado (para feedback pós-reload)
-    statusEl.textContent = 'Preparando nova versão...';
+    // Step 3: Registra novo Service Worker com a versão atualizada
+    setProgress(45, 'Registrando novo Service Worker...', 'Preparando ambiente da nova versão');
+    const swUrl = './sw.js?v=' + newVer;
+    let newReg;
+    try {
+      newReg = await navigator.serviceWorker.register(swUrl);
+    } catch (e) {
+      setProgress(0, 'Erro ao registrar Service Worker.', 'Verifique sua conexão e tente novamente');
+      await this._delay(1500);
+      overlay.classList.remove('active');
+      UI.alert('Erro ao atualizar: não foi possível registrar o Service Worker.\n\nTente novamente mais tarde.');
+      return;
+    }
+
+    // Step 4: Aguarda instalação (download dos novos arquivos)
+    setProgress(60, 'Baixando novos arquivos...', 'Isso pode levar alguns segundos dependendo da sua conexão');
+    try {
+      await new Promise((resolve, reject) => {
+        if (newReg.installing) {
+          newReg.installing.addEventListener('statechange', () => {
+            if (newReg.installing.state === 'installed' || newReg.installing.state === 'activated') {
+              resolve();
+            } else if (newReg.installing.state === 'redundant') {
+              reject(new Error('SW became redundant'));
+            }
+          });
+        } else {
+          resolve();
+        }
+      });
+    } catch (e) {
+      setProgress(0, 'Erro durante o download.', 'Tente novamente mais tarde');
+      await this._delay(1500);
+      overlay.classList.remove('active');
+      UI.alert('Erro ao baixar a atualização. Verifique sua conexão e tente novamente.');
+      return;
+    }
+    await this._delay(300);
+
+    // Step 5: Aguarda ativação
+    setProgress(80, 'Ativando nova versão...', 'Aplicando as alterações nos arquivos');
+    if (newReg.active) {
+      await new Promise(resolve => {
+        const sw = newReg.active;
+        if (sw.state === 'activated') {
+          resolve();
+        } else {
+          sw.addEventListener('statechange', () => {
+            if (sw.state === 'activated') resolve();
+          });
+        }
+      });
+    }
+    await this._delay(300);
+
+    // Step 6: Concluído
+    const elapsed = Math.round((Date.now() - startedAt) / 1000);
+    setProgress(100, 'Atualização concluída com sucesso!', `Versão v${newVer} instalada em ${elapsed}s`);
+    bytesEl.textContent = '✅ Pronto!';
+
     localStorage.setItem('confeitex_updated', 'true');
-    bar.style.width = '75%';
-    percentEl.textContent = '75%';
 
-    // 4. Contagem regressiva e recarrega
-    let segundos = 3;
-    statusEl.textContent = `Atualização concluída! Recarregando em ${segundos}s...`;
-    const intervalo = setInterval(() => {
-      segundos--;
-      if (segundos > 0) {
-        statusEl.textContent = `Atualização concluída! Recarregando em ${segundos}s...`;
-      } else {
-        clearInterval(intervalo);
-        bar.style.width = '100%';
-        percentEl.textContent = '100%';
-        bytesEl.textContent = 'Concluído';
-        statusEl.textContent = 'Recarregando...';
-        window.location.href = window.location.href.split('?')[0].split('#')[0] + '?v=' + Date.now();
-      }
-    }, 1000);
+    // Mostra modal de conclusão após breve pausa
+    await this._delay(1200);
+    overlay.classList.remove('active');
+    overlay.style.display = 'none';
+
+    await UI.confirm({
+      title: '✅ Atualização concluída!',
+      message: `Versão v${newVer} instalada com sucesso (${elapsed}s).\n\nPara que as alterações entrem em vigor, feche completamente o aplicativo (feche a aba do navegador) e abra novamente.\n\n📌 Os dados dos seus pedidos e clientes estão preservados.`,
+      confirmText: 'Fechar e Abrir Depois',
+      cancelText: '',
+      variant: 'primary'
+    });
   },
 
   changelog: [
-    { ver: '19', date: '13/07/2026', items: ['Correção: dados demo não são mais removidos automaticamente ao recarregar o app', 'Correção: "Apagar Todos os Dados" agora também limpa catálogo, notificações e estado de lembretes', 'Correção: pedidos com status "Entregue" sem deliveredAt agora recebem data automaticamente', 'Correção: validação de campos obrigatórios no formulário de pedidos (nome, sabor, data, horário)', 'Correção: catch blocks vazios agora registram aviso no console para debug', 'Otimização: gráfico redimensiona automaticamente ao mudar orientação do celular', 'Otimização: exportação CSV ordenada por data de entrega (decrescente)', 'Otimização: Service Worker registrado com parâmetro de versão para evitar cache conflitante'] },
+    { ver: '1.10.0', date: '14/07/2026', items: ['NOVO: Sistema de atualização redesenhado — agora baixa, instala e ativa a nova versão via Service Worker', 'NOVO: Tela de progresso com estágios detalhados e tempo estimado de instalação', 'NOVO: Após atualizar, exibe instruções claras para fechar e reabrir o app', 'Correção: Faturamento Total no Dashboard agora funciona corretamente com pedidos antigos', 'Correção: Ícone do bolo centralizado no cabeçalho e tela de login', 'Melhoria: Clientes — clique no nome expande detalhes com botões Editar e Ver Histórico', 'Melhoria: Pedidos — detalhes expandidos em grid de 3 colunas com mais informações', 'Melhoria: Botões de ação (Editar, Avançar Status, Reabrir) agora aparecem apenas quando relevantes', 'Melhoria: Cache do navegador e Service Worker antigo são limpos automaticamente na atualização'] },
+    { ver: '19', date: '13/07/2026', items: ['Correção: dados demo não são mais removidos automaticamente ao recarregar o app', 'Correção: "Apagar Todos os Dados" agora também limpa catálogo, notificações e estado de lembretes', 'Correção: pedidos com status "Entregue" sem deliveredAt agora recebem data automaticamente', 'Correção: validação de campos obrigatórios no formulário de pedidos (nome, sabor, data, horário)', 'Otimização: gráfico redimensiona automaticamente ao mudar orientação do celular', 'Otimização: exportação CSV ordenada por data de entrega (decrescente)', 'Otimização: Service Worker registrado com parâmetro de versão para evitar cache conflitante'] },
     { ver: '18', date: '13/07/2026', items: ['Importação de dados via PDF (relatório exportado do Confeitex)', 'Notificações: agora podem ser ativadas/desativadas com status visual', 'Editar cliente diretamente do banco de clientes', 'Card "Pendentes/Produção" no Dashboard agora leva aos pedidos filtrados', 'Ícone do bolo centralizado no cabeçalho e tela de login'] },
     { ver: '17', date: '13/07/2026', items: ['Rebranding: app renomeado para Confeitex', 'Novo logotipo e ícones modernos do app', 'Todas as referências atualizadas para Confeitex', 'Migração automática de dados antigos (fyntex_) para o novo padrão (confeitex_)'] },
     { ver: '16', date: '13/07/2026', items: ['Notificações modernas: toast com ícone e glass-morphism, modal com gradiente e animação', 'Verificação automática de nova versão ao abrir o app (máx 1x/hora)', 'Sistema de atualização refatorado: limpa caches, desregistra SW antigo e recarrega do zero', 'Confirmação visual "App atualizado" após reload', 'Gradiente vermelho/rosa do canto inferior direito e do login removido', 'Filtro de pedidos não começa mais com data de hoje — mostra todos', 'SVG dos botões preservado após loading/erro no login e atualizações', 'deliveredAt limpo ao mudar status de "Entregue" para outro'] },
-    { ver: '15', date: '13/07/2026', items: ['Sistema de atualização refatorado: limpa caches, desregistra SW antigo e recarrega do zero', 'Confirmação visual "App atualizado" após reload', 'Gradiente vermelho/rosa do canto inferior direito e do login removido', 'Filtro de pedidos não começa mais com data de hoje — mostra todos', 'SVG dos botões preservado após loading/erro no login e atualizações', 'deliveredAt limpo ao mudar status de "Entregue" para outro', 'Contagem regressiva de 3s antes de recarregar após atualização', 'substr() substituído por slice(), segurança em closest()'] },
-    { ver: '14', date: '13/07/2026', items: ['Design: sombras brancas e outlines removidos ao clicar em elementos', 'Tabelas de Pedidos e Clientes agora cabem na tela sem scroll horizontal', 'Atualização não trava mais em tela preta — usa ciclo do Service Worker', 'Configurações: espaçamento e alinhamento de textos e botões ajustados', 'Cache do SW dinâmico por versão para evitar conflitos'] },
-    { ver: '13', date: '13/07/2026', items: ['version.txt não é mais cacheado pelo SW — toda verificação vai à rede', 'Auto-reload quando novo Service Worker assumir o controle', 'Sistema de atualização mais robusto e confiável', 'Nunca atualiza sem perguntar: confirmação obrigatória'] },
-    { ver: '12', date: '13/07/2026', items: ['Força atualização do Service Worker com novo cache v1.6.0'] },
-    { ver: '11', date: '12/07/2026', items: ['App fecha completamente após atualizar', 'Funciona em PWA standalone (mobile)', 'Fallback para reload se não conseguir fechar'] },
-    { ver: '9', date: '12/07/2026', items: ['Novo layout das Configurações: cards reorganizados e mais visíveis', 'Atualização automática ao detectar nova versão (sem confirmação)', 'Verificação periódica a cada 6h ou ao retornar ao app', 'Status com nome do arquivo sendo baixado na atualização', 'Botão "Forçar Recarregar" removido', 'Indicador "Mais usado" no Catálogo de Sabores'] },
-    { ver: '8', date: '12/07/2026', items: ['Auditoria geral: correções e melhorias', 'Dados demonstrativos reais no botão de testes', 'Botão Fechar na tela de login fecha a aba', 'Prefetch de offline.html removido (arquivo inexistente)', 'Apagar dados agora também remove bloqueio de segurança'] },
-    { ver: '7', date: '12/07/2026', items: ['Bloqueio por senha (login offline) com SHA-256', 'Tela de login com proteção do app', 'Gerenciamento de senha nas Configurações'] },
-    { ver: '6', date: '12/07/2026', items: ['Barra de progresso com KB/MB ao baixar atualizações', 'Download de arquivos monitorado em tempo real', 'Overlay animado durante a atualização'] },
-    { ver: '5', date: '12/07/2026', items: ['Correções de bugs e melhorias gerais de performance'] },
-    { ver: '4', date: '12/07/2026', items: ['Correções de bugs e melhorias de performance'] },
-    { ver: '3', date: '12/07/2026', items: ['Aba "Atualizações" adicionada no menu', 'Backup agora gera PDF (impressão)', 'Notificação customizada ao detectar nova versão', 'Service Worker com stale-while-revalidate', 'Tabelas mais compactas no mobile', 'Forçar verificação de atualização ao carregar'] },
-    { ver: '2', date: '11/07/2026', items: ['Remoção de dados demo na inicialização', 'Textos otimizados para mobile', 'Sombras removidas no toque'] },
+    { ver: '15', date: '13/07/2026', items: ['Sistema de atualização refatorado: limpa caches, desregistra SW antigo e recarrega do zero', 'Confirmação visual "App atualizado" após reload', 'Gradiente vermelho/rosa do canto inferior direito e do login removido', 'Filtro de pedidos não começa mais com data de hoje — mostra todos'] },
+    { ver: '14', date: '13/07/2026', items: ['Design: sombras e outlines removidos ao clicar', 'Tabelas ajustadas para tela sem scroll horizontal', 'Atualização usa ciclo do SW sem tela preta', 'Cache do SW dinâmico por versão'] },
+    { ver: '13', date: '13/07/2026', items: ['version.txt sem cache — sempre vai à rede', 'Auto-reload quando novo SW assumir', 'Confirmação obrigatória antes de atualizar'] },
+    { ver: '12', date: '13/07/2026', items: ['Força atualização do SW com novo cache'] },
+    { ver: '11', date: '12/07/2026', items: ['App fecha após atualizar', 'Suporte PWA standalone mobile'] },
+    { ver: '9', date: '12/07/2026', items: ['Novo layout das Configurações', 'Verificação automática de atualização'] },
+    { ver: '8', date: '12/07/2026', items: ['Auditoria geral e correções', 'Dados demonstrativos'] },
+    { ver: '7', date: '12/07/2026', items: ['Bloqueio por senha com SHA-256'] },
+    { ver: '6', date: '12/07/2026', items: ['Barra de progresso com KB/MB'] },
+    { ver: '5', date: '12/07/2026', items: ['Correções e melhorias'] },
+    { ver: '4', date: '12/07/2026', items: ['Correções e melhorias'] },
+    { ver: '3', date: '12/07/2026', items: ['Aba Atualizações, Backup PDF, Notificação de nova versão, Service Worker'] },
+    { ver: '2', date: '11/07/2026', items: ['Otimizações mobile'] },
     { ver: '1', date: '10/07/2026', items: ['Versão inicial do Confeitex'] }
   ],
 
@@ -151,7 +201,7 @@ const Updates = {
       if (serverVer && serverVer !== this.verAtual) {
         const confirmado = await UI.confirm({
           title: 'Nova versão disponível',
-          message: `Atualização v${serverVer} encontrada! Deseja baixar e instalar agora?`,
+          message: `Atualização v${serverVer} encontrada!\n\nClique em "Atualizar" para baixar e instalar a nova versão. Após a instalação, feche e abra o app novamente.`,
           confirmText: 'Atualizar',
           variant: 'primary'
         });
@@ -161,7 +211,7 @@ const Updates = {
           btn.innerHTML = btnHtml;
           return;
         }
-        this.updateStatus(`Nova versão v${serverVer} encontrada! Baixando...`);
+        this.updateStatus(`Nova versão v${serverVer} encontrada! Instalando...`);
         btn.disabled = false;
         btn.innerHTML = btnHtml;
         localStorage.setItem('confeitex_ver', serverVer);
