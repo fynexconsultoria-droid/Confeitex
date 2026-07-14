@@ -9,7 +9,7 @@
   const tabTitles = {
     dashboard: { title: 'Painel de Controle', subtitle: 'Estatísticas gerais e entregas de hoje.' },
     orders: { title: 'Encomendas', subtitle: 'Gerencie e busque todos os pedidos registrados.' },
-    clients: { title: 'Banco de Clientes', subtitle: 'Histórico de compras e contatos de clientes.' },
+    clients: { title: 'Clientes', subtitle: 'Histórico de compras e contatos de clientes.' },
     settings: { title: 'Configurações', subtitle: 'Ajustes do catálogo de sabores e utilitários.' },
     updates: { title: 'Atualizações', subtitle: 'Verifique por novas versões do aplicativo.' }
   };
