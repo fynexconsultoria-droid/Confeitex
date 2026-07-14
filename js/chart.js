@@ -4,6 +4,15 @@ const Chart = {
   render() {
     const canvas = document.getElementById('salesChart');
     if (!canvas) return;
+
+    if (this._resizeObserver) this._resizeObserver.disconnect();
+    this._resizeObserver = new ResizeObserver(() => {
+      if (document.getElementById('dashboard').classList.contains('active')) {
+        this.render();
+      }
+    });
+    this._resizeObserver.observe(canvas.parentElement);
+
     const period = document.getElementById('chartPeriodSelect').value;
     const today = new Date();
     const daysMap = { today: 1, '7days': 7, '15days': 15, '30days': 30 };

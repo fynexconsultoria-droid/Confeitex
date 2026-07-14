@@ -262,19 +262,29 @@ const Orders = {
 
     form.addEventListener('submit', (e) => {
       e.preventDefault();
+
+      const clientName = document.getElementById('orderClientName').value.trim();
+      const flavor = document.getElementById('orderFlavor').value.trim();
+      const deliveryDate = document.getElementById('orderDeliveryDate').value;
+      const deliveryTime = document.getElementById('orderDeliveryTime').value;
+      if (!clientName) { UI.alert('Informe o nome do cliente.'); return; }
+      if (!flavor) { UI.alert('Informe o sabor do pedido.'); return; }
+      if (!deliveryDate) { UI.alert('Informe a data de entrega.'); return; }
+      if (!deliveryTime) { UI.alert('Informe o horário de entrega.'); return; }
+
       const id = document.getElementById('orderIdInput').value;
       const data = {
-        clientName: document.getElementById('orderClientName').value.trim(),
+        clientName,
         clientPhone: document.getElementById('orderClientPhone').value.trim(),
         productType: document.getElementById('orderProductType').value,
-        flavor: document.getElementById('orderFlavor').value.trim(),
+        flavor,
         details: document.getElementById('orderDetails').value.trim(),
         weight: parseFloat(document.getElementById('orderWeight').value) || 0,
         unitPrice: parseFloat(document.getElementById('orderUnitPrice').value) || 0,
         extraCharges: parseFloat(document.getElementById('orderExtraCharges').value) || 0,
         cost: parseFloat(document.getElementById('orderCost').value) || 0,
-        deliveryDate: document.getElementById('orderDeliveryDate').value,
-        deliveryTime: document.getElementById('orderDeliveryTime').value,
+        deliveryDate,
+        deliveryTime,
         status: document.getElementById('orderStatus').value,
         notes: document.getElementById('orderNotes').value.trim(),
         paymentMethod: document.getElementById('orderPaymentMethod').value

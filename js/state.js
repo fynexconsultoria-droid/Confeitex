@@ -8,7 +8,11 @@ const DEFAULT_CATALOG = [
 ];
 
 function migrateOrder(o) {
-  return { paymentMethod: 'Dinheiro', cost: 0, deliveredAt: null, ...o };
+  const order = { paymentMethod: 'Dinheiro', cost: 0, deliveredAt: null, ...o };
+  if (order.status === 'Entregue' && !order.deliveredAt) {
+    order.deliveredAt = new Date().toISOString();
+  }
+  return order;
 }
 
 const State = {
@@ -22,12 +26,10 @@ const State = {
       this.orders = savedOrders ? JSON.parse(savedOrders).map(migrateOrder) : [];
       this.catalog = savedCatalog ? JSON.parse(savedCatalog) : [...DEFAULT_CATALOG];
       if (!savedCatalog) this.saveCatalog();
-      const temDemo = this.orders.some(o => o.id && o.id.startsWith('o_demo_'));
-      if (temDemo) {
-        this.orders = this.orders.filter(o => !o.id.startsWith('o_demo_'));
-        this.saveOrders();
-      }
-    } catch { this.catalog = [...DEFAULT_CATALOG]; }
+    } catch (e) {
+      this.catalog = [...DEFAULT_CATALOG];
+      console.warn('[Confeitex] Erro ao carregar dados:', e);
+    }
   },
 
   saveOrders() { localStorage.setItem('confeitex_orders', JSON.stringify(this.orders)); },

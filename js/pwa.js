@@ -3,7 +3,8 @@
 
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js').catch(() => {});
+      const swVer = localStorage.getItem('confeitex_ver') || '19';
+      navigator.serviceWorker.register('./sw.js?v=' + swVer).catch(() => {});
     });
   }
 

@@ -175,16 +175,22 @@ const Settings = {
       const ok = await UI.confirm({ title: 'Apagar Todos os Dados', message: 'ATENÇÃO: Isso apagará TODOS os dados permanentemente. Deseja continuar?', confirmText: 'Apagar', variant: 'danger' });
       if (!ok) return;
       State.orders = [];
+      State.catalog = [...DEFAULT_CATALOG];
       State.saveOrders();
+      State.saveCatalog();
+      localStorage.removeItem('confeitex_notified');
+      localStorage.removeItem('confeitex_notifications_enabled');
+      Notifications._disable();
       if (Auth.lockEnabled) {
         Auth.disable();
         localStorage.removeItem('confeitex_lock_hash');
         Auth.lockHash = '';
         if (Auth.renderSecuritySettings) Auth.renderSecuritySettings();
-        UI.toast('Dados e bloqueio removidos');
+        UI.toast('Dados, catálogo e bloqueio removidos');
       } else {
         UI.toast('Todos os dados foram excluídos');
       }
+      this.renderCatalog();
       Dashboard.update();
     });
 
@@ -210,7 +216,8 @@ const Settings = {
     // CSV export
     document.getElementById('btnExportCSV').addEventListener('click', () => {
       const headers = 'Cliente,Telefone,Produto,Sabor,Peso/Quant,Valor Unit.,Taxa Extra,Custo,Valor Total,Pagamento,Data Entrega,Hora,Status,Obs';
-      const rows = State.orders.map(o => [
+      const sorted = [...State.orders].sort((a, b) => b.deliveryDate.localeCompare(a.deliveryDate) || b.deliveryTime.localeCompare(a.deliveryTime));
+      const rows = sorted.map(o => [
         `"${o.clientName}"`, `"${o.clientPhone || ''}"`, `"${o.productType}"`, `"${o.flavor}"`,
         o.weight, o.unitPrice.toFixed(2), o.extraCharges.toFixed(2), (o.cost || 0).toFixed(2),
         o.totalValue.toFixed(2), `"${o.paymentMethod || 'Dinheiro'}"`,
