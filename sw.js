@@ -26,16 +26,21 @@ const ASSETS_TO_CACHE = [
   './icons/icon-512x512.png'
 ];
 
-// INSTALAÇÃO — cacheia todos os arquivos essenciais
+// INSTALAÇÃO — cacheia todos os arquivos essenciais (tolerante a falhas)
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
         console.log('[SW] Cacheando arquivos do Confeitex...');
-        return cache.addAll(ASSETS_TO_CACHE);
+        return Promise.allSettled(
+          ASSETS_TO_CACHE.map(url =>
+            cache.add(url).catch(() => {
+              console.warn('[SW] Falha ao cachear: ' + url);
+            })
+          )
+        );
       })
       .then(() => {
-        // Força ativação imediata sem esperar tabs existentes fecharem
         return self.skipWaiting();
       })
   );

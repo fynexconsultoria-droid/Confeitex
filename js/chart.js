@@ -1,17 +1,20 @@
 const Chart = {
   points: [],
+  _observerInit: false,
 
   render() {
     const canvas = document.getElementById('salesChart');
     if (!canvas) return;
 
-    if (this._resizeObserver) this._resizeObserver.disconnect();
-    this._resizeObserver = new ResizeObserver(() => {
-      if (document.getElementById('dashboard').classList.contains('active')) {
-        this.render();
-      }
-    });
-    this._resizeObserver.observe(canvas.parentElement);
+    if (!this._observerInit) {
+      this._observerInit = true;
+      this._resizeObserver = new ResizeObserver(() => {
+        if (document.getElementById('dashboard').classList.contains('active')) {
+          this.render();
+        }
+      });
+      this._resizeObserver.observe(canvas.parentElement);
+    }
 
     const period = document.getElementById('chartPeriodSelect').value;
     const today = new Date();

@@ -3,7 +3,7 @@
 
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      const swVer = localStorage.getItem('confeitex_ver') || (typeof Updates !== 'undefined' ? Updates.verAtual : '1.10.1');
+      const swVer = localStorage.getItem('confeitex_ver') || (typeof Updates !== 'undefined' ? Updates.verAtual : '1.10.2');
       navigator.serviceWorker.register('./sw.js?v=' + swVer).catch(() => {});
     });
   }

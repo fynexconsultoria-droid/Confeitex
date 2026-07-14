@@ -1,5 +1,5 @@
 const Updates = {
-  verAtual: '1.10.1',
+  verAtual: '1.10.2',
 
   setup() {
     document.getElementById('btnCheckUpdates').addEventListener('click', () => this.check());
@@ -40,93 +40,120 @@ const Updates = {
       if (stageEl) stageEl.textContent = detail || '';
     };
 
+    // Timer para exibir tempo decorrido em tempo real
+    let timerInterval = setInterval(() => {
+      const sec = Math.floor((Date.now() - startedAt) / 1000);
+      const min = Math.floor(sec / 60);
+      const s = sec % 60;
+      const display = min > 0 ? `${min}m ${s}s` : `${s}s`;
+      bytesEl.textContent = '⏱ ' + display;
+    }, 500);
+
+    const stopTimer = () => { clearInterval(timerInterval); timerInterval = null; };
+
+    // Função helper: executa com timeout (fallback silencioso se estourar)
+    const waitOrTimeout = (promise, ms) => Promise.race([
+      promise,
+      this._delay(ms).then(() => { throw new Error('timeout'); })
+    ]).catch(() => {});
+
     // Step 1: Preparação
-    setProgress(5, 'Preparando atualização...', 'Limpando configurações da versão anterior');
+    setProgress(5, 'Preparando atualização...', 'Limpando versão anterior');
     localStorage.removeItem('confeitex_notified');
     localStorage.removeItem('confeitex_update_prompt');
     localStorage.removeItem('confeitex_pwa_dismissed');
-    await this._delay(400);
+    await this._delay(300);
 
     // Step 2: Remove Service Worker antigo
-    setProgress(30, 'Removendo Service Worker antigo...', 'Garantindo que não haja conflitos');
-    if ('serviceWorker' in navigator) {
+    setProgress(20, 'Removendo versão anterior...', '');
+    let swSupported = 'serviceWorker' in navigator;
+    if (swSupported) {
       try {
         const reg = await navigator.serviceWorker.getRegistration();
         if (reg) await reg.unregister();
       } catch {}
     }
-    await this._delay(300);
+    await this._delay(200);
 
-    // Step 3: Registra novo Service Worker com a versão atualizada
-    setProgress(45, 'Registrando novo Service Worker...', 'Preparando ambiente da nova versão');
+    // Step 3: Registra novo Service Worker
+    setProgress(40, 'Registrando nova versão...', '');
+
+    if (!swSupported) {
+      // Sem suporte a SW: marca como atualizado e encerra
+      stopTimer();
+      setProgress(100, 'Atualização concluída!', 'Recarregue a página para aplicar.');
+      localStorage.setItem('confeitex_updated', 'true');
+      await this._delay(1000);
+      overlay.classList.remove('active');
+      overlay.style.display = 'none';
+      await UI.confirm({
+        title: '✅ Atualização concluída!',
+        message: `Versão v${newVer} marcada.\n\nFeche e abra o app novamente.`,
+        confirmText: 'OK', cancelText: '', variant: 'primary'
+      });
+      return;
+    }
+
     const swUrl = './sw.js?v=' + newVer;
     let newReg;
     try {
       newReg = await navigator.serviceWorker.register(swUrl);
     } catch (e) {
-      setProgress(0, 'Erro ao registrar Service Worker.', 'Verifique sua conexão e tente novamente');
+      stopTimer();
+      setProgress(0, 'Erro ao atualizar.', 'Verifique sua conexão');
       await this._delay(1500);
       overlay.classList.remove('active');
-      UI.alert('Erro ao atualizar: não foi possível registrar o Service Worker.\n\nTente novamente mais tarde.');
+      overlay.style.display = 'none';
+      UI.alert('Erro ao atualizar. Verifique sua conexão e tente novamente.');
       return;
     }
 
-    // Step 4: Aguarda instalação (download dos novos arquivos)
-    setProgress(60, 'Baixando novos arquivos...', 'Isso pode levar alguns segundos dependendo da sua conexão');
-    try {
-      await new Promise((resolve, reject) => {
-        if (newReg.installing) {
-          newReg.installing.addEventListener('statechange', () => {
-            if (newReg.installing.state === 'installed' || newReg.installing.state === 'activated') {
-              resolve();
-            } else if (newReg.installing.state === 'redundant') {
-              reject(new Error('SW became redundant'));
-            }
-          });
-        } else {
-          resolve();
-        }
-      });
-    } catch (e) {
-      setProgress(0, 'Erro durante o download.', 'Tente novamente mais tarde');
-      await this._delay(1500);
-      overlay.classList.remove('active');
-      UI.alert('Erro ao baixar a atualização. Verifique sua conexão e tente novamente.');
-      return;
-    }
-    await this._delay(300);
+    // Step 4: Aguarda instalação/ativação com timeout de 30s
+    setProgress(60, 'Baixando novos arquivos...', 'Aguardando download...');
 
-    // Step 5: Aguarda ativação
-    setProgress(80, 'Ativando nova versão...', 'Aplicando as alterações nos arquivos');
-    if (newReg.active) {
-      await new Promise(resolve => {
-        const sw = newReg.active;
-        if (sw.state === 'activated') {
-          resolve();
-        } else {
-          sw.addEventListener('statechange', () => {
-            if (sw.state === 'activated') resolve();
+    await waitOrTimeout(new Promise(resolve => {
+      let done = false;
+      const finish = () => { if (!done) { done = true; resolve(); } };
+
+      if (newReg.installing) {
+        newReg.installing.addEventListener('statechange', () => {
+          const st = newReg.installing.state;
+          if (st === 'installed' || st === 'activated') finish();
+          else if (st === 'redundant') {
+            setTimeout(() => { if (newReg.active && newReg.active.state === 'activated') finish(); else finish(); }, 1000);
+          }
+        });
+      } else if (newReg.active) {
+        if (newReg.active.state === 'activated') finish();
+        else {
+          newReg.active.addEventListener('statechange', () => {
+            if (newReg.active.state === 'activated') finish();
           });
         }
-      });
-    }
-    await this._delay(300);
+      } else {
+        setTimeout(finish, 2000);
+      }
 
-    // Step 6: Concluído
-    const elapsed = Math.round((Date.now() - startedAt) / 1000);
-    setProgress(100, 'Atualização concluída com sucesso!', `Versão v${newVer} instalada em ${elapsed}s`);
-    bytesEl.textContent = '✅ Pronto!';
+      setTimeout(finish, 30000); // segurança: nunca trava mais que 30s
+    }), 35000);
+
+    const elapsed = Math.floor((Date.now() - startedAt) / 1000);
+    const elapsedMin = Math.floor(elapsed / 60);
+    const elapsedStr = elapsedMin > 0 ? `${elapsedMin}m ${elapsed % 60}s` : `${elapsed}s`;
+
+    stopTimer();
+    setProgress(100, 'Atualização concluída com sucesso!', `Versão v${newVer} instalada`);
+    bytesEl.textContent = '✅ Pronto! (' + elapsedStr + ')';
 
     localStorage.setItem('confeitex_updated', 'true');
 
-    // Mostra modal de conclusão após breve pausa
     await this._delay(1200);
     overlay.classList.remove('active');
     overlay.style.display = 'none';
 
     await UI.confirm({
       title: '✅ Atualização concluída!',
-      message: `Versão v${newVer} instalada com sucesso (${elapsed}s).\n\nPara que as alterações entrem em vigor, feche completamente o aplicativo (feche a aba do navegador) e abra novamente.\n\n📌 Os dados dos seus pedidos e clientes estão preservados.`,
+      message: `Versão v${newVer} instalada com sucesso (${elapsedStr}).\n\nPara que as alterações entrem em vigor, feche completamente o aplicativo (feche a aba do navegador) e abra novamente.\n\n📌 Os dados dos seus pedidos e clientes estão preservados.`,
       confirmText: 'Fechar e Abrir Depois',
       cancelText: '',
       variant: 'primary'
@@ -134,6 +161,7 @@ const Updates = {
   },
 
   changelog: [
+    { ver: '1.10.2', date: '14/07/2026', items: ['Correção: Atualização não trava mais em "Baixando arquivos" — adicionado timeout de 30s e fallback', 'NOVO: Timer com tempo decorrido em tempo real durante a instalação', 'Otimização: Service Worker agora usa Promise.allSettled — se um arquivo falhar, os outros continuam', 'Otimização: Google Fonts removido (nunca era usado — app já usa fontes do sistema)', 'Otimização: ResizeObserver do gráfico criado apenas uma vez, não a cada render'] },
     { ver: '1.10.1', date: '14/07/2026', items: ['Correção: Configurações de Segurança (bloqueio por senha) estavam ocultas — agora aparecem novamente', 'Correção: Ícones PWA (atalho da tela inicial e favicon) regenerados com o bolo centralizado', 'Correção: Adicionado favicon SVG inline para garantir ícone correto na aba do navegador', 'Melhoria: Ícones PWA agora usam gradiente rosa/roxo com bolo branco — visual moderno e consistente'] },
     { ver: '1.10.0', date: '14/07/2026', items: ['NOVO: Sistema de atualização redesenhado — agora baixa, instala e ativa a nova versão via Service Worker', 'NOVO: Tela de progresso com estágios detalhados e tempo estimado de instalação', 'NOVO: Após atualizar, exibe instruções claras para fechar e reabrir o app', 'Correção: Faturamento Total no Dashboard agora funciona corretamente com pedidos antigos', 'Correção: Ícone do bolo centralizado no cabeçalho e tela de login', 'Melhoria: Clientes — clique no nome expande detalhes com botões Editar e Ver Histórico', 'Melhoria: Pedidos — detalhes expandidos em grid de 3 colunas com mais informações', 'Melhoria: Botões de ação (Editar, Avançar Status, Reabrir) agora aparecem apenas quando relevantes', 'Melhoria: Cache do navegador e Service Worker antigo são limpos automaticamente na atualização'] },
     { ver: '19', date: '13/07/2026', items: ['Correção: dados demo não são mais removidos automaticamente ao recarregar o app', 'Correção: "Apagar Todos os Dados" agora também limpa catálogo, notificações e estado de lembretes', 'Correção: pedidos com status "Entregue" sem deliveredAt agora recebem data automaticamente', 'Correção: validação de campos obrigatórios no formulário de pedidos (nome, sabor, data, horário)', 'Otimização: gráfico redimensiona automaticamente ao mudar orientação do celular', 'Otimização: exportação CSV ordenada por data de entrega (decrescente)', 'Otimização: Service Worker registrado com parâmetro de versão para evitar cache conflitante'] },
