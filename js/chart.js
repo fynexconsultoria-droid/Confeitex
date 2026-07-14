@@ -66,6 +66,7 @@ const Chart = {
     // X labels
     ctx.textAlign = 'center'; ctx.textBaseline = 'top';
     const step = daysLimit >= 30 ? 5 : daysLimit >= 15 ? 3 : 1;
+    const xDivisor = Math.max(this.points.length - 1, 1);
     this.points.forEach((p, i) => {
       if (i % step === 0 || i === this.points.length - 1) {
         const x = pl + cw * (i / xDivisor);
@@ -74,7 +75,6 @@ const Chart = {
     });
 
     // Store positions for tooltips
-    const xDivisor = Math.max(this.points.length - 1, 1);
     this.pointPositions = this.points.map((p, i) => ({
       ...p,
       x: pl + cw * (i / xDivisor),
