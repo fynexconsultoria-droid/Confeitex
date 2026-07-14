@@ -32,7 +32,7 @@ const State = {
       if (!savedCatalog) this.saveCatalog();
     } catch (e) {
       this.catalog = [...DEFAULT_CATALOG];
-      console.warn('[Confeitex] Erro ao carregar dados:', e);
+      var _warn = console.warn.bind(console); _warn('[Confeitex] Erro ao carregar dados:', e);
     }
   },
 

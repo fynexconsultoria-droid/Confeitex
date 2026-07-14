@@ -52,7 +52,7 @@
   if (localStorage.getItem('confeitex_updated')) {
     UI.confirm({
       title: '🔄 Atualização detectada!',
-      message: 'Uma nova versão do Confeitex foi instalada na última atualização.\n\nSe notar algo diferente, feche e abra o app novamente para garantir que tudo esteja funcionando corretamente.',
+      message: 'Uma nova versão do Confeitex foi instalada e está ativa.\n\nTudo pronto! Seus dados foram preservados e migrados automaticamente.',
       confirmText: 'OK, Entendi',
       cancelText: '',
       variant: 'primary'
@@ -98,7 +98,7 @@
       localStorage.setItem('confeitex_update_prompt', String(Date.now()));
       const ok = await UI.confirm({
         title: 'Nova versão disponível',
-        message: `Atualização v${newVer} encontrada! Deseja baixar e instalar agora?`,
+        message: `Atualização v${newVer} encontrada! Deseja instalar agora?\n\nA instalação ocorrerá em segundo plano — você pode continuar usando o app normalmente.`,
         confirmText: 'Atualizar',
         variant: 'primary'
       });

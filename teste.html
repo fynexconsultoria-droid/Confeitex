@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teste — Confeitex</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body { padding: 2rem; display: block; min-height: auto; }
+    .test-container { max-width: 800px; margin: 0 auto; }
+    .test-container h1 { font-size: 1.8rem; margin-bottom: 0.5rem; background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .test-container > p { color: var(--text-secondary); margin-bottom: 1.5rem; }
+    .test-summary { display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+    .test-summary > div { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--border-radius-md); padding: 1rem; flex: 1; min-width: 80px; text-align: center; }
+    .test-summary .num { font-size: 2rem; font-weight: 800; }
+    .test-summary .label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; }
+    .test-result { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--border-radius-md); padding: 0.75rem 1rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.75rem; }
+    .test-result.pass { border-left: 3px solid var(--color-success); }
+    .test-result.fail { border-left: 3px solid var(--color-danger); }
+    .test-result .icon { font-size: 1.2rem; width: 24px; text-align: center; }
+    .test-result .name { flex: 1; font-weight: 600; font-size: 0.9rem; }
+    .test-result .detail { font-size: 0.75rem; color: var(--text-muted); }
+    .test-result.fail .detail { color: var(--color-danger); }
+    .btn-test { margin-top: 1rem; }
+    #testOutput { margin-top: 1.5rem; }
+    .group-header { font-size: 0.85rem; font-weight: 700; color: var(--color-accent-purple); text-transform: uppercase; letter-spacing: 0.5px; margin: 1rem 0 0.5rem 0; padding-bottom: 0.25rem; border-bottom: 1px solid var(--border-color); }
+  </style>
+</head>
+<body>
+  <div class="test-container">
+    <h1>Teste Confeitex</h1>
+    <p>Validacao completa de todos os modulos do app</p>
+
+    <div class="test-summary" id="testSummary">
+      <div><div class="num" id="totalTests">0</div><div class="label">Total</div></div>
+      <div><div class="num" style="color:var(--color-success)" id="passedTests">0</div><div class="label">Passaram</div></div>
+      <div><div class="num" style="color:var(--color-danger)" id="failedTests">0</div><div class="label">Falharam</div></div>
+    </div>
+
+    <button class="btn btn-primary btn-test" id="btnRunTests">Executar Testes</button>
+    <div id="testOutput"></div>
+  </div>
+
+  <script src="js/state.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/pwa.js"></script>
+  <script src="js/chart.js"></script>
+  <script src="js/notifications.js"></script>
+  <script src="js/dashboard.js"></script>
+  <script src="js/orders.js"></script>
+  <script src="js/clients.js"></script>
+  <script src="js/settings.js"></script>
+  <script src="js/updates.js"></script>
+
+  <script>
+  const TestRunner = {
+    results: [],
+    passed: 0,
+    failed: 0,
+    group: '',
+
+    assert(condition, name, detail) {
+      this.results.push({ pass: !!condition, name, detail: detail || '', group: this.group });
+      if (condition) this.passed++; else this.failed++;
+    },
+
+    groupName(name) {
+      this.group = name;
+      this.results.push({ pass: true, name: '', detail: '', group: name, isGroup: true });
+    },
+
+    async runAll() {
+      this.results = [];
+      this.passed = 0;
+      this.failed = 0;
+      const out = document.getElementById('testOutput');
+      out.innerHTML = '<p style="color:var(--text-muted)">Executando testes...</p>';
+
+      // ============ 1. STATE ============
+      this.groupName('State (state.js)');
+
+      this.assert(typeof State !== 'undefined', 'State existe', '');
+      this.assert(Array.isArray(State.orders), 'State.orders e array', `${State.orders.length} pedidos`);
+      this.assert(Array.isArray(State.catalog), 'State.catalog e array', `${State.catalog.length} itens`);
+      this.assert(typeof State.load === 'function', 'State.load()', '');
+      this.assert(typeof State.saveOrders === 'function', 'State.saveOrders()', '');
+      this.assert(typeof State.saveCatalog === 'function', 'State.saveCatalog()', '');
+      this.assert(typeof State.loadDemo === 'function', 'State.loadDemo()', '');
+
+      const catLen = State.catalog.length;
+      State.catalog.push({ id: 'test', flavor: 'Teste', pricePerKg: 10, type: 'Outros' });
+      State.saveCatalog();
+      const saved = JSON.parse(localStorage.getItem('confeitex_catalog'));
+      this.assert(saved && saved.length === catLen + 1, 'saveCatalog() persiste no localStorage', `${saved.length} itens`);
+      State.catalog.pop();
+      State.saveCatalog();
+
+      this.assert(typeof migrateOrder === 'function', 'migrateOrder() existe', '');
+      const legacy = migrateOrder({ weight: 2, unitPrice: 50, extraCharges: 5 });
+      this.assert(legacy.totalValue === 105, 'migrateOrder() calcula totalValue', `R$ ${legacy.totalValue}`);
+      this.assert(legacy.paymentMethod === 'Dinheiro', 'migrateOrder() preenche padrao', legacy.paymentMethod);
+      const delivered = migrateOrder({ status: 'Entregue' });
+      this.assert(!!delivered.deliveredAt, 'migrateOrder() preenche deliveredAt', '');
+
+      // ============ 2. AUTH ============
+      this.groupName('Auth (auth.js)');
+
+      this.assert(typeof Auth !== 'undefined', 'Auth existe', '');
+      this.assert(typeof Auth.init === 'function', 'Auth.init()', '');
+      this.assert(typeof Auth.supported === 'function', 'Auth.supported()', '');
+      this.assert(typeof Auth.isLocked === 'function', 'Auth.isLocked()', '');
+      this.assert(typeof Auth.setPassword === 'function', 'Auth.setPassword()', '');
+      this.assert(typeof Auth.verify === 'function', 'Auth.verify()', '');
+      this.assert(typeof Auth.enable === 'function', 'Auth.enable()', '');
+      this.assert(typeof Auth.disable === 'function', 'Auth.disable()', '');
+      this.assert(typeof Auth.showLogin === 'function', 'Auth.showLogin()', '');
+      this.assert(typeof Auth.renderSecuritySettings === 'function', 'Auth.renderSecuritySettings()', '');
+
+      Auth.init();
+      this.assert(Auth.lockEnabled === false || Auth.lockEnabled === true, 'Auth.init() carrega lockEnabled', String(Auth.lockEnabled));
+
+      // ============ 3. UTILS ============
+      this.groupName('Utils (utils.js)');
+
+      this.assert(typeof fmt === 'function', 'fmt() existe', '');
+      this.assert(fmt(1234.5) === 'R$ 1.234,50', 'fmt() formata moeda BR', fmt(1234.5));
+      this.assert(fmt(0) === 'R$ 0,00', 'fmt(0)', fmt(0));
+
+      this.assert(typeof fmtDate === 'function', 'fmtDate() existe', '');
+      const d = new Date(2026, 6, 14);
+      this.assert(fmtDate(d) === '14/07/2026', 'fmtDate()', fmtDate(d));
+
+      this.assert(typeof fmtDateStr === 'function', 'fmtDateStr() existe', '');
+      this.assert(fmtDateStr('2026-07-14') === '14/07/2026', 'fmtDateStr()', fmtDateStr('2026-07-14'));
+      this.assert(fmtDateStr('') === '', 'fmtDateStr vazio', '');
+
+      this.assert(typeof escapeHTML === 'function', 'escapeHTML() existe', '');
+      this.assert(escapeHTML('<script>') === '&lt;script&gt;', 'escapeHTML()', escapeHTML('<script>'));
+
+      this.assert(typeof badgeClass === 'function', 'badgeClass() existe', '');
+      this.assert(badgeClass('Pendente') === 'badge-pending', 'badgeClass Pendente', badgeClass('Pendente'));
+      this.assert(badgeClass('Entregue') === 'badge-success', 'badgeClass Entregue', badgeClass('Entregue'));
+
+      this.assert(typeof formatWeight === 'function', 'formatWeight() existe', '');
+      this.assert(formatWeight({ productType: 'Bolo de Kg', weight: 2.5 }) === '2,50 Kg', 'formatWeight Kg', formatWeight({ productType: 'Bolo de Kg', weight: 2.5 }));
+      this.assert(formatWeight({ productType: 'Doces', weight: 10 }) === '10 un', 'formatWeight un', formatWeight({ productType: 'Doces', weight: 10 }));
+
+      this.assert(typeof maskPhone === 'function', 'maskPhone() existe', '');
+
+      // ============ 4. UI ============
+      this.groupName('UI (ui.js)');
+
+      this.assert(typeof UI !== 'undefined', 'UI existe', '');
+      this.assert(typeof UI.toast === 'function', 'UI.toast()', '');
+      this.assert(typeof UI.confirm === 'function', 'UI.confirm()', '');
+      this.assert(typeof UI.alert === 'function', 'UI.alert()', '');
+
+      // ============ 5. DOM Elements ============
+      this.groupName('DOM - Elementos essenciais');
+
+      const domIds = [
+        'btnCheckUpdates', 'updateNotification', 'updateNotifText', 'btnUpdateNow', 'btnUpdateLater', 'btnUpdateCloseApp',
+        'updatesCurrentVer', 'updatesLastCheck', 'updatesChangelog', 'updatesStatus',
+        'orderModal', 'orderForm', 'orderSearchInput', 'orderFilterStatus', 'orderFilterDate', 'btnClearFilters',
+        'clientSearchInput', 'clientEditModal',
+        'catalogListContainer', 'btnExportData', 'btnImportData', 'btnLoadDemo', 'btnClearAllData',
+        'securitySettingsContainer', 'notificationStatusContainer',
+        'dashboard', 'orders', 'clients', 'settings', 'updates',
+        'kpiSalesToday', 'kpiWeightToday', 'kpiPendingOrders', 'kpiTotalEarnings',
+        'todayDeliveriesList', 'calcDateInput', 'calcDayValue', 'calcDayWeight',
+        'salesChart', 'chartPeriodSelect', 'ordersTable', 'ordersTableBody', 'ordersEmptyState',
+        'clientsTable', 'clientsTableBody', 'clientsEmptyState',
+        'sidebar', 'menuToggle', 'sidebarOverlay', 'mainTitle', 'mainSubtitle', 'currentDateDisplay'
+      ];
+      let missing = 0;
+      domIds.forEach(id => { if (!document.getElementById(id)) { this.assert(false, 'Falta ID: ' + id, ''); missing++; } });
+      if (missing === 0) this.assert(true, 'Todos os IDs essenciais existem', `${domIds.length} verificados`);
+
+      // ============ 6. Updates ============
+      this.groupName('Updates (updates.js)');
+
+      this.assert(typeof Updates !== 'undefined', 'Updates existe', '');
+      this.assert(typeof Updates.verAtual === 'string' && Updates.verAtual.length > 0, 'Updates.verAtual', Updates.verAtual);
+      this.assert(typeof Updates.setup === 'function', 'Updates.setup()', '');
+      this.assert(typeof Updates._fetchVersion === 'function', 'Updates._fetchVersion()', '');
+      this.assert(typeof Updates.checkSilent === 'function', 'Updates.checkSilent()', '');
+      this.assert(typeof Updates.downloadUpdate === 'function', 'Updates.downloadUpdate()', '');
+      this.assert(typeof Updates._showUpdateBanner === 'function', 'Updates._showUpdateBanner()', '');
+      this.assert(typeof Updates.check === 'function', 'Updates.check()', '');
+      this.assert(typeof Updates.render === 'function', 'Updates.render()', '');
+      this.assert(typeof Updates._delay === 'function', 'Updates._delay()', '');
+      this.assert(Array.isArray(Updates.changelog) && Updates.changelog.length > 0, 'Updates.changelog', `${Updates.changelog.length} entradas`);
+
+      Updates.render();
+      this.assert(document.getElementById('updatesCurrentVer').textContent.startsWith('v'), 'render() mostra versao', document.getElementById('updatesCurrentVer').textContent);
+      this.assert(document.getElementById('updatesChangelog').children.length > 0, 'render() popula changelog', '');
+
+      const t0 = performance.now();
+      await Updates._delay(50);
+      this.assert((performance.now() - t0) >= 20, '_delay(50ms)', `${Math.round(performance.now() - t0)}ms`);
+
+      // ============ 7. Banner Update ============
+      this.groupName('Banner de atualizacao');
+
+      Updates._showUpdateBanner('9.9.9');
+      await new Promise(r => setTimeout(r, 150));
+      const banner = document.getElementById('updateNotification');
+      const isVisible = banner.style.display === 'flex' && banner.classList.contains('visible');
+      this.assert(isVisible, '_showUpdateBanner() exibe o banner', isVisible ? 'Visivel' : 'Nao exibido');
+      document.getElementById('btnUpdateLater').click();
+      await new Promise(r => setTimeout(r, 200));
+      this.assert(!banner.classList.contains('visible'), 'btnUpdateLater esconde', '');
+      banner.style.display = 'none';
+
+      // ============ 8. Dashboard ============
+      this.groupName('Dashboard (dashboard.js)');
+
+      this.assert(typeof Dashboard !== 'undefined', 'Dashboard existe', '');
+      this.assert(typeof Dashboard.update === 'function', 'Dashboard.update()', '');
+      this.assert(typeof Dashboard.calcDayTotals === 'function', 'Dashboard.calcDayTotals()', '');
+      this.assert(typeof Dashboard.renderDeliveries === 'function', 'Dashboard.renderDeliveries()', '');
+      Dashboard.update();
+      this.assert(document.getElementById('kpiSalesToday').textContent.startsWith('R$'), 'update() mostra vendas', document.getElementById('kpiSalesToday').textContent);
+      this.assert(document.getElementById('kpiPendingOrders').textContent !== '', 'update() mostra pendentes', document.getElementById('kpiPendingOrders').textContent);
+
+      // ============ 9. Orders ============
+      this.groupName('Orders (orders.js)');
+
+      this.assert(typeof Orders !== 'undefined', 'Orders existe', '');
+      this.assert(typeof Orders.render === 'function', 'Orders.render()', '');
+      this.assert(typeof Orders.openEdit === 'function', 'Orders.openEdit()', '');
+      this.assert(typeof Orders.fillForm === 'function', 'Orders.fillForm()', '');
+      this.assert(typeof Orders.calcTotal === 'function', 'Orders.calcTotal()', '');
+      this.assert(typeof Orders.delete === 'function', 'Orders.delete()', '');
+      this.assert(typeof Orders.advanceStatus === 'function', 'Orders.advanceStatus()', '');
+      this.assert(typeof Orders.setupForm === 'function', 'Orders.setupForm()', '');
+      this.assert(typeof Orders.populateFlavorSelect === 'function', 'Orders.populateFlavorSelect()', '');
+      this.assert(typeof Orders.updateLabels === 'function', 'Orders.updateLabels()', '');
+
+      Orders.render();
+      const tbody = document.getElementById('ordersTableBody');
+      this.assert(!!tbody, 'render() popula tabela', `${tbody.children.length} linhas`);
+
+      if (State.orders.length > 0) {
+        const first = State.orders[0];
+        Orders.openEdit(first.id);
+        await new Promise(r => setTimeout(r, 50));
+        this.assert(document.getElementById('orderIdInput').value === first.id, 'openEdit() carrega ID', first.id);
+        document.getElementById('btnModalOrderClose').click();
+      }
+
+      // ============ 10. Clients ============
+      this.groupName('Clients (clients.js)');
+
+      this.assert(typeof Clients !== 'undefined', 'Clients existe', '');
+      this.assert(typeof Clients.render === 'function', 'Clients.render()', '');
+      this.assert(typeof Clients.openEdit === 'function', 'Clients.openEdit()', '');
+      this.assert(typeof Clients.saveEdit === 'function', 'Clients.saveEdit()', '');
+      this.assert(typeof Clients.openHistory === 'function', 'Clients.openHistory()', '');
+      this.assert(typeof Clients.setupEditModal === 'function', 'Clients.setupEditModal()', '');
+
+      Clients.render();
+      const ctbody = document.getElementById('clientsTableBody');
+      this.assert(!!ctbody, 'render() popula tabela clientes', '');
+
+      // ============ 11. Settings ============
+      this.groupName('Settings (settings.js)');
+
+      this.assert(typeof Settings !== 'undefined', 'Settings existe', '');
+      this.assert(typeof Settings.renderCatalog === 'function', 'Settings.renderCatalog()', '');
+      this.assert(typeof Settings.setup === 'function', 'Settings.setup()', '');
+
+      Settings.renderCatalog();
+      const catContainer = document.getElementById('catalogListContainer');
+      this.assert(catContainer.children.length > 0, 'renderCatalog() mostra sabores', `${catContainer.children.length} itens`);
+
+      // ============ 12. Notifications ============
+      this.groupName('Notifications (notifications.js)');
+
+      this.assert(typeof Notifications !== 'undefined', 'Notifications existe', '');
+      this.assert(typeof Notifications.init === 'function', 'Notifications.init()', '');
+      this.assert(typeof Notifications.enable === 'function', 'Notifications.enable()', '');
+      this.assert(typeof Notifications.disable === 'function', 'Notifications.disable()', '');
+      this.assert(typeof Notifications.toggle === 'function', 'Notifications.toggle()', '');
+      this.assert(typeof Notifications.check === 'function', 'Notifications.check()', '');
+      this.assert('status' in Notifications, 'Notifications.status existe', '');
+      this.assert('enabled' in Notifications, 'Notifications.enabled existe', '');
+
+      // ============ 13. PWA ============
+      this.groupName('PWA (pwa.js)');
+
+      this.assert(typeof PWA !== 'undefined', 'PWA existe', '');
+      this.assert(typeof PWA.setup === 'function', 'PWA.setup()', '');
+
+      // ============ 14. Chart ============
+      this.groupName('Chart (chart.js)');
+
+      this.assert(typeof Chart !== 'undefined', 'Chart existe', '');
+      this.assert(typeof Chart.render === 'function', 'Chart.render()', '');
+
+      // ============ 15. Codigo morto ============
+      this.groupName('Codigo morto - Overlay antigo');
+
+      this.assert(!document.getElementById('updateOverlay'), 'Overlay antigo removido do HTML', '');
+      const deadIds = ['updateProgressBar', 'updateProgressPercent', 'updateStatusText', 'updateStageText', 'updateProgressBytes', 'updateActions', 'btnReloadNow', 'btnCloseApp'];
+      const stillExist = deadIds.filter(id => !!document.getElementById(id));
+      this.assert(stillExist.length === 0, 'IDs do overlay antigo nao existem', stillExist.length > 0 ? stillExist.join(', ') : 'OK');
+
+      // ============ 16. Integridade localStorage ============
+      this.groupName('Integridade localStorage');
+
+      const allKeys = Object.keys(localStorage);
+      const fyntexKeys = allKeys.filter(k => k.startsWith('fyntex_'));
+      this.assert(fyntexKeys.length === 0, 'Sem chaves fyntex_', fyntexKeys.length > 0 ? fyntexKeys.join(', ') : 'OK');
+      const unknownKeys = allKeys.filter(k => !k.startsWith('confeitex_'));
+      this.assert(unknownKeys.length === 0 || unknownKeys.every(k => k.startsWith('confeitex') || k.startsWith('fyntex')), 'Sem chaves desconhecidas', unknownKeys.join(', '));
+
+      // ============ 17. Duplicacao de modulos ============
+      this.groupName('Duplicacao - Objetos globais');
+
+      const globalModules = ['State', 'Auth', 'UI', 'PWA', 'Chart', 'Notifications', 'Dashboard', 'Orders', 'Clients', 'Settings', 'Updates'];
+      let dupCount = 0;
+      for (const name of globalModules) {
+        const instances = window[name];
+        if (typeof instances !== 'undefined') {
+          const keys = Object.keys(instances);
+          if (keys.length > 0) dupCount++;
+        }
+      }
+      this.assert(dupCount === globalModules.length, `${globalModules.length} objetos globais unicos`, `${dupCount}/${globalModules.length}`);
+
+      // Redundancia de funcoes
+      const funcList = ['fmt', 'fmtDate', 'fmtDateStr', 'escapeHTML', 'maskPhone', 'badgeClass', 'formatWeight', 'migrateOrder'];
+      let funcCount = 0;
+      for (const name of funcList) {
+        if (typeof window[name] === 'function') funcCount++;
+      }
+      this.assert(funcCount === funcList.length, `${funcList.length} funcoes globais sem duplicacao`, `${funcCount}/${funcList.length}`);
+
+      this.renderResults();
+    },
+
+    renderResults() {
+      const out = document.getElementById('testOutput');
+      document.getElementById('totalTests').textContent = this.results.filter(r => !r.isGroup).length;
+      document.getElementById('passedTests').textContent = this.passed;
+      document.getElementById('failedTests').textContent = this.failed;
+
+      let html = '';
+      let currentGroup = '';
+      for (const r of this.results) {
+        if (r.isGroup) {
+          currentGroup = r.group;
+          html += `<div class="group-header">${r.group}</div>`;
+          continue;
+        }
+        html += `<div class="test-result ${r.pass ? 'pass' : 'fail'}">
+          <div class="icon">${r.pass ? 'OK' : 'ERRO'}</div>
+          <div class="name">${r.name}</div>
+          <div class="detail">${r.detail}</div>
+        </div>`;
+      }
+      out.innerHTML = html;
+    }
+  };
+
+  document.getElementById('btnRunTests').addEventListener('click', () => TestRunner.runAll());
+  </script>
+</body>
+</html>

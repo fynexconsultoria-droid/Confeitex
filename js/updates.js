@@ -24,80 +24,45 @@ const Updates = {
     return (serverVer && serverVer !== this.verAtual) ? serverVer : null;
   },
 
-  async _fail(overlay, msg) {
-    overlay.classList.remove('active');
-    overlay.style.display = 'none';
-    await this._delay(400);
-    UI.alert(msg || 'Erro ao atualizar. Tente novamente.');
-  },
-
   async downloadUpdate() {
-    const overlay = document.getElementById('updateOverlay');
-    const bar = document.getElementById('updateProgressBar');
-    const percentEl = document.getElementById('updateProgressPercent');
-    const statusEl = document.getElementById('updateStatusText');
-    const stageEl = document.getElementById('updateStageText');
-    const bytesEl = document.getElementById('updateProgressBytes');
-    const actionsEl = document.getElementById('updateActions');
-    const btnReload = document.getElementById('btnReloadNow');
-    const btnClose = document.getElementById('btnCloseApp');
-
-    overlay.classList.add('active');
-    actionsEl.style.display = 'none';
-    bytesEl.textContent = '';
-
     const newVer = localStorage.getItem('confeitex_ver') || this.verAtual;
-    const startedAt = Date.now();
 
-    const setProgress = (pct, status, detail) => {
-      bar.style.width = pct + '%';
-      percentEl.textContent = pct + '%';
-      statusEl.textContent = status;
-      if (stageEl) stageEl.textContent = detail || '';
-    };
+    // Toast inicial informando instalação em segundo plano
+    UI.toast(`📦 Instalando Confeitex v${newVer} em segundo plano...`);
 
-    const timeStr = () => {
-      const s = Math.floor((Date.now() - startedAt) / 1000);
-      return s >= 60 ? `${Math.floor(s/60)}m ${s%60}s` : `${s}s`;
-    };
-
-    let timerInterval = setInterval(() => { bytesEl.textContent = '⏱ ' + timeStr(); }, 500);
-    const stopTimer = () => { clearInterval(timerInterval); timerInterval = null; };
-
-    // --- Step 1: Preparação ---
-    setProgress(5, 'Preparando...', '');
+    // Limpa flags de cache/notificações antigas
     localStorage.removeItem('confeitex_notified');
     localStorage.removeItem('confeitex_update_prompt');
     localStorage.removeItem('confeitex_pwa_dismissed');
 
-    // --- Step 2: Remove Service Worker antigo ---
-    setProgress(20, 'Removendo versão anterior...', '');
+    // Remove Service Worker antigo
     let swOk = 'serviceWorker' in navigator;
     if (swOk) {
-      try { const r = await navigator.serviceWorker.getRegistration(); if (r) await r.unregister(); } catch {}
+      try {
+        const r = await navigator.serviceWorker.getRegistration();
+        if (r) await r.unregister();
+      } catch {}
     }
 
-    // --- Step 3: Registra novo SW ---
-    setProgress(40, 'Registrando nova versão...', '');
-
+    // Se não suportar SW, marca como atualizado e mostra banner
     if (!swOk) {
-      stopTimer();
       localStorage.setItem('confeitex_updated', 'true');
-      setProgress(100, 'Concluído!', '');
-      await this._delay(400);
-      overlay.classList.remove('active');
-      overlay.style.display = 'none';
-      UI.toast(`Versão v${newVer} registrada. Feche e abra o app novamente.`);
+      localStorage.setItem('confeitex_ver', newVer);
+      UI.toast(`✅ v${newVer} registrada. Feche e abra o app novamente.`);
+      this._showUpdateBanner(newVer);
       return;
     }
 
+    // Registra novo Service Worker
     let reg;
-    try { reg = await navigator.serviceWorker.register('./sw.js?v=' + newVer); }
-    catch { stopTimer(); return this._fail(overlay, 'Erro de conexão. Verifique sua internet e tente novamente.'); }
+    try {
+      reg = await navigator.serviceWorker.register('./sw.js?v=' + newVer);
+    } catch {
+      UI.alert('Erro de conexão. Verifique sua internet e tente novamente.');
+      return;
+    }
 
-    // --- Step 4: Aguarda instalação/ativação (máx 25s) ---
-    setProgress(60, 'Baixando novos arquivos...', 'Isso leva alguns segundos...');
-
+    // Aguarda instalação/ativação (máx 25s)
     const ativado = await Promise.race([
       new Promise(resolve => {
         if (reg.installing) {
@@ -117,62 +82,65 @@ const Updates = {
       this._delay(25000).then(() => false)
     ]);
 
-    stopTimer();
-
-    if (!ativado) {
-      localStorage.setItem('confeitex_updated', 'true');
-      setProgress(100, 'Concluído (2º plano)', 'Será aplicado ao reabrir');
-      bytesEl.textContent = '⏱ ' + timeStr();
-      await this._delay(600);
-      overlay.classList.remove('active');
-      overlay.style.display = 'none';
-      UI.toast(`📦 v${newVer} em segundo plano — será aplicado na próxima abertura.`);
-      return;
-    }
-
-    // --- Concluído com sucesso ---
-    setProgress(100, '✅ Atualização concluída!', `Versão v${newVer} instalada`);
-    bytesEl.textContent = '⏱ ' + timeStr();
-
+    // Marca como atualizado
     localStorage.setItem('confeitex_updated', 'true');
     localStorage.setItem('confeitex_ver', newVer);
 
-    // Esconde progresso, mostra botões
-    document.querySelector('.update-progress-track')?.style?.display = 'none';
-    document.querySelector('.update-progress-info')?.style?.display = 'none';
-    document.getElementById('updateStageText').style.display = 'none';
-    statusEl.textContent = '✅ Atualização concluída!';
-    stageEl.textContent = '';
+    if (!ativado) {
+      UI.toast(`📦 Confeitex v${newVer} instalado em segundo plano — será ativado ao reabrir o app.`);
+    } else {
+      UI.toast(`✅ Confeitex v${newVer} instalado com sucesso!`);
+    }
 
-    actionsEl.style.display = 'flex';
+    // Mostra banner de notificação para o usuário decidir
+    this._showUpdateBanner(newVer);
+  },
 
-    return new Promise(resolve => {
-      const cleanup = () => {
-        btnReload.removeEventListener('click', onReload);
-        btnClose.removeEventListener('click', onClose);
-        resolve();
-      };
+  _showUpdateBanner(ver) {
+    const banner = document.getElementById('updateNotification');
+    if (!banner) return;
 
-      const onReload = () => {
-        cleanup();
-        overlay.classList.remove('active');
-        overlay.style.display = 'none';
+    const text = document.getElementById('updateNotifText');
+    const btnNow = document.getElementById('btnUpdateNow');
+    const btnLater = document.getElementById('btnUpdateLater');
+    const btnClose = document.getElementById('btnUpdateCloseApp');
+
+    text.textContent = `Atualização Confeitex v${ver} instalada! Deseja recarregar agora para aplicar as mudanças?`;
+
+    // Exibe e anima o banner (double rAF para garantir transição)
+    banner.style.display = 'flex';
+    requestAnimationFrame(() => requestAnimationFrame(() => banner.classList.add('visible')));
+
+    const hide = () => {
+      banner.classList.remove('visible');
+      banner.addEventListener('transitionend', () => {
+        banner.style.display = 'none';
+      }, { once: true });
+    };
+
+    // Atualizar Agora → recarrega a página
+    btnNow.onclick = () => {
+      localStorage.removeItem('confeitex_updated');
+      hide();
+      setTimeout(() => {
         window.location.href = window.location.href.split('?')[0].split('#')[0] + '?v=' + Date.now();
-      };
+      }, 300);
+    };
 
-      const onClose = () => {
-        cleanup();
-        overlay.classList.remove('active');
-        overlay.style.display = 'none';
-        // Tenta fechar a janela (funciona em PWA standalone)
+    // Continuar sem atualizar → apenas esconde o banner
+    btnLater.onclick = () => {
+      hide();
+    };
+
+    // Fechar App → força fechamento para aplicar atualizações
+    btnClose.onclick = () => {
+      localStorage.removeItem('confeitex_updated');
+      hide();
+      setTimeout(() => {
         try { window.open('', '_self'); window.close(); } catch {}
-        // Fallback: redireciona para página vazia (fecha o app visualmente)
         setTimeout(() => { window.location.replace('about:blank'); }, 500);
-      };
-
-      btnReload.addEventListener('click', onReload);
-      btnClose.addEventListener('click', onClose);
-    });
+      }, 400);
+    };
   },
 
   changelog: [
@@ -183,7 +151,7 @@ const Updates = {
     { ver: '1.10.0', date: '14/07/2026', items: ['NOVO: Sistema de atualização redesenhado — agora baixa, instala e ativa a nova versão via Service Worker', 'NOVO: Tela de progresso com estágios detalhados e tempo estimado de instalação', 'NOVO: Após atualizar, exibe instruções claras para fechar e reabrir o app', 'Correção: Faturamento Total no Dashboard agora funciona corretamente com pedidos antigos', 'Correção: Ícone do bolo centralizado no cabeçalho e tela de login', 'Melhoria: Clientes — clique no nome expande detalhes com botões Editar e Ver Histórico', 'Melhoria: Pedidos — detalhes expandidos em grid de 3 colunas com mais informações', 'Melhoria: Botões de ação (Editar, Avançar Status, Reabrir) agora aparecem apenas quando relevantes', 'Melhoria: Cache do navegador e Service Worker antigo são limpos automaticamente na atualização'] },
     { ver: '19', date: '13/07/2026', items: ['Correção: dados demo não são mais removidos automaticamente ao recarregar o app', 'Correção: "Apagar Todos os Dados" agora também limpa catálogo, notificações e estado de lembretes', 'Correção: pedidos com status "Entregue" sem deliveredAt agora recebem data automaticamente', 'Correção: validação de campos obrigatórios no formulário de pedidos (nome, sabor, data, horário)', 'Otimização: gráfico redimensiona automaticamente ao mudar orientação do celular', 'Otimização: exportação CSV ordenada por data de entrega (decrescente)', 'Otimização: Service Worker registrado com parâmetro de versão para evitar cache conflitante'] },
     { ver: '18', date: '13/07/2026', items: ['Importação de dados via PDF (relatório exportado do Confeitex)', 'Notificações: agora podem ser ativadas/desativadas com status visual', 'Editar cliente diretamente do banco de clientes', 'Card "Pendentes/Produção" no Dashboard agora leva aos pedidos filtrados', 'Ícone do bolo centralizado no cabeçalho e tela de login'] },
-    { ver: '17', date: '13/07/2026', items: ['Rebranding: app renomeado para Confeitex', 'Novo logotipo e ícones modernos do app', 'Todas as referências atualizadas para Confeitex', 'Migração automática de dados antigos (fyntex_) para o novo padrão (confeitex_)'] },
+    { ver: '17', date: '13/07/2026', items: ['Rebranding: app renomeado para Confeitex', 'Novo logotipo e ícones modernos do app', 'Todas as referências atualizadas para Confeitex', 'Migracao automatica de dados legados para o padrao confeitex_'] },
     { ver: '16', date: '13/07/2026', items: ['Notificações modernas: toast com ícone e glass-morphism, modal com gradiente e animação', 'Verificação automática de nova versão ao abrir o app (máx 1x/hora)', 'Sistema de atualização refatorado: limpa caches, desregistra SW antigo e recarrega do zero', 'Confirmação visual "App atualizado" após reload', 'Gradiente vermelho/rosa do canto inferior direito e do login removido', 'Filtro de pedidos não começa mais com data de hoje — mostra todos', 'SVG dos botões preservado após loading/erro no login e atualizações', 'deliveredAt limpo ao mudar status de "Entregue" para outro'] },
     { ver: '15', date: '13/07/2026', items: ['Sistema de atualização refatorado: limpa caches, desregistra SW antigo e recarrega do zero', 'Confirmação visual "App atualizado" após reload', 'Gradiente vermelho/rosa do canto inferior direito e do login removido', 'Filtro de pedidos não começa mais com data de hoje — mostra todos'] },
     { ver: '14', date: '13/07/2026', items: ['Design: sombras e outlines removidos ao clicar', 'Tabelas ajustadas para tela sem scroll horizontal', 'Atualização usa ciclo do SW sem tela preta', 'Cache do SW dinâmico por versão'] },
@@ -246,7 +214,7 @@ const Updates = {
     if (serverVer && serverVer !== this.verAtual) {
       const confirmado = await UI.confirm({
         title: 'Nova versão disponível',
-        message: `Atualização v${serverVer} encontrada!\n\nClique em "Atualizar" para baixar e instalar. Após a conclusão, você poderá recarregar ou fechar o app.`,
+        message: `Atualização v${serverVer} encontrada!\n\nClique em "Atualizar" para instalar em segundo plano. Você poderá continuar usando o app durante a instalação.`,
         confirmText: 'Atualizar',
         variant: 'primary'
       });
