@@ -55,7 +55,7 @@ const Auth = {
         <div class="login-modal">
           <div class="login-brand">
             <div class="login-brand-icon">
-        <svg viewBox="0 0 24 24"><g transform="translate(0, 1.5)"><path d="M12 2a2 2 0 0 1 2 2v2h-4V4a2 2 0 0 1 2-2zM5 20h14a2 2 0 0 0 2-2v-4a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2zM3 10h18v2H3zM9 14h6v2H9z"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M12 2a2 2 0 0 1 2 2v2h-4V4a2 2 0 0 1 2-2zM5 20h14a2 2 0 0 0 2-2v-4a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2zM3 10h18v2H3zM9 14h6v2H9z"/></svg>
             </div>
             <h2>Confeitex</h2>
             <span class="login-tagline">Confeitaria Digital</span>

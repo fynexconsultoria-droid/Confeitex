@@ -718,9 +718,9 @@ select.form-control {
 
 /* Orders table column widths */
 #ordersTable th:nth-child(1),
-#ordersTable td:nth-child(1) { width: 22%; }
+#ordersTable td:nth-child(1) { width: 24%; }
 #ordersTable th:nth-child(2),
-#ordersTable td:nth-child(2) { width: 28%; }
+#ordersTable td:nth-child(2) { width: 26%; }
 #ordersTable th:nth-child(3),
 #ordersTable td:nth-child(3) { width: 18%; }
 #ordersTable th:nth-child(4),
@@ -730,15 +730,13 @@ select.form-control {
 
 /* Clients table column widths */
 #clientsTable th:nth-child(1),
-#clientsTable td:nth-child(1) { width: 28%; }
+#clientsTable td:nth-child(1) { width: 35%; }
 #clientsTable th:nth-child(2),
-#clientsTable td:nth-child(2) { width: 20%; }
+#clientsTable td:nth-child(2) { width: 25%; }
 #clientsTable th:nth-child(3),
-#clientsTable td:nth-child(3) { width: 15%; }
+#clientsTable td:nth-child(3) { width: 20%; }
 #clientsTable th:nth-child(4),
-#clientsTable td:nth-child(4) { width: 17%; }
-#clientsTable th:nth-child(5),
-#clientsTable td:nth-child(5) { width: 20%; }
+#clientsTable td:nth-child(4) { width: 20%; }
 
 .order-detail-row td {
   padding: 0 !important;
@@ -1450,6 +1448,60 @@ select.form-control {
 #chartTooltip.visible { opacity: 1; }
 #chartTooltip strong { color: var(--color-accent-pink); }
 
+/* Client row expandable */
+.client-row {
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+.client-row:hover td {
+  background: rgba(255, 255, 255, 0.03);
+}
+.client-row.expanded td {
+  background: rgba(139, 92, 246, 0.05);
+  border-bottom-color: transparent;
+}
+.client-detail-row td {
+  padding: 0 !important;
+  border-bottom: 1px solid var(--border-color);
+}
+.client-detail-content {
+  padding: 1rem 1.25rem;
+  background: rgba(10, 8, 19, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  animation: fadeIn 0.2s ease;
+}
+.client-detail-info {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+.client-detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+.client-detail-label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+.client-detail-item span:last-child {
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+.client-detail-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
 /* Touch device optimizations */
 @media (hover: none) and (pointer: coarse) {
   .metric-card:hover { transform: none; border-color: var(--border-color); box-shadow: none; }
@@ -1501,7 +1553,7 @@ select.form-control {
 
 .order-detail-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr;
   gap: 0.75rem;
 }
 

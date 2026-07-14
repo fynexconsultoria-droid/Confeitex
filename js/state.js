@@ -8,7 +8,7 @@ const DEFAULT_CATALOG = [
 ];
 
 function migrateOrder(o) {
-  const order = { paymentMethod: 'Dinheiro', cost: 0, deliveredAt: null, ...o };
+  const order = { paymentMethod: 'Dinheiro', cost: 0, deliveredAt: null, totalValue: 0, ...o };
   if (order.status === 'Entregue' && !order.deliveredAt) {
     order.deliveredAt = new Date().toISOString();
   }
