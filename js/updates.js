@@ -135,6 +135,7 @@ const Updates = {
     bytesEl.textContent = '⏱ ' + timeStr();
 
     localStorage.setItem('confeitex_updated', 'true');
+    localStorage.setItem('confeitex_ver', newVer);
 
     // Esconde progresso, mostra botões
     document.querySelector('.update-progress-track').style.display = 'none';
@@ -200,7 +201,9 @@ const Updates = {
   ],
 
   render() {
-    document.getElementById('updatesCurrentVer').textContent = `v${this.verAtual}`;
+    const stored = localStorage.getItem('confeitex_ver');
+    const displayVer = stored || this.verAtual;
+    document.getElementById('updatesCurrentVer').textContent = `v${displayVer}`;
     const lastCheck = localStorage.getItem('confeitex_last_check');
     document.getElementById('updatesLastCheck').textContent = lastCheck || 'Nunca verificada';
     this.renderChangelog();
