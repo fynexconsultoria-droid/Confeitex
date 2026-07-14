@@ -235,6 +235,9 @@ const Settings = {
       UI.toast('Relatório CSV exportado');
     });
 
+    // Segurança
+    Auth.renderSecuritySettings();
+
     // Notificações
     this.renderNotificationStatus();
     Notifications.init();
