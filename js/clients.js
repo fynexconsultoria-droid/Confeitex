@@ -9,7 +9,7 @@ const Clients = {
       const key = o.clientPhone ? `${o.clientName.trim()}_${o.clientPhone.trim()}` : o.clientName.trim();
       if (!map[key]) map[key] = { name: o.clientName, phone: o.clientPhone || 'Sem telefone', totalOrders: 0, totalSpent: 0, ordersList: [] };
       map[key].totalOrders++;
-      if (o.status !== 'Cancelado') map[key].totalSpent += o.totalValue;
+      if (o.status !== 'Cancelado') map[key].totalSpent += (+o.totalValue || 0);
       map[key].ordersList.push(o);
     });
 

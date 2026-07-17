@@ -181,7 +181,7 @@ const Orders = {
   updateLabels(type) {
     document.getElementById('labelWeight').textContent = type === 'Bolo de Kg' ? 'Peso (Kg) *' : 'Quantidade *';
     document.getElementById('labelUnitPrice').textContent = type === 'Bolo de Kg' ? 'Preço por Kg (R$) *' : 'Preço Unitário (R$) *';
-    document.getElementById('orderWeight').step = type === 'Bolo de Kg' ? '0.05' : '1';
+    document.getElementById('orderWeight').step = type === 'Bolo de Kg' ? 'any' : '1';
   },
 
   populateFlavorSelect() {
@@ -310,7 +310,7 @@ const Orders = {
         notes: document.getElementById('orderNotes').value.trim(),
         paymentMethod: document.getElementById('orderPaymentMethod').value
       };
-      data.totalValue = (data.weight * data.unitPrice) + data.extraCharges;
+      data.totalValue = +(((data.weight || 0) * (data.unitPrice || 0)) + (data.extraCharges || 0)).toFixed(2);
 
       if (id) {
         const idx = State.orders.findIndex(o => o.id === id);

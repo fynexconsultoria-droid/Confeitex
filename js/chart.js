@@ -1,20 +1,11 @@
 const Chart = {
   points: [],
-  _observerInit: false,
+  _tooltipCleanup: null,
+  _resizeTimer: null,
 
   render() {
     const canvas = document.getElementById('salesChart');
     if (!canvas) return;
-
-    if (!this._observerInit) {
-      this._observerInit = true;
-      this._resizeObserver = new ResizeObserver(() => {
-        if (document.getElementById('dashboard').classList.contains('active')) {
-          this.render();
-        }
-      });
-      this._resizeObserver.observe(canvas.parentElement);
-    }
 
     const period = document.getElementById('chartPeriodSelect').value;
     const today = new Date();
@@ -28,12 +19,13 @@ const Chart = {
       const dayOrders = State.orders.filter(o => o.deliveryDate === dateStr && o.status !== 'Cancelado');
       this.points.push({
         date: dateStr, label: period === 'today' ? 'Hoje' : d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
-        sales: dayOrders.reduce((s, o) => s + o.totalValue, 0),
+        sales: dayOrders.reduce((s, o) => s + (+o.totalValue || 0), 0),
         count: dayOrders.length
       });
     }
 
     const rect = canvas.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) return;
     const dpr = window.devicePixelRatio || 1;
     canvas.width = rect.width * dpr;
     canvas.height = rect.height * dpr;
@@ -74,7 +66,7 @@ const Chart = {
       }
     });
 
-    // Store positions for tooltips
+    // Store positions for tooltip
     this.pointPositions = this.points.map((p, i) => ({
       ...p,
       x: pl + cw * (i / xDivisor),
@@ -82,79 +74,123 @@ const Chart = {
       cY: pt + ch * (1 - (p.count / maxCount))
     }));
 
-    // Smooth line helper
-    const smoothLine = (data, getY, color, width, fill = false) => {
-      ctx.beginPath();
-      data.forEach((p, i) => {
-        const x = p.x, y = getY(p);
-        if (i === 0) ctx.moveTo(x, y);
-        else {
-          const prev = data[i - 1];
-          const cpx = (prev.x + x) / 2;
-          ctx.bezierCurveTo(cpx, getY(prev), cpx, y, x, y);
-        }
-      });
-      ctx.strokeStyle = color; ctx.lineWidth = width;
-      ctx.shadowColor = color + '66'; ctx.shadowBlur = 8;
-      ctx.stroke();
-      ctx.shadowBlur = 0;
-
-      if (fill) {
-        ctx.lineTo(data[data.length - 1].x, h - pb);
-        ctx.lineTo(data[0].x, h - pb);
-        ctx.closePath();
-        const grad = ctx.createLinearGradient(0, pt, 0, h - pb);
-        grad.addColorStop(0, color + '33');
-        grad.addColorStop(1, color + '00');
-        ctx.fillStyle = grad;
-        ctx.fill();
-      }
-    };
+    this._initResizeHandler(canvas);
 
     if (this.points.length === 1) {
-      // Modo Hoje: exibe indicadores grandes em destaque
-      const p = this.pointPositions[0];
-      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.font = 'bold 14px system-ui, sans-serif';
-      ctx.fillStyle = '#ec4899';
-      ctx.fillText(`Vendas: ${fmt(p.sales)}`, p.x, p.sY - 30);
-      ctx.fillStyle = '#8b5cf6';
-      ctx.fillText(`Pedidos: ${p.count}`, p.x, p.sY + 30);
-      ctx.fillStyle = '#ec4899';
-      ctx.beginPath(); ctx.arc(p.x, p.sY, 20, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(236, 72, 153, 0.15)';
-      ctx.fill();
-      ctx.strokeStyle = '#ec4899'; ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.arc(p.x, p.sY, 20, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.fillStyle = '#ec4899';
-      ctx.beginPath(); ctx.arc(p.x, p.sY, 6, 0, Math.PI * 2); ctx.fill();
+      this._renderToday(ctx, w, h);
     } else {
-      // Sales line (filled)
-      const salesData = this.pointPositions.map(p => ({ x: p.x, y: p.sY, v: p.sales }));
-      smoothLine(salesData, p => p.y, '#ec4899', 3, true);
-
-      // Count line
-      const countData = this.pointPositions.map(p => ({ x: p.x, y: p.cY, v: p.count }));
-      smoothLine(countData, p => p.y, '#8b5cf6', 2);
-
-      // Dots
-      this.pointPositions.forEach(p => {
-        ctx.fillStyle = '#ec4899';
-        ctx.beginPath(); ctx.arc(p.x, p.sY, 4, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = '#fff';
-        ctx.beginPath(); ctx.arc(p.x, p.sY, 2, 0, Math.PI * 2); ctx.fill();
-        if (p.count > 0) {
-          ctx.fillStyle = '#8b5cf6';
-          ctx.beginPath(); ctx.arc(p.x, p.cY, 3, 0, Math.PI * 2); ctx.fill();
-        }
-      });
+      this._renderMulti(ctx, w, h, pb);
     }
 
-    this.setupTooltip(canvas);
+    this._setupTooltip(canvas);
   },
 
-  setupTooltip(canvas) {
+  _initResizeHandler(canvas) {
+    if (this._resizeHandlerInit) return;
+    this._resizeHandlerInit = true;
+
+    const handler = () => {
+      if (this._resizeTimer) cancelAnimationFrame(this._resizeTimer);
+      this._resizeTimer = requestAnimationFrame(() => {
+        if (document.getElementById('dashboard')?.classList.contains('active')) {
+          this.render();
+        }
+      });
+    };
+
+    window.addEventListener('resize', handler);
+    this._resizeCleanup = () => window.removeEventListener('resize', handler);
+  },
+
+  _renderToday(ctx, w, h) {
+    const p = this.pointPositions[0];
+    const cx = w / 2, cy = h / 2;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.font = 'bold 16px system-ui, sans-serif';
+    ctx.fillStyle = '#ec4899';
+    ctx.fillText(`Vendas: ${fmt(p.sales)}`, cx, cy - 20);
+    ctx.font = 'bold 14px system-ui, sans-serif';
+    ctx.fillStyle = '#8b5cf6';
+    ctx.fillText(`Pedidos: ${p.count}`, cx, cy + 20);
+    ctx.beginPath(); ctx.arc(cx, cy, 24, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(236, 72, 153, 0.08)';
+    ctx.fill();
+    ctx.strokeStyle = '#ec4899'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(cx, cy, 24, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.fillStyle = '#ec4899';
+    ctx.beginPath(); ctx.arc(cx, cy, 6, 0, Math.PI * 2); ctx.fill();
+  },
+
+  _renderMulti(ctx, w, h, pb) {
+    const salesData = this.pointPositions.map(p => ({ x: p.x, y: p.sY }));
+    const countData = this.pointPositions.map(p => ({ x: p.x, y: p.cY }));
+
+    this._drawSmoothArea(ctx, salesData, '#ec4899', h - pb);
+    this._drawSmoothLine(ctx, salesData, '#ec4899', 3);
+    this._drawSmoothLine(ctx, countData, '#8b5cf6', 2);
+
+    this.pointPositions.forEach(p => {
+      ctx.fillStyle = '#ec4899';
+      ctx.beginPath(); ctx.arc(p.x, p.sY, 4, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#fff';
+      ctx.beginPath(); ctx.arc(p.x, p.sY, 2, 0, Math.PI * 2); ctx.fill();
+      if (p.count > 0) {
+        ctx.fillStyle = '#8b5cf6';
+        ctx.beginPath(); ctx.arc(p.x, p.cY, 3, 0, Math.PI * 2); ctx.fill();
+      }
+    });
+  },
+
+  _drawSmoothLine(ctx, data, color, width) {
+    if (data.length < 2) return;
+    ctx.save();
+    ctx.beginPath();
+    data.forEach((p, i) => {
+      if (i === 0) ctx.moveTo(p.x, p.y);
+      else {
+        const prev = data[i - 1];
+        const cpx = (prev.x + p.x) / 2;
+        ctx.bezierCurveTo(cpx, prev.y, cpx, p.y, p.x, p.y);
+      }
+    });
+    ctx.strokeStyle = color;
+    ctx.lineWidth = width;
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+    ctx.shadowColor = color + '66';
+    ctx.shadowBlur = 8;
+    ctx.stroke();
+    ctx.restore();
+  },
+
+  _drawSmoothArea(ctx, data, color, bottomY) {
+    if (data.length < 2) return;
+    // find topmost y for gradient start
+    let topY = bottomY;
+    data.forEach(p => { if (p.y < topY) topY = p.y; });
+    ctx.save();
+    ctx.beginPath();
+    data.forEach((p, i) => {
+      if (i === 0) ctx.moveTo(p.x, p.y);
+      else {
+        const prev = data[i - 1];
+        const cpx = (prev.x + p.x) / 2;
+        ctx.bezierCurveTo(cpx, prev.y, cpx, p.y, p.x, p.y);
+      }
+    });
+    ctx.lineTo(data[data.length - 1].x, bottomY);
+    ctx.lineTo(data[0].x, bottomY);
+    ctx.closePath();
+    const grad = ctx.createLinearGradient(0, topY, 0, bottomY);
+    grad.addColorStop(0, color + '33');
+    grad.addColorStop(1, color + '00');
+    ctx.fillStyle = grad;
+    ctx.fill();
+    ctx.restore();
+  },
+
+  _setupTooltip(canvas) {
     let tooltip = document.getElementById('chartTooltip');
     if (!tooltip) {
       tooltip = document.createElement('div');
@@ -162,11 +198,14 @@ const Chart = {
       document.querySelector('.chart-container')?.appendChild(tooltip);
     }
 
-    if (this._tooltipCleanup) this._tooltipCleanup();
+    if (this._tooltipCleanup) {
+      this._tooltipCleanup();
+      this._tooltipCleanup = null;
+    }
 
-    const showTooltip = (x) => {
+    const showTooltip = (clientX) => {
       const rect = canvas.getBoundingClientRect();
-      const mx = x - rect.left;
+      const mx = clientX - rect.left;
       let closest = null, minDist = Infinity;
       this.pointPositions.forEach(p => {
         const d = Math.abs(p.x - mx);
@@ -177,6 +216,8 @@ const Chart = {
         tooltip.style.left = Math.min(Math.max(closest.x - 60, 0), rect.width - 130) + 'px';
         tooltip.style.top = '30px';
         tooltip.classList.add('visible');
+      } else {
+        tooltip.classList.remove('visible');
       }
     };
 
@@ -195,7 +236,6 @@ const Chart = {
       canvas.removeEventListener('mouseleave', onLeave);
       canvas.removeEventListener('touchmove', onMove);
       canvas.removeEventListener('touchend', onLeave);
-      this._tooltipCleanup = null;
     };
   }
 };

@@ -219,8 +219,8 @@ const Settings = {
       const sorted = [...State.orders].sort((a, b) => b.deliveryDate.localeCompare(a.deliveryDate) || b.deliveryTime.localeCompare(a.deliveryTime));
       const rows = sorted.map(o => [
         `"${o.clientName}"`, `"${o.clientPhone || ''}"`, `"${o.productType}"`, `"${o.flavor}"`,
-        o.weight, o.unitPrice.toFixed(2), o.extraCharges.toFixed(2), (o.cost || 0).toFixed(2),
-        o.totalValue.toFixed(2), `"${o.paymentMethod || 'Dinheiro'}"`,
+        o.weight, (+o.unitPrice || 0).toFixed(2), (+o.extraCharges || 0).toFixed(2), (+o.cost || 0).toFixed(2),
+        (+o.totalValue || 0).toFixed(2), `"${o.paymentMethod || 'Dinheiro'}"`,
         o.deliveryDate, o.deliveryTime, `"${o.status}"`,
         `"${(o.notes || '').replace(/"/g, '""')}"`
       ].join(','));

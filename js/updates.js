@@ -1,5 +1,5 @@
 const Updates = {
-  verAtual: '1.12.1',
+  verAtual: '1.12.8',
 
   setup() {
     document.getElementById('btnCheckUpdates').addEventListener('click', () => this.check());
@@ -184,6 +184,17 @@ const Updates = {
   },
 
   changelog: [
+    { ver: '1.12.8', date: '17/07/2026', items: [
+      'Correção: Faturamento Total não aparecia no celular — migrateOrder() quebrava com TypeError ao calcular totalValue de pedidos antigos com vírgula decimal',
+      'Correção: Gráfico não renderizava no modo "Hoje" (ReferenceError: pt/pb undefined)',
+      'Correção: Gradiente do gráfico usava topo fixo em vez do valor mais alto dos dados',
+      'Correção: Stroke e fill do gráfico na ordem errada causavam artefatos visuais',
+      'Correção: export CSV quebrava se unitPrice/extraCharges/totalValue fossem NaN',
+      'Correção: Soma de totais no Dashboard, Clientes e Gráfico agora segura contra NaN',
+      'Melhoria: Gráfico agora redimensiona suavemente com a janela (requestAnimationFrame)',
+      'Melhoria: Input de peso do bolo aceita qualquer valor (step="any")',
+      'Melhoria: Ícone do app centralizado — vela agora visível na área segura do launcher'
+    ] },
     { ver: '1.12.1', date: '14/07/2026', items: ['Correção: reg.installing vira null durante statechange — agora captura referencia do worker', 'Correção: downloadUpdate() sem await causava UI reset prematuro e promessas nao tratadas', 'Correção: Null-checks no banner de notificacao para evitar crash se elementos nao existirem', 'Correção: Faturamento Total agora calcula totalValue para pedidos antigos (weight * unitPrice)', 'Correção: Versão atual exibida imediatamente nas Atualizações após o update (via localStorage)', 'Correção: Div `.config-card` de Notificações sem fechamento — Security settings aninhado erroneamente', 'Correção: deliveredAt agora é salvo ao criar/editar pedido com status "Entregue"', 'Correção: Gráfico não renderizava no período "Hoje" (divisão por zero no eixo X)', 'Correção: Login não trava mais se crypto.subtle falhar (try-catch + finally no botão)', 'Correção: Flag confeitex_updated removida só após confirmação do usuário', 'Otimização: Botões com min-height:44px para toque preciso em celulares', 'Otimização: Inputs com font-size:16px evitam zoom automático no iOS', 'Otimização: touch-action:manipulation elimina delay de 300ms em toques', 'Otimização: overscroll-behavior:contain e -webkit-overflow-scrolling:touch para scroll suave'] }
   ],
 

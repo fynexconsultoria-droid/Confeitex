@@ -10,7 +10,12 @@ const DEFAULT_CATALOG = [
 function migrateOrder(o) {
   const order = { paymentMethod: 'Dinheiro', cost: 0, deliveredAt: null, totalValue: 0, ...o };
   if ((!order.totalValue || isNaN(order.totalValue)) && order.weight && order.unitPrice) {
-    order.totalValue = +((order.weight * order.unitPrice) + (order.extraCharges || 0)).toFixed(2);
+    const w = parseFloat(String(order.weight).replace(',', '.'));
+    const p = parseFloat(String(order.unitPrice).replace(',', '.'));
+    const e = parseFloat(String(order.extraCharges || 0).replace(',', '.'));
+    if (!isNaN(w) && !isNaN(p)) {
+      order.totalValue = +((w * p) + (isNaN(e) ? 0 : e)).toFixed(2);
+    }
   }
   order.totalValue = +(order.totalValue || 0);
   if (order.status === 'Entregue' && !order.deliveredAt) {

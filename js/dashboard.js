@@ -3,7 +3,7 @@ const Dashboard = {
     const todayStr = new Date().toISOString().split('T')[0];
     const todayOrders = State.orders.filter(o => o.deliveryDate === todayStr && o.status !== 'Cancelado');
 
-    document.getElementById('kpiSalesToday').textContent = fmt(todayOrders.reduce((s, o) => s + o.totalValue, 0));
+    document.getElementById('kpiSalesToday').textContent = fmt(todayOrders.reduce((s, o) => s + (+o.totalValue || 0), 0));
     document.getElementById('kpiWeightToday').textContent = todayOrders.reduce((s, o) => s + (o.weight || 0), 0).toFixed(1).replace('.', ',') + ' Kg';
 
     const pending = State.orders.filter(o => o.status === 'Pendente' || o.status === 'Em Produção').length;
@@ -22,7 +22,7 @@ const Dashboard = {
       document.getElementById('sidebarOverlay').classList.remove('active');
     });
 
-    document.getElementById('kpiTotalEarnings').textContent = fmt(State.orders.filter(o => o.status !== 'Cancelado').reduce((s, o) => s + o.totalValue, 0));
+    document.getElementById('kpiTotalEarnings').textContent = fmt(State.orders.filter(o => o.status !== 'Cancelado').reduce((s, o) => s + (+o.totalValue || 0), 0));
 
     this.renderDeliveries();
     this.calcDayTotals(document.getElementById('calcDateInput').value);
@@ -67,7 +67,7 @@ const Dashboard = {
   calcDayTotals(dateStr) {
     if (!dateStr) return;
     const orders = State.orders.filter(o => o.deliveryDate === dateStr && o.status !== 'Cancelado');
-    document.getElementById('calcDayValue').value = fmt(orders.reduce((s, o) => s + o.totalValue, 0));
+    document.getElementById('calcDayValue').value = fmt(orders.reduce((s, o) => s + (+o.totalValue || 0), 0));
     document.getElementById('calcDayWeight').value = orders.reduce((s, o) => s + (o.weight || 0), 0).toFixed(2).replace('.', ',') + ' Kg';
   }
 };
