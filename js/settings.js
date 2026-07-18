@@ -77,26 +77,48 @@ const Settings = {
         const arrayBuffer = await file.arrayBuffer();
         const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
         let fullText = '';
+        const allItems = [];
         for (let i = 1; i <= pdf.numPages; i++) {
           const page = await pdf.getPage(i);
           const content = await page.getTextContent();
-          fullText += content.items.map(item => item.str).join(' ') + '\n';
+          const items = content.items.map(item => item.str);
+          fullText += items.join(' ') + '\n';
+          allItems.push(...items);
         }
 
         let orders = [];
 
-        // Try JSON data block first (v1.12.8+)
-        const dataMatch = fullText.match(/CONFEITEX:DATA:(\[.*?\}):DATA:CONFEITEX/);
-        if (dataMatch) {
+        // Try JSON data block first (v1.12.8+) — extrai dos items brutos sem .join(' ')
+        let dataJson = null;
+        for (let idx = 0; idx < allItems.length; idx++) {
+          const item = allItems[idx];
+          const marker = 'CONFEITEX:DATA:';
+          const startPos = item.indexOf(marker);
+          if (startPos === -1) continue;
+
+          const parts = [item.substring(startPos + marker.length)];
+          for (let k = idx + 1; k < allItems.length; k++) {
+            const endMarker = ':DATA:CONFEITEX';
+            const endPos = allItems[k].indexOf(endMarker);
+            if (endPos !== -1) {
+              parts.push(allItems[k].substring(0, endPos));
+              break;
+            }
+            parts.push(allItems[k]);
+          }
+          dataJson = parts.join('');
+          break;
+        }
+        if (dataJson) {
           try {
-            const parsed = JSON.parse(dataMatch[1]);
+            const parsed = JSON.parse(dataJson);
             orders = parsed.map(o => ({
               ...o,
               id: 'o_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
               createdAt: new Date().toISOString(),
               deliveredAt: o.status === 'Entregue' ? new Date().toISOString() : null
             }));
-          } catch {}
+          } catch (e) { console.warn('[Confeitex] JSON data block parse error:', e); }
         }
 
         // Fallback: parse table text (old format)
