@@ -50,15 +50,22 @@
     document.getElementById('sidebarOverlay').classList.remove('active');
   });
 
-  // Se veio de uma atualização, mostra confirmação e limpa flag
+  // Se veio de uma atualização automática, mostra toast e limpa flag
   if (localStorage.getItem('confeitex_updated')) {
-    UI.confirm({
-      title: '🔄 Atualização detectada!',
-      message: 'Uma nova versão do Confeitex foi instalada e está ativa.\n\nTudo pronto! Seus dados foram preservados e migrados automaticamente.',
-      confirmText: 'OK, Entendi',
-      cancelText: '',
-      variant: 'primary'
-    }).then(() => localStorage.removeItem('confeitex_updated'));
+    const v = localStorage.getItem('confeitex_ver');
+    UI.toast(`✅ App atualizado para v${v}`);
+    localStorage.removeItem('confeitex_updated');
+  }
+
+  // Recarrega automaticamente quando um novo Service Worker assumir o controle
+  if ('serviceWorker' in navigator) {
+    let reloading = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (reloading) return;
+      reloading = true;
+      UI.toast('🔄 Nova versão instalada. Recarregando...');
+      setTimeout(() => window.location.reload(), 1500);
+    });
   }
 
   // Date display
@@ -89,26 +96,13 @@
   // Notificações programadas
   Notifications.init();
 
-  // Verifica atualização ao abrir o app (máx 1x por hora)
+  // Verifica atualização automaticamente (máx 1x por hora)
   (async () => {
-    const lastPrompt = localStorage.getItem('confeitex_update_prompt');
+    const lastCheck = localStorage.getItem('confeitex_last_auto_check');
     const oneHour = 3600000;
-    if (lastPrompt && Date.now() - parseInt(lastPrompt) < oneHour) return;
+    if (lastCheck && Date.now() - parseInt(lastCheck) < oneHour) return;
 
-    const newVer = await Updates.checkSilent();
-    if (newVer) {
-      localStorage.setItem('confeitex_update_prompt', String(Date.now()));
-      const ok = await UI.confirm({
-        title: 'Nova versão disponível',
-        message: `Atualização v${newVer} encontrada! Deseja instalar agora?\n\nA instalação ocorrerá em segundo plano — você pode continuar usando o app normalmente.`,
-        confirmText: 'Atualizar',
-        variant: 'primary'
-      });
-      if (ok) {
-        localStorage.setItem('confeitex_ver', newVer);
-        Updates.verAtual = newVer;
-        await Updates.downloadUpdate();
-      }
-    }
+    localStorage.setItem('confeitex_last_auto_check', String(Date.now()));
+    await Updates.checkSilent();
   })();
 })();

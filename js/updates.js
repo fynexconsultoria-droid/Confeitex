@@ -1,5 +1,5 @@
 const Updates = {
-  verAtual: '1.12.8',
+  verAtual: '1.12.9',
 
   setup() {
     document.getElementById('btnCheckUpdates').addEventListener('click', () => this.check());
@@ -21,7 +21,39 @@ const Updates = {
   // Auto-verificação silenciosa (chamada pelo app.js)
   async checkSilent() {
     const serverVer = await this._fetchVersion();
-    return (serverVer && serverVer !== this.verAtual) ? serverVer : null;
+    if (serverVer && serverVer !== this.verAtual) {
+      await this.autoUpdate(serverVer);
+      return serverVer;
+    }
+    return null;
+  },
+
+  // Auto-update silencioso (sem prompt, sem banner)
+  async autoUpdate(ver) {
+    const oldVer = this.verAtual;
+    localStorage.setItem('confeitex_ver', ver);
+    this.verAtual = ver;
+
+    if (!('serviceWorker' in navigator)) {
+      localStorage.setItem('confeitex_updated', 'true');
+      return;
+    }
+
+    try {
+      const reg = await navigator.serviceWorker.register('./sw.js?v=' + ver);
+      // Aguarda instalacao (max 10s)
+      await Promise.race([
+        new Promise(resolve => {
+          const w = reg.installing || reg.waiting;
+          if (w) {
+            w.addEventListener('statechange', () => {
+              if (w.state === 'activated' || w.state === 'installed') resolve();
+            });
+          } else resolve();
+        }),
+        this._delay(10000)
+      ]);
+    } catch {}
   },
 
   async downloadUpdate() {
@@ -184,6 +216,11 @@ const Updates = {
   },
 
   changelog: [
+    { ver: '1.12.9', date: '17/07/2026', items: [
+      'Auto-update: atualizações detectadas são baixadas e instaladas em segundo plano automaticamente, sem confirmação do usuário',
+      'Auto-update: após instalação, o app recarrega sozinho com um toast "App atualizado para vX"',
+      'O botão "Verificar Agora" ainda permite checagem manual com controle do usuário'
+    ] },
     { ver: '1.12.8', date: '17/07/2026', items: [
       'Correção: Faturamento Total não aparecia no celular — migrateOrder() quebrava com TypeError ao calcular totalValue de pedidos antigos com vírgula decimal',
       'Correção: Gráfico não renderizava no modo "Hoje" (ReferenceError: pt/pb undefined)',
