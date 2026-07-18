@@ -10,6 +10,8 @@ const Dashboard = {
     document.getElementById('kpiPendingOrders').textContent = pending;
     document.getElementById('kpiPendingCard').style.cursor = 'pointer';
     document.getElementById('kpiPendingCard').onclick = () => {
+      document.getElementById('sidebar').classList.remove('open');
+      document.getElementById('sidebarOverlay').classList.remove('active');
       document.querySelectorAll('.nav-link').forEach(l => l.classList.toggle('active', l.dataset.tab === 'orders'));
       document.querySelectorAll('.tab-content').forEach(c => c.classList.toggle('active', c.id === 'orders'));
       document.getElementById('mainTitle').textContent = 'Encomendas';
@@ -17,9 +19,7 @@ const Dashboard = {
       document.getElementById('orderFilterStatus').value = 'Pendente';
       document.getElementById('orderSearchInput').value = '';
       document.getElementById('orderFilterDate').value = '';
-      Orders.render();
-      document.getElementById('sidebar').classList.remove('open');
-      document.getElementById('sidebarOverlay').classList.remove('active');
+      try { Orders.render(); } catch (e) { console.warn('[Confeitex]', e); }
     });
 
     document.getElementById('kpiTotalEarnings').textContent = fmt(State.orders.filter(o => o.status !== 'Cancelado').reduce((s, o) => s + (+o.totalValue || 0), 0));

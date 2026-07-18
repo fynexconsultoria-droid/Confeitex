@@ -15,19 +15,21 @@
   };
 
   function switchTab(tabId) {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebarOverlay').classList.remove('active');
+
     document.querySelectorAll('.nav-link').forEach(l => l.classList.toggle('active', l.dataset.tab === tabId));
     document.querySelectorAll('.tab-content').forEach(c => c.classList.toggle('active', c.id === tabId));
     document.getElementById('mainTitle').textContent = tabTitles[tabId].title;
     document.getElementById('mainSubtitle').textContent = tabTitles[tabId].subtitle;
 
-    if (tabId === 'dashboard') Dashboard.update();
-    else if (tabId === 'orders') Orders.render();
-    else if (tabId === 'clients') Clients.render();
-    else if (tabId === 'settings') Settings.renderCatalog();
-    else if (tabId === 'updates') Updates.render();
-
-    document.getElementById('sidebar').classList.remove('open');
-    document.getElementById('sidebarOverlay').classList.remove('active');
+    try {
+      if (tabId === 'dashboard') Dashboard.update();
+      else if (tabId === 'orders') Orders.render();
+      else if (tabId === 'clients') Clients.render();
+      else if (tabId === 'settings') Settings.renderCatalog();
+      else if (tabId === 'updates') Updates.render();
+    } catch (e) { console.warn('[Confeitex] Erro na aba', tabId, e); }
   }
 
   // Tab navigation
