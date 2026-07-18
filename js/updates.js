@@ -206,12 +206,8 @@ const Updates = {
     };
 
     btnClose.onclick = () => {
-      localStorage.removeItem('confeitex_updated');
       hide();
-      setTimeout(() => {
-        try { window.open('', '_self'); window.close(); } catch {}
-        setTimeout(() => { window.location.replace('about:blank'); }, 500);
-      }, 400);
+      UI.toast('🔄 A atualização será aplicada na próxima vez que você abrir o app.');
     };
   },
 
