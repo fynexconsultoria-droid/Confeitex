@@ -100,7 +100,7 @@
   (async () => {
     const lastCheck = localStorage.getItem('confeitex_last_auto_check');
     const oneHour = 3600000;
-    if (lastCheck && Date.now() - parseInt(lastCheck) < oneHour) return;
+    if (lastCheck && Date.now() - parseInt(lastCheck, 10) < oneHour) return;
 
     localStorage.setItem('confeitex_last_auto_check', String(Date.now()));
     await Updates.checkSilent();

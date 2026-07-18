@@ -1,5 +1,5 @@
 const Updates = {
-  verAtual: '1.12.9',
+  verAtual: '1.12.10',
 
   setup() {
     document.getElementById('btnCheckUpdates').addEventListener('click', () => this.check());
@@ -73,7 +73,7 @@ const Updates = {
       try {
         const r = await navigator.serviceWorker.getRegistration();
         if (r) await r.unregister();
-      } catch {}
+    } catch (e) { console.warn('[Confeitex] Auto-update SW registration error:', e); }
     }
 
     // Se não suportar SW, marca como atualizado e mostra banner
@@ -212,6 +212,18 @@ const Updates = {
   },
 
   changelog: [
+    { ver: '1.12.10', date: '17/07/2026', items: [
+      'Responsividade: sidebar mais compacta em tablets (200px) com padding e fontes ajustados',
+      'Responsividade: novos breakpoints para 580-768px (tabelas) e 380px (filtros empilhados)',
+      'Responsividade: custom scrollbar sutil e paisagem (landscape) com grade compacta',
+      'Responsividade: modais fullscreen em telas muito estreitas com botoes empilhados',
+      'Correcao: formatWeight() quebrava se pedido nao tivesse weight (TypeError)',
+      'Correcao: Clients tab quebrava se pedido tivesse clientName undefined',
+      'Correcao: parseInt(lastCheck) sem radix 10 em app.js',
+      'Correcao: migrateOrder() ignorava weight/unitPrice = 0 (truthy check)',
+      'Melhoria: catches vazios no login e auto-update agora registram warn no console',
+      'Melhoria: versao do app atualizada nas tags meta e sidebar'
+    ] },
     { ver: '1.12.9', date: '17/07/2026', items: [
       'Auto-update: atualizações detectadas são baixadas e instaladas em segundo plano automaticamente, sem confirmação do usuário',
       'Auto-update: após instalação, o app recarrega sozinho com um toast "App atualizado para vX"',

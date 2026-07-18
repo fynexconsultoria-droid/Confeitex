@@ -16,5 +16,6 @@ function badgeClass(status) {
 }
 
 function formatWeight(o) {
-  return o.productType === 'Bolo de Kg' ? `${o.weight.toFixed(2).replace('.', ',')} Kg` : `${Math.round(o.weight)} un`;
+  const w = o.weight || 0;
+  return o.productType === 'Bolo de Kg' ? `${w.toFixed(2).replace('.', ',')} Kg` : `${Math.round(w)} un`;
 }

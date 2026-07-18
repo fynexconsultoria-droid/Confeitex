@@ -9,7 +9,7 @@ const DEFAULT_CATALOG = [
 
 function migrateOrder(o) {
   const order = { paymentMethod: 'Dinheiro', cost: 0, deliveredAt: null, totalValue: 0, ...o };
-  if ((!order.totalValue || isNaN(order.totalValue)) && order.weight && order.unitPrice) {
+    if ((!order.totalValue || isNaN(order.totalValue)) && order.weight != null && order.unitPrice != null) {
     const w = parseFloat(String(order.weight).replace(',', '.'));
     const p = parseFloat(String(order.unitPrice).replace(',', '.'));
     const e = parseFloat(String(order.extraCharges || 0).replace(',', '.'));

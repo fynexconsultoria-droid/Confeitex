@@ -6,6 +6,7 @@ const Clients = {
 
     const map = {};
     State.orders.forEach(o => {
+      if (!o.clientName) return;
       const key = o.clientPhone ? `${o.clientName.trim()}_${o.clientPhone.trim()}` : o.clientName.trim();
       if (!map[key]) map[key] = { name: o.clientName, phone: o.clientPhone || 'Sem telefone', totalOrders: 0, totalSpent: 0, ordersList: [] };
       map[key].totalOrders++;
