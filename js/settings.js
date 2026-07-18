@@ -26,6 +26,13 @@ const Settings = {
       const win = window.open('', '_blank');
       if (!win) { UI.alert('Permita pop-ups para gerar o PDF.'); return; }
       const hoje = new Date().toLocaleDateString('pt-BR');
+      const dataJson = JSON.stringify(State.orders.map(o => ({
+        clientName: o.clientName, clientPhone: o.clientPhone, productType: o.productType,
+        flavor: o.flavor, weight: o.weight, unitPrice: o.unitPrice, extraCharges: o.extraCharges || 0,
+        cost: o.cost || 0, deliveryDate: o.deliveryDate, deliveryTime: o.deliveryTime,
+        status: o.status, totalValue: o.totalValue, paymentMethod: o.paymentMethod || 'Dinheiro',
+        notes: o.notes || '', details: o.details || ''
+      })));
       const linhas = State.orders.map(o =>
         `<tr>
           <td>${escapeHTML(o.clientName)}<br><small>${escapeHTML(o.clientPhone || '')}</small></td>
@@ -46,6 +53,7 @@ const Settings = {
   th,td{padding:0.5rem;border:1px solid #ddd;text-align:left}
   th{background:#f5f5f5;font-weight:700}
   small{color:#999;font-size:0.7rem}
+  .data-footnote{font-size:6px;color:#ddd;margin-top:3rem;word-break:break-all}
   @media print{body{padding:0.5rem}th{background:#eee!important}}
 </style></head><body>
 <h1>Confeitex - Relatório de Pedidos</h1>
@@ -53,6 +61,7 @@ const Settings = {
 <table><thead><tr>
 <th>Cliente</th><th>Produto</th><th>Entrega</th><th>Peso/Qtd</th><th>Valor</th><th>Status</th>
 </tr></thead><tbody>${linhas}</tbody></table>
+<div class="data-footnote">CONFEITEX:DATA:${dataJson}:DATA:CONFEITEX</div>
 </body></html>`);
       win.document.close();
       setTimeout(() => { try { win.focus(); win.print(); } catch(e) {} }, 300);
@@ -74,65 +83,72 @@ const Settings = {
           fullText += content.items.map(item => item.str).join(' ') + '\n';
         }
 
-        const lines = fullText.split('\n').map(l => l.trim()).filter(l => l);
-        const orders = [];
-        let inTable = false;
+        let orders = [];
 
-        for (const line of lines) {
-          if (line.includes('Cliente') && line.includes('Produto') && line.includes('Entrega')) {
-            inTable = true;
-            continue;
-          }
-          if (!inTable) continue;
-          if (line.includes('Confeitex') || line.includes('Gerado em') || line.includes('Total')) continue;
-
-          const parts = line.split(/\s{2,}/).filter(p => p.trim());
-          if (parts.length < 4) continue;
-
-          const clientPart = parts[0];
-          const flavorPart = parts[1] || '';
-          const deliveryPart = parts[2] || '';
-          const weightPart = parts[3] || '';
-          const valuePart = parts[4] || '';
-          const statusPart = parts[5] || '';
-
-          const clientName = clientPart.replace(/\s*\(.*?\)\s*$/, '').trim();
-          const phoneMatch = clientPart.match(/\((\d{2,3})\)\s*(\d{4,5})-?(\d{4})/);
-          const clientPhone = phoneMatch ? `(${phoneMatch[1]}) ${phoneMatch[2]}-${phoneMatch[3]}` : '';
-
-          const flavor = flavorPart.replace(/\s*\(.*?\)\s*$/, '').trim();
-          const productTypeMatch = flavorPart.match(/\(([^)]+)\)/);
-          const productType = productTypeMatch ? productTypeMatch[1] : 'Bolo de Kg';
-
-          const dateMatch = deliveryPart.match(/(\d{2}\/\d{2}\/\d{4})\s*(\d{2}:\d{2})/);
-          const deliveryDate = dateMatch ? dateMatch[1].split('/').reverse().join('-') : '';
-          const deliveryTime = dateMatch ? dateMatch[2] : '';
-
-          const weight = parseFloat(weightPart.replace(/[^0-9,]/g, '').replace(',', '.')) || 0;
-          const totalValue = parseFloat(valuePart.replace(/[^0-9,]/g, '').replace(',', '.')) || 0;
-          const unitPrice = productType === 'Bolo de Kg' ? totalValue / (weight || 1) : totalValue;
-
-          if (clientName && flavor && deliveryDate) {
-            orders.push({
+        // Try JSON data block first (v1.12.8+)
+        const dataMatch = fullText.match(/CONFEITEX:DATA:(\[.*?\}):DATA:CONFEITEX/);
+        if (dataMatch) {
+          try {
+            const parsed = JSON.parse(dataMatch[1]);
+            orders = parsed.map(o => ({
+              ...o,
               id: 'o_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
-              clientName,
-              clientPhone,
-              productType,
-              flavor,
-              details: '',
-              weight,
-              unitPrice: Math.round(unitPrice * 100) / 100,
-              extraCharges: 0,
-              cost: 0,
-              deliveryDate,
-              deliveryTime,
-              status: statusPart || 'Pendente',
-              notes: '',
-              paymentMethod: 'Dinheiro',
-              totalValue,
               createdAt: new Date().toISOString(),
-              deliveredAt: statusPart === 'Entregue' ? new Date().toISOString() : null
-            });
+              deliveredAt: o.status === 'Entregue' ? new Date().toISOString() : null
+            }));
+          } catch {}
+        }
+
+        // Fallback: parse table text (old format)
+        if (orders.length === 0) {
+          const lines = fullText.split('\n').map(l => l.trim()).filter(l => l);
+          let inTable = false;
+
+          for (const line of lines) {
+            if (line.includes('Cliente') && line.includes('Produto') && line.includes('Entrega')) {
+              inTable = true;
+              continue;
+            }
+            if (!inTable) continue;
+            if (line.includes('Confeitex') || line.includes('Gerado em') || line.includes('Total')) continue;
+
+            const parts = line.split(/\s{2,}/).filter(p => p.trim());
+            if (parts.length < 4) continue;
+
+            const clientPart = parts[0];
+            const flavorPart = parts[1] || '';
+            const deliveryPart = parts[2] || '';
+            const weightPart = parts[3] || '';
+            const valuePart = parts[4] || '';
+            const statusPart = parts[5] || '';
+
+            const clientName = clientPart.replace(/\s*\(.*?\)\s*$/, '').trim();
+            const phoneMatch = clientPart.match(/\((\d{2,3})\)\s*(\d{4,5})-?(\d{4})/);
+            const clientPhone = phoneMatch ? `(${phoneMatch[1]}) ${phoneMatch[2]}-${phoneMatch[3]}` : '';
+
+            const flavor = flavorPart.replace(/\s*\(.*?\)\s*$/, '').trim();
+            const productTypeMatch = flavorPart.match(/\(([^)]+)\)/);
+            const productType = productTypeMatch ? productTypeMatch[1] : 'Bolo de Kg';
+
+            const dateMatch = deliveryPart.match(/(\d{2}\/\d{2}\/\d{4})\s*(\d{2}:\d{2})/);
+            const deliveryDate = dateMatch ? dateMatch[1].split('/').reverse().join('-') : '';
+            const deliveryTime = dateMatch ? dateMatch[2] : '';
+
+            const weight = parseFloat(weightPart.replace(/[^0-9,]/g, '').replace(',', '.')) || 0;
+            const totalValue = parseFloat(valuePart.replace(/[^0-9,]/g, '').replace(',', '.')) || 0;
+            const unitPrice = productType === 'Bolo de Kg' ? totalValue / (weight || 1) : totalValue;
+
+            if (clientName && flavor && deliveryDate) {
+              orders.push({
+                id: 'o_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+                clientName, clientPhone, productType, flavor, details: '',
+                weight, unitPrice: Math.round(unitPrice * 100) / 100,
+                extraCharges: 0, cost: 0, deliveryDate, deliveryTime,
+                status: statusPart || 'Pendente', notes: '', paymentMethod: 'Dinheiro',
+                totalValue, createdAt: new Date().toISOString(),
+                deliveredAt: statusPart === 'Entregue' ? new Date().toISOString() : null
+              });
+            }
           }
         }
 
