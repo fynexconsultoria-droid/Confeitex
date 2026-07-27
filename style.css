@@ -2149,3 +2149,117 @@ select.form-control {
   .metric-footer { font-size: 0.6rem; }
   .dashboard-grid { grid-template-columns: 1fr 1fr; gap: 0.75rem; }
 }
+
+/* ===== Confeitex v1.13.0 — Barra de Resumo + Melhorias Multi-Dispositivo ===== */
+
+/* Barra de resumo de faturamento dos pedidos filtrados */
+.orders-summary-bar {
+  display: flex;
+  align-items: center;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  padding: 0.75rem 1.25rem;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  animation: fadeIn 0.3s ease;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.orders-summary-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  flex: 1;
+  min-width: 80px;
+}
+
+.orders-summary-label {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 500;
+}
+
+.orders-summary-value {
+  font-size: 1.1rem;
+  font-weight: 800;
+  margin-top: 0.1rem;
+  letter-spacing: -0.3px;
+}
+
+.orders-summary-divider {
+  width: 1px;
+  height: 36px;
+  background: var(--border-color);
+  margin: 0 1rem;
+  flex-shrink: 0;
+}
+
+@media (max-width: 480px) {
+  .orders-summary-bar { padding: 0.65rem 0.85rem; }
+  .orders-summary-divider { margin: 0 0.5rem; height: 26px; }
+  .orders-summary-value { font-size: 0.9rem; }
+  .orders-summary-label { font-size: 0.58rem; }
+}
+
+/* ===== Touch Targets minimos 44px em mobile ===== */
+@media (max-width: 768px) {
+  .btn { min-height: 44px; }
+  .btn-sm { min-height: 36px; }
+  .btn-icon-only { min-width: 44px; min-height: 44px; }
+  .nav-link { min-height: 44px; }
+  .modal-close { width: 44px; height: 44px; }
+}
+
+/* ===== KPI Grid 2 colunas em mobile ===== */
+@media (max-width: 580px) {
+  .metrics-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.65rem;
+  }
+  .metric-card { padding: 0.85rem; }
+  .metric-value { font-size: 1.1rem; }
+  .metric-title { font-size: 0.65rem; }
+  .metric-footer { font-size: 0.6rem; }
+  .metric-icon-wrapper { width: 30px; height: 30px; }
+  .metric-icon-wrapper svg { width: 14px; height: 14px; }
+}
+
+/* ===== Tabela: esconde coluna Produto em telas muito estreitas ===== */
+@media (max-width: 400px) {
+  #ordersTable th:nth-child(2),
+  #ordersTable td:nth-child(2) { display: none; }
+  .custom-table th, .custom-table td { padding: 0.55rem 0.35rem; font-size: 0.72rem; }
+}
+
+/* ===== Dashboard e header empilhados em mobile ===== */
+@media (max-width: 480px) {
+  .dashboard-grid { grid-template-columns: 1fr !important; }
+  .top-header { flex-direction: column; align-items: flex-start; gap: 0.75rem; }
+  .header-actions { width: 100%; justify-content: space-between; }
+  #btnNewOrder { flex: 1; justify-content: center; }
+}
+
+/* ===== Previne zoom automatico em inputs no iOS (font-size >= 16px) ===== */
+@media (max-width: 768px) {
+  input[type="text"],
+  input[type="number"],
+  input[type="date"],
+  input[type="time"],
+  input[type="email"],
+  input[type="password"],
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* ===== Modal no tablet retrato ===== */
+@media (min-width: 481px) and (max-width: 768px) {
+  .modal-container { max-width: 95vw; max-height: 92dvh; }
+  .filter-bar { gap: 0.5rem; }
+  .filter-bar select { min-width: 130px !important; }
+}

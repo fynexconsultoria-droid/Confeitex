@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Confeitex - Controle de Encomendas</title>
   <meta name="description" content="Controle de encomendas para confeitaria — gerencie pedidos, clientes e entregas. 100% offline.">
-  <meta name="version" content="1.12.10">
+  <meta name="version" content="1.13.0">
 
   <!-- SEO: Canonical -->
   <link rel="canonical" href="https://fynexconsultoria-droid.github.io/Confeitex/">
@@ -118,7 +118,7 @@
       </nav>
       
       <div style="font-size: 0.7rem; color: var(--text-muted); text-align: center; border-top: 1px solid var(--border-color); padding-top: 0.75rem;">
-        Confeitex v1.12.10<br>Modo 100% Offline
+        Confeitex v1.13.0<br>Modo 100% Offline
       </div>
     </aside>
 
@@ -310,6 +310,24 @@
           <button class="btn btn-secondary btn-icon-only" id="btnClearFilters" title="Limpar Filtros">
             <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
+        </div>
+
+        <!-- Barra de Resumo de Faturamento (atualiza com filtros) -->
+        <div id="ordersSummaryBar" class="orders-summary-bar" style="display:none;">
+          <div class="orders-summary-item">
+            <span class="orders-summary-label">Pedidos na busca</span>
+            <span class="orders-summary-value" id="summaryQtd" style="color:var(--color-accent-purple);">0</span>
+          </div>
+          <div class="orders-summary-divider"></div>
+          <div class="orders-summary-item">
+            <span class="orders-summary-label">Faturamento total</span>
+            <span class="orders-summary-value" id="summaryTotal" style="color:var(--color-accent-pink);">R$ 0,00</span>
+          </div>
+          <div class="orders-summary-divider"></div>
+          <div class="orders-summary-item">
+            <span class="orders-summary-label">Bolos (Kg)</span>
+            <span class="orders-summary-value" id="summaryPeso" style="color:var(--color-success);">0,0 Kg</span>
+          </div>
         </div>
 
         <!-- Orders Table -->

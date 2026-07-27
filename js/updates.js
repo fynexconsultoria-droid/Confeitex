@@ -1,5 +1,5 @@
 const Updates = {
-  verAtual: '1.12.10',
+  verAtual: '1.13.0',
 
   setup() {
     document.getElementById('btnCheckUpdates').addEventListener('click', () => this.check());
@@ -212,6 +212,19 @@ const Updates = {
   },
 
   changelog: [
+    { ver: '1.13.0', date: '27/07/2026', items: [
+      'Correção crítica: Dashboard agora atualiza o faturamento total imediatamente ao salvar qualquer pedido, independente da aba ativa',
+      'Correção crítica: Campo de total do pedido não sobrescrevia mais o preço ao abrir edição de pedido existente',
+      'Correção: deliveredAt preservado ao editar pedido já entregue (não redefine a data de entrega)',
+      'Correção: migrateOrder() agora recalcula totalValue quando o valor é zero (0), corrigindo pedidos antigos com valor incorreto',
+      'Novo: Barra de resumo de faturamento na aba Pedidos — exibe total filtrado, quantidade e peso em tempo real conforme busca/filtros',
+      'Responsividade: KPI grid com 2 colunas em telas < 580px para melhor visualização no celular',
+      'Responsividade: Touch targets mínimos de 44x44px em todos os botões e inputs no mobile',
+      'Responsividade: Inputs com font-size 16px evitam zoom automático no iOS (Safari)',
+      'Responsividade: Modal de pedido otimizado para tablets (95vw, 92dvh)',
+      'Responsividade: Tabela oculta coluna Produto em telas < 400px para caber na tela',
+      'Responsividade: Header empilhado em mobile com botão Novo Pedido ocupando toda a largura'
+    ] },
     { ver: '1.12.10', date: '17/07/2026', items: [
       'Responsividade: sidebar mais compacta em tablets (200px) com padding e fontes ajustados',
       'Responsividade: novos breakpoints para 580-768px (tabelas) e 380px (filtros empilhados)',

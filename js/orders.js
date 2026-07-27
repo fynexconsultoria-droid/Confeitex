@@ -14,6 +14,18 @@ const Orders = {
 
     filtered.sort((a, b) => b.deliveryDate.localeCompare(a.deliveryDate) || b.deliveryTime.localeCompare(a.deliveryTime));
 
+    // Atualiza barra de resumo de faturamento
+    const summaryBar = document.getElementById('ordersSummaryBar');
+    if (summaryBar) {
+      const totalFilt = filtered.filter(o => o.status !== 'Cancelado').reduce((s, o) => s + (+o.totalValue || 0), 0);
+      const totalPeso = filtered.filter(o => o.status !== 'Cancelado' && o.productType === 'Bolo de Kg').reduce((s, o) => s + (o.weight || 0), 0);
+      const qtd = filtered.length;
+      document.getElementById('summaryQtd').textContent = qtd;
+      document.getElementById('summaryTotal').textContent = fmt(totalFilt);
+      document.getElementById('summaryPeso').textContent = totalPeso.toFixed(1).replace('.', ',') + ' Kg';
+      summaryBar.style.display = qtd > 0 ? 'flex' : 'none';
+    }
+
     if (filtered.length === 0) {
       tbody.innerHTML = '';
       empty.style.display = 'flex';
@@ -170,7 +182,10 @@ const Orders = {
     });
     const label = document.getElementById('orderProductType').value;
     this.updateLabels(label);
-    this.populateFlavorSelect();
+    // Bug Fix #5: populateFlavorSelect não deve disparar evento change aqui
+    // Populamos sem auto-selecionar catálogo para não sobrescrever preço/sabor carregados
+    this._populateFlavorSelectOnly();
+    // Recalcula após todos os campos preenchidos
     this.calcTotal();
 
     // Set phone mask value
@@ -184,7 +199,13 @@ const Orders = {
     document.getElementById('orderWeight').step = type === 'Bolo de Kg' ? 'any' : '1';
   },
 
+  // Popula o select de sabores e ao selecionar preenche sabor+preço (usado em novo pedido)
   populateFlavorSelect() {
+    this._populateFlavorSelectOnly();
+  },
+
+  // Popula apenas as opções sem selecionar nenhuma (usado ao editar pedido existente)
+  _populateFlavorSelectOnly() {
     const sel = document.getElementById('orderFlavorSelect');
     const type = document.getElementById('orderProductType').value;
     sel.innerHTML = '<option value="">-- Personalizado / Catálogo --</option>';
@@ -315,8 +336,14 @@ const Orders = {
       if (id) {
         const idx = State.orders.findIndex(o => o.id === id);
         if (idx !== -1) {
+          // Bug Fix #3: preservar deliveredAt original se status já era Entregue
+          const prevDeliveredAt = State.orders[idx].deliveredAt;
           Object.assign(State.orders[idx], data);
-          State.orders[idx].deliveredAt = data.status === 'Entregue' ? new Date().toISOString() : null;
+          if (data.status === 'Entregue') {
+            State.orders[idx].deliveredAt = prevDeliveredAt || new Date().toISOString();
+          } else {
+            State.orders[idx].deliveredAt = null;
+          }
         }
       } else {
         data.id = 'o_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);
@@ -327,11 +354,12 @@ const Orders = {
 
       State.saveOrders();
       modal.classList.remove('active');
+      // Bug Fix #2: Dashboard SEMPRE atualiza ao salvar pedido (independente da aba ativa)
+      Dashboard.update();
       const tab = document.querySelector('.nav-link.active')?.dataset.tab;
-      if (tab === 'dashboard') Dashboard.update();
-      else this.render();
-      if (tab === 'clients') Clients.render();
-      UI.toast(id ? 'Pedido atualizado' : 'Pedido criado');
+      if (tab === 'orders') this.render();
+      else if (tab === 'clients') Clients.render();
+      UI.toast(id ? 'Pedido atualizado ✓' : 'Pedido criado ✓');
     });
   }
 };
