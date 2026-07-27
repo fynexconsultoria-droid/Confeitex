@@ -1,5 +1,5 @@
 const Updates = {
-  verAtual: '1.13.0',
+  verAtual: '1.14.0',
 
   setup() {
     document.getElementById('btnCheckUpdates').addEventListener('click', () => this.check());
@@ -212,6 +212,15 @@ const Updates = {
   },
 
   changelog: [
+    { ver: '1.14.0', date: '27/07/2026', items: [
+      'Correção: Faturamento Total agora exibido de forma 100% precisa em todos os dispositivos com cálculo numérico seguro contra campos nulos',
+      'Correção: Sincronização de versão corrigida em todos os navegadores/dispositivos (resolve exibição incorreta de versão antiga v16)',
+      'Novo: Edição de Pedidos habilitada diretamente pelo Perfil do Cliente (Modal de Histórico) com 1 clique',
+      'Design & Visual: Novo tema visual premium com tipografia Plus Jakarta Sans e sombras de vidro (glassmorphic cards)',
+      'Design & Visual: Card de Faturamento Total destacado com efeito de brilho esmeralda neon',
+      'Gráficos: Novo motor de renderização de gráficos Canvas com curvas suaves de Bezier, efeito de luz neon, gradiente de fundo e crosshair interativo',
+      'Gráficos: Tooltip flutuante em tempo real mostrando Vendas (R$), Qtd de Pedidos e Ticket Médio por dia'
+    ] },
     { ver: '1.13.0', date: '27/07/2026', items: [
       'Correção crítica: Dashboard agora atualiza o faturamento total imediatamente ao salvar qualquer pedido, independente da aba ativa',
       'Correção crítica: Campo de total do pedido não sobrescrevia mais o preço ao abrir edição de pedido existente',
@@ -257,8 +266,8 @@ const Updates = {
   ],
 
   render() {
-    const stored = localStorage.getItem('confeitex_ver');
-    const displayVer = stored || this.verAtual;
+    const displayVer = this.verAtual;
+    localStorage.setItem('confeitex_ver', displayVer);
     document.getElementById('updatesCurrentVer').textContent = `v${displayVer}`;
     const lastCheck = localStorage.getItem('confeitex_last_check');
     document.getElementById('updatesLastCheck').textContent = lastCheck || 'Nunca verificada';

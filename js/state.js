@@ -9,16 +9,7 @@ const DEFAULT_CATALOG = [
 
 function migrateOrder(o) {
   const order = { paymentMethod: 'Dinheiro', cost: 0, deliveredAt: null, totalValue: 0, ...o };
-  // Bug Fix #4: recalcula também quando totalValue é 0 (zero), não apenas ausente
-  if ((!order.totalValue || isNaN(order.totalValue) || +order.totalValue === 0) && order.weight != null && order.unitPrice != null) {
-    const w = parseFloat(String(order.weight).replace(',', '.'));
-    const p = parseFloat(String(order.unitPrice).replace(',', '.'));
-    const e = parseFloat(String(order.extraCharges || 0).replace(',', '.'));
-    if (!isNaN(w) && !isNaN(p) && (w * p) > 0) {
-      order.totalValue = +((w * p) + (isNaN(e) ? 0 : e)).toFixed(2);
-    }
-  }
-  order.totalValue = +(order.totalValue || 0);
+  order.totalValue = getOrderTotal(order);
   if (order.status === 'Entregue' && !order.deliveredAt) {
     order.deliveredAt = new Date().toISOString();
   }

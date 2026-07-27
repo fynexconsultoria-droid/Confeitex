@@ -10,7 +10,7 @@ const Clients = {
       const key = o.clientPhone ? `${o.clientName.trim()}_${o.clientPhone.trim()}` : o.clientName.trim();
       if (!map[key]) map[key] = { name: o.clientName, phone: o.clientPhone || 'Sem telefone', totalOrders: 0, totalSpent: 0, ordersList: [] };
       map[key].totalOrders++;
-      if (o.status !== 'Cancelado') map[key].totalSpent += (+o.totalValue || 0);
+      if (o.status !== 'Cancelado') map[key].totalSpent += getOrderTotal(o);
       map[key].ordersList.push(o);
     });
 
@@ -69,7 +69,7 @@ const Clients = {
               </button>
               <button class="btn btn-secondary btn-sm btn-view-history" data-idx="${idx}" style="color:var(--color-accent-blue);border-color:rgba(59,130,246,0.2);">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                Ver Histórico
+                Ver Histórico & Pedidos
               </button>
             </div>
           </div>
@@ -151,18 +151,31 @@ const Clients = {
     const sorted = [...client.ordersList].sort((a, b) => b.deliveryDate.localeCompare(a.deliveryDate));
     list.innerHTML = sorted.map(o => {
       const badge = badgeClass(o.status);
-      return `<div class="client-history-item">
-        <div>
-          <div style="font-weight:700;font-size:0.9rem;color:white;">${escapeHTML(o.flavor)} <span style="font-size:0.7rem;color:var(--text-muted);">(${o.productType})</span></div>
-          <div style="font-size:0.75rem;color:var(--text-secondary);margin-top:0.2rem;">Entrega: ${fmtDateStr(o.deliveryDate)} às ${o.deliveryTime}</div>
+      const val = getOrderTotal(o);
+      return `<div class="client-history-item" style="display:flex;justify-content:space-between;align-items:center;gap:0.75rem;padding:0.75rem;background:rgba(255,255,255,0.02);border:1px solid var(--border-color);border-radius:var(--border-radius-md);margin-bottom:0.5rem;">
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:700;font-size:0.9rem;color:white;">${escapeHTML(o.flavor)} <span style="font-size:0.75rem;color:var(--text-muted); font-weight:400;">(${o.productType} · ${formatWeight(o)})</span></div>
+          <div style="font-size:0.75rem;color:var(--text-secondary);margin-top:0.2rem;">Entrega: <strong>${fmtDateStr(o.deliveryDate)}</strong> às <strong>${o.deliveryTime}</strong></div>
         </div>
         <div style="text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:0.25rem;">
           <span class="badge ${badge}" style="font-size:0.65rem;padding:0.1rem 0.4rem;">${o.status}</span>
-          <strong style="color:var(--color-accent-pink);font-size:0.9rem;">${fmt(o.totalValue)}</strong>
-          <span style="font-size:0.65rem;color:var(--text-muted);">${o.paymentMethod}</span>
+          <strong style="color:var(--color-accent-pink);font-size:0.9rem;">${fmt(val)}</strong>
+          <button class="btn btn-secondary btn-sm btn-edit-order-from-profile" data-order-id="${o.id}" style="padding:0.2rem 0.5rem;font-size:0.7rem;margin-top:0.2rem;">
+            ✏️ Editar Pedido
+          </button>
         </div>
       </div>`;
     }).join('');
+
+    // Listener para o botão de editar pedido dentro do histórico do cliente
+    list.querySelectorAll('.btn-edit-order-from-profile').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const orderId = btn.dataset.orderId;
+        document.getElementById('clientModal').classList.remove('active');
+        Orders.openEdit(orderId);
+      });
+    });
 
     document.getElementById('clientModal').classList.add('active');
     document.getElementById('btnModalClientClose').onclick = () => document.getElementById('clientModal').classList.remove('active');
