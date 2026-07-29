@@ -4,10 +4,13 @@ const Notifications = {
   _enabled: false,
 
   defaultSettings: {
-    daysBefore: [0, 1], // 0 = Hoje, 1 = 1 dia antes, 2 = 2 dias antes, 3 = 3 dias antes
+    daysBefore: [0, 1], // 0 = Hoje, 1 = 1 dia antes, ..., 7 = 7 dias antes
     intervalHours: 1,  // Intervalo em horas (1, 2, 4, 12, 24)
     statuses: ['Pendente', 'Em Produção'],
-    alertPendingPayment: true
+    alertPendingPayment: true,
+    deliveryTimes: [8, 17], // Horários dos lembretes de entrega
+    alertProduction: false,  // Resumo diário da produção
+    productionHour: 8       // Horário do resumo da produção
   },
 
   getSettings() {
@@ -135,20 +138,56 @@ const Notifications = {
     }
   },
 
+  _isTimeToNotify(hoursList) {
+    if (!hoursList || hoursList.length === 0) return false;
+    const now = new Date();
+    const currentHour = now.getHours();
+    const currentMin = now.getMinutes();
+    return hoursList.some(h => h === currentHour && currentMin < 5);
+  },
+
+  _markNotified(key) {
+    const sent = JSON.parse(localStorage.getItem('confeitex_notified') || '{}');
+    sent[key] = true;
+    localStorage.setItem('confeitex_notified', JSON.stringify(sent));
+  },
+
+  _wasNotified(key) {
+    const sent = JSON.parse(localStorage.getItem('confeitex_notified') || '{}');
+    return !!sent[key];
+  },
+
   check() {
     if (!this._enabled || !('Notification' in window) || Notification.permission !== 'granted') return;
 
     const settings = this.getSettings();
+    const now = new Date();
+    const todayStr = now.toISOString().split('T')[0];
+
+    // --- LEMBRETE DE ENTREGAS ---
+    if (settings.deliveryTimes && settings.deliveryTimes.length > 0) {
+      if (this._isTimeToNotify(settings.deliveryTimes)) {
+        this._checkDeliveries(settings, now, todayStr);
+      }
+    }
+
+    // --- RESUMO DA PRODUÇÃO ---
+    if (settings.alertProduction) {
+      const prodHour = settings.productionHour != null ? settings.productionHour : 8;
+      if (this._isTimeToNotify([prodHour])) {
+        this._checkProduction(now, todayStr);
+      }
+    }
+  },
+
+  _checkDeliveries(settings, now, todayStr) {
     const daysBeforeList = settings.daysBefore || [0, 1];
     const allowedStatuses = settings.statuses || ['Pendente', 'Em Produção'];
-    const sent = JSON.parse(localStorage.getItem('confeitex_notified') || '{}');
-    const now = new Date();
+    const currentHour = now.getHours();
 
     const dayLabels = {
-      0: 'Hoje',
-      1: 'Amanhã',
-      2: 'em 2 Dias',
-      3: 'em 3 Dias'
+      0: 'Hoje', 1: 'Amanhã', 2: 'em 2 Dias', 3: 'em 3 Dias',
+      4: 'em 4 Dias', 5: 'em 5 Dias', 6: 'em 6 Dias', 7: 'em 7 Dias'
     };
 
     daysBeforeList.forEach(dayOffset => {
@@ -162,13 +201,13 @@ const Notifications = {
 
       if (matchingOrders.length === 0) return;
 
-      const cacheKey = `notif_d${dayOffset}_${targetDateStr}`;
-      if (sent[cacheKey]) return; // Já notificado para esta data e antecedência
+      const cacheKey = `notif_d${dayOffset}_${targetDateStr}_h${currentHour}`;
+      if (this._wasNotified(cacheKey)) return;
 
       let bodyMsg = `${matchingOrders.length} entrega(s) agendada(s) para ${dayLabels[dayOffset] || `dia ${targetDateStr}`}:\n`;
-      bodyMsg += matchingOrders.slice(0, 3).map(o => `• ${o.deliveryTime || ''} ${o.clientName}: ${o.flavor}`).join('\n');
-      if (matchingOrders.length > 3) {
-        bodyMsg += `\ne mais ${matchingOrders.length - 3} pedido(s)...`;
+      bodyMsg += matchingOrders.slice(0, 5).map(o => `• ${o.deliveryTime || ''} ${o.clientName}: ${o.flavor}`).join('\n');
+      if (matchingOrders.length > 5) {
+        bodyMsg += `\ne mais ${matchingOrders.length - 5} pedido(s)...`;
       }
 
       if (settings.alertPendingPayment) {
@@ -186,12 +225,45 @@ const Notifications = {
       new Notification(title, {
         body: bodyMsg,
         icon: 'icons/icon-192x192.png',
-        tag: `confeitex-day-${dayOffset}-${targetDateStr}`
+        tag: `confeitex-delivery-${dayOffset}-${targetDateStr}`
       });
 
-      sent[cacheKey] = true;
-      localStorage.setItem('confeitex_notified', JSON.stringify(sent));
+      this._markNotified(cacheKey);
     });
+  },
+
+  _checkProduction(now, todayStr) {
+    const cacheKey = `notif_prod_${todayStr}`;
+    if (this._wasNotified(cacheKey)) return;
+
+    const inProduction = State.orders.filter(o =>
+      o.status === 'Em Produção' && o.deliveryDate === todayStr
+    );
+
+    if (inProduction.length === 0) return;
+
+    let bodyMsg = `Bolos em produção hoje (${inProduction.length}):\n`;
+    bodyMsg += inProduction.slice(0, 5).map(o =>
+      `• ${o.flavor} - ${o.clientName}${o.deliveryTime ? ' às ' + o.deliveryTime : ''}`
+    ).join('\n');
+    if (inProduction.length > 5) {
+      bodyMsg += `\ne mais ${inProduction.length - 5} pedido(s)...`;
+    }
+
+    const totalKg = inProduction
+      .filter(o => o.productType === 'Bolo de Kg')
+      .reduce((s, o) => s + (o.weight || 0), 0);
+    if (totalKg > 0) {
+      bodyMsg += `\n⚖️ Total: ${totalKg.toFixed(2).replace('.', ',')} Kg`;
+    }
+
+    new Notification('Confeitex - Produção de Hoje 👩‍🍳', {
+      body: bodyMsg,
+      icon: 'icons/icon-192x192.png',
+      tag: `confeitex-production-${todayStr}`
+    });
+
+    this._markNotified(cacheKey);
   }
 };
 
