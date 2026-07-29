@@ -1,5 +1,5 @@
 const Updates = {
-  verAtual: '1.16.0',
+  verAtual: '1.15.0',
 
   setup() {
     document.getElementById('btnCheckUpdates').addEventListener('click', () => this.check());
@@ -209,13 +209,6 @@ const Updates = {
   },
 
   changelog: [
-    { ver: '1.16.0', date: '29/07/2026', items: [
-      'Novo: Notificações com resumo diário da produção — lista todos os bolos "Em Produção" com sabores, clientes e total em Kg',
-      'Novo: Horários personalizados para cada tipo de notificação — escolha horários específicos para lembretes de entrega e resumo da produção',
-      'Novo: Antecedência ampliada para até 7 dias — agora você pode ser lembrado com até uma semana de antecedência',
-      'Novo: Interface completa de configuração de notificações com checkboxes estilizados, tags de horário e modal para adicionar horários',
-      'Melhoria: Notificações de entrega agora só disparam nos horários configurados (padrão 08:00 e 17:00)'
-    ] },
     { ver: '1.15.0', date: '28/07/2026', items: [
       'Novo: Notificações totalmente personalizáveis — escolha antecedência (no dia, 1, 2 ou 3 dias antes), frequência de checagem, status e alerta de saldo pendente',
       'Novo: Botão para enviar Notificação de Teste diretamente das Configurações',

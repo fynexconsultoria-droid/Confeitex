@@ -243,7 +243,7 @@ const Settings = {
   exportJSON() {
     const backupData = {
       app: 'Confeitex',
-      version: '1.16.0',
+      version: '1.15.0',
       exportDate: new Date().toISOString(),
       orders: State.orders,
       catalog: State.catalog
@@ -428,141 +428,6 @@ const Settings = {
       cbPendingPay.checked = settings.alertPendingPayment !== false;
       cbPendingPay.addEventListener('change', () => this.saveNotificationCustomControls());
     }
-
-    // Horários de entrega
-    this.renderDeliveryTimeTags(settings.deliveryTimes || [8, 17]);
-    const btnAddTime = document.getElementById('btnAddDeliveryTime');
-    if (btnAddTime) {
-      btnAddTime.addEventListener('click', () => this._promptAddDeliveryTime());
-    }
-
-    // Resumo da produção
-    const cbProduction = document.getElementById('notifProductionCb');
-    const prodConfig = document.getElementById('notifProductionConfig');
-    if (cbProduction) {
-      cbProduction.checked = settings.alertProduction === true;
-      cbProduction.addEventListener('change', () => {
-        if (prodConfig) {
-          prodConfig.style.display = cbProduction.checked ? 'flex' : 'none';
-        }
-        this.saveNotificationCustomControls();
-      });
-      if (prodConfig) {
-        prodConfig.style.display = cbProduction.checked ? 'flex' : 'none';
-      }
-    }
-
-    const selProdHour = document.getElementById('notifProductionHourSelect');
-    if (selProdHour) {
-      selProdHour.value = String(settings.productionHour != null ? settings.productionHour : 8);
-      selProdHour.addEventListener('change', () => this.saveNotificationCustomControls());
-    }
-  },
-
-  renderDeliveryTimeTags(times) {
-    const container = document.getElementById('notifDeliveryTimesContainer');
-    if (!container) return;
-
-    if (!times || times.length === 0) {
-      container.innerHTML = '<span style="font-size:0.8rem;color:var(--text-muted);">Nenhum horário configurado. Adicione pelo menos um.</span>';
-      return;
-    }
-
-    container.innerHTML = times.map(h => {
-      const label = String(h).padStart(2, '0') + ':00';
-      return `<span class="notif-time-tag">🕐 ${label} <button type="button" data-hour="${h}" class="notif-time-remove" title="Remover horário">&times;</button></span>`;
-    }).join('');
-
-    container.querySelectorAll('.notif-time-remove').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const hour = parseInt(btn.dataset.hour, 10);
-        this._removeDeliveryTime(hour);
-      });
-    });
-  },
-
-  _promptAddDeliveryTime() {
-    const existing = document.querySelectorAll('.notif-time-tag');
-    const usedHours = [];
-    existing.forEach(el => {
-      const btn = el.querySelector('.notif-time-remove');
-      if (btn) usedHours.push(parseInt(btn.dataset.hour, 10));
-    });
-
-    const options = [];
-    for (let h = 6; h <= 22; h++) {
-      if (!usedHours.includes(h)) {
-        options.push(h);
-      }
-    }
-
-    if (options.length === 0) {
-      UI.alert('Todos os horários disponíveis já foram adicionados.');
-      return;
-    }
-
-    const hoursHtml = options.map(h => {
-      const label = String(h).padStart(2, '0') + ':00';
-      return `<label class="notif-cb-label" style="margin:0.2rem;"><input type="radio" name="notifNewTime" value="${h}"> ${label}</label>`;
-    }).join('');
-
-    const overlay = document.createElement('div');
-    overlay.className = 'modal-overlay';
-    overlay.style.display = 'flex';
-    overlay.innerHTML = `
-      <div class="modal-container" style="max-width:350px;">
-        <div class="modal-header">
-          <h2>Adicionar Horário</h2>
-          <button class="modal-close" id="btnCloseTimePicker">&times;</button>
-        </div>
-        <div class="modal-body">
-          <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:0.75rem;">Escolha um horário para receber lembretes de entrega:</p>
-          <div style="display:flex;flex-wrap:wrap;gap:0.4rem;">${hoursHtml}</div>
-        </div>
-        <div class="modal-footer">
-          <button class="btn btn-secondary" id="btnCancelTimePicker">Cancelar</button>
-          <button class="btn btn-primary" id="btnConfirmTimePicker">Adicionar</button>
-        </div>
-      </div>
-    `;
-    document.body.appendChild(overlay);
-
-    const close = () => overlay.remove();
-
-    overlay.querySelector('#btnCloseTimePicker').addEventListener('click', close);
-    overlay.querySelector('#btnCancelTimePicker').addEventListener('click', close);
-    overlay.querySelector('#btnConfirmTimePicker').addEventListener('click', () => {
-      const selected = overlay.querySelector('input[name="notifNewTime"]:checked');
-      if (!selected) {
-        UI.alert('Selecione um horário.');
-        return;
-      }
-      const hour = parseInt(selected.value, 10);
-      const settings = Notifications.getSettings();
-      const times = settings.deliveryTimes || [8, 17];
-      if (!times.includes(hour)) {
-        times.push(hour);
-        times.sort((a, b) => a - b);
-        Notifications.saveSettings({ deliveryTimes: times });
-        this.renderDeliveryTimeTags(times);
-      }
-      close();
-    });
-
-    overlay.addEventListener('click', (e) => {
-      if (e.target === overlay) close();
-    });
-  },
-
-  _removeDeliveryTime(hour) {
-    const settings = Notifications.getSettings();
-    let times = settings.deliveryTimes || [8, 17];
-    times = times.filter(h => h !== hour);
-    if (times.length === 0) times = [8];
-    Notifications.saveSettings({ deliveryTimes: times });
-    this.renderDeliveryTimeTags(times);
-    UI.toast('Horário removido!');
   },
 
   saveNotificationCustomControls() {
@@ -580,23 +445,11 @@ const Settings = {
 
     const alertPendingPayment = !!document.getElementById('notifPendingPayCb')?.checked;
 
-    const alertProduction = !!document.getElementById('notifProductionCb')?.checked;
-    const productionHour = parseInt(document.getElementById('notifProductionHourSelect')?.value || '8', 10);
-
-    const deliveryTimes = [];
-    document.querySelectorAll('.notif-time-tag').forEach(tag => {
-      const btn = tag.querySelector('.notif-time-remove');
-      if (btn) deliveryTimes.push(parseInt(btn.dataset.hour, 10));
-    });
-
     Notifications.saveSettings({
       daysBefore: daysBefore.length > 0 ? daysBefore : [0],
       intervalHours,
       statuses: statuses.length > 0 ? statuses : ['Pendente'],
-      alertPendingPayment,
-      alertProduction,
-      productionHour,
-      deliveryTimes: deliveryTimes.length > 0 ? deliveryTimes.sort((a, b) => a - b) : [8, 17]
+      alertPendingPayment
     });
 
     UI.toast('Preferências de notificação salvas!');
