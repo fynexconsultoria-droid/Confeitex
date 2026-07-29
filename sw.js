@@ -1,7 +1,7 @@
 // Confeitex - Service Worker (PWA Offline Support)
 // Estratégia: Stale-While-Revalidate — version.txt sempre vai à rede
 
-const CACHE_NAME = 'confeitex-cache-v1.14.0';
+const CACHE_NAME = 'confeitex-cache-v1.15.0';
 
 // Arquivos que serão cacheados na instalação do Service Worker
 const ASSETS_TO_CACHE = [

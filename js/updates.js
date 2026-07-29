@@ -1,5 +1,5 @@
 const Updates = {
-  verAtual: '1.14.0',
+  verAtual: '1.15.0',
 
   setup() {
     document.getElementById('btnCheckUpdates').addEventListener('click', () => this.check());
@@ -18,42 +18,39 @@ const Updates = {
     } catch { return null; }
   },
 
-  // Auto-verificação silenciosa (chamada pelo app.js)
+  // Verificação silenciosa (chamada pelo app.js) — Pergunta antes de atualizar
   async checkSilent() {
     const serverVer = await this._fetchVersion();
     if (serverVer && serverVer !== this.verAtual) {
-      await this.autoUpdate(serverVer);
+      const deferred = localStorage.getItem('confeitex_update_deferred');
+      const oneDay = 86400000;
+      if (deferred && Date.now() - parseInt(deferred, 10) < oneDay) {
+        return serverVer;
+      }
+      await this.promptUpdate(serverVer);
       return serverVer;
     }
     return null;
   },
 
-  // Auto-update silencioso (sem prompt, sem banner)
-  async autoUpdate(ver) {
-    const oldVer = this.verAtual;
-    localStorage.setItem('confeitex_ver', ver);
-    this.verAtual = ver;
+  // Diálogo de confirmação de atualização: "Atualizar Agora" ou "Mais Tarde"
+  async promptUpdate(serverVer) {
+    const ok = await UI.confirm({
+      title: '📦 Nova Atualização Disponível',
+      message: `Uma nova versão do Confeitex (v${serverVer}) está pronta!\n\nDeseja atualizar agora para aplicar as melhorias ou deixar para mais tarde?`,
+      confirmText: '🔄 Atualizar Agora',
+      cancelText: '⏱️ Mais Tarde',
+      variant: 'primary'
+    });
 
-    if (!('serviceWorker' in navigator)) {
-      localStorage.setItem('confeitex_updated', 'true');
-      return;
+    if (ok) {
+      localStorage.removeItem('confeitex_update_deferred');
+      localStorage.setItem('confeitex_ver', serverVer);
+      await this.downloadUpdate();
+    } else {
+      localStorage.setItem('confeitex_update_deferred', String(Date.now()));
+      UI.toast('Atualização mantida para mais tarde.');
     }
-
-    try {
-      const reg = await navigator.serviceWorker.register('./sw.js?v=' + ver);
-      // Aguarda instalacao (max 10s)
-      await Promise.race([
-        new Promise(resolve => {
-          const w = reg.installing || reg.waiting;
-          if (w) {
-            w.addEventListener('statechange', () => {
-              if (w.state === 'activated' || w.state === 'installed') resolve();
-            });
-          } else resolve();
-        }),
-        this._delay(10000)
-      ]);
-    } catch {}
   },
 
   async downloadUpdate() {
@@ -212,6 +209,16 @@ const Updates = {
   },
 
   changelog: [
+    { ver: '1.15.0', date: '28/07/2026', items: [
+      'Novo: Notificações totalmente personalizáveis — escolha antecedência (no dia, 1, 2 ou 3 dias antes), frequência de checagem, status e alerta de saldo pendente',
+      'Novo: Botão para enviar Notificação de Teste diretamente das Configurações',
+      'Navegação & Gestos: Proteção contra fechamento acidental — botão/gesto de voltar no celular fecha modais/menus e retorna abas sem fechar o app',
+      'Atualizações: Confirmação prévia para atualizar — o app agora sempre pergunta com opções "Atualizar Agora" ou "Mais Tarde"',
+      'Gerenciamento de Dados: Correção da exportação PDF usando iframe interno de impressão — evita travamento e fechamento no mobile PWA',
+      'Gerenciamento de Dados: Novo exportador de Backup JSON 100% offline, rápido e seguro',
+      'Gerenciamento de Dados: Importador com suporte inteligente a backups em arquivos .json e .pdf',
+      'Design & Marca: Nova logo moderna com ilustrações renovadas em alta resolução para PWA e web'
+    ] },
     { ver: '1.14.0', date: '27/07/2026', items: [
       'Correção: Faturamento Total agora exibido de forma 100% precisa em todos os dispositivos com cálculo numérico seguro contra campos nulos',
       'Correção: Sincronização de versão corrigida em todos os navegadores/dispositivos (resolve exibição incorreta de versão antiga v16)',

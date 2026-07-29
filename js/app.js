@@ -14,7 +14,14 @@
     updates: { title: 'Atualizações', subtitle: 'Verifique por novas versões do aplicativo.' }
   };
 
-  function switchTab(tabId) {
+  let lastBackPressTime = 0;
+
+  // Garante estado inicial no histórico para o botão voltar funcionar como SPA
+  try {
+    history.replaceState({ tab: 'dashboard' }, '');
+  } catch (e) {}
+
+  function switchTab(tabId, pushState = true) {
     document.getElementById('sidebar').classList.remove('open');
     document.getElementById('sidebarOverlay').classList.remove('active');
 
@@ -22,6 +29,10 @@
     document.querySelectorAll('.tab-content').forEach(c => c.classList.toggle('active', c.id === tabId));
     document.getElementById('mainTitle').textContent = tabTitles[tabId].title;
     document.getElementById('mainSubtitle').textContent = tabTitles[tabId].subtitle;
+
+    if (pushState && history.state?.tab !== tabId) {
+      try { history.pushState({ tab: tabId }, ''); } catch (e) {}
+    }
 
     try {
       if (tabId === 'dashboard') Dashboard.update();
@@ -31,6 +42,73 @@
       else if (tabId === 'updates') Updates.render();
     } catch (e) { console.warn('[Confeitex] Erro na aba', tabId, e); }
   }
+
+  // Intercepta eventos de Voltar (botão de hardware / gestos no Android/celular)
+  window.addEventListener('popstate', (e) => {
+    // 1. Fecha diálogos de confirmação se houver algum aberto
+    const activeConfirm = document.querySelector('.ui-confirm-overlay.active');
+    if (activeConfirm) {
+      activeConfirm.classList.remove('active');
+      setTimeout(() => activeConfirm.remove(), 250);
+      return;
+    }
+
+    // 2. Fecha modais padrão se houver algum aberto
+    const activeModals = document.querySelectorAll('.modal-overlay.active');
+    if (activeModals.length > 0) {
+      activeModals.forEach(m => m.classList.remove('active'));
+      return;
+    }
+
+    // 3. Fecha menu lateral mobile
+    const sidebar = document.getElementById('sidebar');
+    if (sidebar && sidebar.classList.contains('open')) {
+      sidebar.classList.remove('open');
+      document.getElementById('sidebarOverlay').classList.remove('active');
+      return;
+    }
+
+    // 4. Se não estiver no Painel de Controle (Dashboard), navega de volta para a aba principal
+    const currentTab = document.querySelector('.nav-link.active')?.dataset.tab;
+    if (currentTab && currentTab !== 'dashboard') {
+      switchTab('dashboard', false);
+      return;
+    }
+
+    // 5. Se já estiver no Dashboard e sem modais: previne fechamento acidental
+    const now = Date.now();
+    if (now - lastBackPressTime < 2000) {
+      // Pressionou voltar 2x rapidamente: permite fechar
+      return;
+    }
+
+    // Primeira vez pressionando voltar no Dashboard: exibe toast e empurra estado para manter no app
+    lastBackPressTime = now;
+    try { history.pushState({ tab: 'dashboard' }, ''); } catch (e) {}
+    UI.toast('Pressione voltar novamente para sair do app');
+  });
+
+  // Observe de abertura de modais para registrar no histórico
+  const pushModalState = () => {
+    try { history.pushState({ modalOpen: true }, ''); } catch (e) {}
+  };
+
+  const modalObserver = new MutationObserver(mutations => {
+    mutations.forEach(m => {
+      if (m.attributeName === 'class') {
+        const target = m.target;
+        if (target.classList.contains('active')) {
+          pushModalState();
+        } else if (history.state?.modalOpen) {
+          try { history.back(); } catch (e) {}
+        }
+      }
+    });
+  });
+
+  document.querySelectorAll('.modal-overlay').forEach(modal => {
+    modalObserver.observe(modal, { attributes: true });
+  });
 
   // Tab navigation
   document.querySelectorAll('.nav-link').forEach(link => {
@@ -44,6 +122,9 @@
   document.getElementById('menuToggle').addEventListener('click', () => {
     document.getElementById('sidebar').classList.toggle('open');
     document.getElementById('sidebarOverlay').classList.toggle('active');
+    if (document.getElementById('sidebar').classList.contains('open')) {
+      pushModalState();
+    }
   });
   document.getElementById('sidebarOverlay').addEventListener('click', () => {
     document.getElementById('sidebar').classList.remove('open');
