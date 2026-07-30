@@ -2268,6 +2268,35 @@ select.form-control {
   }
 }
 
+/* Notification category/status checkbox labels */
+.notif-cat-label, .notif-day-label, .notif-status-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.6rem;
+  background: rgba(10, 8, 19, 0.4);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+  cursor: pointer;
+  transition: var(--transition-fast);
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  user-select: none;
+}
+.notif-cat-label:hover, .notif-day-label:hover, .notif-status-label:hover {
+  background: rgba(255,255,255,0.05);
+  border-color: rgba(236,72,153,0.2);
+}
+.notif-cat-label input[type="checkbox"], .notif-day-label input[type="checkbox"], .notif-status-label input[type="checkbox"] {
+  accent-color: var(--color-accent-pink);
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+.notif-cat-label strong {
+  color: var(--text-primary);
+}
+
 /* ===== Modal no tablet retrato ===== */
 @media (min-width: 481px) and (max-width: 768px) {
   .modal-container { max-width: 95vw; max-height: 92dvh; }
