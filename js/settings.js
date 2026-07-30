@@ -401,13 +401,6 @@ const Settings = {
     // Carrega valores atuais nas opções
     const settings = Notifications.getSettings();
 
-    // Checkboxes de Categorias
-    document.querySelectorAll('.notif-cat-cb').forEach(cb => {
-      const cat = cb.dataset.cat;
-      cb.checked = (settings.categories || {})[cat] !== false;
-      cb.addEventListener('change', () => this.saveNotificationCustomControls());
-    });
-
     // Checkboxes de Antecedência
     document.querySelectorAll('.notif-day-cb').forEach(cb => {
       const val = parseInt(cb.dataset.day, 10);
@@ -438,11 +431,6 @@ const Settings = {
   },
 
   saveNotificationCustomControls() {
-    const categories = {};
-    document.querySelectorAll('.notif-cat-cb').forEach(cb => {
-      categories[cb.dataset.cat] = cb.checked;
-    });
-
     const daysBefore = [];
     document.querySelectorAll('.notif-day-cb:checked').forEach(cb => {
       daysBefore.push(parseInt(cb.dataset.day, 10));
@@ -458,7 +446,6 @@ const Settings = {
     const alertPendingPayment = !!document.getElementById('notifPendingPayCb')?.checked;
 
     Notifications.saveSettings({
-      categories,
       daysBefore: daysBefore.length > 0 ? daysBefore : [0],
       intervalHours,
       statuses: statuses.length > 0 ? statuses : ['Pendente'],
