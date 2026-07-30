@@ -10,6 +10,7 @@
     dashboard: { title: 'Painel de Controle', subtitle: 'Estatísticas gerais e entregas de hoje.' },
     orders: { title: 'Encomendas', subtitle: 'Gerencie e busque todos os pedidos registrados.' },
     clients: { title: 'Clientes', subtitle: 'Histórico de compras e contatos de clientes.' },
+    finances: { title: 'Financeiro', subtitle: 'Resumo financeiro, formas de pagamento e gráficos.' },
     settings: { title: 'Configurações', subtitle: 'Ajustes do catálogo de sabores e utilitários.' },
     updates: { title: 'Atualizações', subtitle: 'Verifique por novas versões do aplicativo.' }
   };
@@ -38,6 +39,7 @@
       if (tabId === 'dashboard') Dashboard.update();
       else if (tabId === 'orders') Orders.render();
       else if (tabId === 'clients') Clients.render();
+      else if (tabId === 'finances') Finance.render();
       else if (tabId === 'settings') Settings.renderCatalog();
       else if (tabId === 'updates') Updates.render();
     } catch (e) { console.warn('[Confeitex] Erro na aba', tabId, e); }
@@ -170,6 +172,7 @@
   // Init
   Orders.setupForm();
   Settings.setup();
+  Finance.setup();
   Updates.setup();
   Clients.setupEditModal();
   Dashboard.update();

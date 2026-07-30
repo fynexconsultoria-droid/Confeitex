@@ -1,7 +1,9 @@
 // Confeitex - Service Worker (PWA Offline Support)
 // Estratégia: Stale-While-Revalidate — version.txt sempre vai à rede
+// O nome do cache usa a versão da URL (?v=X) para invalidar automaticamente
 
-const CACHE_NAME = 'confeitex-cache-v1.15.0';
+const SW_VERSION = (self.location.search.match(/[?&]v=([^&]+)/) || [null, '1.0.0'])[1];
+const CACHE_NAME = 'confeitex-cache-v' + SW_VERSION;
 
 // Arquivos que serão cacheados na instalação do Service Worker
 const ASSETS_TO_CACHE = [
@@ -20,6 +22,7 @@ const ASSETS_TO_CACHE = [
   './js/orders.js',
   './js/clients.js',
   './js/settings.js',
+  './js/finances.js',
   './js/updates.js',
   './js/app.js',
   './icons/icon-192x192.png',

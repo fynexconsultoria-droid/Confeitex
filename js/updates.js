@@ -1,5 +1,5 @@
 const Updates = {
-  verAtual: '1.15.0',
+  verAtual: '1.16.0',
 
   setup() {
     document.getElementById('btnCheckUpdates').addEventListener('click', () => this.check());
@@ -209,6 +209,11 @@ const Updates = {
   },
 
   changelog: [
+    { ver: '1.16.0', date: '30/07/2026', items: [
+      'Novo: Aba Financeiro com resumo do mês/dia, gráficos de pizza por produto, pagamento e status',
+      'Novo: Campo "Tipo de Retirada" (Retirada no Local / Entrega) no cadastro de pedidos',
+      'Melhoria: Service Worker agora invalida cache automaticamente a cada nova versão — sem necessidade de limpar manualmente'
+    ] },
     { ver: '1.15.0', date: '28/07/2026', items: [
       'Novo: Notificações totalmente personalizáveis — escolha antecedência (no dia, 1, 2 ou 3 dias antes), frequência de checagem, status e alerta de saldo pendente',
       'Novo: Botão para enviar Notificação de Teste diretamente das Configurações',

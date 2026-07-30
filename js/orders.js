@@ -70,6 +70,10 @@ const Orders = {
                 <span>${o.paymentMethod || 'Dinheiro'}</span>
               </div>
               <div class="order-detail-item">
+                <span class="order-detail-label">Tipo de Retirada</span>
+                <span>${o.deliveryType || 'Retirada no Local'}</span>
+              </div>
+              <div class="order-detail-item">
                 <span class="order-detail-label">Lucro Estimado</span>
                 <span style="color:${profit >= 0 ? 'var(--color-success)' : 'var(--color-danger)'}">${fmt(profit)}</span>
               </div>
@@ -174,7 +178,7 @@ const Orders = {
       orderClientName: 'clientName', orderClientPhone: 'clientPhone', orderProductType: 'productType',
       orderFlavor: 'flavor', orderDetails: 'details', orderWeight: 'weight', orderUnitPrice: 'unitPrice',
       orderExtraCharges: 'extraCharges', orderDeliveryDate: 'deliveryDate', orderDeliveryTime: 'deliveryTime',
-      orderStatus: 'status', orderNotes: 'notes', orderPaymentMethod: 'paymentMethod', orderCost: 'cost'
+      orderDeliveryType: 'deliveryType', orderStatus: 'status', orderNotes: 'notes', orderPaymentMethod: 'paymentMethod', orderCost: 'cost'
     };
     Object.entries(fieldMap).forEach(([elId, stateKey]) => {
       const el = document.getElementById(elId);
@@ -271,6 +275,7 @@ const Orders = {
       document.getElementById('orderExtraCharges').value = '0.00';
       document.getElementById('orderCost').value = '0.00';
       document.getElementById('orderPaymentMethod').value = 'Dinheiro';
+      document.getElementById('orderDeliveryType').value = 'Retirada no Local';
       document.getElementById('orderStatus').value = 'Pendente';
       this.updateLabels('Bolo de Kg');
       this.populateFlavorSelect();
@@ -327,6 +332,7 @@ const Orders = {
         cost: parseFloat(document.getElementById('orderCost').value) || 0,
         deliveryDate,
         deliveryTime,
+        deliveryType: document.getElementById('orderDeliveryType').value,
         status: document.getElementById('orderStatus').value,
         notes: document.getElementById('orderNotes').value.trim(),
         paymentMethod: document.getElementById('orderPaymentMethod').value

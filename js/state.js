@@ -8,7 +8,7 @@ const DEFAULT_CATALOG = [
 ];
 
 function migrateOrder(o) {
-  const order = { paymentMethod: 'Dinheiro', cost: 0, deliveredAt: null, totalValue: 0, ...o };
+  const order = { paymentMethod: 'Dinheiro', cost: 0, deliveredAt: null, totalValue: 0, deliveryType: 'Retirada no Local', ...o };
   order.totalValue = getOrderTotal(order);
   if (order.status === 'Entregue' && !order.deliveredAt) {
     order.deliveredAt = new Date().toISOString();
@@ -67,6 +67,7 @@ const State = {
         status: statusList[Math.floor(Math.random() * statusList.length)],
         notes: '',
         paymentMethod: ['Dinheiro', 'Pix', 'Cartão de Crédito'][Math.floor(Math.random() * 3)],
+        deliveryType: Math.random() > 0.5 ? 'Retirada no Local' : 'Entrega',
         totalValue: +(peso * precoKg).toFixed(2),
         createdAt: d.toISOString(),
         deliveredAt: null

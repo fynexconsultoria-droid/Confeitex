@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Confeitex - Controle de Encomendas</title>
   <meta name="description" content="Controle de encomendas para confeitaria — gerencie pedidos, clientes e entregas. 100% offline.">
-  <meta name="version" content="1.15.0">
+  <meta name="version" content="1.16.0">
 
   <!-- Google Fonts: Plus Jakarta Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -54,11 +54,11 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Confeitex">
-  <link rel="apple-touch-icon" href="icons/icon-192x192.png">
+  <link rel="apple-touch-icon" href="icons/icon-192x192.png?v=2">
 
   <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cdefs%3E%3ClinearGradient id='bg' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23ec4899'/%3E%3Cstop offset='100%25' style='stop-color:%238b5cf6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='512' height='512' rx='102' fill='url(%23bg)'/%3E%3Cg transform='translate(256,278) scale(18)'%3E%3Cpath d='M12 2a2 2 0 0 1 2 2v2h-4V4a2 2 0 0 1 2-2zM5 20h14a2 2 0 0 0 2-2v-4a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2zM3 10h18v2H3zM9 14h6v2H9z' fill='white' stroke='white' stroke-width='0.5'/%3E%3C/g%3E%3C/svg%3E">
-  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192x192.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192x192.png?v=2">
 
   <!-- Performance: Preload critical assets -->
   <link rel="preload" href="style.css" as="style">
@@ -108,6 +108,12 @@
             </a>
           </li>
           <li class="nav-item">
+            <a class="nav-link" data-tab="finances">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              Financeiro
+            </a>
+          </li>
+          <li class="nav-item">
             <a class="nav-link" data-tab="settings">
               <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
               Configurações
@@ -123,7 +129,7 @@
       </nav>
       
       <div style="font-size: 0.7rem; color: var(--text-muted); text-align: center; border-top: 1px solid var(--border-color); padding-top: 0.75rem;">
-        Confeitex v1.15.0<br>Modo 100% Offline
+        Confeitex v1.16.0<br>Modo 100% Offline
       </div>
     </aside>
 
@@ -430,7 +436,149 @@
         </div>
       </section>
 
-      <!-- TAB 4: SETTINGS / CONFIG -->
+      <!-- TAB 4: FINANCES -->
+      <section id="finances" class="tab-content">
+        <!-- Filtro de Período -->
+        <div class="finance-period-bar">
+          <div class="form-group" style="flex-direction:row;align-items:center;gap:0.75rem;flex-wrap:wrap;">
+            <label for="financeMonthSelect" style="white-space:nowrap;margin:0;">Mês:</label>
+            <input type="month" class="form-control" id="financeMonthSelect" style="width:auto;min-width:160px;">
+            <label for="financeDateSelect" style="white-space:nowrap;margin:0;">Dia:</label>
+            <input type="date" class="form-control" id="financeDateSelect" style="width:auto;min-width:150px;">
+            <button class="btn btn-secondary btn-sm" id="btnFinanceDateClear" style="min-height:36px;padding:0.35rem 0.7rem;font-size:0.75rem;" title="Limpar filtro de dia">✕</button>
+          </div>
+          <button class="btn btn-secondary" id="btnFinancePeriodReset">Mês Atual</button>
+        </div>
+
+        <!-- Resumo do Mês -->
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-header">
+              <span class="metric-title">Faturamento do Mês</span>
+              <div class="metric-icon-wrapper pink">
+                <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              </div>
+            </div>
+            <div class="metric-value" id="finKpiSalesMonth" style="color:var(--color-accent-pink);">R$ 0,00</div>
+            <div class="metric-footer">Total de vendas do período</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-header">
+              <span class="metric-title">Custos do Mês</span>
+              <div class="metric-icon-wrapper blue">
+                <svg viewBox="0 0 24 24"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              </div>
+            </div>
+            <div class="metric-value" id="finKpiCostMonth" style="color:var(--color-accent-blue);">R$ 0,00</div>
+            <div class="metric-footer">Total de custos do período</div>
+          </div>
+          <div class="metric-card metric-card-highlight-green">
+            <div class="metric-header">
+              <span class="metric-title" style="color:var(--color-success);">Lucro do Mês</span>
+              <div class="metric-icon-wrapper success">
+                <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              </div>
+            </div>
+            <div class="metric-value" id="finKpiProfitMonth" style="color:var(--color-success);">R$ 0,00</div>
+            <div class="metric-footer">💰 Faturamento - Custos</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-header">
+              <span class="metric-title">Pedidos no Mês</span>
+              <div class="metric-icon-wrapper purple">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              </div>
+            </div>
+            <div class="metric-value" id="finKpiOrdersMonth" style="color:var(--color-accent-purple);">0</div>
+            <div class="metric-footer">Total de pedidos no período</div>
+          </div>
+        </div>
+
+        <!-- Gráficos e Tabelas -->
+        <div class="dashboard-grid" style="grid-template-columns:1fr 1fr;">
+          <!-- Resumo Geral -->
+          <div class="panel">
+            <div class="panel-header">
+              <span class="panel-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                Resumo Geral
+              </span>
+            </div>
+            <div id="financeGeneralSummary" style="display:flex;flex-direction:column;gap:0.75rem;">
+              <div class="finance-summary-row">
+                <span class="finance-summary-label">Total de Pedidos (ativos)</span>
+                <span class="finance-summary-value" id="finGenOrders">0</span>
+              </div>
+              <div class="finance-summary-row">
+                <span class="finance-summary-label">Faturamento Total (acumulado)</span>
+                <span class="finance-summary-value pink" id="finGenRevenue">R$ 0,00</span>
+              </div>
+              <div class="finance-summary-row">
+                <span class="finance-summary-label">Custo Total (acumulado)</span>
+                <span class="finance-summary-value blue" id="finGenCost">R$ 0,00</span>
+              </div>
+              <div class="finance-summary-row">
+                <span class="finance-summary-label">Lucro Total (acumulado)</span>
+                <span class="finance-summary-value green" id="finGenProfit">R$ 0,00</span>
+              </div>
+              <div class="finance-summary-row">
+                <span class="finance-summary-label">Ticket Médio</span>
+                <span class="finance-summary-value purple" id="finGenAvgTicket">R$ 0,00</span>
+              </div>
+              <div class="finance-summary-row">
+                <span class="finance-summary-label">Pedidos Cancelados</span>
+                <span class="finance-summary-value" id="finGenCanceled" style="color:var(--color-danger);">0</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Gráfico de Pizza por Produto -->
+          <div class="panel">
+            <div class="panel-header">
+              <span class="panel-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
+                Pedidos por Tipo de Produto
+              </span>
+            </div>
+            <div class="finance-pie-container">
+              <canvas id="finPieProductChart"></canvas>
+            </div>
+            <div id="finPieProductLegend" class="finance-pie-legend"></div>
+          </div>
+        </div>
+
+        <div class="dashboard-grid" style="grid-template-columns:1fr 1fr;">
+          <!-- Tipos de Pagamento -->
+          <div class="panel">
+            <div class="panel-header">
+              <span class="panel-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                Formas de Pagamento
+              </span>
+            </div>
+            <div class="finance-pie-container">
+              <canvas id="finPiePaymentChart"></canvas>
+            </div>
+            <div id="finPiePaymentLegend" class="finance-pie-legend"></div>
+          </div>
+
+          <!-- Pedidos por Status -->
+          <div class="panel">
+            <div class="panel-header">
+              <span class="panel-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                Pedidos por Status
+              </span>
+            </div>
+            <div class="finance-pie-container">
+              <canvas id="finPieStatusChart"></canvas>
+            </div>
+            <div id="finPieStatusLegend" class="finance-pie-legend"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 5: SETTINGS / CONFIG -->
       <section id="settings" class="tab-content">
         <div class="config-grid">
 
@@ -654,6 +802,13 @@
 
             <div class="form-grid-2">
               <div class="form-group">
+                <label for="orderDeliveryType">Tipo de Retirada</label>
+                <select class="form-control" id="orderDeliveryType">
+                  <option value="Retirada no Local">Retirada no Local</option>
+                  <option value="Entrega">Entrega</option>
+                </select>
+              </div>
+              <div class="form-group">
                 <label for="orderStatus">Status do Pedido *</label>
                 <select class="form-control" id="orderStatus" required>
                   <option value="Pendente">Pendente</option>
@@ -818,6 +973,7 @@
   <script src="js/orders.js"></script>
   <script src="js/clients.js"></script>
   <script src="js/settings.js"></script>
+  <script src="js/finances.js"></script>
   <script src="js/updates.js"></script>
   <script src="js/app.js"></script>
 </body>
