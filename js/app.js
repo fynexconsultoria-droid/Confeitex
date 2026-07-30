@@ -140,7 +140,16 @@
     localStorage.removeItem('confeitex_updated');
   }
 
-  // (removido: recarga automática ao trocar SW — o banner de atualização já pergunta ao usuário)
+  // Recarrega automaticamente quando um novo Service Worker assumir o controle
+  if ('serviceWorker' in navigator) {
+    let reloading = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (reloading) return;
+      reloading = true;
+      UI.toast('🔄 Nova versão instalada. Recarregando...');
+      setTimeout(() => window.location.reload(), 1500);
+    });
+  }
 
   // Date display
   document.getElementById('currentDateDisplay').textContent = fmtDate(new Date());
