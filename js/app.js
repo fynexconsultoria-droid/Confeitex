@@ -142,6 +142,11 @@
 
   // (removido: recarga automática ao trocar SW — o banner de atualização já pergunta ao usuário)
 
+  // Trava orientação para retrato (PWA + navegador)
+  if (screen.orientation && screen.orientation.lock) {
+    screen.orientation.lock('portrait').catch(() => {});
+  }
+
   // Date display
   document.getElementById('currentDateDisplay').textContent = fmtDate(new Date());
 
