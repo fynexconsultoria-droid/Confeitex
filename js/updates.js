@@ -1,5 +1,5 @@
 const Updates = {
-  verAtual: '1.17.0',
+  verAtual: '1.16.0',
 
   setup() {
     document.getElementById('btnCheckUpdates').addEventListener('click', () => this.check());
@@ -209,12 +209,6 @@ const Updates = {
   },
 
   changelog: [
-    { ver: '1.17.0', date: '30/07/2026', items: [
-      'Novo: Notificações expandidas com categorias — Entregas, Produção, Financeiro e Atrasados — ative/desative cada uma nas Configurações',
-      'Novo: UI completa de configuração de notificações com checkboxes para categorias, antecedência (até 7 dias), status e botão de teste',
-      'Correção: App não recarrega mais automaticamente ao atualizar — o banner respeita a escolha do usuário (Recarregar Agora / Mais Tarde)',
-      'Correção: Orientação da tela travada em retrato — app não gira mais ao inclinar o celular'
-    ] },
     { ver: '1.16.0', date: '30/07/2026', items: [
       'Novo: Aba Financeiro com resumo do mês/dia, gráficos de pizza por produto, pagamento e status',
       'Novo: Campo "Tipo de Retirada" (Retirada no Local / Entrega) no cadastro de pedidos',
