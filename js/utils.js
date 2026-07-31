@@ -1,20 +1,24 @@
-const fmt = (val) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(isNaN(val) || val === null || val === undefined ? 0 : +val);
+const fmt = (val) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(isNaN(val) || val === null || val === undefined ? 0 : +val).replace(/\u00A0/g, ' ');
 const fmtDate = (d) => `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
 const fmtDateStr = (s) => s ? s.split('-').reverse().join('/') : '';
 const escapeHTML = (s) => s ? String(s).replace(/[&<>'"]/g, t => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[t])) : '';
 
 function getOrderTotal(o) {
   if (!o) return 0;
-  let val = o.totalValue;
-  if (val === undefined || val === null || val === '' || isNaN(val)) {
+  const compute = () => {
     const w = typeof o.weight === 'number' ? o.weight : parseFloat(String(o.weight || 0).replace(',', '.'));
     const p = typeof o.unitPrice === 'number' ? o.unitPrice : parseFloat(String(o.unitPrice || 0).replace(',', '.'));
     const e = typeof o.extraCharges === 'number' ? o.extraCharges : parseFloat(String(o.extraCharges || 0).replace(',', '.'));
-    val = ((isNaN(w) ? 0 : w) * (isNaN(p) ? 0 : p)) + (isNaN(e) ? 0 : e);
-  } else if (typeof val === 'string') {
-    val = parseFloat(val.replace(/[^\d.,-]/g, '').replace(',', '.'));
+    const v = ((isNaN(w) ? 0 : w) * (isNaN(p) ? 0 : p)) + (isNaN(e) ? 0 : e);
+    return isNaN(v) ? 0 : +v;
+  };
+  const val = o.totalValue;
+  if (val === undefined || val === null || val === '' || val === 0) return compute();
+  if (typeof val === 'string') {
+    const parsed = parseFloat(val.replace(/[^\d.,-]/g, '').replace(',', '.'));
+    return isNaN(parsed) ? compute() : +parsed;
   }
-  return isNaN(val) ? 0 : +val;
+  return isNaN(+val) ? compute() : +val;
 }
 
 function maskPhone(input) {

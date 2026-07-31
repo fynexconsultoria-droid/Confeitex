@@ -71,6 +71,10 @@ const Clients = {
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                 Ver Histórico & Pedidos
               </button>
+              <button class="btn btn-secondary btn-sm btn-delete-client" data-idx="${idx}" style="color:var(--color-danger);border-color:rgba(239,68,68,0.2);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                Excluir
+              </button>
             </div>
           </div>
         </td>
@@ -98,6 +102,9 @@ const Clients = {
     });
     tbody.querySelectorAll('.btn-edit-client').forEach(b => {
       b.addEventListener('click', (e) => { e.stopPropagation(); this.openEdit(clients[b.dataset.idx]); });
+    });
+    tbody.querySelectorAll('.btn-delete-client').forEach(b => {
+      b.addEventListener('click', (e) => { e.stopPropagation(); this.delete(clients[b.dataset.idx]); });
     });
 
     const searchInput = document.getElementById('clientSearchInput');
@@ -184,6 +191,34 @@ const Clients = {
       document.getElementById('clientModal').classList.remove('active');
       this.openEdit({ name: document.getElementById('btnEditFromHistory').dataset.name, phone: document.getElementById('btnEditFromHistory').dataset.phone || 'Sem telefone' });
     };
+  },
+
+  async delete(client) {
+    const key = client.phone && client.phone !== 'Sem telefone'
+      ? `${client.name.trim()}_${client.phone.trim()}`
+      : client.name.trim();
+    const orders = State.orders.filter(o => {
+      const oKey = o.clientPhone ? `${o.clientName.trim()}_${o.clientPhone.trim()}` : o.clientName.trim();
+      return oKey === key;
+    });
+    if (orders.length === 0) return;
+
+    const confirmed = await UI.confirm({
+      title: 'Excluir Cliente',
+      message: `Mover ${orders.length} pedido(s) de ${client.name} para a lixeira? Você poderá restaurá-los em até 7 dias.`,
+      confirmText: 'Mover para Lixeira',
+      variant: 'danger'
+    });
+    if (!confirmed) return;
+
+    State.orders = State.orders.filter(o => !orders.includes(o));
+    State.addToTrash(orders, 'client', `Cliente ${client.name}`);
+    State.saveOrders();
+    this.render();
+    const tab = document.querySelector('.nav-link.active')?.dataset.tab;
+    if (tab === 'dashboard') Dashboard.update();
+    if (Trash.updateBadge) Trash.updateBadge();
+    UI.toast('Cliente movido para a lixeira');
   },
 
   setupEditModal() {

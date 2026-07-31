@@ -54,6 +54,14 @@ const Notifications = {
     document.addEventListener('visibilitychange', () => {
       if (!document.hidden && this._enabled) this.check();
     });
+    window.addEventListener('focus', () => {
+      if (this._enabled) this.check();
+    });
+
+    // Garante que a interface reflita o estado real após a inicialização
+    if (typeof Settings !== 'undefined' && Settings.renderNotificationStatus) {
+      Settings.renderNotificationStatus();
+    }
   },
 
   _enable() {

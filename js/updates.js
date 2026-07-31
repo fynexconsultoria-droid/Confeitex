@@ -1,5 +1,5 @@
 const Updates = {
-  verAtual: '1.16.0',
+  verAtual: '1.17.0',
 
   setup() {
     document.getElementById('btnCheckUpdates').addEventListener('click', () => this.check());
@@ -209,6 +209,14 @@ const Updates = {
   },
 
   changelog: [
+    { ver: '1.17.0', date: '31/07/2026', items: [
+      'Novo: Lixeira com restauração em até 7 dias — pedidos excluídos não são mais perdidos permanentemente',
+      'Novo: Botão "Excluir" na tela de Clientes — move todos os pedidos do cliente para a lixeira',
+      'Segurança: Senha de bloqueio reforçada com PBKDF2 + salt (hash único por instalação)',
+      'Melhoria: Cálculo de valores de pedidos mais robusto e moeda formatada sem quebras de linha',
+      'Melhoria: Notificações re-checadas ao focar a janela e status sincronizado com as configurações',
+      'Design & Marca: Nova logo minimalista "Bolo em Traço" — traços finos em fundo escuro com chama em gradiente, para ícone do app, favicon e header'
+    ] },
     { ver: '1.16.0', date: '30/07/2026', items: [
       'Novo: Aba Financeiro com resumo do mês/dia, gráficos de pizza por produto, pagamento e status',
       'Novo: Campo "Tipo de Retirada" (Retirada no Local / Entrega) no cadastro de pedidos',

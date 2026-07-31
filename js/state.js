@@ -19,6 +19,8 @@ function migrateOrder(o) {
 const State = {
   orders: [],
   catalog: [],
+  trash: [],
+  TRASH_RETENTION_DAYS: 7,
 
   load() {
     try {
@@ -28,13 +30,59 @@ const State = {
       this.catalog = savedCatalog ? JSON.parse(savedCatalog) : [...DEFAULT_CATALOG];
       if (!savedCatalog) this.saveCatalog();
     } catch (e) {
+      this.orders = [];
       this.catalog = [...DEFAULT_CATALOG];
-      var _warn = console.warn.bind(console); _warn('[Confeitex] Erro ao carregar dados:', e);
+      const _warn = console.warn.bind(console); _warn('[Confeitex] Erro ao carregar dados:', e);
     }
+    try {
+      const savedTrash = localStorage.getItem('confeitex_trash');
+      this.trash = savedTrash ? JSON.parse(savedTrash) : [];
+    } catch (e) {
+      this.trash = [];
+    }
+    this.purgeTrash();
   },
 
   saveOrders() { localStorage.setItem('confeitex_orders', JSON.stringify(this.orders)); },
   saveCatalog() { localStorage.setItem('confeitex_catalog', JSON.stringify(this.catalog)); },
+  saveTrash() { localStorage.setItem('confeitex_trash', JSON.stringify(this.trash)); },
+
+  addToTrash(orders, type, label) {
+    const now = new Date();
+    const expires = new Date(now.getTime() + this.TRASH_RETENTION_DAYS * 86400000);
+    this.trash.push({
+      id: 't_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+      type,
+      label,
+      orders,
+      count: orders.length,
+      deletedAt: now.toISOString(),
+      expiresAt: expires.toISOString()
+    });
+    this.saveTrash();
+  },
+
+  purgeTrash() {
+    const now = Date.now();
+    const before = this.trash.length;
+    this.trash = this.trash.filter(t => !t.expiresAt || new Date(t.expiresAt).getTime() > now);
+    if (this.trash.length !== before) this.saveTrash();
+  },
+
+  restoreFromTrash(id) {
+    const entry = this.trash.find(t => t.id === id);
+    if (!entry) return false;
+    entry.orders.forEach(o => this.orders.push(o));
+    this.trash = this.trash.filter(t => t.id !== id);
+    this.saveOrders();
+    this.saveTrash();
+    return true;
+  },
+
+  emptyTrash() {
+    this.trash = [];
+    this.saveTrash();
+  },
 
   loadDemo(force = false) {
     if (!force && this.orders.length > 0) return;

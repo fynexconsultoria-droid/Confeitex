@@ -43,9 +43,13 @@ const Finance = {
     document.getElementById('finKpiCostMonth').textContent = fmt(monthCost);
     document.getElementById('finKpiProfitMonth').textContent = fmt(monthProfit);
     document.getElementById('finKpiOrdersMonth').textContent = monthOrders.length;
-    document.querySelector('#finances .metric-card:nth-child(1) .metric-footer').textContent = dateFilter ? 'Total de vendas do dia' : 'Total de vendas do período';
-    document.querySelector('#finances .metric-card:nth-child(2) .metric-footer').textContent = dateFilter ? 'Total de custos do dia' : 'Total de custos do período';
-    document.querySelector('#finances .metric-card:nth-child(4) .metric-footer').textContent = dateFilter ? 'Total de pedidos do dia' : 'Total de pedidos no período';
+    const setMetricFooter = (n, text) => {
+      const el = document.querySelector(`#finances .metric-card:nth-child(${n}) .metric-footer`);
+      if (el) el.textContent = text;
+    };
+    setMetricFooter(1, dateFilter ? 'Total de vendas do dia' : 'Total de vendas do período');
+    setMetricFooter(2, dateFilter ? 'Total de custos do dia' : 'Total de custos do período');
+    setMetricFooter(4, dateFilter ? 'Total de pedidos do dia' : 'Total de pedidos no período');
 
     const allActive = State.orders.filter(o => o.status !== 'Cancelado');
     const allCanceled = State.orders.filter(o => o.status === 'Cancelado');

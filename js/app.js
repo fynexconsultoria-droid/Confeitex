@@ -175,6 +175,7 @@
   Finance.setup();
   Updates.setup();
   Clients.setupEditModal();
+  Trash.setup();
   Dashboard.update();
 
   // Notificações programadas

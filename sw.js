@@ -25,6 +25,7 @@ const ASSETS_TO_CACHE = [
   './js/finances.js',
   './js/updates.js',
   './js/app.js',
+  './js/trash.js',
   './icons/icon-192x192.png',
   './icons/icon-512x512.png'
 ];

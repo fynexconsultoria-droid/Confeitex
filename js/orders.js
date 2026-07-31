@@ -17,7 +17,7 @@ const Orders = {
     // Atualiza barra de resumo de faturamento
     const summaryBar = document.getElementById('ordersSummaryBar');
     if (summaryBar) {
-      const totalFilt = filtered.filter(o => o.status !== 'Cancelado').reduce((s, o) => s + (+o.totalValue || 0), 0);
+      const totalFilt = filtered.filter(o => o.status !== 'Cancelado').reduce((s, o) => s + getOrderTotal(o), 0);
       const totalPeso = filtered.filter(o => o.status !== 'Cancelado' && o.productType === 'Bolo de Kg').reduce((s, o) => s + (o.weight || 0), 0);
       const qtd = filtered.length;
       document.getElementById('summaryQtd').textContent = qtd;
@@ -38,7 +38,7 @@ const Orders = {
     let html = '';
     filtered.forEach(o => {
       const badge = badgeClass(o.status);
-      const profit = o.totalValue - (o.cost || 0);
+      const profit = getOrderTotal(o) - (o.cost || 0);
       const currentStatusIdx = ['Pendente', 'Em Produção', 'Entregue'].indexOf(o.status);
       html += `<tr class="order-row" data-id="${o.id}">
         <td>
@@ -225,15 +225,19 @@ const Orders = {
   },
 
   async delete(id) {
-    const confirmed = await UI.confirm({ title: 'Excluir Pedido', message: 'Tem certeza que deseja excluir esta encomenda permanentemente?', confirmText: 'Excluir', variant: 'danger' });
+    const confirmed = await UI.confirm({ title: 'Excluir Pedido', message: 'Mover esta encomenda para a lixeira? Você poderá restaurá-la em até 7 dias.', confirmText: 'Mover para Lixeira', variant: 'danger' });
     if (!confirmed) return;
-    State.orders = State.orders.filter(o => o.id !== id);
+    const o = State.orders.find(item => item.id === id);
+    if (!o) return;
+    State.orders = State.orders.filter(item => item.id !== id);
+    State.addToTrash([o], 'order', `${o.clientName} — ${o.flavor}`);
     State.saveOrders();
     this.render();
     const tab = document.querySelector('.nav-link.active')?.dataset.tab;
     if (tab === 'dashboard') Dashboard.update();
     else if (tab === 'clients') Clients.render();
-    UI.toast('Pedido excluído');
+    if (Trash.updateBadge) Trash.updateBadge();
+    UI.toast('Pedido movido para a lixeira');
   },
 
   advanceStatus(id) {

@@ -50,6 +50,8 @@ const Settings = {
         const ok = await UI.confirm({ title: 'Carregar Dados Demo', message: 'Isso substituirá TODOS os dados atuais pelos dados de demonstração. Deseja continuar?', confirmText: 'Carregar', variant: 'danger' });
         if (!ok) return;
         State.loadDemo(true);
+        State.emptyTrash();
+        if (Trash.updateBadge) Trash.updateBadge();
         const tab = document.querySelector('.nav-link.active')?.dataset.tab;
         if (tab === 'dashboard') Dashboard.update();
         else if (tab === 'orders') Orders.render();
@@ -67,6 +69,8 @@ const Settings = {
         State.catalog = [...DEFAULT_CATALOG];
         State.saveOrders();
         State.saveCatalog();
+        State.emptyTrash();
+        if (Trash.updateBadge) Trash.updateBadge();
         localStorage.removeItem('confeitex_notified');
         localStorage.removeItem('confeitex_notifications_enabled');
         Notifications._disable();
@@ -135,8 +139,8 @@ const Settings = {
     if (Auth.renderSecuritySettings) Auth.renderSecuritySettings();
 
     // Notificações
-    this.renderNotificationStatus();
     Notifications.init();
+    this.renderNotificationStatus();
 
     const btnToggleNotif = document.getElementById('btnToggleNotifications');
     if (btnToggleNotif) {
@@ -243,7 +247,7 @@ const Settings = {
   exportJSON() {
     const backupData = {
       app: 'Confeitex',
-      version: '1.15.0',
+      version: Updates.verAtual,
       exportDate: new Date().toISOString(),
       orders: State.orders,
       catalog: State.catalog

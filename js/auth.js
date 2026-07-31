@@ -11,22 +11,38 @@ const Auth = {
     return window.crypto && window.crypto.subtle;
   },
 
-  async _hash(password) {
+  async _deriveKey(password, salt) {
     const encoder = new TextEncoder();
-    const data = encoder.encode(password);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    const keyMaterial = await crypto.subtle.importKey(
+      'raw', encoder.encode(password), 'PBKDF2', false, ['deriveBits']
+    );
+    const keyBuffer = await crypto.subtle.deriveBits(
+      { name: 'PBKDF2', salt, iterations: 100000, hash: 'SHA-256' },
+      keyMaterial, 256
+    );
+    const keyArray = Array.from(new Uint8Array(keyBuffer));
+    return keyArray.map(b => b.toString(16).padStart(2, '0')).join('');
   },
 
   async setPassword(password) {
-    this.lockHash = await this._hash(password);
+    const salt = crypto.getRandomValues(new Uint8Array(16));
+    const hash = await this._deriveKey(password, salt);
+    const saltHex = Array.from(salt).map(b => b.toString(16).padStart(2, '0')).join('');
+    this.lockHash = saltHex + ':' + hash;
     localStorage.setItem('confeitex_lock_hash', this.lockHash);
   },
 
   async verify(password) {
     if (!this.supported() || !this.lockHash) return false;
-    try { return (await this._hash(password)) === this.lockHash; } catch { return false; }
+    try {
+      const parts = this.lockHash.split(':');
+      if (parts.length !== 2) return false;
+      const saltHex = parts[0];
+      const storedHash = parts[1];
+      const salt = new Uint8Array(saltHex.match(/.{2}/g).map(b => parseInt(b, 16)));
+      const hash = await this._deriveKey(password, salt);
+      return hash === storedHash;
+    } catch { return false; }
   },
 
   enable() {
