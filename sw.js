@@ -70,6 +70,9 @@ self.addEventListener('activate', (event) => {
 });
 
 // FETCH — intercepta requisições e serve do cache (Cache-First)
+// IMPORTANTE: não revalida em segundo plano. O conteúdo do cache só muda quando
+// um novo Service Worker (nova versão aceita pelo usuário) instala o próprio cache.
+// Assim, clicar em "Mais Tarde" realmente adia a atualização.
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
   if (!event.request.url.startsWith('http')) return;
@@ -83,19 +86,23 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(event.request)
       .then((cachedResponse) => {
-        const fetchPromise = fetch(event.request)
+        // Se está no cache, serve direto (sem substituir pelo conteúdo novo)
+        if (cachedResponse) return cachedResponse;
+
+        // Cache miss: busca na rede e guarda (menos URLs com ?v=, que são temporárias)
+        return fetch(event.request)
           .then((networkResponse) => {
             if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
               return networkResponse;
             }
-            const responseToCache = networkResponse.clone();
-            caches.open(CACHE_NAME)
-              .then((cache) => cache.put(event.request, responseToCache));
+            if (!event.request.url.includes('?v=')) {
+              const responseToCache = networkResponse.clone();
+              caches.open(CACHE_NAME)
+                .then((cache) => cache.put(event.request, responseToCache));
+            }
             return networkResponse;
           })
-          .catch(() => cachedResponse);
-
-        return cachedResponse || fetchPromise;
+          .catch(() => cachedResponse || new Response('Offline', { status: 504, statusText: 'Offline' }));
       })
   );
 });

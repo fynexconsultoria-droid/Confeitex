@@ -1,5 +1,5 @@
 const Updates = {
-  verAtual: '1.17.0',
+  verAtual: '1.18.0',
 
   setup() {
     document.getElementById('btnCheckUpdates').addEventListener('click', () => this.check());
@@ -55,6 +55,7 @@ const Updates = {
 
   async downloadUpdate() {
     const newVer = localStorage.getItem('confeitex_ver') || this.verAtual;
+    const startedAt = Date.now();
 
     this._showProgress(newVer);
 
@@ -70,11 +71,12 @@ const Updates = {
       try {
         const r = await navigator.serviceWorker.getRegistration();
         if (r) await r.unregister();
-    } catch (e) { console.warn('[Confeitex] Auto-update SW registration error:', e); }
+      } catch (e) { console.warn('[Confeitex] Auto-update SW registration error:', e); }
     }
 
     // Se não suportar SW, marca como atualizado e mostra banner
     if (!swOk) {
+      await this._settleProgress(startedAt, 'Registrando atualização...');
       localStorage.setItem('confeitex_updated', 'true');
       localStorage.setItem('confeitex_ver', newVer);
       this._updateProgress(100, '✅ Atualização registrada!');
@@ -87,8 +89,11 @@ const Updates = {
     this._updateProgress(40, 'Registrando novo Service Worker...');
     let reg;
     try {
+      // Marca antes de registrar para o auto-reload saber que o update foi aceito
+      localStorage.setItem('confeitex_updated', 'true');
       reg = await navigator.serviceWorker.register('./sw.js?v=' + newVer);
     } catch {
+      localStorage.removeItem('confeitex_updated');
       this._hideProgress();
       UI.alert('Erro de conexão. Verifique sua internet e tente novamente.');
       return;
@@ -119,6 +124,9 @@ const Updates = {
     // Marca como atualizado
     localStorage.setItem('confeitex_updated', 'true');
     localStorage.setItem('confeitex_ver', newVer);
+
+    // Mantém a barra visível por pelo menos 10s para aplicar as mudanças com calma
+    await this._settleProgress(startedAt, 'Aplicando mudanças com segurança...');
 
     this._updateProgress(100, ativado ? '✅ Instalação concluída!' : '📦 Instalação concluída (ativará ao reabrir)');
     await this._delay(800);
@@ -151,6 +159,31 @@ const Updates = {
     const label = document.getElementById('updateProgressLabel');
     if (fill) fill.style.width = Math.min(pct, 100) + '%';
     if (label) label.textContent = msg;
+  },
+
+  _animateProgress(targetPct, duration, msg) {
+    return new Promise(resolve => {
+      const fill = document.getElementById('updateProgressFill');
+      const label = document.getElementById('updateProgressLabel');
+      if (label && msg) label.textContent = msg;
+      if (!fill || duration <= 0) { resolve(); return; }
+      const startPct = parseFloat(fill.style.width) || 0;
+      const startTime = performance.now();
+      const step = (now) => {
+        const t = Math.min((now - startTime) / duration, 1);
+        const eased = 1 - Math.pow(1 - t, 3);
+        fill.style.width = (startPct + (targetPct - startPct) * eased) + '%';
+        if (t < 1) requestAnimationFrame(step);
+        else resolve();
+      };
+      requestAnimationFrame(step);
+    });
+  },
+
+  _settleProgress(startedAt, msg) {
+    const minMs = 10000;
+    const remaining = Math.max(0, minMs - (Date.now() - startedAt));
+    return this._animateProgress(99, remaining, msg);
   },
 
   _hideProgress() {
@@ -193,9 +226,7 @@ const Updates = {
     btnNow.onclick = () => {
       localStorage.removeItem('confeitex_updated');
       hide();
-      setTimeout(() => {
-        window.location.href = window.location.href.split('?')[0].split('#')[0] + '?v=' + Date.now();
-      }, 300);
+      setTimeout(() => window.location.reload(), 300);
     };
 
     btnLater.onclick = () => {
@@ -209,6 +240,12 @@ const Updates = {
   },
 
   changelog: [
+    { ver: '1.18.0', date: '31/07/2026', items: [
+      'Correção: "Mais Tarde" agora realmente adia a atualização — o cache não é mais substituído em segundo plano antes de você confirmar',
+      'Correção: recarga automática ao trocar Service Worker agora só ocorre quando a atualização foi aceita (sem recarregar à toa)',
+      'Melhoria: Barra de progresso da atualização mais visível e estável durante a instalação',
+      'Melhoria: Instalação aguarda cerca de 10 segundos com a barra em andamento para aplicar todas as mudanças com segurança'
+    ] },
     { ver: '1.17.0', date: '31/07/2026', items: [
       'Novo: Lixeira com restauração em até 7 dias — pedidos excluídos não são mais perdidos permanentemente',
       'Novo: Botão "Excluir" na tela de Clientes — move todos os pedidos do cliente para a lixeira',

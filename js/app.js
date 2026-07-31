@@ -140,11 +140,16 @@
     localStorage.removeItem('confeitex_updated');
   }
 
-  // Recarrega automaticamente quando um novo Service Worker assumir o controle
+  // Recarrega automaticamente quando um novo Service Worker assumir o controle,
+  // mas somente se a atualização foi aceita e não há download em andamento
   if ('serviceWorker' in navigator) {
     let reloading = false;
     navigator.serviceWorker.addEventListener('controllerchange', () => {
       if (reloading) return;
+      const progress = document.getElementById('updateProgress');
+      const downloading = progress && progress.style.display !== 'none';
+      const updated = localStorage.getItem('confeitex_updated');
+      if (downloading || !updated) return;
       reloading = true;
       UI.toast('🔄 Nova versão instalada. Recarregando...');
       setTimeout(() => window.location.reload(), 1500);
