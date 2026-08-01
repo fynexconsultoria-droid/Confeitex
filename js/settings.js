@@ -439,6 +439,38 @@ const Settings = {
       cbPendingPay.checked = settings.alertPendingPayment !== false;
       cbPendingPay.addEventListener('change', () => this.saveNotificationCustomControls());
     }
+
+    // Pedidos atrasados
+    const cbOverdue = document.getElementById('notifOverdueCb');
+    if (cbOverdue) {
+      cbOverdue.checked = settings.overdueAlerts !== false;
+      cbOverdue.addEventListener('change', () => this.saveNotificationCustomControls());
+    }
+
+    // Horário de silêncio
+    const cbQuiet = document.getElementById('notifQuietCb');
+    const quietFields = document.getElementById('notifQuietFields');
+    if (cbQuiet) {
+      cbQuiet.checked = !!settings.quietHoursEnabled;
+      const syncQuietFields = () => {
+        if (quietFields) quietFields.style.display = cbQuiet.checked ? 'flex' : 'none';
+      };
+      syncQuietFields();
+      cbQuiet.addEventListener('change', () => {
+        syncQuietFields();
+        this.saveNotificationCustomControls();
+      });
+    }
+    const inpQuietStart = document.getElementById('notifQuietStart');
+    if (inpQuietStart) {
+      inpQuietStart.value = settings.quietHoursStart || '22:00';
+      inpQuietStart.addEventListener('change', () => this.saveNotificationCustomControls());
+    }
+    const inpQuietEnd = document.getElementById('notifQuietEnd');
+    if (inpQuietEnd) {
+      inpQuietEnd.value = settings.quietHoursEnd || '07:00';
+      inpQuietEnd.addEventListener('change', () => this.saveNotificationCustomControls());
+    }
   },
 
   saveNotificationCustomControls() {
@@ -458,12 +490,22 @@ const Settings = {
 
     const reminderTime = document.getElementById('notifReminderTime')?.value || '08:00';
 
+    const overdueAlerts = !!document.getElementById('notifOverdueCb')?.checked;
+
+    const quietHoursEnabled = !!document.getElementById('notifQuietCb')?.checked;
+    const quietHoursStart = document.getElementById('notifQuietStart')?.value || '22:00';
+    const quietHoursEnd = document.getElementById('notifQuietEnd')?.value || '07:00';
+
     Notifications.saveSettings({
       daysBefore: daysBefore.length > 0 ? daysBefore : [0],
       intervalHours,
       statuses: statuses.length > 0 ? statuses : ['Pendente'],
       alertPendingPayment,
-      reminderTime
+      reminderTime,
+      overdueAlerts,
+      quietHoursEnabled,
+      quietHoursStart,
+      quietHoursEnd
     });
 
     UI.toast('Preferências de notificação salvas!');

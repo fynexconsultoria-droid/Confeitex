@@ -622,6 +622,29 @@
       Notifications.check(); // nao deve crashar
       this.assert(true, 'check() executou', '');
 
+      // Novas funcionalidades: central, atrasados e horário de silêncio
+      this.assert(typeof Notifications.getHistory === 'function', 'getHistory()', '');
+      this.assert(typeof Notifications._inQuietHours === 'function', '_inQuietHours()', '');
+      this.assert(ns.overdueAlerts === true, 'default overdueAlerts', String(ns.overdueAlerts));
+      this.assert(ns.quietHoursEnabled === false, 'default quietHoursEnabled', String(ns.quietHoursEnabled));
+
+      // Horário de silêncio salva e detecta intervalo
+      const qh = Notifications.saveSettings({ quietHoursEnabled: true, quietHoursStart: '22:00', quietHoursEnd: '07:00' });
+      this.assert(qh.quietHoursEnabled === true, 'saveSettings quietHours', String(qh.quietHoursEnabled));
+      const now = new Date();
+      const qhAt = Notifications._inQuietHoursAt(new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 0), qh);
+      this.assert(qhAt === true, '_inQuietHoursAt 23h está no silêncio', String(qhAt));
+      Notifications.saveSettings({ quietHoursEnabled: false });
+
+      // Histórico do sino
+      Notifications._recordNotification({ id: 'test_history_1', type: 'test', title: 'T', body: 'B', orderIds: [], read: false });
+      this.assert(Notifications.getHistory().length >= 1, 'getHistory gravou', String(Notifications.getHistory().length));
+      this.assert(Notifications.unreadCount() >= 1, 'unreadCount', String(Notifications.unreadCount()));
+      Notifications.markRead('test_history_1');
+      this.assert(Notifications.unreadCount() === 0, 'markRead zerou', String(Notifications.unreadCount()));
+      Notifications.clearHistory();
+      this.assert(Notifications.getHistory().length === 0, 'clearHistory zerou', String(Notifications.getHistory().length));
+
       // ------------------- 11. CHART -------------------
       this.groupName('Chart');
 

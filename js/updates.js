@@ -1,5 +1,5 @@
 const Updates = {
-  verAtual: '1.20.1',
+  verAtual: '1.21.0',
 
   setup() {
     document.getElementById('btnCheckUpdates').addEventListener('click', () => this.check());
@@ -240,6 +240,11 @@ const Updates = {
   },
 
   changelog: [
+    { ver: '1.21.0', date: '01/08/2026', items: [
+      'Novo: Central de notificações no app — sino no topo com histórico dos avisos recentes e acesso rápido ao pedido correspondente',
+      'Novo: Alertas de pedidos atrasados — avisa quando uma encomenda tem data de entrega vencida e ainda não foi entregue',
+      'Novo: Horário de silêncio — define o intervalo em que o app não envia notificações (ex.: 22h às 7h)'
+    ] },
     { ver: '1.20.1', date: '01/08/2026', items: [
       'Melhoria: Novo sistema de seleção de período no Financeiro — atalhos rápidos (Hoje, Ontem, Esta Semana, Este Mês, Mês Passado, Últimos 30 Dias, Todos) e intervalo personalizado "De/Até", substituindo a seleção confusa de mês e dia'
     ] },

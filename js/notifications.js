@@ -11,7 +11,11 @@ const Notifications = {
     intervalHours: 1,  // Intervalo em horas (1, 2, 4, 12, 24)
     statuses: ['Pendente', 'Em Produção'],
     alertPendingPayment: true,
-    reminderTime: '08:00' // Hora do lembrete agendado (notificações em segundo plano)
+    reminderTime: '08:00', // Hora do lembrete agendado (notificações em segundo plano)
+    overdueAlerts: true, // Avisa sobre pedidos com data de entrega vencida e ainda não entregues
+    quietHoursEnabled: false, // Horário de silêncio: suprime notificações dentro do intervalo
+    quietHoursStart: '22:00',
+    quietHoursEnd: '07:00'
   },
 
   getSettings() {
@@ -120,9 +124,198 @@ const Notifications = {
     });
   },
 
+  // ==== Horário de silêncio ====
+
+  // Verifica se uma data/hora específica cai dentro do horário de silêncio
+  _inQuietHoursAt(date, settings) {
+    if (!settings.quietHoursEnabled) return false;
+    const cur = date.getHours() * 60 + date.getMinutes();
+    const [sh, sm] = (settings.quietHoursStart || '22:00').split(':').map(Number);
+    const [eh, em] = (settings.quietHoursEnd || '07:00').split(':').map(Number);
+    const start = (sh || 0) * 60 + (sm || 0);
+    const end = (eh || 0) * 60 + (em || 0);
+    if (start === end) return false; // intervalo vazio
+    if (start < end) return cur >= start && cur < end;
+    return cur >= start || cur < end; // intervalo vira a meia-noite
+  },
+
+  // Verifica se AGORA está dentro do horário de silêncio
+  _inQuietHours(settings) {
+    return this._inQuietHoursAt(new Date(), settings);
+  },
+
+  // ==== Central de notificações (sino no topo) ====
+
+  getHistory() {
+    try {
+      const raw = localStorage.getItem('confeitex_notif_history');
+      if (raw) {
+        const arr = JSON.parse(raw);
+        if (Array.isArray(arr)) return arr;
+      }
+    } catch (e) { console.warn('[Notifications] Erro ao carregar histórico:', e); }
+    return [];
+  },
+
+  unreadCount() {
+    return this.getHistory().filter(n => !n.read).length;
+  },
+
+  _recordNotification(entry) {
+    let history = this.getHistory();
+    const idx = history.findIndex(h => h.id === entry.id);
+    if (idx !== -1) {
+      history[idx] = { ...history[idx], ...entry, time: Date.now() };
+    } else {
+      history.unshift(entry);
+    }
+    history = history.slice(0, 50);
+    try {
+      localStorage.setItem('confeitex_notif_history', JSON.stringify(history));
+    } catch (e) { console.warn('[Notifications] Erro ao salvar histórico:', e); }
+    this._updateBadge();
+    const dd = document.getElementById('notifDropdown');
+    if (dd && dd.classList.contains('open')) this._renderBellList();
+  },
+
+  _updateBadge() {
+    const badge = document.getElementById('notifBadge');
+    if (!badge) return;
+    const n = this.unreadCount();
+    badge.textContent = n > 99 ? '99+' : String(n);
+    badge.style.display = n > 0 ? 'flex' : 'none';
+  },
+
+  markRead(id) {
+    let history = this.getHistory();
+    let changed = false;
+    history = history.map(h => {
+      if (h.id === id && !h.read) { h.read = true; changed = true; }
+      return h;
+    });
+    if (changed) {
+      try { localStorage.setItem('confeitex_notif_history', JSON.stringify(history)); } catch (e) {}
+      this._updateBadge();
+      this._renderBellList();
+    }
+  },
+
+  markAllRead() {
+    let history = this.getHistory();
+    let changed = false;
+    history.forEach(h => { if (!h.read) { h.read = true; changed = true; } });
+    if (changed) {
+      try { localStorage.setItem('confeitex_notif_history', JSON.stringify(history)); } catch (e) {}
+      this._updateBadge();
+      this._renderBellList();
+    }
+  },
+
+  clearHistory() {
+    try { localStorage.removeItem('confeitex_notif_history'); } catch (e) {}
+    this._updateBadge();
+    this._renderBellList();
+  },
+
+  _timeAgo(ts) {
+    const s = Math.floor((Date.now() - ts) / 1000);
+    if (s < 60) return 'agora';
+    const m = Math.floor(s / 60);
+    if (m < 60) return `${m} min`;
+    const h = Math.floor(m / 60);
+    if (h < 24) return `${h}h`;
+    const d = Math.floor(h / 24);
+    if (d === 1) return 'ontem';
+    return `${d}d`;
+  },
+
+  // Abre a aba de pedidos e, se o pedido ainda existir, abre o modal de edição
+  openOrder(orderId) {
+    const link = document.querySelector('.nav-link[data-tab="orders"]');
+    if (link) link.click();
+    const order = (State.orders || []).find(o => o.id === orderId);
+    if (order && typeof Orders !== 'undefined' && Orders.openEdit) {
+      setTimeout(() => Orders.openEdit(orderId), 80);
+    }
+  },
+
+  _renderBellList() {
+    const list = document.getElementById('notifList');
+    const empty = document.getElementById('notifEmpty');
+    if (!list || !empty) return;
+    const history = this.getHistory();
+    empty.style.display = history.length === 0 ? 'block' : 'none';
+    list.innerHTML = history.length === 0 ? '' : history.map(n => {
+      const icon = n.type === 'overdue' ? '⚠️' : (n.type === 'test' ? '🔔' : '🎂');
+      return `
+        <button type="button" class="notif-item ${n.read ? '' : 'unread'}" data-id="${n.id}">
+          <span class="notif-item-icon">${icon}</span>
+          <span class="notif-item-content">
+            <span class="notif-item-title">${escapeHTML(n.title)}</span>
+            <span class="notif-item-body">${escapeHTML(n.body)}</span>
+            <span class="notif-item-time">${this._timeAgo(n.time)}</span>
+          </span>
+        </button>`;
+    }).join('');
+
+    list.querySelectorAll('.notif-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const id = item.dataset.id;
+        const entry = this.getHistory().find(h => h.id === id);
+        this.markRead(id);
+        const dd = document.getElementById('notifDropdown');
+        if (dd) dd.classList.remove('open');
+        if (entry && entry.orderIds && entry.orderIds.length > 0) {
+          this.openOrder(entry.orderIds[0]);
+        }
+      });
+    });
+  },
+
+  setupBell() {
+    const btn = document.getElementById('btnNotifBell');
+    const dd = document.getElementById('notifDropdown');
+    if (!btn || !dd) return;
+
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const willOpen = !dd.classList.contains('open');
+      dd.classList.toggle('open', willOpen);
+      if (willOpen) this._renderBellList();
+    });
+
+    const btnReadAll = document.getElementById('btnNotifReadAll');
+    if (btnReadAll) btnReadAll.addEventListener('click', () => this.markAllRead());
+
+    const btnClear = document.getElementById('btnNotifClear');
+    if (btnClear) btnClear.addEventListener('click', () => {
+      this.clearHistory();
+      UI.toast('Histórico de notificações limpo.');
+    });
+
+    document.addEventListener('click', (e) => {
+      const wrap = document.getElementById('notifBellWrap');
+      if (wrap && !wrap.contains(e.target)) dd.classList.remove('open');
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') dd.classList.remove('open');
+    });
+
+    this._updateBadge();
+  },
+
   init() {
-    if (this._started || !('Notification' in window)) return;
+    if (this._started) return;
     this._started = true;
+    this.setupBell();
+
+    if (!('Notification' in window)) {
+      if (typeof Settings !== 'undefined' && Settings.renderNotificationStatus) {
+        Settings.renderNotificationStatus();
+      }
+      return;
+    }
 
     const stored = localStorage.getItem('confeitex_notifications_enabled');
     if (stored === 'true' && Notification.permission === 'granted') {
@@ -212,10 +405,20 @@ const Notifications = {
       }
     }
     try {
-      new Notification('Confeitex - Teste de Notificação 🎂', {
-        body: 'As notificações do Confeitex estão ativas e funcionando perfeitamente!',
+      const title = 'Confeitex - Teste de Notificação 🎂';
+      const body = 'As notificações do Confeitex estão ativas e funcionando perfeitamente!';
+      new Notification(title, {
+        body,
         icon: 'icons/icon-192x192.png',
         tag: 'confeitex-test-' + Date.now()
+      });
+      this._recordNotification({
+        id: 'test_' + Date.now(),
+        type: 'test',
+        title,
+        body,
+        orderIds: [],
+        read: false
       });
       return true;
     } catch (e) {
@@ -246,7 +449,7 @@ const Notifications = {
     const title = dayOffset === 0
       ? 'Confeitex - Entregas de Hoje! 🎂'
       : `Confeitex - Lembrete: Entregas ${dayLabels[dayOffset] || 'em breve'} 🎂`;
-    return { title, body: bodyMsg };
+    return { title, body: bodyMsg, orderIds: matchingOrders.map(o => o.id) };
   },
 
   // Modo 1: agenda no sistema operacional um lembrete por (data, antecedência)
@@ -291,6 +494,8 @@ const Notifications = {
       when.setDate(when.getDate() - offset);
       when.setHours(rh, rm, 0, 0);
       if (when.getTime() <= now.getTime()) continue;
+      // Não agenda lembretes que cairiam dentro do horário de silêncio
+      if (this._inQuietHoursAt(when, settings)) continue;
 
       const matchingOrders = State.orders.filter(o =>
         o.deliveryDate === date && allowedStatuses.includes(o.status));
@@ -355,7 +560,11 @@ const Notifications = {
         settings: {
           daysBefore: settings.daysBefore,
           statuses: settings.statuses,
-          alertPendingPayment: settings.alertPendingPayment
+          alertPendingPayment: settings.alertPendingPayment,
+          overdueAlerts: settings.overdueAlerts,
+          quietHoursEnabled: settings.quietHoursEnabled,
+          quietHoursStart: settings.quietHoursStart,
+          quietHoursEnd: settings.quietHoursEnd
         },
         orders: (State.orders || []).map(o => ({
           deliveryDate: o.deliveryDate,
@@ -387,6 +596,9 @@ const Notifications = {
     if (!this._enabled || !('Notification' in window) || Notification.permission !== 'granted') return;
 
     const settings = this.getSettings();
+    // Horário de silêncio: não notifica dentro do intervalo configurado
+    if (this._inQuietHours(settings)) return;
+
     const daysBeforeList = settings.daysBefore || [0, 1];
     const allowedStatuses = settings.statuses || ['Pendente', 'Em Produção'];
     let sent = {};
@@ -399,6 +611,8 @@ const Notifications = {
     for (const k in sent) {
       const m = k.match(/^notif_d(\d+)_(\d{4}-\d{2}-\d{2})$/);
       if (m && m[2] < todayStr) { delete sent[k]; dirty = true; }
+      const o = k.match(/^overdue_(\d{4}-\d{2}-\d{2})$/);
+      if (o && o[1] < todayStr) { delete sent[k]; dirty = true; }
     }
 
     // Se houver lembrete agendado no sistema para o combo, deixa o SO entregar
@@ -425,15 +639,58 @@ const Notifications = {
         } catch (e) {}
       }
 
-      const { title, body } = this._buildContent(matchingOrders, dayOffset, targetDateStr, settings);
+      const { title, body, orderIds } = this._buildContent(matchingOrders, dayOffset, targetDateStr, settings);
       new Notification(title, {
         body,
         icon: 'icons/icon-192x192.png',
         tag: `confeitex-day-${dayOffset}-${targetDateStr}`
       });
+      this._recordNotification({
+        id: cacheKey,
+        type: dayOffset === 0 ? 'today' : 'reminder',
+        title,
+        body,
+        orderIds,
+        deliveryDate: targetDateStr,
+        read: false
+      });
 
       sent[cacheKey] = true;
       dirty = true;
+    }
+
+    // Alertas de pedidos atrasados (data de entrega vencida e ainda pendente)
+    if (settings.overdueAlerts !== false) {
+      const overdueOrders = State.orders.filter(o =>
+        allowedStatuses.includes(o.status) && o.deliveryDate && o.deliveryDate < todayStr);
+      if (overdueOrders.length > 0) {
+        const cacheKey = `overdue_${todayStr}`;
+        if (!sent[cacheKey]) {
+          let bodyMsg = `${overdueOrders.length} pedido(s) com entrega atrasada:\n`;
+          bodyMsg += overdueOrders.slice(0, 3).map(o =>
+            `• ${o.clientName}: ${o.flavor} (${fmtDateStr(o.deliveryDate)})`).join('\n');
+          if (overdueOrders.length > 3) {
+            bodyMsg += `\ne mais ${overdueOrders.length - 3} pedido(s)...`;
+          }
+          const title = 'Confeitex - Pedidos Atrasados ⚠️';
+          new Notification(title, {
+            body: bodyMsg,
+            icon: 'icons/icon-192x192.png',
+            tag: `confeitex-overdue-${todayStr}`
+          });
+          this._recordNotification({
+            id: cacheKey,
+            type: 'overdue',
+            title,
+            body: bodyMsg,
+            orderIds: overdueOrders.map(o => o.id),
+            deliveryDate: todayStr,
+            read: false
+          });
+          sent[cacheKey] = true;
+          dirty = true;
+        }
+      }
     }
 
     if (dirty) {

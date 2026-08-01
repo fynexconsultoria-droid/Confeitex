@@ -166,10 +166,15 @@ async function swRunCheck() {
   const dayLabels = { 0: 'Hoje', 1: 'Amanhã', 2: 'em 2 Dias', 3: 'em 3 Dias' };
   const newSent = { ...sent };
 
+  // Horário de silêncio: não notifica dentro do intervalo configurado
+  if (swInQuietHours(settings)) return;
+
   // Limpa chaves de datas passadas
   for (const k in newSent) {
     const m = k.match(/^notif_d(\d+)_(\d{4}-\d{2}-\d{2})$/);
     if (m && m[2] < todayStr) delete newSent[k];
+    const o = k.match(/^overdue_(\d{4}-\d{2}-\d{2})$/);
+    if (o && o[1] < todayStr) delete newSent[k];
   }
 
   for (const dayOffset of daysBeforeList) {
@@ -209,7 +214,45 @@ async function swRunCheck() {
     newSent[cacheKey] = true;
   }
 
+  // Alertas de pedidos atrasados (data de entrega vencida e ainda pendente)
+  if (settings.overdueAlerts !== false) {
+    const overdueOrders = (snapshot.orders || []).filter(o =>
+      allowedStatuses.includes(o.status) && o.deliveryDate && o.deliveryDate < todayStr);
+    if (overdueOrders.length > 0) {
+      const cacheKey = `overdue_${todayStr}`;
+      if (!sent[cacheKey]) {
+        let bodyMsg = `${overdueOrders.length} pedido(s) com entrega atrasada:\n`;
+        bodyMsg += overdueOrders.slice(0, 3).map(o =>
+          `• ${o.clientName}: ${o.flavor} (${o.deliveryDate.split('-').reverse().join('/')})`).join('\n');
+        if (overdueOrders.length > 3) {
+          bodyMsg += `\ne mais ${overdueOrders.length - 3} pedido(s)...`;
+        }
+        const title = 'Confeitex - Pedidos Atrasados ⚠️';
+        self.registration.showNotification(title, {
+          body: bodyMsg,
+          icon: 'icons/icon-192x192.png',
+          tag: `confeitex-overdue-${todayStr}`
+        });
+        newSent[cacheKey] = true;
+      }
+    }
+  }
+
   await swSet('confeitex_sent', newSent);
+}
+
+// Verifica se agora está dentro do horário de silêncio configurado
+function swInQuietHours(settings) {
+  if (!settings.quietHoursEnabled) return false;
+  const now = new Date();
+  const cur = now.getHours() * 60 + now.getMinutes();
+  const [sh, sm] = (settings.quietHoursStart || '22:00').split(':').map(Number);
+  const [eh, em] = (settings.quietHoursEnd || '07:00').split(':').map(Number);
+  const start = (sh || 0) * 60 + (sm || 0);
+  const end = (eh || 0) * 60 + (em || 0);
+  if (start === end) return false;
+  if (start < end) return cur >= start && cur < end;
+  return cur >= start || cur < end;
 }
 
 // Ao tocar/clicar na notificação, abre ou foca o app
