@@ -67,8 +67,10 @@ const Settings = {
         if (!ok) return;
         State.orders = [];
         State.catalog = [...DEFAULT_CATALOG];
+        State.expenses = [];
         State.saveOrders();
         State.saveCatalog();
+        State.saveExpenses();
         State.emptyTrash();
         if (Trash.updateBadge) Trash.updateBadge();
         localStorage.removeItem('confeitex_notified');
@@ -250,7 +252,8 @@ const Settings = {
       version: Updates.verAtual,
       exportDate: new Date().toISOString(),
       orders: State.orders,
-      catalog: State.catalog
+      catalog: State.catalog,
+      expenses: State.expenses
     };
     const jsonStr = JSON.stringify(backupData, null, 2);
     const blob = new Blob([jsonStr], { type: 'application/json;charset=utf-8' });
@@ -286,19 +289,21 @@ const Settings = {
 
     let newOrders = [];
     let newCatalog = [];
+    let newExpenses = [];
 
     if (Array.isArray(parsed)) {
       newOrders = parsed;
     } else if (parsed && typeof parsed === 'object') {
       if (Array.isArray(parsed.orders)) newOrders = parsed.orders;
       if (Array.isArray(parsed.catalog)) newCatalog = parsed.catalog;
+      if (Array.isArray(parsed.expenses)) newExpenses = parsed.expenses;
     }
 
-    if (newOrders.length === 0 && newCatalog.length === 0) {
+    if (newOrders.length === 0 && newCatalog.length === 0 && newExpenses.length === 0) {
       throw new Error('Nenhum dado encontrado no arquivo JSON');
     }
 
-    const confirmMsg = `Foram encontrados:\n• ${newOrders.length} pedido(s)\n• ${newCatalog.length} sabor(es) no catálogo.\n\nDeseja importar e atualizar seus dados atuais?`;
+    const confirmMsg = `Foram encontrados:\n• ${newOrders.length} pedido(s)\n• ${newCatalog.length} sabor(es) no catálogo\n• ${newExpenses.length} custo(s) de matéria-prima.\n\nDeseja importar e atualizar seus dados atuais?`;
     const ok = await UI.confirm({
       title: 'Importar Backup JSON',
       message: confirmMsg,
@@ -314,6 +319,10 @@ const Settings = {
     if (newCatalog.length > 0) {
       State.catalog = newCatalog;
       State.saveCatalog();
+    }
+    if (newExpenses.length > 0) {
+      State.expenses = newExpenses;
+      State.saveExpenses();
     }
 
     UI.toast('Dados importados do arquivo JSON com sucesso!');

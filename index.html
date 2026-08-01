@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Confeitex - Controle de Encomendas</title>
   <meta name="description" content="Controle de encomendas para confeitaria — gerencie pedidos, clientes e entregas. 100% offline.">
-  <meta name="version" content="1.20.1">
+  <meta name="version" content="1.22.0">
 
   <!-- Google Fonts: Plus Jakarta Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -129,7 +129,7 @@
       </nav>
       
       <div style="font-size: 0.7rem; color: var(--text-muted); text-align: center; border-top: 1px solid var(--border-color); padding-top: 0.75rem;">
-        Confeitex v1.21.0<br>Modo 100% Offline
+        Confeitex v1.22.0<br>Modo 100% Offline
       </div>
     </aside>
 
@@ -534,6 +534,42 @@
             </div>
             <div class="metric-value" id="finKpiOrdersMonth" style="color:var(--color-accent-purple);">0</div>
             <div class="metric-footer">Total de pedidos no período</div>
+          </div>
+        </div>
+
+        <!-- Custos de Matéria-Prima -->
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              Custos de Matéria-Prima
+            </span>
+            <span class="expense-total" id="expenseTotalBadge">R$ 0,00</span>
+          </div>
+          <div class="expense-form">
+            <div class="form-group">
+              <label for="expenseDescription">Descrição</label>
+              <input type="text" class="form-control" id="expenseDescription" placeholder="Ex: Farinha, ovos, embalagem..." maxlength="80">
+            </div>
+            <div class="form-group" style="width: 140px;">
+              <label for="expenseAmount">Valor (R$)</label>
+              <input type="number" class="form-control" id="expenseAmount" step="0.01" min="0" placeholder="0,00">
+            </div>
+            <div class="form-group" style="width: 160px;">
+              <label for="expenseDate">Data</label>
+              <input type="date" class="form-control" id="expenseDate">
+            </div>
+            <button class="btn btn-primary" id="btnAddExpense" style="align-self:flex-end;">
+              <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Adicionar
+            </button>
+          </div>
+          <div id="expenseList" style="display:flex;flex-direction:column;gap:0.5rem;max-height:280px;overflow-y:auto;padding-right:0.25rem;">
+            <div class="empty-state" style="padding:1.2rem 0;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              <h3>Nenhum custo cadastrado</h3>
+              <p style="font-size:0.8rem;">Registre aqui os gastos com matéria-prima do período.</p>
+            </div>
           </div>
         </div>
 

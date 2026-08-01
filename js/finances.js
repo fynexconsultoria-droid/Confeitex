@@ -25,8 +25,11 @@ const Finance = {
     const active = orders.filter(o => o.status !== 'Cancelado');
     const canceled = orders.filter(o => o.status === 'Cancelado');
 
+    const expenses = this._getFilteredExpenses();
+    const expensesTotal = expenses.reduce((s, e) => s + (+e.amount || 0), 0);
+
     const sales = active.reduce((s, o) => s + getOrderTotal(o), 0);
-    const cost = orders.reduce((s, o) => s + (o.cost || 0), 0);
+    const cost = orders.reduce((s, o) => s + (o.cost || 0), 0) + expensesTotal;
     const profit = sales - cost;
 
     document.getElementById('finKpiSalesMonth').textContent = fmt(sales);
@@ -47,8 +50,10 @@ const Finance = {
     const allActive = State.orders.filter(o => o.status !== 'Cancelado');
     const allCanceled = State.orders.filter(o => o.status === 'Cancelado');
     const totalRev = allActive.reduce((s, o) => s + getOrderTotal(o), 0);
-    const totalCost = State.orders.reduce((s, o) => s + (o.cost || 0), 0);
+    const totalCost = State.orders.reduce((s, o) => s + (o.cost || 0), 0) + State.expenses.reduce((s, e) => s + (+e.amount || 0), 0);
     const totalProfit = totalRev - totalCost;
+
+    this._renderExpenses(expenses, expensesTotal);
     const avgTicket = allActive.length > 0 ? totalRev / allActive.length : 0;
 
     document.getElementById('finGenOrders').textContent = allActive.length;
@@ -180,6 +185,71 @@ const Finance = {
     });
   },
 
+  _getFilteredExpenses() {
+    const { from, to } = this._range;
+    return State.expenses
+      .filter(e => {
+        if (!e.date) return false;
+        if (from && e.date < from) return false;
+        if (to && e.date > to) return false;
+        return true;
+      })
+      .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  },
+
+  _renderExpenses(expenses, total) {
+    const listEl = document.getElementById('expenseList');
+    const badgeEl = document.getElementById('expenseTotalBadge');
+    if (!listEl) return;
+
+    if (badgeEl) badgeEl.textContent = fmt(total);
+
+    if (expenses.length === 0) {
+      listEl.innerHTML = `<div class="empty-state" style="padding:1.2rem 0;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        <h3>Nenhum custo no período</h3>
+        <p style="font-size:0.8rem;">Registre gastos com matéria-prima acima.</p>
+      </div>`;
+      return;
+    }
+
+    listEl.innerHTML = expenses.map(e => `
+      <div class="expense-item">
+        <div style="flex:1;min-width:0;">
+          <span class="expense-item-desc">${escapeHTML(e.description || 'Custo')}</span>
+          <span class="expense-item-date">📅 ${fmtDateStr(e.date)}</span>
+        </div>
+        <span class="expense-item-value">${fmt(e.amount)}</span>
+        <button class="btn btn-secondary btn-icon-only btn-del-expense" data-id="${escapeHTML(e.id)}" title="Excluir" style="padding:0.3rem;color:var(--color-danger);border-color:rgba(239,68,68,0.2);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
+        </button>
+      </div>
+    `).join('');
+  },
+
+  _addExpense(description, amount, date) {
+    if (!description.trim() || !amount || amount <= 0 || !date) {
+      UI.alert('Preencha descrição, valor e data do custo.');
+      return false;
+    }
+    State.expenses.push({
+      id: 'e_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+      description: description.trim(),
+      amount: +(+amount).toFixed(2),
+      date
+    });
+    State.saveExpenses();
+    UI.toast('Custo de matéria-prima adicionado');
+    return true;
+  },
+
+  _deleteExpense(id) {
+    State.expenses = State.expenses.filter(e => e.id !== id);
+    State.saveExpenses();
+    UI.toast('Custo excluído');
+    this._updateAll();
+  },
+
   _periodLabel() {
     const { from, to } = this._range;
     if (from && to) {
@@ -216,7 +286,10 @@ const Finance = {
     const canceled = orders.filter(o => o.status === 'Cancelado');
 
     const sales = active.reduce((s, o) => s + getOrderTotal(o), 0);
-    const cost = orders.reduce((s, o) => s + (o.cost || 0), 0);
+    const expenses = this._getFilteredExpenses();
+    const expensesTotal = expenses.reduce((s, e) => s + (+e.amount || 0), 0);
+    const orderCost = orders.reduce((s, o) => s + (o.cost || 0), 0);
+    const cost = orderCost + expensesTotal;
     const profit = sales - cost;
     const margin = sales > 0 ? (profit / sales) * 100 : 0;
     const avgTicket = active.length > 0 ? sales / active.length : 0;
@@ -292,9 +365,23 @@ const Finance = {
 <th>Cliente</th><th>Produto / Sabor</th><th>Entrega</th><th>Pagamento</th><th>Status</th><th style="text-align:right">Valor</th>
 </tr></thead><tbody>${linhas}</tbody></table>
 
+${expenses.length > 0 ? `
+<div class="section-title">🧾 Custos de Matéria-Prima do Período (${expenses.length})</div>
+<table><thead><tr>
+<th>Descrição</th><th>Data</th><th style="text-align:right">Valor</th>
+</tr></thead><tbody>${expenses.map(e => `
+  <tr>
+    <td>${escapeHTML(e.description || 'Custo')}</td>
+    <td>${fmtDateStr(e.date)}</td>
+    <td style="text-align:right;font-weight:bold;">${fmt(e.amount)}</td>
+  </tr>`).join('')}
+</tbody></table>` : ''}
+
 <div class="section-title">💰 Resultado Final</div>
 <table class="result-table">
   <tr class="result-bruto"><td>Faturamento Bruto</td><td style="text-align:right">${fmt(sales)}</td></tr>
+  <tr><td>Custo dos Pedidos (matéria-prima estimada)</td><td style="text-align:right">${fmt(orderCost)}</td></tr>
+  <tr><td>Custos de Matéria-Prima registrados</td><td style="text-align:right">${fmt(expensesTotal)}</td></tr>
   <tr><td>Total de Custos</td><td style="text-align:right">${fmt(cost)}</td></tr>
   <tr class="result-liquido"><td>Lucro Líquido</td><td style="text-align:right">${fmt(profit)}</td></tr>
   <tr><td>Margem de Lucro</td><td style="text-align:right">${margin.toFixed(1).replace('.', ',')}%</td></tr>
@@ -371,6 +458,31 @@ const Finance = {
 
     const pdfBtn = document.getElementById('btnFinancePdf');
     if (pdfBtn) pdfBtn.addEventListener('click', () => this.exportPDF());
+
+    // Custos de Matéria-Prima
+    const btnAdd = document.getElementById('btnAddExpense');
+    const dateInput = document.getElementById('expenseDate');
+    if (dateInput && !dateInput.value) dateInput.value = new Date().toISOString().split('T')[0];
+
+    const onAddExpense = () => {
+      const desc = document.getElementById('expenseDescription').value;
+      const amount = document.getElementById('expenseAmount').value;
+      const date = document.getElementById('expenseDate').value;
+      if (this._addExpense(desc, amount, date)) {
+        document.getElementById('expenseDescription').value = '';
+        document.getElementById('expenseAmount').value = '';
+        this._updateAll();
+      }
+    };
+    if (btnAdd) btnAdd.addEventListener('click', onAddExpense);
+
+    const expenseList = document.getElementById('expenseList');
+    if (expenseList) {
+      expenseList.addEventListener('click', (e) => {
+        const btn = e.target.closest('.btn-del-expense');
+        if (btn) this._deleteExpense(btn.dataset.id);
+      });
+    }
 
     this._applyPreset('month');
     this._updateAll();

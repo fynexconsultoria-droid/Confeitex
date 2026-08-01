@@ -1340,6 +1340,70 @@ select.form-control {
   }
 }
 
+/* Orientação em retrato — aviso de "gire o celular" (iOS, onde não há lock) */
+.rotate-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-primary);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition-normal);
+}
+
+.rotate-overlay.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.rotate-overlay-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  text-align: center;
+  padding: 2rem;
+}
+
+.rotate-overlay-box h3 {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.rotate-overlay-box p {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  max-width: 260px;
+  line-height: 1.5;
+}
+
+.rotate-phone {
+  width: 84px;
+  height: 84px;
+  border-radius: 18px;
+  background: var(--gradient-card-glow);
+  border: 1px solid rgba(236, 72, 153, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-accent-pink);
+  animation: rotate-phone-wiggle 1.6s ease-in-out infinite;
+}
+
+.rotate-phone svg {
+  width: 40px;
+  height: 40px;
+}
+
+@keyframes rotate-phone-wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(-90deg); }
+}
+
 /* PWA Install Banner (for iOS and fallback) */
 .pwa-install-banner {
   position: fixed;
@@ -2544,6 +2608,66 @@ select.form-control {
   border-radius: var(--border-radius-md);
   border: 1px solid rgba(255, 255, 255, 0.03);
   overflow: hidden;
+}
+
+/* Custos de Matéria-Prima */
+.expense-total {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--color-danger);
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  padding: 0.3rem 0.8rem;
+  border-radius: 999px;
+}
+
+.expense-form {
+  display: grid;
+  grid-template-columns: 1fr 140px 160px auto;
+  gap: 0.75rem;
+  align-items: end;
+  margin-bottom: 1rem;
+}
+
+.expense-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.6rem 0.85rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--border-radius-sm);
+}
+
+.expense-item-desc {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.expense-item-date {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  display: block;
+}
+
+.expense-item-value {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--color-danger);
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .expense-form { grid-template-columns: 1fr 1fr; }
+  .expense-form .form-group:nth-child(3) { grid-column: 1 / -1; }
+  .expense-form .btn { width: 100%; grid-column: 1 / -1; }
 }
 
 .finance-pie-container canvas {

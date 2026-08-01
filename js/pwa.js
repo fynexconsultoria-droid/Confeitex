@@ -63,4 +63,37 @@
     deferredInstall = null;
     document.querySelector('.pwa-install-banner')?.remove();
   });
+
+  // ===== Trava a tela em retrato nos dispositivos =====
+  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  if (isMobile) {
+    try {
+      const so = screen.orientation || screen.mozOrientation || screen.msOrientation;
+      if (so && typeof so.lock === 'function') {
+        so.lock('portrait').catch(() => {});
+      }
+    } catch (e) {}
+
+    // Fallback para navegadores que não permitem lock (ex: iOS Safari)
+    const canLock = !!(screen.orientation && typeof screen.orientation.lock === 'function');
+    if (!canLock) {
+      const overlay = document.createElement('div');
+      overlay.className = 'rotate-overlay';
+      overlay.innerHTML = `
+        <div class="rotate-overlay-box">
+          <div class="rotate-phone">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="7" y="2" width="10" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18"/></svg>
+          </div>
+          <h3>Gire o celular</h3>
+          <p>Use o Confeitex na vertical para uma melhor experiência.</p>
+        </div>`;
+      document.body.appendChild(overlay);
+
+      const checkOrientation = () => {
+        overlay.classList.toggle('visible', window.innerHeight < window.innerWidth);
+      };
+      window.addEventListener('resize', checkOrientation);
+      checkOrientation();
+    }
+  }
 })();

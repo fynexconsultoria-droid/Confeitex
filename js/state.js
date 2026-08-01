@@ -20,6 +20,7 @@ const State = {
   orders: [],
   catalog: [],
   trash: [],
+  expenses: [],
   TRASH_RETENTION_DAYS: 7,
 
   load() {
@@ -40,6 +41,12 @@ const State = {
     } catch (e) {
       this.trash = [];
     }
+    try {
+      const savedExpenses = localStorage.getItem('confeitex_expenses');
+      this.expenses = savedExpenses ? JSON.parse(savedExpenses) : [];
+    } catch (e) {
+      this.expenses = [];
+    }
     this.purgeTrash();
   },
 
@@ -49,6 +56,7 @@ const State = {
   },
   saveCatalog() { localStorage.setItem('confeitex_catalog', JSON.stringify(this.catalog)); },
   saveTrash() { localStorage.setItem('confeitex_trash', JSON.stringify(this.trash)); },
+  saveExpenses() { localStorage.setItem('confeitex_expenses', JSON.stringify(this.expenses)); },
 
   addToTrash(orders, type, label) {
     const now = new Date();
@@ -124,6 +132,12 @@ const State = {
         deliveredAt: null
       });
     }
+    this.expenses = [
+      { id: 'e_demo_1', description: 'Compra de farinha, açúcar e ovos', amount: 85.00, date: d.toISOString().split('T')[0] },
+      { id: 'e_demo_2', description: 'Chocolate e recheios', amount: 120.00, date: d.toISOString().split('T')[0] },
+      { id: 'e_demo_3', description: 'Embalagens e caixas', amount: 40.00, date: d.toISOString().split('T')[0] }
+    ];
+    this.saveExpenses();
     this.saveOrders();
   }
 };

@@ -1,5 +1,5 @@
 const Updates = {
-  verAtual: '1.21.0',
+  verAtual: '1.22.0',
 
   setup() {
     document.getElementById('btnCheckUpdates').addEventListener('click', () => this.check());
@@ -240,6 +240,11 @@ const Updates = {
   },
 
   changelog: [
+    { ver: '1.22.0', date: '01/08/2026', items: [
+      'Novo: Custos de Matéria-Prima no Financeiro — registre gastos com ingredientes (descrição, valor e data) e acompanhe o total no período',
+      'Novo: Tela travada em retrato nos celulares — o app não rotaciona mais, mantendo a melhor visualização no dispositivo',
+      'Melhoria: Relatório Financeiro em PDF agora detalha custos de matéria-prima e o resultado final (bruto, custos e líquido)'
+    ] },
     { ver: '1.21.0', date: '01/08/2026', items: [
       'Novo: Central de notificações no app — sino no topo com histórico dos avisos recentes e acesso rápido ao pedido correspondente',
       'Novo: Alertas de pedidos atrasados — avisa quando uma encomenda tem data de entrega vencida e ainda não foi entregue',
