@@ -1,5 +1,5 @@
 const Updates = {
-  verAtual: '1.20.0',
+  verAtual: '1.20.1',
 
   setup() {
     document.getElementById('btnCheckUpdates').addEventListener('click', () => this.check());
@@ -240,6 +240,9 @@ const Updates = {
   },
 
   changelog: [
+    { ver: '1.20.1', date: '01/08/2026', items: [
+      'Melhoria: Novo sistema de seleção de período no Financeiro — atalhos rápidos (Hoje, Ontem, Esta Semana, Este Mês, Mês Passado, Últimos 30 Dias, Todos) e intervalo personalizado "De/Até", substituindo a seleção confusa de mês e dia'
+    ] },
     { ver: '1.20.0', date: '01/08/2026', items: [
       'Novo: Relatório Financeiro em PDF — gera o relatório do período selecionado (mês ou dia) com os gráficos, pedidos completos e resultado final (bruto e líquido)'
     ] },

@@ -91,7 +91,7 @@
       'notificationStatusDot', 'notificationStatusText', 'notificationInfoText', 'btnNotificationsText',
       'btnToggleNotifications', 'newCatalogFlavor', 'newCatalogPrice', 'newCatalogType', 'btnAddCatalogItem',
       // Finance
-      'finances', 'financeMonthSelect', 'financeDateSelect', 'btnFinanceDateClear', 'btnFinancePeriodReset',
+      'finances', 'financePeriodChips', 'financeDateFrom', 'financeDateTo',
       'finKpiSalesMonth', 'finKpiCostMonth', 'finKpiProfitMonth', 'finKpiOrdersMonth',
       'finGenOrders', 'finGenRevenue', 'finGenCost', 'finGenProfit', 'finGenAvgTicket', 'finGenCanceled',
       'finPieProductChart', 'finPiePaymentChart', 'finPieStatusChart',
@@ -122,9 +122,11 @@
     // Garante que chartPeriodSelect tenha valor padrao
     const sel = document.getElementById('chartPeriodSelect');
     if (sel) { sel.innerHTML = '<option value="today">Hoje</option><option value="7days">7 dias</option><option value="30days" selected>30 dias</option>'; }
-    // Garante que financeMonthSelect tenha valor
-    const finMonth = document.getElementById('financeMonthSelect');
-    if (finMonth) { finMonth.value = new Date().getFullYear() + '-' + String(new Date().getMonth() + 1).padStart(2, '0'); }
+    // Garante que financeDateFrom/To existam como inputs
+    ['financeDateFrom', 'financeDateTo'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
   })();
 
   // ============================================================
@@ -421,7 +423,7 @@
       this.groupName('Updates');
 
       this.assert(typeof Updates !== 'undefined', 'Updates existe', '');
-      this.assert(Updates.verAtual === '1.20.0', 'verAtual', Updates.verAtual);
+      this.assert(Updates.verAtual === '1.20.1', 'verAtual', Updates.verAtual);
       this.assert(Array.isArray(Updates.changelog) && Updates.changelog.length >= 5, 'changelog entradas', String(Updates.changelog.length));
 
       Updates.render();
@@ -642,16 +644,19 @@
       this.assert(typeof Finance !== 'undefined', 'Finance existe', '');
       this.assert(typeof Finance.render === 'function', 'render()', '');
       this.assert(typeof Finance.setup === 'function', 'setup()', '');
+      this.assert(typeof Finance._setRange === 'function', '_setRange()', '');
+      this.assert(typeof Finance._applyPreset === 'function', '_applyPreset()', '');
 
-      document.getElementById('financeMonthSelect').value = '2026-07';
+      Finance._setRange({ from: '2026-07-01', to: '2026-07-31' });
       Finance.render();
       this.assert(document.getElementById('finKpiSalesMonth').textContent.startsWith('R$'), 'KPI sales', document.getElementById('finKpiSalesMonth').textContent);
       this.assert(document.getElementById('finKpiOrdersMonth').textContent !== '0', 'KPI pedidos', document.getElementById('finKpiOrdersMonth').textContent);
 
-      document.getElementById('financeDateSelect').value = '2025-01-01';
+      Finance._setRange({ from: '2025-01-01', to: '2025-01-01' });
       Finance.render();
       this.assert(document.getElementById('finKpiSalesMonth').textContent === 'R$ 0,00', 'filtro data sem pedidos R$ 0', '');
-      document.getElementById('financeDateSelect').value = '';
+
+      Finance._applyPreset('month');
       Finance.render();
 
       // ------------------- 13. INTEGRIDADE -------------------

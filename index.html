@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Confeitex - Controle de Encomendas</title>
   <meta name="description" content="Controle de encomendas para confeitaria — gerencie pedidos, clientes e entregas. 100% offline.">
-  <meta name="version" content="1.20.0">
+  <meta name="version" content="1.20.1">
 
   <!-- Google Fonts: Plus Jakarta Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -129,7 +129,7 @@
       </nav>
       
       <div style="font-size: 0.7rem; color: var(--text-muted); text-align: center; border-top: 1px solid var(--border-color); padding-top: 0.75rem;">
-        Confeitex v1.20.0<br>Modo 100% Offline
+        Confeitex v1.20.1<br>Modo 100% Offline
       </div>
     </aside>
 
@@ -448,25 +448,39 @@
       <section id="finances" class="tab-content">
         <!-- Filtro de Período -->
         <div class="finance-period-bar">
-          <div class="form-group" style="flex-direction:row;align-items:center;gap:0.75rem;flex-wrap:wrap;">
-            <label for="financeMonthSelect" style="white-space:nowrap;margin:0;">Mês:</label>
-            <input type="month" class="form-control" id="financeMonthSelect" style="width:auto;min-width:160px;">
-            <label for="financeDateSelect" style="white-space:nowrap;margin:0;">Dia:</label>
-            <input type="date" class="form-control" id="financeDateSelect" style="width:auto;min-width:150px;">
-            <button class="btn btn-secondary btn-sm" id="btnFinanceDateClear" style="min-height:36px;padding:0.35rem 0.7rem;font-size:0.75rem;" title="Limpar filtro de dia">✕</button>
+          <div class="finance-period-chips" id="financePeriodChips">
+            <button type="button" class="finance-chip" data-preset="today">Hoje</button>
+            <button type="button" class="finance-chip" data-preset="yesterday">Ontem</button>
+            <button type="button" class="finance-chip" data-preset="week">Esta Semana</button>
+            <button type="button" class="finance-chip active" data-preset="month">Este Mês</button>
+            <button type="button" class="finance-chip" data-preset="lastMonth">Mês Passado</button>
+            <button type="button" class="finance-chip" data-preset="30days">Últimos 30 Dias</button>
+            <button type="button" class="finance-chip" data-preset="all">Todos</button>
+            <button type="button" class="finance-chip" data-preset="custom">Personalizado</button>
           </div>
-          <button class="btn btn-secondary" id="btnFinancePeriodReset">Mês Atual</button>
-          <button class="btn btn-primary" id="btnFinancePdf" title="Gerar relatório em PDF do período selecionado">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;vertical-align:-2px;margin-right:0.4rem;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 18 15 15"/></svg>
-            Gerar PDF
-          </button>
+          <div class="finance-period-custom" id="financePeriodCustom" style="display:none;">
+            <div class="form-group">
+              <label for="financeDateFrom">De</label>
+              <input type="date" class="form-control" id="financeDateFrom">
+            </div>
+            <div class="form-group">
+              <label for="financeDateTo">Até</label>
+              <input type="date" class="form-control" id="financeDateTo">
+            </div>
+          </div>
+          <div class="finance-period-actions">
+            <button class="btn btn-primary" id="btnFinancePdf" title="Gerar relatório em PDF do período selecionado">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;vertical-align:-2px;margin-right:0.4rem;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 18 15 15"/></svg>
+              Gerar PDF
+            </button>
+          </div>
         </div>
 
-        <!-- Resumo do Mês -->
+        <!-- Resumo do Período -->
         <div class="metrics-grid">
           <div class="metric-card">
             <div class="metric-header">
-              <span class="metric-title">Faturamento do Mês</span>
+              <span class="metric-title">Faturamento do Período</span>
               <div class="metric-icon-wrapper pink">
                 <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
               </div>
@@ -476,7 +490,7 @@
           </div>
           <div class="metric-card">
             <div class="metric-header">
-              <span class="metric-title">Custos do Mês</span>
+              <span class="metric-title">Custos do Período</span>
               <div class="metric-icon-wrapper blue">
                 <svg viewBox="0 0 24 24"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
               </div>
@@ -486,7 +500,7 @@
           </div>
           <div class="metric-card metric-card-highlight-green">
             <div class="metric-header">
-              <span class="metric-title" style="color:var(--color-success);">Lucro do Mês</span>
+              <span class="metric-title" style="color:var(--color-success);">Lucro do Período</span>
               <div class="metric-icon-wrapper success">
                 <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
               </div>
@@ -496,7 +510,7 @@
           </div>
           <div class="metric-card">
             <div class="metric-header">
-              <span class="metric-title">Pedidos no Mês</span>
+              <span class="metric-title">Pedidos no Período</span>
               <div class="metric-icon-wrapper purple">
                 <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
               </div>

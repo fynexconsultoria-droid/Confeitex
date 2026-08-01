@@ -1,55 +1,48 @@
 const Finance = {
-  _month: null,
-  _date: null,
+  _range: { from: null, to: null },
 
   render() {
-    const monthInput = document.getElementById('financeMonthSelect');
-    if (!monthInput.value) {
-      const now = new Date();
-      monthInput.value = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
-    }
-    this._month = monthInput.value;
-    this._date = document.getElementById('financeDateSelect').value;
     this._updateAll();
   },
 
+  _setRange(range) {
+    this._range = { from: range.from || null, to: range.to || null };
+  },
+
+  _syncChips(preset) {
+    document.querySelectorAll('.finance-chip').forEach(c => c.classList.toggle('active', c.dataset.preset === preset));
+    const customWrap = document.getElementById('financePeriodCustom');
+    if (customWrap) customWrap.style.display = preset === 'custom' ? 'flex' : 'none';
+  },
+
+  _applyPreset(preset) {
+    this._setRange(_presetRange(preset));
+    this._syncChips(preset);
+  },
+
   _updateAll() {
-    const dateFilter = this._date;
-    const monthFilter = this._month;
+    const orders = this._getFilteredOrders();
+    const active = orders.filter(o => o.status !== 'Cancelado');
+    const canceled = orders.filter(o => o.status === 'Cancelado');
 
-    let filteredOrders;
-    if (dateFilter) {
-      filteredOrders = State.orders.filter(o => o.deliveryDate === dateFilter);
-    } else if (monthFilter) {
-      const [year, month] = monthFilter.split('-').map(Number);
-      filteredOrders = State.orders.filter(o => {
-        if (!o.deliveryDate) return false;
-        const d = new Date(o.deliveryDate + 'T00:00:00');
-        return d.getFullYear() === year && (d.getMonth() + 1) === month;
-      });
-    } else {
-      filteredOrders = [];
-    }
+    const sales = active.reduce((s, o) => s + getOrderTotal(o), 0);
+    const cost = orders.reduce((s, o) => s + (o.cost || 0), 0);
+    const profit = sales - cost;
 
-    const monthOrders = filteredOrders;
-    const activeMonth = monthOrders.filter(o => o.status !== 'Cancelado');
-    const canceledMonth = monthOrders.filter(o => o.status === 'Cancelado');
+    document.getElementById('finKpiSalesMonth').textContent = fmt(sales);
+    document.getElementById('finKpiCostMonth').textContent = fmt(cost);
+    document.getElementById('finKpiProfitMonth').textContent = fmt(profit);
+    document.getElementById('finKpiOrdersMonth').textContent = orders.length;
 
-    const monthSales = activeMonth.reduce((s, o) => s + getOrderTotal(o), 0);
-    const monthCost = monthOrders.reduce((s, o) => s + (o.cost || 0), 0);
-    const monthProfit = monthSales - monthCost;
-
-    document.getElementById('finKpiSalesMonth').textContent = fmt(monthSales);
-    document.getElementById('finKpiCostMonth').textContent = fmt(monthCost);
-    document.getElementById('finKpiProfitMonth').textContent = fmt(monthProfit);
-    document.getElementById('finKpiOrdersMonth').textContent = monthOrders.length;
+    const { from, to } = this._range;
+    const singleDay = !!from && from === to;
     const setMetricFooter = (n, text) => {
       const el = document.querySelector(`#finances .metric-card:nth-child(${n}) .metric-footer`);
       if (el) el.textContent = text;
     };
-    setMetricFooter(1, dateFilter ? 'Total de vendas do dia' : 'Total de vendas do período');
-    setMetricFooter(2, dateFilter ? 'Total de custos do dia' : 'Total de custos do período');
-    setMetricFooter(4, dateFilter ? 'Total de pedidos do dia' : 'Total de pedidos no período');
+    setMetricFooter(1, singleDay ? 'Total de vendas do dia' : 'Total de vendas do período');
+    setMetricFooter(2, singleDay ? 'Total de custos do dia' : 'Total de custos do período');
+    setMetricFooter(4, singleDay ? 'Total de pedidos do dia' : 'Total de pedidos no período');
 
     const allActive = State.orders.filter(o => o.status !== 'Cancelado');
     const allCanceled = State.orders.filter(o => o.status === 'Cancelado');
@@ -65,13 +58,13 @@ const Finance = {
     document.getElementById('finGenAvgTicket').textContent = fmt(avgTicket);
     document.getElementById('finGenCanceled').textContent = allCanceled.length;
 
-    this._drawPieChart('finPieProductChart', 'finPieProductLegend', monthOrders, 'productType', [
+    this._drawPieChart('finPieProductChart', 'finPieProductLegend', orders, 'productType', [
       'Bolo de Kg', 'Bolo Unitário', 'Doces / Brigadeiros', 'Salgados', 'Outros'
     ], ['#ec4899', '#8b5cf6', '#3b82f6', '#10b981', '#f59e0b']);
 
-    this._drawPieChart('finPiePaymentChart', 'finPiePaymentLegend', monthOrders, 'paymentMethod', [], null);
+    this._drawPieChart('finPiePaymentChart', 'finPiePaymentLegend', orders, 'paymentMethod', [], null);
 
-    this._drawPieChart('finPieStatusChart', 'finPieStatusLegend', monthOrders, 'status', [
+    this._drawPieChart('finPieStatusChart', 'finPieStatusLegend', orders, 'status', [
       'Pendente', 'Em Produção', 'Entregue', 'Cancelado'
     ], ['#f59e0b', '#3b82f6', '#10b981', '#ef4444']);
   },
@@ -178,30 +171,22 @@ const Finance = {
   },
 
   _getFilteredOrders() {
-    const dateFilter = this._date;
-    const monthFilter = this._month;
-    if (dateFilter) return State.orders.filter(o => o.deliveryDate === dateFilter);
-    if (monthFilter) {
-      const [year, month] = monthFilter.split('-').map(Number);
-      return State.orders.filter(o => {
-        if (!o.deliveryDate) return false;
-        const d = new Date(o.deliveryDate + 'T00:00:00');
-        return d.getFullYear() === year && (d.getMonth() + 1) === month;
-      });
-    }
-    return [];
+    const { from, to } = this._range;
+    return State.orders.filter(o => {
+      if (!o.deliveryDate) return false;
+      if (from && o.deliveryDate < from) return false;
+      if (to && o.deliveryDate > to) return false;
+      return true;
+    });
   },
 
   _periodLabel() {
-    const dateFilter = this._date;
-    const monthFilter = this._month;
-    if (dateFilter) return `Dia ${fmtDateStr(dateFilter)}`;
-    if (monthFilter) {
-      const [year, month] = monthFilter.split('-').map(Number);
-      const name = new Date(year, month - 1, 1).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
-      return name.charAt(0).toUpperCase() + name.slice(1);
+    const { from, to } = this._range;
+    if (from && to) {
+      if (from === to) return `Dia ${fmtDateStr(from)}`;
+      return `De ${fmtDateStr(from)} a ${fmtDateStr(to)}`;
     }
-    return 'Período (todos)';
+    return 'Todos os períodos';
   },
 
   _captureChart(canvasId, legendId, title) {
@@ -348,36 +333,87 @@ const Finance = {
   },
 
   setup() {
-    const monthInput = document.getElementById('financeMonthSelect');
-    const dateInput = document.getElementById('financeDateSelect');
-    const now = new Date();
-    monthInput.value = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+    const chipsWrap = document.getElementById('financePeriodChips');
+    const customWrap = document.getElementById('financePeriodCustom');
+    const fromInput = document.getElementById('financeDateFrom');
+    const toInput = document.getElementById('financeDateTo');
 
-    const refresh = () => {
-      this._month = monthInput.value;
-      this._date = dateInput.value;
-      this._updateAll();
+    const activateCustom = () => {
+      this._syncChips('custom');
+      if (customWrap) customWrap.style.display = 'flex';
     };
 
-    monthInput.addEventListener('change', () => {
-      dateInput.value = '';
-      refresh();
+    chipsWrap.addEventListener('click', (e) => {
+      const chip = e.target.closest('.finance-chip');
+      if (!chip) return;
+      const preset = chip.dataset.preset;
+
+      if (preset === 'custom') {
+        activateCustom();
+        const now = new Date();
+        if (!fromInput.value) fromInput.value = _fmtISO(now);
+        if (!toInput.value) toInput.value = _fmtISO(now);
+        this._setRange({ from: fromInput.value, to: toInput.value });
+      } else {
+        this._applyPreset(preset);
+      }
+      this._updateAll();
     });
 
-    dateInput.addEventListener('change', refresh);
+    const onRangeChange = () => {
+      if (!fromInput.value || !toInput.value) return;
+      activateCustom();
+      this._setRange({ from: fromInput.value, to: toInput.value });
+      this._updateAll();
+    };
+    fromInput.addEventListener('change', onRangeChange);
+    toInput.addEventListener('change', onRangeChange);
 
-    document.getElementById('btnFinanceDateClear').addEventListener('click', () => {
-      dateInput.value = '';
-      refresh();
-    });
+    const pdfBtn = document.getElementById('btnFinancePdf');
+    if (pdfBtn) pdfBtn.addEventListener('click', () => this.exportPDF());
 
-    document.getElementById('btnFinancePeriodReset').addEventListener('click', () => {
-      dateInput.value = '';
-      const now = new Date();
-      monthInput.value = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
-      refresh();
-    });
-
-    document.getElementById('btnFinancePdf').addEventListener('click', () => this.exportPDF());
+    this._applyPreset('month');
+    this._updateAll();
   }
 };
+
+// ============================================================
+// Utilitários de período
+// ============================================================
+
+const _fmtISO = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+function _presetRange(preset) {
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
+
+  switch (preset) {
+    case 'today':
+      return { from: _fmtISO(today), to: _fmtISO(today) };
+    case 'yesterday': {
+      const y = addDays(today, -1);
+      return { from: _fmtISO(y), to: _fmtISO(y) };
+    }
+    case 'week': {
+      const day = today.getDay();
+      const monday = addDays(today, day === 0 ? -6 : 1 - day);
+      return { from: _fmtISO(monday), to: _fmtISO(today) };
+    }
+    case 'month': {
+      const first = new Date(today.getFullYear(), today.getMonth(), 1);
+      const last = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+      return { from: _fmtISO(first), to: _fmtISO(last) };
+    }
+    case 'lastMonth': {
+      const first = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+      const last = new Date(today.getFullYear(), today.getMonth(), 0);
+      return { from: _fmtISO(first), to: _fmtISO(last) };
+    }
+    case '30days':
+      return { from: _fmtISO(addDays(today, -29)), to: _fmtISO(today) };
+    case 'all':
+    default:
+      return { from: null, to: null };
+  }
+}
