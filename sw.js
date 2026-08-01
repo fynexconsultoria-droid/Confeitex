@@ -106,3 +106,120 @@ self.addEventListener('fetch', (event) => {
       })
   );
 });
+
+// ============================================================================
+// Notificações em segundo plano
+// ============================================================================
+
+// Mini-banco IndexedDB (compartilhado com a página — mesma estrutura que notifications.js)
+function swOpenDB() {
+  return new Promise((resolve) => {
+    const req = indexedDB.open('confeitex-sw-db', 1);
+    req.onupgradeneeded = () => {
+      const db = req.result;
+      if (!db.objectStoreNames.contains('kv')) db.createObjectStore('kv');
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => resolve(null);
+  });
+}
+
+function swGet(key) {
+  return swOpenDB().then((db) => new Promise((resolve) => {
+    if (!db) return resolve(undefined);
+    const tx = db.transaction('kv', 'readonly');
+    const req = tx.objectStore('kv').get(key);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => resolve(undefined);
+  }));
+}
+
+function swSet(key, value) {
+  return swOpenDB().then((db) => new Promise((resolve) => {
+    if (!db) return resolve();
+    const tx = db.transaction('kv', 'readwrite');
+    tx.objectStore('kv').put(value, key);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => resolve();
+  }));
+}
+
+// Periodic Background Sync — fallback para navegadores Chromium sem Notification Triggers.
+// O navegador acorda o service worker periodicamente e executamos a checagem.
+self.addEventListener('periodicsync', (event) => {
+  if (event.tag !== 'confeitex-notif-sync') return;
+  event.waitUntil(swRunCheck());
+});
+
+async function swRunCheck() {
+  if (!('Notification' in self) || Notification.permission !== 'granted') return;
+
+  const snapshot = await swGet('confeitex_snapshot');
+  if (!snapshot || !snapshot.enabled) return;
+
+  const settings = snapshot.settings || {};
+  const daysBeforeList = settings.daysBefore || [0, 1];
+  const allowedStatuses = settings.statuses || ['Pendente', 'Em Produção'];
+  const sent = await swGet('confeitex_sent') || {};
+  const now = new Date();
+  const todayStr = now.toISOString().split('T')[0];
+  const dayLabels = { 0: 'Hoje', 1: 'Amanhã', 2: 'em 2 Dias', 3: 'em 3 Dias' };
+  const newSent = { ...sent };
+
+  // Limpa chaves de datas passadas
+  for (const k in newSent) {
+    const m = k.match(/^notif_d(\d+)_(\d{4}-\d{2}-\d{2})$/);
+    if (m && m[2] < todayStr) delete newSent[k];
+  }
+
+  for (const dayOffset of daysBeforeList) {
+    const targetDateObj = new Date(now.getTime() + dayOffset * 86400000);
+    const targetDateStr = targetDateObj.toISOString().split('T')[0];
+
+    const matchingOrders = (snapshot.orders || []).filter(o =>
+      o.deliveryDate === targetDateStr && allowedStatuses.includes(o.status));
+    if (matchingOrders.length === 0) continue;
+
+    const cacheKey = `notif_d${dayOffset}_${targetDateStr}`;
+    if (sent[cacheKey]) continue;
+
+    let bodyMsg = `${matchingOrders.length} entrega(s) agendada(s) para ${dayLabels[dayOffset] || targetDateStr}:\n`;
+    bodyMsg += matchingOrders.slice(0, 3).map(o => `• ${o.deliveryTime || ''} ${o.clientName}: ${o.flavor}`).join('\n');
+    if (matchingOrders.length > 3) {
+      bodyMsg += `\ne mais ${matchingOrders.length - 3} pedido(s)...`;
+    }
+    if (settings.alertPendingPayment !== false) {
+      const withPendingVal = matchingOrders.filter(o => (o.totalValue || 0) > 0);
+      if (withPendingVal.length > 0) {
+        const totalVal = withPendingVal.reduce((s, o) => s + (o.totalValue || 0), 0);
+        bodyMsg += `\n💰 Valor total: R$ ${totalVal.toFixed(2).replace('.', ',')}`;
+      }
+    }
+
+    const title = dayOffset === 0
+      ? 'Confeitex - Entregas de Hoje! 🎂'
+      : `Confeitex - Lembrete: Entregas ${dayLabels[dayOffset] || 'em breve'} 🎂`;
+
+    self.registration.showNotification(title, {
+      body: bodyMsg,
+      icon: 'icons/icon-192x192.png',
+      tag: `confeitex-day-${dayOffset}-${targetDateStr}`
+    });
+
+    newSent[cacheKey] = true;
+  }
+
+  await swSet('confeitex_sent', newSent);
+}
+
+// Ao tocar/clicar na notificação, abre ou foca o app
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  event.waitUntil((async () => {
+    const clients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    for (const client of clients) {
+      if ('focus' in client) return client.focus();
+    }
+    if (self.clients.openWindow) return self.clients.openWindow('./');
+  })());
+});

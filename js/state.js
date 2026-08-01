@@ -43,7 +43,10 @@ const State = {
     this.purgeTrash();
   },
 
-  saveOrders() { localStorage.setItem('confeitex_orders', JSON.stringify(this.orders)); },
+  saveOrders() {
+    localStorage.setItem('confeitex_orders', JSON.stringify(this.orders));
+    if (typeof Notifications !== 'undefined' && Notifications.syncData) Notifications.syncData();
+  },
   saveCatalog() { localStorage.setItem('confeitex_catalog', JSON.stringify(this.catalog)); },
   saveTrash() { localStorage.setItem('confeitex_trash', JSON.stringify(this.trash)); },
 

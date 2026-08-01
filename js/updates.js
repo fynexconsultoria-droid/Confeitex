@@ -1,5 +1,5 @@
 const Updates = {
-  verAtual: '1.18.1',
+  verAtual: '1.20.0',
 
   setup() {
     document.getElementById('btnCheckUpdates').addEventListener('click', () => this.check());
@@ -240,6 +240,15 @@ const Updates = {
   },
 
   changelog: [
+    { ver: '1.20.0', date: '01/08/2026', items: [
+      'Novo: Relatório Financeiro em PDF — gera o relatório do período selecionado (mês ou dia) com os gráficos, pedidos completos e resultado final (bruto e líquido)'
+    ] },
+    { ver: '1.19.0', date: '31/07/2026', items: [
+      'Novo: Notificações com o app fechado — lembretes agendados no sistema (Notification Triggers) em Chrome/Edge/Android com o app instalado',
+      'Novo: Sincronização periódica em segundo plano como alternativa (Periodic Background Sync) em outros navegadores Chromium',
+      'Novo: Controles avançados de notificações — antecedência, frequência, status, valor total e hora do lembrete',
+      'Melhoria: verificação dentro do app continua funcionando como plano de segurança em todos os navegadores'
+    ] },
     { ver: '1.18.1', date: '31/07/2026', items: [
       'Melhoria: Histórico de versões limpo — apenas versões a partir da 1.17 são exibidas'
     ] },

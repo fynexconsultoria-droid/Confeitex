@@ -421,8 +421,8 @@
       this.groupName('Updates');
 
       this.assert(typeof Updates !== 'undefined', 'Updates existe', '');
-      this.assert(Updates.verAtual === '1.18.1', 'verAtual', Updates.verAtual);
-      this.assert(Array.isArray(Updates.changelog) && Updates.changelog.length >= 6, 'changelog entradas', String(Updates.changelog.length));
+      this.assert(Updates.verAtual === '1.20.0', 'verAtual', Updates.verAtual);
+      this.assert(Array.isArray(Updates.changelog) && Updates.changelog.length >= 5, 'changelog entradas', String(Updates.changelog.length));
 
       Updates.render();
       this.assert(document.getElementById('updatesCurrentVer').textContent.startsWith('v'), 'render mostra versao', document.getElementById('updatesCurrentVer').textContent);

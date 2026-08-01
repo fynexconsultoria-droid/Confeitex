@@ -419,6 +419,13 @@ const Settings = {
       selInterval.addEventListener('change', () => this.saveNotificationCustomControls());
     }
 
+    // Hora do lembrete agendado (segundo plano)
+    const inpReminderTime = document.getElementById('notifReminderTime');
+    if (inpReminderTime) {
+      inpReminderTime.value = settings.reminderTime || '08:00';
+      inpReminderTime.addEventListener('change', () => this.saveNotificationCustomControls());
+    }
+
     // Statuses
     document.querySelectorAll('.notif-status-cb').forEach(cb => {
       const st = cb.dataset.status;
@@ -449,11 +456,14 @@ const Settings = {
 
     const alertPendingPayment = !!document.getElementById('notifPendingPayCb')?.checked;
 
+    const reminderTime = document.getElementById('notifReminderTime')?.value || '08:00';
+
     Notifications.saveSettings({
       daysBefore: daysBefore.length > 0 ? daysBefore : [0],
       intervalHours,
       statuses: statuses.length > 0 ? statuses : ['Pendente'],
-      alertPendingPayment
+      alertPendingPayment,
+      reminderTime
     });
 
     UI.toast('Preferências de notificação salvas!');
@@ -492,7 +502,14 @@ const Settings = {
       dot.style.background = 'var(--color-success)';
       text.textContent = 'Notificações ativas';
       text.style.color = 'var(--color-success)';
-      info.textContent = 'Você receberá lembretes conforme suas preferências configuradas abaixo.';
+      const mode = Notifications.backgroundMode;
+      if (mode === 'triggers') {
+        info.textContent = 'Ativas mesmo com o app fechado — lembretes agendados no sistema.';
+      } else if (mode === 'periodic') {
+        info.textContent = 'Ativas com o app fechado quando o navegador permitir (horário aproximado).';
+      } else {
+        info.textContent = 'Ativas apenas com o app aberto. Instale o app via HTTPS para lembretes com o app fechado.';
+      }
       btnText.textContent = 'Desativar Notificações';
       btn.className = 'btn btn-secondary';
     } else {
