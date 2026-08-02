@@ -28,8 +28,8 @@ const Trash = {
     container.innerHTML = State.trash.map(t => {
       const daysLeft = Math.max(0, Math.ceil((new Date(t.expiresAt).getTime() - Date.now()) / 86400000));
       const detail = t.type === 'client'
-        ? `${t.count} pedido(s) · Expira em ${daysLeft} dia(s)`
-        : `${t.orders[0]?.flavor || ''} · ${fmt(getOrderTotal(t.orders[0]))} · Expira em ${daysLeft} dia(s)`;
+        ? `${I18n.t('trash.ordersCount', { count: t.count })} · ${I18n.t('trash.expiresIn', { days: daysLeft })}`
+        : `${t.orders[0]?.flavor || ''} · ${fmt(getOrderTotal(t.orders[0]))} · ${I18n.t('trash.expiresIn', { days: daysLeft })}`;
       return `<div class="trash-item">
         <div style="flex:1;min-width:0;">
           <div class="trash-item-title">${escapeHTML(t.label)}</div>
@@ -38,11 +38,11 @@ const Trash = {
         <div class="trash-item-actions">
           <button class="btn btn-secondary btn-sm btn-trash-restore" data-id="${t.id}">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
-            Restaurar
+            ${I18n.t('trash.restore')}
           </button>
           <button class="btn btn-danger btn-sm btn-trash-delete" data-id="${t.id}">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-            Excluir
+            ${I18n.t('trash.delete')}
           </button>
         </div>
       </div>`;
@@ -59,14 +59,14 @@ const Trash = {
     this.render();
     this.updateBadge();
     this.refreshActiveTab();
-    UI.toast(entry.type === 'client' ? 'Cliente restaurado' : 'Pedido restaurado');
+    UI.toast(entry.type === 'client' ? I18n.t('trash.toastRestoredClient') : I18n.t('trash.toastRestoredOrder'));
   },
 
   async remove(id) {
     const confirmed = await UI.confirm({
-      title: 'Excluir Permanentemente',
-      message: 'Este item será excluído de forma definitiva. Essa ação não pode ser desfeita.',
-      confirmText: 'Excluir',
+      title: I18n.t('trash.confirmDeleteTitle'),
+      message: I18n.t('trash.confirmDelete'),
+      confirmText: I18n.t('trash.delete'),
       variant: 'danger'
     });
     if (!confirmed) return;
@@ -74,21 +74,21 @@ const Trash = {
     State.saveTrash();
     this.render();
     this.updateBadge();
-    UI.toast('Item excluído permanentemente');
+    UI.toast(I18n.t('trash.toastDeleted'));
   },
 
   async empty() {
     const confirmed = await UI.confirm({
-      title: 'Esvaziar Lixeira',
-      message: 'Todos os itens da lixeira serão excluídos permanentemente. Essa ação não pode ser desfeita.',
-      confirmText: 'Esvaziar',
+      title: I18n.t('trash.confirmEmptyTitle'),
+      message: I18n.t('trash.confirmEmpty'),
+      confirmText: I18n.t('trash.emptyBtn'),
       variant: 'danger'
     });
     if (!confirmed) return;
     State.emptyTrash();
     this.render();
     this.updateBadge();
-    UI.toast('Lixeira esvaziada');
+    UI.toast(I18n.t('trash.toastEmptied'));
   },
 
   updateBadge() {

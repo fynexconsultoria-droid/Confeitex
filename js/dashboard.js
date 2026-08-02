@@ -1,6 +1,6 @@
 const Dashboard = {
   update() {
-    const todayStr = new Date().toISOString().split('T')[0];
+    const todayStr = fmtISO(new Date());
     const todayOrders = State.orders.filter(o => o.deliveryDate === todayStr && o.status !== 'Cancelado');
 
     const todaySales = todayOrders.reduce((s, o) => s + getOrderTotal(o), 0);
@@ -28,8 +28,8 @@ const Dashboard = {
         document.getElementById('sidebarOverlay')?.classList.remove('active');
         document.querySelectorAll('.nav-link').forEach(l => l.classList.toggle('active', l.dataset.tab === 'orders'));
         document.querySelectorAll('.tab-content').forEach(c => c.classList.toggle('active', c.id === 'orders'));
-        document.getElementById('mainTitle').textContent = 'Encomendas';
-        document.getElementById('mainSubtitle').textContent = 'Gerencie e busque todos os pedidos registrados.';
+        document.getElementById('mainTitle').textContent = I18n.t('orders.title');
+        document.getElementById('mainSubtitle').textContent = I18n.t('orders.sub');
         const filterStatus = document.getElementById('orderFilterStatus');
         if (filterStatus) filterStatus.value = 'Pendente';
         const searchInput = document.getElementById('orderSearchInput');
@@ -49,13 +49,13 @@ const Dashboard = {
   renderDeliveries() {
     const container = document.getElementById('todayDeliveriesList');
     if (!container) return;
-    const todayStr = new Date().toISOString().split('T')[0];
+    const todayStr = fmtISO(new Date());
     const orders = State.orders.filter(o => o.deliveryDate === todayStr).sort((a, b) => a.deliveryTime.localeCompare(b.deliveryTime));
 
     if (orders.length === 0) {
       container.innerHTML = `<div class="empty-state" style="padding:1.5rem 0;">
         <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-        <h3>Nenhuma entrega para hoje</h3><p style="font-size:0.8rem;">Crie novas encomendas para acompanhar as entregas do dia.</p></div>`;
+        <h3>${I18n.t('dash.deliveriesEmpty')}</h3><p style="font-size:0.8rem;">${I18n.t('dash.deliveriesEmptySub2')}</p></div>`;
       return;
     }
 
@@ -69,12 +69,12 @@ const Dashboard = {
             <span style="font-weight:700;font-size:0.85rem;color:var(--color-accent-pink);background:rgba(236,72,153,0.1);padding:0.1rem 0.4rem;border-radius:4px;">${o.deliveryTime}</span>
             <span class="customer-name" style="font-size:0.9rem;font-weight:600;">${escapeHTML(o.clientName)}</span>
           </div>
-          <div style="font-size:0.75rem;color:var(--text-secondary);">${escapeHTML(o.flavor)} (${formatWeight(o)})${o.cost ? ` · Lucro: <span style="color:var(--color-success);font-weight:600;">${fmt(profit)}</span>` : ''}</div>
+          <div style="font-size:0.75rem;color:var(--text-secondary);">${escapeHTML(o.flavor)} (${formatWeight(o)})${o.cost ? ` · ${I18n.t('dash.profitLabel')}: <span style="color:var(--color-success);font-weight:600;">${fmt(profit)}</span>` : ''}</div>
         </div>
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:0.35rem;">
-          <span class="badge ${badge}" style="font-size:0.65rem;padding:0.15rem 0.5rem;">${o.status}</span>
+          <span class="badge ${badge}" style="font-size:0.65rem;padding:0.15rem 0.5rem;">${escapeHTML(I18n.value('status', o.status))}</span>
           <span style="font-weight:700;font-size:0.9rem;color:white;">${fmt(val)}</span>
-          <span style="font-size:0.65rem;color:var(--text-muted);">${o.paymentMethod || 'Dinheiro'}</span>
+          <span style="font-size:0.65rem;color:var(--text-muted);">${escapeHTML(I18n.value('payment', o.paymentMethod) || I18n.value('payment', 'Dinheiro'))}</span>
         </div>
       </div>`;
     }).join('');

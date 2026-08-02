@@ -1,5 +1,5 @@
 const Updates = {
-  verAtual: '1.22.0',
+  verAtual: '1.23.0',
 
   setup() {
     document.getElementById('btnCheckUpdates').addEventListener('click', () => this.check());
@@ -36,10 +36,10 @@ const Updates = {
   // Diálogo de confirmação de atualização: "Atualizar Agora" ou "Mais Tarde"
   async promptUpdate(serverVer) {
     const ok = await UI.confirm({
-      title: '📦 Nova Atualização Disponível',
-      message: `Uma nova versão do Confeitex (v${serverVer}) está pronta!\n\nDeseja atualizar agora para aplicar as melhorias ou deixar para mais tarde?`,
-      confirmText: '🔄 Atualizar Agora',
-      cancelText: '⏱️ Mais Tarde',
+      title: I18n.t('updates.promptTitle'),
+      message: I18n.t('updates.promptMsg', { version: serverVer }),
+      confirmText: I18n.t('updates.updateNow'),
+      cancelText: I18n.t('updates.later'),
       variant: 'primary'
     });
 
@@ -49,7 +49,7 @@ const Updates = {
       await this.downloadUpdate();
     } else {
       localStorage.setItem('confeitex_update_deferred', String(Date.now()));
-      UI.toast('Atualização mantida para mais tarde.');
+      UI.toast(I18n.t('updates.toastLater'));
     }
   },
 
@@ -65,7 +65,7 @@ const Updates = {
     localStorage.removeItem('confeitex_pwa_dismissed');
 
     // Remove Service Worker antigo
-    this._updateProgress(15, 'Limpando cache anterior...');
+    this._updateProgress(15, I18n.t('updates.progressClearCache'));
     let swOk = 'serviceWorker' in navigator;
     if (swOk) {
       try {
@@ -76,17 +76,17 @@ const Updates = {
 
     // Se não suportar SW, marca como atualizado e mostra banner
     if (!swOk) {
-      await this._settleProgress(startedAt, 'Registrando atualização...');
+      await this._settleProgress(startedAt, I18n.t('updates.progressRegistering'));
       localStorage.setItem('confeitex_updated', 'true');
       localStorage.setItem('confeitex_ver', newVer);
-      this._updateProgress(100, '✅ Atualização registrada!');
+      this._updateProgress(100, I18n.t('updates.progressDone'));
       await this._delay(600);
       this._showUpdateBanner(newVer);
       return;
     }
 
     // Registra novo Service Worker
-    this._updateProgress(40, 'Registrando novo Service Worker...');
+    this._updateProgress(40, I18n.t('updates.progressRegisteringSw'));
     let reg;
     try {
       // Marca antes de registrar para o auto-reload saber que o update foi aceito
@@ -95,12 +95,12 @@ const Updates = {
     } catch {
       localStorage.removeItem('confeitex_updated');
       this._hideProgress();
-      UI.alert('Erro de conexão. Verifique sua internet e tente novamente.');
+      UI.alert(I18n.t('updates.noConnection') + ' ' + I18n.t('updates.retryMsg'));
       return;
     }
 
     // Aguarda instalação/ativação (máx 25s)
-    this._updateProgress(60, 'Ativando nova versão...');
+    this._updateProgress(60, I18n.t('updates.progressActivating'));
     const ativado = await Promise.race([
       new Promise(resolve => {
         const w = reg.installing;
@@ -126,9 +126,9 @@ const Updates = {
     localStorage.setItem('confeitex_ver', newVer);
 
     // Mantém a barra visível por pelo menos 10s para aplicar as mudanças com calma
-    await this._settleProgress(startedAt, 'Aplicando mudanças com segurança...');
+    await this._settleProgress(startedAt, I18n.t('updates.progressApplying'));
 
-    this._updateProgress(100, ativado ? '✅ Instalação concluída!' : '📦 Instalação concluída (ativará ao reabrir)');
+    this._updateProgress(100, ativado ? I18n.t('updates.progressDone') : I18n.t('updates.progressDoneDeferred'));
     await this._delay(800);
 
     // Mostra banner de notificação para o usuário decidir
@@ -144,11 +144,11 @@ const Updates = {
     const label = document.getElementById('updateProgressLabel');
     if (!banner || !text || !progress || !actions || !fill || !label) return;
 
-    text.textContent = `Baixando Confeitex v${ver}...`;
+    text.textContent = I18n.t('updates.downloadMsg', { version: ver });
     progress.style.display = 'flex';
     actions.style.display = 'none';
     fill.style.width = '0%';
-    label.textContent = 'Preparando...';
+    label.textContent = I18n.t('updates.progressPreparing');
 
     banner.style.display = 'flex';
     requestAnimationFrame(() => requestAnimationFrame(() => banner.classList.add('visible')));
@@ -208,7 +208,7 @@ const Updates = {
 
     progress.style.display = 'none';
     actions.style.display = 'flex';
-    text.textContent = `✅ Atualização Confeitex v${ver} instalada! Deseja recarregar agora para aplicar as mudanças?`;
+    text.textContent = I18n.t('updates.installedTitle', { version: ver });
 
     // Se o banner ainda não estiver visível (ex: sem SW), exibe
     if (!banner.classList.contains('visible')) {
@@ -235,50 +235,20 @@ const Updates = {
 
     btnClose.onclick = () => {
       hide();
-      UI.toast('🔄 A atualização será aplicada na próxima vez que você abrir o app.');
+      UI.toast(I18n.t('updates.toastApplyLater'));
     };
   },
 
   changelog: [
-    { ver: '1.22.0', date: '01/08/2026', items: [
-      'Novo: Custos de Matéria-Prima no Financeiro — registre gastos com ingredientes (descrição, valor e data) e acompanhe o total no período',
-      'Novo: Tela travada em retrato nos celulares — o app não rotaciona mais, mantendo a melhor visualização no dispositivo',
-      'Melhoria: Relatório Financeiro em PDF agora detalha custos de matéria-prima e o resultado final (bruto, custos e líquido)'
-    ] },
-    { ver: '1.21.0', date: '01/08/2026', items: [
-      'Novo: Central de notificações no app — sino no topo com histórico dos avisos recentes e acesso rápido ao pedido correspondente',
-      'Novo: Alertas de pedidos atrasados — avisa quando uma encomenda tem data de entrega vencida e ainda não foi entregue',
-      'Novo: Horário de silêncio — define o intervalo em que o app não envia notificações (ex.: 22h às 7h)'
-    ] },
-    { ver: '1.20.1', date: '01/08/2026', items: [
-      'Melhoria: Novo sistema de seleção de período no Financeiro — atalhos rápidos (Hoje, Ontem, Esta Semana, Este Mês, Mês Passado, Últimos 30 Dias, Todos) e intervalo personalizado "De/Até", substituindo a seleção confusa de mês e dia'
-    ] },
-    { ver: '1.20.0', date: '01/08/2026', items: [
-      'Novo: Relatório Financeiro em PDF — gera o relatório do período selecionado (mês ou dia) com os gráficos, pedidos completos e resultado final (bruto e líquido)'
-    ] },
-    { ver: '1.19.0', date: '31/07/2026', items: [
-      'Novo: Notificações com o app fechado — lembretes agendados no sistema (Notification Triggers) em Chrome/Edge/Android com o app instalado',
-      'Novo: Sincronização periódica em segundo plano como alternativa (Periodic Background Sync) em outros navegadores Chromium',
-      'Novo: Controles avançados de notificações — antecedência, frequência, status, valor total e hora do lembrete',
-      'Melhoria: verificação dentro do app continua funcionando como plano de segurança em todos os navegadores'
-    ] },
-    { ver: '1.18.1', date: '31/07/2026', items: [
-      'Melhoria: Histórico de versões limpo — apenas versões a partir da 1.17 são exibidas'
-    ] },
-    { ver: '1.18.0', date: '31/07/2026', items: [
-      'Correção: "Mais Tarde" agora realmente adia a atualização — o cache não é mais substituído em segundo plano antes de você confirmar',
-      'Correção: recarga automática ao trocar Service Worker agora só ocorre quando a atualização foi aceita (sem recarregar à toa)',
-      'Melhoria: Barra de progresso da atualização mais visível e estável durante a instalação',
-      'Melhoria: Instalação aguarda cerca de 10 segundos com a barra em andamento para aplicar todas as mudanças com segurança'
-    ] },
-    { ver: '1.17.0', date: '31/07/2026', items: [
-      'Novo: Lixeira com restauração em até 7 dias — pedidos excluídos não são mais perdidos permanentemente',
-      'Novo: Botão "Excluir" na tela de Clientes — move todos os pedidos do cliente para a lixeira',
-      'Segurança: Senha de bloqueio reforçada com PBKDF2 + salt (hash único por instalação)',
-      'Melhoria: Cálculo de valores de pedidos mais robusto e moeda formatada sem quebras de linha',
-      'Melhoria: Notificações re-checadas ao focar a janela e status sincronizado com as configurações',
-      'Design & Marca: Nova logo minimalista "Bolo em Traço" — traços finos em fundo escuro com chama em gradiente, para ícone do app, favicon e header'
-    ] },
+    { ver: '1.23.0', date: '01/08/2026', keys: ['changelog.1230', 'changelog.1231', 'changelog.1232'] },
+    { ver: '1.22.0', date: '01/08/2026', keys: ['changelog.1220', 'changelog.1221', 'changelog.1222'] },
+    { ver: '1.21.0', date: '01/08/2026', keys: ['changelog.1210', 'changelog.1211', 'changelog.1212'] },
+    { ver: '1.20.1', date: '01/08/2026', keys: ['changelog.1201'] },
+    { ver: '1.20.0', date: '01/08/2026', keys: ['changelog.1200'] },
+    { ver: '1.19.0', date: '31/07/2026', keys: ['changelog.1190', 'changelog.1191', 'changelog.1192', 'changelog.1193'] },
+    { ver: '1.18.1', date: '31/07/2026', keys: ['changelog.1811'] },
+    { ver: '1.18.0', date: '31/07/2026', keys: ['changelog.1800', 'changelog.1801', 'changelog.1802', 'changelog.1803'] },
+    { ver: '1.17.0', date: '31/07/2026', keys: ['changelog.1170', 'changelog.1171', 'changelog.1172', 'changelog.1173', 'changelog.1174', 'changelog.1175'] },
   ],
 
   render() {
@@ -286,24 +256,27 @@ const Updates = {
     localStorage.setItem('confeitex_ver', displayVer);
     document.getElementById('updatesCurrentVer').textContent = `v${displayVer}`;
     const lastCheck = localStorage.getItem('confeitex_last_check');
-    document.getElementById('updatesLastCheck').textContent = lastCheck || 'Nunca verificada';
+    document.getElementById('updatesLastCheck').textContent = lastCheck || I18n.t('updates.neverChecked');
     this.renderChangelog();
     this.updateStatus('');
   },
 
   renderChangelog() {
     const container = document.getElementById('updatesChangelog');
-    container.innerHTML = this.changelog.map(v => `
+    container.innerHTML = this.changelog.map(v => {
+      const items = v.keys.map(k => I18n.t(k));
+      return `
       <div style="border-bottom:1px solid var(--border-color);padding-bottom:0.75rem;">
         <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.35rem;">
           <span style="background:var(--gradient-primary);color:#fff;font-size:0.65rem;font-weight:700;padding:0.15rem 0.5rem;border-radius:50px;">v${v.ver}</span>
           <span style="font-size:0.75rem;color:var(--text-muted);">${v.date}</span>
         </div>
         <ul style="margin:0;padding-left:1.25rem;font-size:0.8rem;color:var(--text-secondary);display:flex;flex-direction:column;gap:0.2rem;">
-          ${v.items.map(i => `<li>${i}</li>`).join('')}
+          ${items.map(i => `<li>${i}</li>`).join('')}
         </ul>
       </div>
-    `).join('');
+    `;
+    }).join('');
   },
 
   updateStatus(msg, isError) {
@@ -314,38 +287,38 @@ const Updates = {
 
   async check() {
     const btn = document.getElementById('btnCheckUpdates');
-    const btnHtml = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg> Verificar Agora';
+    const btnHtml = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg> ' + I18n.t('updates.checkNow');
     btn.disabled = true;
-    btn.innerHTML = '<span class="login-spinner"></span> Verificando...';
-    this.updateStatus('Verificando...');
+    btn.innerHTML = '<span class="login-spinner"></span> ' + I18n.t('updates.checking');
+    this.updateStatus(I18n.t('updates.checking'));
 
     const serverVer = await this._fetchVersion();
-    localStorage.setItem('confeitex_last_check', new Date().toLocaleString('pt-BR'));
+    localStorage.setItem('confeitex_last_check', new Date().toLocaleString(I18n.locales[I18n.lang] || 'pt-BR'));
     document.getElementById('updatesLastCheck').textContent = localStorage.getItem('confeitex_last_check');
 
     if (serverVer && serverVer !== this.verAtual) {
       const confirmado = await UI.confirm({
-        title: 'Nova versão disponível',
-        message: `Atualização v${serverVer} encontrada!\n\nClique em "Atualizar" para instalar em segundo plano. Você poderá continuar usando o app durante a instalação.`,
-        confirmText: 'Atualizar',
+        title: I18n.t('updates.promptTitle'),
+        message: I18n.t('updates.promptFound', { version: serverVer }),
+        confirmText: I18n.t('updates.reloadNow'),
         variant: 'primary'
       });
       if (!confirmado) {
-        this.updateStatus('Atualização cancelada.');
+        this.updateStatus(I18n.t('updates.cancelled'));
         btn.disabled = false;
         btn.innerHTML = btnHtml;
         return;
       }
-      this.updateStatus(`Nova versão v${serverVer} encontrada! Instalando...`);
+      this.updateStatus(I18n.t('updates.newFound', { version: serverVer }));
       btn.disabled = false;
       btn.innerHTML = btnHtml;
       localStorage.setItem('confeitex_ver', serverVer);
       await this.downloadUpdate();
       return;
     } else if (serverVer === this.verAtual) {
-      this.updateStatus('App atualizado! Você está na versão mais recente.');
+      this.updateStatus(I18n.t('updates.upToDate'));
     } else {
-      this.updateStatus('Sem conexão com a internet.', true);
+      this.updateStatus(I18n.t('updates.noConnection'), true);
     }
 
     btn.disabled = false;

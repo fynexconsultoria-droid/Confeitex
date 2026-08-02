@@ -290,7 +290,7 @@ const Notifications = {
     const btnClear = document.getElementById('btnNotifClear');
     if (btnClear) btnClear.addEventListener('click', () => {
       this.clearHistory();
-      UI.toast('Histórico de notificações limpo.');
+      UI.toast(I18n.t('notif.settings.toastCleared'));
     });
 
     document.addEventListener('click', (e) => {
@@ -303,6 +303,16 @@ const Notifications = {
     });
 
     this._updateBadge();
+  },
+
+  // Atualiza a interface quando o idioma muda
+  refreshUI() {
+    this._updateBadge();
+    const dd = document.getElementById('notifDropdown');
+    if (dd && dd.classList.contains('open')) this._renderBellList();
+    if (typeof Settings !== 'undefined' && Settings.renderNotificationStatus) {
+      Settings.renderNotificationStatus();
+    }
   },
 
   init() {
@@ -394,19 +404,19 @@ const Notifications = {
 
   async sendTestNotification() {
     if (!('Notification' in window)) {
-      UI.alert('Seu navegador não suporta notificações.');
+      UI.alert(I18n.t('notif.settings.alertUnsupported'));
       return false;
     }
     if (Notification.permission !== 'granted') {
       const ok = await this.enable();
       if (!ok) {
-        UI.alert('Permissão de notificações negada pelo navegador.');
+        UI.alert(I18n.t('notif.settings.alertDenied'));
         return false;
       }
     }
     try {
-      const title = 'Confeitex - Teste de Notificação 🎂';
-      const body = 'As notificações do Confeitex estão ativas e funcionando perfeitamente!';
+      const title = I18n.t('notif.testTitle');
+      const body = I18n.t('notif.testBody');
       new Notification(title, {
         body,
         icon: 'icons/icon-192x192.png',
@@ -429,26 +439,27 @@ const Notifications = {
 
   _buildContent(matchingOrders, dayOffset, targetDateStr, settings) {
     const dayLabels = {
-      0: 'Hoje',
-      1: 'Amanhã',
-      2: 'em 2 Dias',
-      3: 'em 3 Dias'
+      0: I18n.t('notif.day0'),
+      1: I18n.t('notif.day1'),
+      2: I18n.t('notif.day2'),
+      3: I18n.t('notif.day3')
     };
-    let bodyMsg = `${matchingOrders.length} entrega(s) agendada(s) para ${dayLabels[dayOffset] || `dia ${targetDateStr}`}:\n`;
+    const dayLabel = dayLabels[dayOffset] || targetDateStr;
+    let bodyMsg = I18n.t('notif.deliveriesScheduled', { count: matchingOrders.length, day: dayLabel }) + '\n';
     bodyMsg += matchingOrders.slice(0, 3).map(o => `• ${o.deliveryTime || ''} ${o.clientName}: ${o.flavor}`).join('\n');
     if (matchingOrders.length > 3) {
-      bodyMsg += `\ne mais ${matchingOrders.length - 3} pedido(s)...`;
+      bodyMsg += I18n.t('notif.andMore', { count: matchingOrders.length - 3 });
     }
     if (settings.alertPendingPayment) {
       const withPendingVal = matchingOrders.filter(o => (o.totalValue || 0) > 0);
       if (withPendingVal.length > 0) {
         const totalVal = withPendingVal.reduce((s, o) => s + (o.totalValue || 0), 0);
-        bodyMsg += `\n💰 Valor total: R$ ${totalVal.toFixed(2).replace('.', ',')}`;
+        bodyMsg += I18n.t('notif.totalValue', { value: totalVal.toFixed(2).replace('.', ',') });
       }
     }
     const title = dayOffset === 0
-      ? 'Confeitex - Entregas de Hoje! 🎂'
-      : `Confeitex - Lembrete: Entregas ${dayLabels[dayOffset] || 'em breve'} 🎂`;
+      ? I18n.t('notif.todayTitle')
+      : I18n.t('notif.reminderTitle', { day: dayLabel });
     return { title, body: bodyMsg, orderIds: matchingOrders.map(o => o.id) };
   },
 
@@ -472,7 +483,7 @@ const Notifications = {
     try { sent = JSON.parse(localStorage.getItem('confeitex_notified') || '{}'); } catch (e) {}
     const now = new Date();
     const [rh, rm] = (settings.reminderTime || '08:00').split(':').map(Number);
-    const todayStr = now.toISOString().split('T')[0];
+    const todayStr = fmtISO(now);
 
     const combos = new Set();
     (State.orders || []).forEach(o => {
@@ -557,6 +568,7 @@ const Notifications = {
       const snapshot = {
         enabled: true,
         updatedAt: Date.now(),
+        lang: (typeof I18n !== 'undefined' && I18n.lang) || 'pt-BR',
         settings: {
           daysBefore: settings.daysBefore,
           statuses: settings.statuses,
@@ -604,7 +616,7 @@ const Notifications = {
     let sent = {};
     try { sent = JSON.parse(localStorage.getItem('confeitex_notified') || '{}'); } catch (e) { sent = {}; }
     const now = new Date();
-    const todayStr = now.toISOString().split('T')[0];
+    const todayStr = fmtISO(now);
 
     // Limpa chaves de datas passadas (evita acúmulo)
     let dirty = false;
@@ -620,7 +632,7 @@ const Notifications = {
 
     for (const dayOffset of daysBeforeList) {
       const targetDateObj = new Date(now.getTime() + dayOffset * 86400000);
-      const targetDateStr = targetDateObj.toISOString().split('T')[0];
+      const targetDateStr = fmtISO(targetDateObj);
 
       const matchingOrders = State.orders.filter(o => {
         if (o.deliveryDate !== targetDateStr) return false;
@@ -666,13 +678,13 @@ const Notifications = {
       if (overdueOrders.length > 0) {
         const cacheKey = `overdue_${todayStr}`;
         if (!sent[cacheKey]) {
-          let bodyMsg = `${overdueOrders.length} pedido(s) com entrega atrasada:\n`;
+          let bodyMsg = I18n.t('notif.overdueBody', { count: overdueOrders.length }) + '\n';
           bodyMsg += overdueOrders.slice(0, 3).map(o =>
             `• ${o.clientName}: ${o.flavor} (${fmtDateStr(o.deliveryDate)})`).join('\n');
           if (overdueOrders.length > 3) {
-            bodyMsg += `\ne mais ${overdueOrders.length - 3} pedido(s)...`;
+            bodyMsg += I18n.t('notif.andMore', { count: overdueOrders.length - 3 });
           }
-          const title = 'Confeitex - Pedidos Atrasados ⚠️';
+          const title = I18n.t('notif.overdueTitle');
           new Notification(title, {
             body: bodyMsg,
             icon: 'icons/icon-192x192.png',

@@ -1679,21 +1679,79 @@ select.form-control {
 /* Chart Tooltip */
 #chartTooltip {
   position: absolute;
-  background: rgba(19, 15, 38, 0.95);
-  border: 1px solid var(--border-color);
-  border-radius: var(--border-radius-sm);
-  padding: 0.5rem 0.75rem;
+  background: rgba(22, 17, 45, 0.97);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--border-radius-md);
+  padding: 0.65rem 0.85rem;
   font-size: 0.75rem;
   color: var(--text-primary);
   pointer-events: none;
   opacity: 0;
-  transition: opacity 0.2s ease;
-  z-index: 10;
-  box-shadow: var(--shadow-sm);
+  transition: opacity 0.15s ease;
+  z-index: 20;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
   line-height: 1.4;
+  min-width: 160px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-top: 2px solid var(--color-accent-pink);
 }
 #chartTooltip.visible { opacity: 1; }
-#chartTooltip strong { color: var(--color-accent-pink); }
+
+#chartTooltip .ct-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 0.4rem;
+  margin-bottom: 0.5rem;
+  gap: 0.5rem;
+}
+#chartTooltip .ct-weekday {
+  font-weight: 800;
+  font-size: 0.78rem;
+  text-transform: capitalize;
+  color: #fff;
+}
+#chartTooltip .ct-date {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+#chartTooltip .ct-row {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.15rem 0;
+}
+#chartTooltip .ct-label {
+  color: var(--text-secondary);
+  font-weight: 500;
+  flex: 1;
+}
+#chartTooltip .ct-value {
+  color: #fff;
+  font-weight: 700;
+}
+#chartTooltip .ct-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+#chartTooltip .ct-dot.pink { background: var(--color-accent-pink); box-shadow: 0 0 6px var(--color-accent-pink); }
+#chartTooltip .ct-dot.purple { background: var(--color-accent-purple); box-shadow: 0 0 6px var(--color-accent-purple); }
+#chartTooltip .ct-dot.teal { background: var(--color-success); box-shadow: 0 0 6px var(--color-success); }
+#chartTooltip .ct-delta {
+  font-size: 0.62rem;
+  font-weight: 800;
+  padding: 0.05rem 0.3rem;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+#chartTooltip .ct-delta-up { color: #34d399; background: rgba(52, 211, 153, 0.12); }
+#chartTooltip .ct-delta-down { color: #f87171; background: rgba(248, 113, 113, 0.12); }
+#chartTooltip .ct-delta-new { color: #fbbf24; background: rgba(251, 191, 36, 0.12); }
 
 /* Client row expandable */
 .client-row {

@@ -43,9 +43,9 @@ const Finance = {
       const el = document.querySelector(`#finances .metric-card:nth-child(${n}) .metric-footer`);
       if (el) el.textContent = text;
     };
-    setMetricFooter(1, singleDay ? 'Total de vendas do dia' : 'Total de vendas do período');
-    setMetricFooter(2, singleDay ? 'Total de custos do dia' : 'Total de custos do período');
-    setMetricFooter(4, singleDay ? 'Total de pedidos do dia' : 'Total de pedidos no período');
+    setMetricFooter(1, singleDay ? I18n.t('finance.footerRevenueDay') : I18n.t('finance.footerRevenue'));
+    setMetricFooter(2, singleDay ? I18n.t('finance.footerCostDay') : I18n.t('finance.footerCost'));
+    setMetricFooter(4, singleDay ? I18n.t('finance.footerOrdersDay') : I18n.t('finance.footerOrders'));
 
     const allActive = State.orders.filter(o => o.status !== 'Cancelado');
     const allCanceled = State.orders.filter(o => o.status === 'Cancelado');
@@ -80,7 +80,7 @@ const Finance = {
 
     const groups = {};
     orders.forEach(o => {
-      const key = o[field] || 'Outros';
+      const key = o[field] || I18n.value('product', 'Outros');
       groups[key] = (groups[key] || 0) + 1;
     });
 
@@ -102,7 +102,7 @@ const Finance = {
       ctx.font = '13px "Plus Jakarta Sans", system-ui, sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText('Sem dados no período', w / 2, h / 2);
+      ctx.fillText(I18n.t('finance.noData'), w / 2, h / 2);
       const legendEl = document.getElementById(legendId);
       if (legendEl) legendEl.innerHTML = '';
       return;
@@ -164,11 +164,17 @@ const Finance = {
 
     const legendEl = document.getElementById(legendId);
     if (legendEl) {
+      const labelFor = (key) => {
+        if (field === 'productType') return I18n.value('product', key);
+        if (field === 'status') return I18n.value('status', key);
+        if (field === 'paymentMethod') return I18n.value('payment', key);
+        return key;
+      };
       legendEl.innerHTML = entries.map(([key, val]) => {
         const pct = Math.round(val / total * 100);
         return `<div class="finance-legend-item">
           <span class="finance-legend-dot" style="background:${getColor(key)}"></span>
-          <span class="finance-legend-label">${escapeHTML(key)}</span>
+          <span class="finance-legend-label">${escapeHTML(labelFor(key))}</span>
           <span class="finance-legend-value">${val} (${pct}%)</span>
         </div>`;
       }).join('');
@@ -207,8 +213,8 @@ const Finance = {
     if (expenses.length === 0) {
       listEl.innerHTML = `<div class="empty-state" style="padding:1.2rem 0;">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-        <h3>Nenhum custo no período</h3>
-        <p style="font-size:0.8rem;">Registre gastos com matéria-prima acima.</p>
+        <h3>${I18n.t('finance.expListEmpty')}</h3>
+        <p style="font-size:0.8rem;">${I18n.t('finance.expEmptySub')}</p>
       </div>`;
       return;
     }
@@ -216,11 +222,11 @@ const Finance = {
     listEl.innerHTML = expenses.map(e => `
       <div class="expense-item">
         <div style="flex:1;min-width:0;">
-          <span class="expense-item-desc">${escapeHTML(e.description || 'Custo')}</span>
+          <span class="expense-item-desc">${escapeHTML(e.description || I18n.t('finance.expFallback'))}</span>
           <span class="expense-item-date">📅 ${fmtDateStr(e.date)}</span>
         </div>
         <span class="expense-item-value">${fmt(e.amount)}</span>
-        <button class="btn btn-secondary btn-icon-only btn-del-expense" data-id="${escapeHTML(e.id)}" title="Excluir" style="padding:0.3rem;color:var(--color-danger);border-color:rgba(239,68,68,0.2);">
+        <button class="btn btn-secondary btn-icon-only btn-del-expense" data-id="${escapeHTML(e.id)}" title="${I18n.t('common.delete')}" style="padding:0.3rem;color:var(--color-danger);border-color:rgba(239,68,68,0.2);">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
         </button>
       </div>
@@ -229,7 +235,7 @@ const Finance = {
 
   _addExpense(description, amount, date) {
     if (!description.trim() || !amount || amount <= 0 || !date) {
-      UI.alert('Preencha descrição, valor e data do custo.');
+      UI.alert(I18n.t('finance.alertExpense'));
       return false;
     }
     State.expenses.push({
@@ -239,24 +245,24 @@ const Finance = {
       date
     });
     State.saveExpenses();
-    UI.toast('Custo de matéria-prima adicionado');
+    UI.toast(I18n.t('finance.toastExpAdded'));
     return true;
   },
 
   _deleteExpense(id) {
     State.expenses = State.expenses.filter(e => e.id !== id);
     State.saveExpenses();
-    UI.toast('Custo excluído');
+    UI.toast(I18n.t('finance.toastExpDeleted'));
     this._updateAll();
   },
 
   _periodLabel() {
     const { from, to } = this._range;
     if (from && to) {
-      if (from === to) return `Dia ${fmtDateStr(from)}`;
-      return `De ${fmtDateStr(from)} a ${fmtDateStr(to)}`;
+      if (from === to) return I18n.t('finance.periodDay', { date: fmtDateStr(from) });
+      return I18n.t('finance.periodRange', { from: fmtDateStr(from), to: fmtDateStr(to) });
     }
-    return 'Todos os períodos';
+    return I18n.t('finance.periodAll');
   },
 
   _captureChart(canvasId, legendId, title) {
@@ -294,23 +300,23 @@ const Finance = {
     const margin = sales > 0 ? (profit / sales) * 100 : 0;
     const avgTicket = active.length > 0 ? sales / active.length : 0;
 
-    const hoje = new Date().toLocaleDateString('pt-BR');
+    const hoje = new Date().toLocaleDateString(I18n.locales[I18n.lang] || 'pt-BR');
 
     const linhas = orders.length > 0 ? orders.map(o =>
       `<tr>
         <td><strong>${escapeHTML(o.clientName)}</strong>${o.clientPhone ? `<br><small>${escapeHTML(o.clientPhone)}</small>` : ''}</td>
-        <td>${escapeHTML(o.flavor || '')}${o.productType ? `<br><small>${escapeHTML(o.productType)}</small>` : ''}</td>
+        <td>${escapeHTML(o.flavor || '')}${o.productType ? `<br><small>${escapeHTML(I18n.value('product', o.productType))}</small>` : ''}</td>
         <td>${fmtDateStr(o.deliveryDate)}${o.deliveryTime ? ' ' + escapeHTML(o.deliveryTime) : ''}</td>
-        <td style="text-align:center">${escapeHTML(o.paymentMethod || '—')}</td>
-        <td style="text-align:center">${escapeHTML(o.status)}</td>
+        <td style="text-align:center">${escapeHTML(I18n.value('payment', o.paymentMethod))}</td>
+        <td style="text-align:center">${escapeHTML(I18n.value('status', o.status))}</td>
         <td style="text-align:right;font-weight:bold;">${fmt(getOrderTotal(o))}</td>
       </tr>`
-    ).join('') : `<tr><td colspan="6" style="text-align:center;color:#999;">Sem pedidos no período selecionado.</td></tr>`;
+    ).join('') : `<tr><td colspan="6" style="text-align:center;color:#999;">${I18n.t('finance.pdfNoOrders')}</td></tr>`;
 
     const charts =
-      this._captureChart('finPieProductChart', 'finPieProductLegend', 'Pedidos por Tipo de Produto') +
-      this._captureChart('finPiePaymentChart', 'finPiePaymentLegend', 'Formas de Pagamento') +
-      this._captureChart('finPieStatusChart', 'finPieStatusLegend', 'Pedidos por Status');
+      this._captureChart('finPieProductChart', 'finPieProductLegend', I18n.t('finance.pdfTypeProduct')) +
+      this._captureChart('finPiePaymentChart', 'finPiePaymentLegend', I18n.t('finance.pdfTypePayment')) +
+      this._captureChart('finPieStatusChart', 'finPieStatusLegend', I18n.t('finance.pdfTypeStatus'));
 
     const htmlContent = `<!DOCTYPE html>
 <html><head><meta charset="utf-8"><title>Relatório Financeiro Confeitex - ${hoje}</title>
@@ -345,48 +351,48 @@ const Finance = {
   .muted{color:#999}
   @media print{body{padding:0}th{background:#eee!important}}
 </style></head><body>
-<h1>🎂 Confeitex — Relatório Financeiro</h1>
-<p class="subtitle">Gerado em ${hoje} <span class="period-tag">📅 ${escapeHTML(this._periodLabel())}</span></p>
+<h1>🎂 ${I18n.t('finance.pdfTitleReport')}</h1>
+<p class="subtitle">${I18n.t('finance.pdfGenerated', { date: hoje })} <span class="period-tag">📅 ${escapeHTML(this._periodLabel())}</span></p>
 
 <div class="kpi-grid">
-  <div class="kpi"><div class="kpi-label">Faturamento (Bruto)</div><div class="kpi-value pink">${fmt(sales)}</div></div>
-  <div class="kpi"><div class="kpi-label">Custos</div><div class="kpi-value blue">${fmt(cost)}</div></div>
-  <div class="kpi"><div class="kpi-label">Lucro (Líquido)</div><div class="kpi-value green">${fmt(profit)}</div></div>
-  <div class="kpi"><div class="kpi-label">Pedidos</div><div class="kpi-value purple">${orders.length}</div></div>
+  <div class="kpi"><div class="kpi-label">${I18n.t('finance.pdfRevenue')}</div><div class="kpi-value pink">${fmt(sales)}</div></div>
+  <div class="kpi"><div class="kpi-label">${I18n.t('finance.pdfCost')}</div><div class="kpi-value blue">${fmt(cost)}</div></div>
+  <div class="kpi"><div class="kpi-label">${I18n.t('finance.pdfProfit')}</div><div class="kpi-value green">${fmt(profit)}</div></div>
+  <div class="kpi"><div class="kpi-label">${I18n.t('finance.pdfOrders')}</div><div class="kpi-value purple">${orders.length}</div></div>
 </div>
 
-<div class="section-title">📊 Gráficos do Período</div>
+<div class="section-title">📊 ${I18n.t('finance.pdfCharts')}</div>
 <div class="charts-grid">
-  ${charts || '<p class="muted">Nenhum gráfico disponível.</p>'}
+  ${charts || `<p class="muted">${I18n.t('finance.pdfNoCharts')}</p>`}
 </div>
 
-<div class="section-title">📋 Pedidos do Período (${orders.length})</div>
+<div class="section-title">📋 ${I18n.t('finance.pdfOrdersList', { count: orders.length })}</div>
 <table><thead><tr>
-<th>Cliente</th><th>Produto / Sabor</th><th>Entrega</th><th>Pagamento</th><th>Status</th><th style="text-align:right">Valor</th>
+<th>${I18n.t('finance.pdfClient')}</th><th>${I18n.t('finance.pdfProduct')}</th><th>${I18n.t('finance.pdfDelivery')}</th><th>${I18n.t('finance.pdfPayment')}</th><th>${I18n.t('finance.pdfStatus')}</th><th style="text-align:right">${I18n.t('finance.pdfValue')}</th>
 </tr></thead><tbody>${linhas}</tbody></table>
 
 ${expenses.length > 0 ? `
-<div class="section-title">🧾 Custos de Matéria-Prima do Período (${expenses.length})</div>
+<div class="section-title">🧾 ${I18n.t('finance.pdfExpList', { count: expenses.length })}</div>
 <table><thead><tr>
-<th>Descrição</th><th>Data</th><th style="text-align:right">Valor</th>
+<th>${I18n.t('finance.pdfDesc')}</th><th>${I18n.t('finance.expDate')}</th><th style="text-align:right">${I18n.t('finance.pdfValue')}</th>
 </tr></thead><tbody>${expenses.map(e => `
   <tr>
-    <td>${escapeHTML(e.description || 'Custo')}</td>
+    <td>${escapeHTML(e.description || I18n.t('finance.expFallback'))}</td>
     <td>${fmtDateStr(e.date)}</td>
     <td style="text-align:right;font-weight:bold;">${fmt(e.amount)}</td>
   </tr>`).join('')}
 </tbody></table>` : ''}
 
-<div class="section-title">💰 Resultado Final</div>
+<div class="section-title">💰 ${I18n.t('finance.pdfResult')}</div>
 <table class="result-table">
-  <tr class="result-bruto"><td>Faturamento Bruto</td><td style="text-align:right">${fmt(sales)}</td></tr>
-  <tr><td>Custo dos Pedidos (matéria-prima estimada)</td><td style="text-align:right">${fmt(orderCost)}</td></tr>
-  <tr><td>Custos de Matéria-Prima registrados</td><td style="text-align:right">${fmt(expensesTotal)}</td></tr>
-  <tr><td>Total de Custos</td><td style="text-align:right">${fmt(cost)}</td></tr>
-  <tr class="result-liquido"><td>Lucro Líquido</td><td style="text-align:right">${fmt(profit)}</td></tr>
-  <tr><td>Margem de Lucro</td><td style="text-align:right">${margin.toFixed(1).replace('.', ',')}%</td></tr>
-  <tr><td>Ticket Médio</td><td style="text-align:right">${fmt(avgTicket)}</td></tr>
-  <tr class="result-total"><td>Pedidos Ativos / Cancelados</td><td style="text-align:right">${active.length} / ${canceled.length}</td></tr>
+  <tr class="result-bruto"><td>${I18n.t('finance.pdfGross')}</td><td style="text-align:right">${fmt(sales)}</td></tr>
+  <tr><td>${I18n.t('finance.pdfOrderCost')}</td><td style="text-align:right">${fmt(orderCost)}</td></tr>
+  <tr><td>${I18n.t('finance.pdfExpCost')}</td><td style="text-align:right">${fmt(expensesTotal)}</td></tr>
+  <tr><td>${I18n.t('finance.pdfTotalCost')}</td><td style="text-align:right">${fmt(cost)}</td></tr>
+  <tr class="result-liquido"><td>${I18n.t('finance.pdfNet')}</td><td style="text-align:right">${fmt(profit)}</td></tr>
+  <tr><td>${I18n.t('finance.pdfMargin')}</td><td style="text-align:right">${margin.toFixed(1).replace('.', ',')}%</td></tr>
+  <tr><td>${I18n.t('finance.pdfAvgTicket')}</td><td style="text-align:right">${fmt(avgTicket)}</td></tr>
+  <tr class="result-total"><td>${I18n.t('finance.pdfActiveCanceled')}</td><td style="text-align:right">${active.length} / ${canceled.length}</td></tr>
 </table>
 </body></html>`;
 
@@ -411,10 +417,10 @@ ${expenses.length > 0 ? `
       try {
         iframe.contentWindow.focus();
         iframe.contentWindow.print();
-        UI.toast('Relatório financeiro pronto para salvar como PDF');
+        UI.toast(I18n.t('finance.toastPdf'));
       } catch (e) {
         console.warn('[PDF Print Error]:', e);
-        UI.alert('Não foi possível iniciar a impressão. Verifique se o navegador bloqueou a ação.');
+        UI.alert(I18n.t('settings.alertNoPdf'));
       }
     }, 400);
   },
@@ -462,7 +468,7 @@ ${expenses.length > 0 ? `
     // Custos de Matéria-Prima
     const btnAdd = document.getElementById('btnAddExpense');
     const dateInput = document.getElementById('expenseDate');
-    if (dateInput && !dateInput.value) dateInput.value = new Date().toISOString().split('T')[0];
+    if (dateInput && !dateInput.value) dateInput.value = _fmtISO(new Date());
 
     const onAddExpense = () => {
       const desc = document.getElementById('expenseDescription').value;
@@ -493,7 +499,7 @@ ${expenses.length > 0 ? `
 // Utilitários de período
 // ============================================================
 
-const _fmtISO = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const _fmtISO = fmtISO;
 
 function _presetRange(preset) {
   const now = new Date();

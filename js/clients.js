@@ -8,7 +8,7 @@ const Clients = {
     State.orders.forEach(o => {
       if (!o.clientName) return;
       const key = o.clientPhone ? `${o.clientName.trim()}_${o.clientPhone.trim()}` : o.clientName.trim();
-      if (!map[key]) map[key] = { name: o.clientName, phone: o.clientPhone || 'Sem telefone', totalOrders: 0, totalSpent: 0, ordersList: [] };
+      if (!map[key]) map[key] = { name: o.clientName, phone: o.clientPhone || I18n.t('clients.noPhone'), totalOrders: 0, totalSpent: 0, ordersList: [] };
       map[key].totalOrders++;
       if (o.status !== 'Cancelado') map[key].totalSpent += getOrderTotal(o);
       map[key].ordersList.push(o);
@@ -46,34 +46,34 @@ const Clients = {
           <div class="client-detail-content">
             <div class="client-detail-info">
               <div class="client-detail-item">
-                <span class="client-detail-label">Telefone</span>
+                <span class="client-detail-label">${I18n.t('clients.thPhone')}</span>
                 <span>${escapeHTML(c.phone)}</span>
               </div>
               <div class="client-detail-item">
-                <span class="client-detail-label">Total de Pedidos</span>
-                <span style="color:var(--color-accent-purple);font-weight:700;">${c.totalOrders} pedido(s)</span>
+                <span class="client-detail-label">${I18n.t('clients.detailTotalOrders')}</span>
+                <span style="color:var(--color-accent-purple);font-weight:700;">${I18n.t('clients.orderCount', { count: c.totalOrders })}</span>
               </div>
               <div class="client-detail-item">
-                <span class="client-detail-label">Total Gasto</span>
+                <span class="client-detail-label">${I18n.t('clients.detailTotalSpent')}</span>
                 <span style="color:var(--color-accent-pink);font-weight:700;">${fmt(c.totalSpent)}</span>
               </div>
               <div class="client-detail-item">
-                <span class="client-detail-label">Total em Kg</span>
+                <span class="client-detail-label">${I18n.t('clients.detailTotalKg')}</span>
                 <span>${totalKg.toFixed(1).replace('.', ',')} Kg</span>
               </div>
             </div>
             <div class="client-detail-actions">
               <button class="btn btn-secondary btn-sm btn-edit-client" data-idx="${idx}">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                Editar Cliente
+                ${I18n.t('clients.actEditClient')}
               </button>
               <button class="btn btn-secondary btn-sm btn-view-history" data-idx="${idx}" style="color:var(--color-accent-blue);border-color:rgba(59,130,246,0.2);">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                Ver Histórico & Pedidos
+                ${I18n.t('clients.actHistory')}
               </button>
               <button class="btn btn-secondary btn-sm btn-delete-client" data-idx="${idx}" style="color:var(--color-danger);border-color:rgba(239,68,68,0.2);">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-                Excluir
+                ${I18n.t('clients.actDelete')}
               </button>
             </div>
           </div>
@@ -109,16 +109,16 @@ const Clients = {
 
     const searchInput = document.getElementById('clientSearchInput');
     if (!searchInput.dataset.hasListener) {
-      searchInput.addEventListener('input', () => this.render());
+      searchInput.addEventListener('input', debounce(() => this.render(), 250));
       searchInput.dataset.hasListener = '1';
     }
   },
 
   openEdit(client) {
     document.getElementById('editClientName').value = client.name;
-    document.getElementById('editClientPhone').value = client.phone === 'Sem telefone' ? '' : client.phone;
+    document.getElementById('editClientPhone').value = client.phone === I18n.t('clients.noPhone') ? '' : client.phone;
     document.getElementById('editClientOriginalName').value = client.name;
-    document.getElementById('editClientOriginalPhone').value = client.phone === 'Sem telefone' ? '' : client.phone;
+    document.getElementById('editClientOriginalPhone').value = client.phone === I18n.t('clients.noPhone') ? '' : client.phone;
     document.getElementById('clientEditModal').classList.add('active');
   },
 
@@ -128,7 +128,7 @@ const Clients = {
     const newName = document.getElementById('editClientName').value.trim();
     const newPhone = document.getElementById('editClientPhone').value.trim();
 
-    if (!newName) { UI.alert('O nome do cliente é obrigatório.'); return; }
+    if (!newName) { UI.alert(I18n.t('clients.alertName')); return; }
 
     State.orders.forEach(o => {
       const matchName = o.clientName === origName;
@@ -143,16 +143,16 @@ const Clients = {
     this.render();
     const tab = document.querySelector('.nav-link.active')?.dataset.tab;
     if (tab === 'dashboard') Dashboard.update();
-    UI.toast('Cliente atualizado em todos os pedidos');
+    UI.toast(I18n.t('clients.toastSaved'));
   },
 
   openHistory(client) {
     document.getElementById('clientDetailName').textContent = client.name;
-    document.getElementById('clientDetailPhone').textContent = `Telefone: ${client.phone}`;
+    document.getElementById('clientDetailPhone').textContent = I18n.t('clients.detailPhone', { phone: client.phone });
     document.getElementById('clientDetailOrdersCount').textContent = client.totalOrders;
     document.getElementById('clientDetailSpent').textContent = fmt(client.totalSpent);
     document.getElementById('btnEditFromHistory').dataset.name = client.name;
-    document.getElementById('btnEditFromHistory').dataset.phone = client.phone === 'Sem telefone' ? '' : client.phone;
+    document.getElementById('btnEditFromHistory').dataset.phone = client.phone === I18n.t('clients.noPhone') ? '' : client.phone;
 
     const list = document.getElementById('clientOrdersHistoryList');
     const sorted = [...client.ordersList].sort((a, b) => b.deliveryDate.localeCompare(a.deliveryDate));
@@ -161,14 +161,14 @@ const Clients = {
       const val = getOrderTotal(o);
       return `<div class="client-history-item" style="display:flex;justify-content:space-between;align-items:center;gap:0.75rem;padding:0.75rem;background:rgba(255,255,255,0.02);border:1px solid var(--border-color);border-radius:var(--border-radius-md);margin-bottom:0.5rem;">
         <div style="flex:1;min-width:0;">
-          <div style="font-weight:700;font-size:0.9rem;color:white;">${escapeHTML(o.flavor)} <span style="font-size:0.75rem;color:var(--text-muted); font-weight:400;">(${o.productType} · ${formatWeight(o)})</span></div>
-          <div style="font-size:0.75rem;color:var(--text-secondary);margin-top:0.2rem;">Entrega: <strong>${fmtDateStr(o.deliveryDate)}</strong> às <strong>${o.deliveryTime}</strong></div>
+          <div style="font-weight:700;font-size:0.9rem;color:white;">${escapeHTML(o.flavor)} <span style="font-size:0.75rem;color:var(--text-muted); font-weight:400;">(${escapeHTML(I18n.value('product', o.productType))} · ${formatWeight(o)})</span></div>
+          <div style="font-size:0.75rem;color:var(--text-secondary);margin-top:0.2rem;">${I18n.t('clients.deliveryInfo', { date: fmtDateStr(o.deliveryDate), time: o.deliveryTime })}</div>
         </div>
         <div style="text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:0.25rem;">
-          <span class="badge ${badge}" style="font-size:0.65rem;padding:0.1rem 0.4rem;">${o.status}</span>
+          <span class="badge ${badge}" style="font-size:0.65rem;padding:0.1rem 0.4rem;">${escapeHTML(I18n.value('status', o.status))}</span>
           <strong style="color:var(--color-accent-pink);font-size:0.9rem;">${fmt(val)}</strong>
           <button class="btn btn-secondary btn-sm btn-edit-order-from-profile" data-order-id="${o.id}" style="padding:0.2rem 0.5rem;font-size:0.7rem;margin-top:0.2rem;">
-            ✏️ Editar Pedido
+            ✏️ ${I18n.t('clients.actEditOrder')}
           </button>
         </div>
       </div>`;
@@ -189,12 +189,13 @@ const Clients = {
     document.getElementById('btnModalClientCloseBtn').onclick = () => document.getElementById('clientModal').classList.remove('active');
     document.getElementById('btnEditFromHistory').onclick = () => {
       document.getElementById('clientModal').classList.remove('active');
-      this.openEdit({ name: document.getElementById('btnEditFromHistory').dataset.name, phone: document.getElementById('btnEditFromHistory').dataset.phone || 'Sem telefone' });
+      this.openEdit({ name: document.getElementById('btnEditFromHistory').dataset.name, phone: document.getElementById('btnEditFromHistory').dataset.phone || I18n.t('clients.noPhone') });
     };
   },
 
   async delete(client) {
-    const key = client.phone && client.phone !== 'Sem telefone'
+    const noPhone = I18n.t('clients.noPhone');
+    const key = client.phone && client.phone !== noPhone
       ? `${client.name.trim()}_${client.phone.trim()}`
       : client.name.trim();
     const orders = State.orders.filter(o => {
@@ -204,9 +205,9 @@ const Clients = {
     if (orders.length === 0) return;
 
     const confirmed = await UI.confirm({
-      title: 'Excluir Cliente',
-      message: `Mover ${orders.length} pedido(s) de ${client.name} para a lixeira? Você poderá restaurá-los em até 7 dias.`,
-      confirmText: 'Mover para Lixeira',
+      title: I18n.t('orders.confirmDeleteTitle'),
+      message: I18n.t('clients.confirmDelete', { count: orders.length, name: client.name }),
+      confirmText: I18n.t('orders.confirmDeleteBtn'),
       variant: 'danger'
     });
     if (!confirmed) return;
@@ -218,7 +219,7 @@ const Clients = {
     const tab = document.querySelector('.nav-link.active')?.dataset.tab;
     if (tab === 'dashboard') Dashboard.update();
     if (Trash.updateBadge) Trash.updateBadge();
-    UI.toast('Cliente movido para a lixeira');
+    UI.toast(I18n.t('clients.toastDeleted'));
   },
 
   setupEditModal() {
@@ -226,5 +227,10 @@ const Clients = {
     document.getElementById('btnClientEditCancel').addEventListener('click', () => document.getElementById('clientEditModal').classList.remove('active'));
     document.getElementById('btnClientEditSave').addEventListener('click', () => this.saveEdit());
     document.getElementById('editClientPhone').addEventListener('input', (e) => maskPhone(e.target));
+  },
+
+  // Re-renderiza a lista quando o idioma muda
+  refresh() {
+    this.render();
   }
 };

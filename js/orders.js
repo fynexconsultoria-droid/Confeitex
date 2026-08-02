@@ -14,11 +14,15 @@ const Orders = {
 
     filtered.sort((a, b) => b.deliveryDate.localeCompare(a.deliveryDate) || b.deliveryTime.localeCompare(a.deliveryTime));
 
-    // Atualiza barra de resumo de faturamento
+    // Atualiza barra de resumo de faturamento (uma única passagem)
     const summaryBar = document.getElementById('ordersSummaryBar');
     if (summaryBar) {
-      const totalFilt = filtered.filter(o => o.status !== 'Cancelado').reduce((s, o) => s + getOrderTotal(o), 0);
-      const totalPeso = filtered.filter(o => o.status !== 'Cancelado' && o.productType === 'Bolo de Kg').reduce((s, o) => s + (o.weight || 0), 0);
+      let totalFilt = 0, totalPeso = 0;
+      filtered.forEach(o => {
+        if (o.status === 'Cancelado') return;
+        totalFilt += getOrderTotal(o);
+        if (o.productType === 'Bolo de Kg') totalPeso += (o.weight || 0);
+      });
       const qtd = filtered.length;
       document.getElementById('summaryQtd').textContent = qtd;
       document.getElementById('summaryTotal').textContent = fmt(totalFilt);
@@ -38,7 +42,8 @@ const Orders = {
     let html = '';
     filtered.forEach(o => {
       const badge = badgeClass(o.status);
-      const profit = getOrderTotal(o) - (o.cost || 0);
+      const val = getOrderTotal(o);
+      const profit = val - (o.cost || 0);
       const currentStatusIdx = ['Pendente', 'Em Produção', 'Entregue'].indexOf(o.status);
       html += `<tr class="order-row" data-id="${o.id}">
         <td>
@@ -47,74 +52,74 @@ const Orders = {
         </td>
         <td>
           <span style="font-weight:600;color:white;">${escapeHTML(o.flavor)}</span>
-          <br><span style="font-size:0.7rem;color:var(--text-muted);">${escapeHTML(o.productType)} · ${formatWeight(o)}</span>
+          <br><span style="font-size:0.7rem;color:var(--text-muted);">${escapeHTML(I18n.value('product', o.productType))} · ${formatWeight(o)}</span>
         </td>
         <td><span style="font-weight:500;font-size:0.85rem;">${fmtDateStr(o.deliveryDate)}</span><br><span style="font-size:0.7rem;color:var(--text-secondary);">${o.deliveryTime}</span></td>
-        <td class="text-right" style="font-weight:700;color:var(--color-accent-pink);font-size:0.9rem;">${fmt(o.totalValue)}</td>
-        <td class="text-center"><span class="badge ${badge}" style="font-size:0.65rem;padding:0.15rem 0.4rem;">${o.status}</span></td>
+        <td class="text-right" style="font-weight:700;color:var(--color-accent-pink);font-size:0.9rem;">${fmt(val)}</td>
+        <td class="text-center"><span class="badge ${badge}" style="font-size:0.65rem;padding:0.15rem 0.4rem;">${escapeHTML(I18n.value('status', o.status))}</span></td>
       </tr>
       <tr class="order-detail-row" id="detail-${o.id.replace(/[^a-zA-Z0-9_-]/g, '')}" style="display:none;">
         <td colspan="5">
           <div class="order-detail-content">
             <div class="order-detail-grid">
               <div class="order-detail-item">
-                <span class="order-detail-label">Telefone</span>
+                <span class="order-detail-label">${I18n.t('orders.detailPhone')}</span>
                 <span>${escapeHTML(o.clientPhone || '—')}</span>
               </div>
               <div class="order-detail-item">
-                <span class="order-detail-label">Peso / Quantidade</span>
+                <span class="order-detail-label">${I18n.t('orders.detailWeight')}</span>
                 <span>${formatWeight(o)}</span>
               </div>
               <div class="order-detail-item">
-                <span class="order-detail-label">Forma de Pagamento</span>
-                <span>${o.paymentMethod || 'Dinheiro'}</span>
+                <span class="order-detail-label">${I18n.t('orders.detailPayment')}</span>
+                <span>${escapeHTML(I18n.value('payment', o.paymentMethod || 'Dinheiro'))}</span>
               </div>
               <div class="order-detail-item">
-                <span class="order-detail-label">Tipo de Retirada</span>
-                <span>${o.deliveryType || 'Retirada no Local'}</span>
+                <span class="order-detail-label">${I18n.t('orders.detailPickup')}</span>
+                <span>${escapeHTML(I18n.value('delivery', o.deliveryType || 'Retirada no Local'))}</span>
               </div>
               <div class="order-detail-item">
-                <span class="order-detail-label">Lucro Estimado</span>
+                <span class="order-detail-label">${I18n.t('orders.detailProfit')}</span>
                 <span style="color:${profit >= 0 ? 'var(--color-success)' : 'var(--color-danger)'}">${fmt(profit)}</span>
               </div>
               <div class="order-detail-item">
-                <span class="order-detail-label">Custo do Pedido</span>
+                <span class="order-detail-label">${I18n.t('orders.detailCost')}</span>
                 <span>${o.cost ? fmt(o.cost) : '—'}</span>
               </div>
               <div class="order-detail-item">
-                <span class="order-detail-label">Tipo</span>
-                <span>${escapeHTML(o.productType)}</span>
+                <span class="order-detail-label">${I18n.t('orders.detailType')}</span>
+                <span>${escapeHTML(I18n.value('product', o.productType))}</span>
               </div>
               ${o.details ? `<div class="order-detail-item" style="grid-column:1/-1;">
-                <span class="order-detail-label">Recheio / Cobertura</span>
+                <span class="order-detail-label">${I18n.t('orders.detailFill')}</span>
                 <span>${escapeHTML(o.details)}</span>
               </div>` : ''}
               ${o.notes ? `<div class="order-detail-item" style="grid-column:1/-1;">
-                <span class="order-detail-label">Observações</span>
+                <span class="order-detail-label">${I18n.t('orders.detailNotes')}</span>
                 <span style="color:var(--color-warning);">${escapeHTML(o.notes)}</span>
               </div>` : ''}
             </div>
             <div class="order-detail-actions">
               <button class="btn btn-secondary btn-sm btn-edit" data-id="${o.id}">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                Editar
+                ${I18n.t('orders.actEdit')}
               </button>
               ${currentStatusIdx >= 0 && currentStatusIdx < 2 ? `
               <button class="btn btn-secondary btn-sm btn-status-next" data-id="${o.id}" style="color:var(--color-success);border-color:rgba(16,185,129,0.2);">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-                Avançar Status
+                ${I18n.t('orders.actAdvance')}
               </button>` : o.status === 'Entregue' ? `
               <span style="font-size:0.75rem;color:var(--color-success);display:flex;align-items:center;gap:0.35rem;">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-                Pedido Entregue
+                ${I18n.t('orders.actDelivered')}
               </span>` : `
               <button class="btn btn-secondary btn-sm btn-status-next" data-id="${o.id}" style="color:var(--color-warning);border-color:rgba(245,158,11,0.2);">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
-                Reabrir Pedido
+                ${I18n.t('orders.actReopen')}
               </button>`}
               <button class="btn btn-secondary btn-sm btn-delete" data-id="${o.id}" style="color:var(--color-danger);border-color:rgba(239,68,68,0.2);">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-                Excluir
+                ${I18n.t('orders.actDelete')}
               </button>
             </div>
           </div>
@@ -149,7 +154,7 @@ const Orders = {
     });
     const searchInput = document.getElementById('orderSearchInput');
     if (!searchInput.dataset.hasListener) {
-      searchInput.addEventListener('input', () => this.render());
+      searchInput.addEventListener('input', debounce(() => this.render(), 250));
       searchInput.dataset.hasListener = '1';
     }
     const btnClear = document.getElementById('btnClearFilters');
@@ -168,7 +173,7 @@ const Orders = {
     const o = State.orders.find(item => item.id === id);
     if (!o) return;
     document.getElementById('orderIdInput').value = o.id;
-    document.getElementById('modalOrderTitleText').textContent = 'Editar Encomenda';
+    document.getElementById('modalOrderTitleText').textContent = I18n.t('orders.modalEdit');
     this.fillForm(o);
     document.getElementById('orderModal').classList.add('active');
   },
@@ -198,8 +203,8 @@ const Orders = {
   },
 
   updateLabels(type) {
-    document.getElementById('labelWeight').textContent = type === 'Bolo de Kg' ? 'Peso (Kg) *' : 'Quantidade *';
-    document.getElementById('labelUnitPrice').textContent = type === 'Bolo de Kg' ? 'Preço por Kg (R$) *' : 'Preço Unitário (R$) *';
+    document.getElementById('labelWeight').textContent = type === 'Bolo de Kg' ? I18n.t('orders.lblWeight') : I18n.t('orders.lblQty');
+    document.getElementById('labelUnitPrice').textContent = type === 'Bolo de Kg' ? I18n.t('orders.lblUnitPrice') : I18n.t('orders.lblUnitPriceUnit');
     document.getElementById('orderWeight').step = type === 'Bolo de Kg' ? 'any' : '1';
   },
 
@@ -212,9 +217,19 @@ const Orders = {
   _populateFlavorSelectOnly() {
     const sel = document.getElementById('orderFlavorSelect');
     const type = document.getElementById('orderProductType').value;
-    sel.innerHTML = '<option value="">-- Personalizado / Catálogo --</option>';
+    const options = [`<option value="">${escapeHTML(I18n.t('orders.selectCustom'))}</option>`];
     State.catalog.filter(i => type === 'Bolo de Kg' ? i.type === 'Bolo de Kg' : i.type !== 'Bolo de Kg')
-      .forEach(i => sel.innerHTML += `<option value="${i.id}">${escapeHTML(i.flavor)} (R$ ${i.pricePerKg.toFixed(2)}${i.type === 'Bolo de Kg' ? '/Kg' : '/un'})</option>`);
+      .forEach(i => options.push(`<option value="${i.id}">${escapeHTML(i.flavor)} (R$ ${i.pricePerKg.toFixed(2)}${i.type === 'Bolo de Kg' ? '/Kg' : '/un'})</option>`));
+    sel.innerHTML = options.join('');
+  },
+
+  // Re-popula as opções quando o idioma muda (mantém o valor selecionado)
+  refreshFlavorOptions() {
+    const sel = document.getElementById('orderFlavorSelect');
+    if (!sel) return;
+    const current = sel.value;
+    this._populateFlavorSelectOnly();
+    if (current) sel.value = current;
   },
 
   calcTotal() {
@@ -225,7 +240,7 @@ const Orders = {
   },
 
   async delete(id) {
-    const confirmed = await UI.confirm({ title: 'Excluir Pedido', message: 'Mover esta encomenda para a lixeira? Você poderá restaurá-la em até 7 dias.', confirmText: 'Mover para Lixeira', variant: 'danger' });
+    const confirmed = await UI.confirm({ title: I18n.t('orders.confirmDeleteTitle'), message: I18n.t('orders.confirmDelete'), confirmText: I18n.t('orders.confirmDeleteBtn'), variant: 'danger' });
     if (!confirmed) return;
     const o = State.orders.find(item => item.id === id);
     if (!o) return;
@@ -237,7 +252,7 @@ const Orders = {
     if (tab === 'dashboard') Dashboard.update();
     else if (tab === 'clients') Clients.render();
     if (Trash.updateBadge) Trash.updateBadge();
-    UI.toast('Pedido movido para a lixeira');
+    UI.toast(I18n.t('orders.toastDeleted'));
   },
 
   advanceStatus(id) {
@@ -253,14 +268,14 @@ const Orders = {
       this.render();
       const tab = document.querySelector('.nav-link.active')?.dataset.tab;
       if (tab === 'dashboard') Dashboard.update();
-      UI.toast(`Status atualizado para ${cycle[ci + 1]}`);
+      UI.toast(I18n.t('orders.toastStatus', { status: I18n.value('status', cycle[ci + 1]) }));
     } else if (cur === 'Cancelado') {
       State.orders[idx].status = 'Pendente';
       State.saveOrders();
       this.render();
-      UI.toast('Pedido reaberto como Pendente');
+      UI.toast(I18n.t('orders.toastReopened'));
     } else if (cur === 'Entregue') {
-      UI.alert('Esta encomenda já foi entregue.');
+      UI.alert(I18n.t('orders.alertDelivered'));
     }
   },
 
@@ -271,8 +286,8 @@ const Orders = {
     document.getElementById('btnNewOrder').addEventListener('click', () => {
       form.reset();
       document.getElementById('orderIdInput').value = '';
-      document.getElementById('modalOrderTitleText').textContent = 'Novo Pedido';
-      document.getElementById('orderDeliveryDate').value = new Date().toISOString().split('T')[0];
+      document.getElementById('modalOrderTitleText').textContent = I18n.t('orders.modalNew');
+      document.getElementById('orderDeliveryDate').value = fmtISO(new Date());
       document.getElementById('orderDeliveryTime').value = '14:00';
       document.getElementById('orderWeight').value = '1.00';
       document.getElementById('orderUnitPrice').value = '60.00';
@@ -318,10 +333,10 @@ const Orders = {
       const flavor = document.getElementById('orderFlavor').value.trim();
       const deliveryDate = document.getElementById('orderDeliveryDate').value;
       const deliveryTime = document.getElementById('orderDeliveryTime').value;
-      if (!clientName) { UI.alert('Informe o nome do cliente.'); return; }
-      if (!flavor) { UI.alert('Informe o sabor do pedido.'); return; }
-      if (!deliveryDate) { UI.alert('Informe a data de entrega.'); return; }
-      if (!deliveryTime) { UI.alert('Informe o horário de entrega.'); return; }
+      if (!clientName) { UI.alert(I18n.t('orders.alertName')); return; }
+      if (!flavor) { UI.alert(I18n.t('orders.alertFlavor')); return; }
+      if (!deliveryDate) { UI.alert(I18n.t('orders.alertDate')); return; }
+      if (!deliveryTime) { UI.alert(I18n.t('orders.alertTime')); return; }
 
       const id = document.getElementById('orderIdInput').value;
       const data = {
@@ -369,7 +384,7 @@ const Orders = {
       const tab = document.querySelector('.nav-link.active')?.dataset.tab;
       if (tab === 'orders') this.render();
       else if (tab === 'clients') Clients.render();
-      UI.toast(id ? 'Pedido atualizado ✓' : 'Pedido criado ✓');
+      UI.toast(I18n.t(id ? 'orders.toastUpdated' : 'orders.toastCreated'));
     });
   }
 };

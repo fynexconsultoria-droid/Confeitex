@@ -92,44 +92,44 @@
           <li class="nav-item">
             <a class="nav-link active" data-tab="dashboard">
               <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
-              Dashboard
+              <span data-i18n="nav.dashboard">Dashboard</span>
             </a>
           </li>
           <li class="nav-item">
             <a class="nav-link" data-tab="orders">
               <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-              Pedidos / Encomendas
+              <span data-i18n="nav.orders">Pedidos / Encomendas</span>
             </a>
           </li>
           <li class="nav-item">
             <a class="nav-link" data-tab="clients">
               <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-              Clientes
+              <span data-i18n="nav.clients">Clientes</span>
             </a>
           </li>
           <li class="nav-item">
             <a class="nav-link" data-tab="finances">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-              Financeiro
+              <span data-i18n="nav.finances">Financeiro</span>
             </a>
           </li>
           <li class="nav-item">
             <a class="nav-link" data-tab="settings">
               <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-              Configurações
+              <span data-i18n="nav.settings">Configurações</span>
             </a>
           </li>
           <li class="nav-item">
             <a class="nav-link" data-tab="updates">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-              Atualizações
+              <span data-i18n="nav.updates">Atualizações</span>
             </a>
           </li>
         </ul>
       </nav>
       
       <div style="font-size: 0.7rem; color: var(--text-muted); text-align: center; border-top: 1px solid var(--border-color); padding-top: 0.75rem;">
-        Confeitex v1.22.0<br>Modo 100% Offline
+        Confeitex v1.22.0<br><span data-i18n="nav.offline">Modo 100% Offline</span>
       </div>
     </aside>
 
@@ -152,17 +152,17 @@
 
         <!-- Ações após instalação concluída -->
         <div class="update-notif-actions" id="updateActions" style="display:none;">
-          <button class="btn btn-primary btn-sm" id="btnUpdateNow">🔄 Atualizar Agora</button>
-          <button class="btn btn-secondary btn-sm" id="btnUpdateLater">Continuar sem atualizar</button>
-          <button class="btn btn-sm update-notif-btn-close" id="btnUpdateCloseApp">✕ Fechar App</button>
+          <button class="btn btn-primary btn-sm" id="btnUpdateNow">🔄 <span data-i18n="updates.reloadNow">Atualizar Agora</span></button>
+          <button class="btn btn-secondary btn-sm" id="btnUpdateLater"><span data-i18n="updates.continueNoUpdate">Continuar sem atualizar</span></button>
+          <button class="btn btn-sm update-notif-btn-close" id="btnUpdateCloseApp">✕ <span data-i18n="updates.closeApp">Fechar App</span></button>
         </div>
       </div>
 
       <!-- Top Header -->
       <div class="top-header">
         <div class="page-title">
-          <h1 id="mainTitle">Painel de Controle</h1>
-          <p id="mainSubtitle">Estatísticas gerais e entregas de hoje.</p>
+          <h1 id="mainTitle" data-i18n="tab.dash.title">Painel de Controle</h1>
+          <p id="mainSubtitle" data-i18n="tab.dash.sub">Estatísticas gerais e entregas de hoje.</p>
         </div>
         <div class="header-actions">
           <div class="date-badge">
@@ -170,25 +170,25 @@
             <span id="currentDateDisplay">12/07/2026</span>
           </div>
           <div class="notif-bell" id="notifBellWrap">
-            <button class="btn btn-secondary btn-bell" id="btnNotifBell" aria-label="Notificações" title="Notificações">
+            <button class="btn btn-secondary btn-bell" id="btnNotifBell" aria-label="Notificações" title="Notificações" data-i18n-title="notif.title">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
               <span class="notif-badge" id="notifBadge" style="display:none;">0</span>
             </button>
             <div class="notif-dropdown" id="notifDropdown">
               <div class="notif-dropdown-header">
-                <span class="notif-dropdown-title">Notificações</span>
+                <span class="notif-dropdown-title" data-i18n="notif.title">Notificações</span>
                 <div class="notif-dropdown-actions">
-                  <button type="button" class="notif-action" id="btnNotifReadAll">Ler todas</button>
-                  <button type="button" class="notif-action" id="btnNotifClear">Limpar</button>
+                  <button type="button" class="notif-action" id="btnNotifReadAll" data-i18n="notif.readAll">Ler todas</button>
+                  <button type="button" class="notif-action" id="btnNotifClear" data-i18n="notif.clear">Limpar</button>
                 </div>
               </div>
               <div class="notif-dropdown-list" id="notifList"></div>
-              <div class="notif-dropdown-empty" id="notifEmpty" style="display:none;">Sem notificações ainda.</div>
+              <div class="notif-dropdown-empty" id="notifEmpty" style="display:none;" data-i18n="notif.empty">Sem notificações ainda.</div>
             </div>
           </div>
           <button class="btn btn-primary" id="btnNewOrder">
             <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            Novo Pedido
+            <span data-i18n="orders.actNew">Novo Pedido</span>
           </button>
         </div>
       </div>
@@ -202,68 +202,68 @@
           <!-- Metric 1: Vendas Hoje -->
           <div class="metric-card">
             <div class="metric-header">
-              <span class="metric-title">Vendas de Hoje</span>
+              <span class="metric-title" data-i18n="kpi.salesTitle">Vendas de Hoje</span>
               <div class="metric-icon-wrapper pink">
                 <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
               </div>
             </div>
             <div class="metric-value" id="kpiSalesToday">R$ 0,00</div>
-            <div class="metric-footer" id="kpiSalesTrend">Calculado automaticamente</div>
+            <div class="metric-footer" id="kpiSalesTrend" data-i18n="kpi.salesFooter">Calculado automaticamente</div>
           </div>
           
           <!-- Metric 2: Kg Vendidos Hoje -->
           <div class="metric-card">
             <div class="metric-header">
-              <span class="metric-title">Kg Vendidos Hoje</span>
+              <span class="metric-title" data-i18n="kpi.kgTitle">Kg Vendidos Hoje</span>
               <div class="metric-icon-wrapper purple">
                 <!-- Scale Icon -->
                 <svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="10" rx="2" ry="2"/><path d="M12 7V3M12 17v4M9 3h6"/></svg>
               </div>
             </div>
             <div class="metric-value" id="kpiWeightToday">0,0 Kg</div>
-            <div class="metric-footer">Soma de bolos encomendados</div>
+            <div class="metric-footer" data-i18n="kpi.kgFooter">Soma de bolos encomendados</div>
           </div>
           
           <!-- Metric 3: Pedidos Pendentes -->
           <div class="metric-card" id="kpiPendingCard">
             <div class="metric-header">
-              <span class="metric-title">Pendentes / Produção</span>
+              <span class="metric-title" data-i18n="kpi.pendingTitle">Pendentes / Produção</span>
               <div class="metric-icon-wrapper blue">
                 <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
               </div>
             </div>
             <div class="metric-value" id="kpiPendingOrders">0</div>
-            <div class="metric-footer">Pedidos aguardando entrega</div>
+            <div class="metric-footer" data-i18n="kpi.pendingFooter">Pedidos aguardando entrega</div>
           </div>
 
           <!-- Metric 4: Faturamento Total -->
           <div class="metric-card metric-card-highlight-green">
             <div class="metric-header">
-              <span class="metric-title" style="color:var(--color-success);">Faturamento Total</span>
+              <span class="metric-title" style="color:var(--color-success);" data-i18n="kpi.totalTitle">Faturamento Total</span>
               <div class="metric-icon-wrapper success">
                 <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
               </div>
             </div>
             <div class="metric-value" id="kpiTotalEarnings" style="color:var(--color-success);">R$ 0,00</div>
-            <div class="metric-footer" style="color:rgba(16, 185, 129, 0.85);">💰 Acumulado de todos os pedidos</div>
+            <div class="metric-footer" style="color:rgba(16, 185, 129, 0.85);" data-i18n="kpi.totalFooter">💰 Acumulado de todos os pedidos</div>
           </div>
         </div>
 
         <!-- Automatic Daily Calculator Section -->
         <div class="calc-bar">
           <div class="form-group">
-            <label for="calcDateInput">Escolher data para cálculo</label>
+            <label for="calcDateInput" data-i18n="dash.calcLabelDate">Escolher data para cálculo</label>
             <input type="date" class="form-control" id="calcDateInput">
           </div>
           <div class="form-group">
-            <label>Soma de Valor do Dia</label>
+            <label data-i18n="dash.calcLabelValue">Soma de Valor do Dia</label>
             <input type="text" class="form-control" id="calcDayValue" readonly style="background: rgba(255, 255, 255, 0.05); color: var(--color-accent-pink); font-weight: 700;" value="R$ 0,00">
           </div>
           <div class="form-group">
-            <label>Soma de Peso do Dia</label>
+            <label data-i18n="dash.calcLabelWeight">Soma de Peso do Dia</label>
             <input type="text" class="form-control" id="calcDayWeight" readonly style="background: rgba(255, 255, 255, 0.05); color: var(--color-accent-purple); font-weight: 700;" value="0,00 Kg">
           </div>
-          <button class="btn btn-secondary" id="btnQuickCalcToday" style="margin-bottom: 2px;">Hoje</button>
+          <button class="btn btn-secondary" id="btnQuickCalcToday" style="margin-bottom: 2px;" data-i18n="dash.calcTodayBtn">Hoje</button>
         </div>
 
         <!-- Charts and Today Deliveries -->
@@ -273,13 +273,13 @@
             <div class="panel-header">
               <span class="panel-title">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-                Evolução de Vendas & Pedidos
+                <span data-i18n="dash.chartTitle">Evolução de Vendas & Pedidos</span>
               </span>
               <select class="form-control" id="chartPeriodSelect" style="width: auto; padding: 0.35rem 2rem 0.35rem 0.75rem; font-size: 0.8rem; border-radius: var(--border-radius-sm);">
-                <option value="today">Hoje</option>
-                <option value="7days">Últimos 7 dias</option>
-                <option value="15days">Últimos 15 dias</option>
-                <option value="30days" selected>Últimos 30 dias</option>
+                <option value="today" data-i18n-opt="dash.periodToday">Hoje</option>
+                <option value="7days" data-i18n-opt="dash.period7">Últimos 7 dias</option>
+                <option value="15days" data-i18n-opt="dash.period15">Últimos 15 dias</option>
+                <option value="30days" selected data-i18n-opt="dash.period30">Últimos 30 dias</option>
               </select>
             </div>
             <div class="chart-container">
@@ -288,11 +288,11 @@
             <div class="chart-legend">
               <div class="legend-item">
                 <span class="legend-color pink"></span>
-                <span>Faturamento (R$)</span>
+                <span data-i18n="dash.legendRevenue">Faturamento (R$)</span>
               </div>
               <div class="legend-item">
                 <span class="legend-color purple"></span>
-                <span>Qtd de Pedidos</span>
+                <span data-i18n="dash.legendOrders">Qtd de Pedidos</span>
               </div>
             </div>
           </div>
@@ -302,15 +302,15 @@
             <div class="panel-header">
               <span class="panel-title">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 21H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v5.5"/><path d="M21 21v-6h-6"/><path d="M21 15l-9 9"/></svg>
-                Entregas Programadas de Hoje
+                <span data-i18n="dash.deliveriesTitle">Entregas Programadas de Hoje</span>
               </span>
             </div>
             <div id="todayDeliveriesList" style="display: flex; flex-direction: column; gap: 0.75rem; max-height: 280px; overflow-y: auto; padding-right: 0.25rem;">
               <!-- Dynamic entries go here -->
               <div class="empty-state" style="padding: 1.5rem 0;">
                 <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                <h3>Nenhuma entrega para hoje</h3>
-                <p style="font-size: 0.8rem;">Aproveite para criar novas encomendas.</p>
+                <h3 data-i18n="dash.deliveriesEmpty">Nenhuma entrega para hoje</h3>
+                <p style="font-size: 0.8rem;" data-i18n="dash.deliveriesEmptySub">Aproveite para criar novas encomendas.</p>
               </div>
             </div>
           </div>
@@ -323,22 +323,22 @@
         <div class="filter-bar">
           <div class="search-input-wrapper">
             <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            <input type="text" class="form-control" id="orderSearchInput" placeholder="Buscar por cliente, produto, sabor...">
+            <input type="text" class="form-control" id="orderSearchInput" placeholder="Buscar por cliente, produto, sabor..." data-i18n-ph="orders.searchPh">
           </div>
           
           <select class="form-control" id="orderFilterStatus" style="width: auto; min-width: 160px;">
-            <option value="all">Todos os Status</option>
-            <option value="Pendente">Pendentes / Produção</option>
-            <option value="Em Produção">Em Produção</option>
-            <option value="Entregue">Entregues</option>
-            <option value="Cancelado">Cancelados</option>
+            <option value="all" data-i18n-opt="orders.filterAll">Todos os Status</option>
+            <option value="Pendente" data-i18n-opt="orders.filterPending">Pendentes / Produção</option>
+            <option value="Em Produção" data-i18n-opt="orders.filterProduction">Em Produção</option>
+            <option value="Entregue" data-i18n-opt="orders.filterDelivered">Entregues</option>
+            <option value="Cancelado" data-i18n-opt="orders.filterCanceled">Cancelados</option>
           </select>
           
           <input type="date" class="form-control" id="orderFilterDate" style="width: auto;">
-          <button class="btn btn-secondary btn-icon-only" id="btnClearFilters" title="Limpar Filtros">
+          <button class="btn btn-secondary btn-icon-only" id="btnClearFilters" title="Limpar Filtros" data-i18n-title="orders.clearFilters">
             <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
-          <button class="btn btn-secondary btn-icon-only btn-open-trash" title="Lixeira" style="position:relative;">
+          <button class="btn btn-secondary btn-icon-only btn-open-trash" title="Lixeira" style="position:relative;" data-i18n-title="orders.trash">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
             <span class="trash-badge" data-trash-count style="display:none;">0</span>
           </button>
@@ -347,17 +347,17 @@
         <!-- Barra de Resumo de Faturamento (atualiza com filtros) -->
         <div id="ordersSummaryBar" class="orders-summary-bar" style="display:none;">
           <div class="orders-summary-item">
-            <span class="orders-summary-label">Pedidos na busca</span>
+            <span class="orders-summary-label" data-i18n="orders.summaryOrders">Pedidos na busca</span>
             <span class="orders-summary-value" id="summaryQtd" style="color:var(--color-accent-purple);">0</span>
           </div>
           <div class="orders-summary-divider"></div>
           <div class="orders-summary-item">
-            <span class="orders-summary-label">Faturamento total</span>
+            <span class="orders-summary-label" data-i18n="orders.summaryRevenue">Faturamento total</span>
             <span class="orders-summary-value" id="summaryTotal" style="color:var(--color-accent-pink);">R$ 0,00</span>
           </div>
           <div class="orders-summary-divider"></div>
           <div class="orders-summary-item">
-            <span class="orders-summary-label">Bolos (Kg)</span>
+            <span class="orders-summary-label" data-i18n="orders.summaryKg">Bolos (Kg)</span>
             <span class="orders-summary-value" id="summaryPeso" style="color:var(--color-success);">0,0 Kg</span>
           </div>
         </div>
@@ -367,11 +367,11 @@
           <table class="custom-table" id="ordersTable">
             <thead>
               <tr>
-                <th>Cliente</th>
-                <th>Produto</th>
-                <th>Entrega</th>
-                <th class="text-right">Valor</th>
-                <th class="text-center">Status</th>
+                <th data-i18n="orders.thClient">Cliente</th>
+                <th data-i18n="orders.thProduct">Produto</th>
+                <th data-i18n="orders.thDelivery">Entrega</th>
+                <th class="text-right" data-i18n="orders.thValue">Valor</th>
+                <th class="text-center" data-i18n="orders.thStatus">Status</th>
               </tr>
             </thead>
             <tbody id="ordersTableBody">
@@ -382,8 +382,8 @@
         
         <div id="ordersEmptyState" class="empty-state" style="display: none;">
           <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-          <h3>Nenhum pedido encontrado</h3>
-          <p>Tente ajustar os filtros de busca ou cadastre um novo pedido.</p>
+          <h3 data-i18n="orders.empty">Nenhum pedido encontrado</h3>
+          <p data-i18n="orders.emptySub">Tente ajustar os filtros de busca ou cadastre um novo pedido.</p>
         </div>
       </section>
 
@@ -393,9 +393,9 @@
         <div class="filter-bar">
           <div class="search-input-wrapper" style="max-width: 400px;">
             <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            <input type="text" class="form-control" id="clientSearchInput" placeholder="Buscar cliente por nome ou telefone...">
+            <input type="text" class="form-control" id="clientSearchInput" placeholder="Buscar cliente por nome ou telefone..." data-i18n-ph="clients.searchPh">
           </div>
-          <button class="btn btn-secondary btn-icon-only btn-open-trash" title="Lixeira" style="position:relative;">
+          <button class="btn btn-secondary btn-icon-only btn-open-trash" title="Lixeira" style="position:relative;" data-i18n-title="orders.trash">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
             <span class="trash-badge" data-trash-count style="display:none;">0</span>
           </button>
@@ -406,10 +406,10 @@
           <table class="custom-table" id="clientsTable">
             <thead>
               <tr>
-                <th>Nome do Cliente</th>
-                <th>Telefone</th>
-                <th class="text-center">Pedidos</th>
-                <th class="text-right">Total Gasto</th>
+                <th data-i18n="clients.thName">Nome do Cliente</th>
+                <th data-i18n="clients.thPhone">Telefone</th>
+                <th class="text-center" data-i18n="clients.thOrders">Pedidos</th>
+                <th class="text-right" data-i18n="clients.thSpent">Total Gasto</th>
               </tr>
             </thead>
             <tbody id="clientsTableBody">
@@ -420,8 +420,8 @@
 
         <div id="clientsEmptyState" class="empty-state" style="display: none;">
           <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
-          <h3>Nenhum cliente cadastrado</h3>
-          <p>Os clientes serão criados automaticamente ao cadastrar novos pedidos.</p>
+          <h3 data-i18n="clients.empty">Nenhum cliente cadastrado</h3>
+          <p data-i18n="clients.emptySub">Os clientes serão criados automaticamente ao cadastrar novos pedidos.</p>
         </div>
       </section>
 
@@ -431,22 +431,22 @@
           <div class="config-card">
             <div class="config-card-header">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-              Atualizações do App
+              <span data-i18n="updates.cardTitle">Atualizações do App</span>
             </div>
             <div style="display:flex;flex-direction:column;gap:1rem;">
               <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;">
                 <div>
-                  <div style="font-size:0.85rem;color:var(--text-secondary);">Versão atual</div>
+                  <div style="font-size:0.85rem;color:var(--text-secondary);" data-i18n="updates.currentVer">Versão atual</div>
                   <div style="font-size:1.3rem;font-weight:800;background:var(--gradient-primary);-webkit-background-clip:text;-webkit-text-fill-color:transparent;" id="updatesCurrentVer">—</div>
                 </div>
                 <div>
-                  <div style="font-size:0.85rem;color:var(--text-secondary);">Última verificação</div>
+                  <div style="font-size:0.85rem;color:var(--text-secondary);" data-i18n="updates.lastCheck">Última verificação</div>
                   <div style="font-size:1rem;font-weight:600;color:var(--text-primary);" id="updatesLastCheck">—</div>
                 </div>
               </div>
               <button class="btn btn-primary" id="btnCheckUpdates" style="width:100%;">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-                Verificar Agora
+                <span data-i18n="updates.checkNow">Verificar Agora</span>
               </button>
               <div id="updatesStatus" style="font-size:0.85rem;color:var(--color-success);"></div>
             </div>
@@ -454,7 +454,7 @@
           <div class="config-card">
             <div class="config-card-header" style="border-bottom:none;padding-bottom:0;">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-              Histórico de Versões
+              <span data-i18n="updates.historyTitle">Histórico de Versões</span>
             </div>
             <div id="updatesChangelog" style="display:flex;flex-direction:column;gap:0.75rem;max-height:300px;overflow-y:auto;padding-right:0.25rem;"></div>
           </div>
@@ -466,29 +466,29 @@
         <!-- Filtro de Período -->
         <div class="finance-period-bar">
           <div class="finance-period-chips" id="financePeriodChips">
-            <button type="button" class="finance-chip" data-preset="today">Hoje</button>
-            <button type="button" class="finance-chip" data-preset="yesterday">Ontem</button>
-            <button type="button" class="finance-chip" data-preset="week">Esta Semana</button>
-            <button type="button" class="finance-chip active" data-preset="month">Este Mês</button>
-            <button type="button" class="finance-chip" data-preset="lastMonth">Mês Passado</button>
-            <button type="button" class="finance-chip" data-preset="30days">Últimos 30 Dias</button>
-            <button type="button" class="finance-chip" data-preset="all">Todos</button>
-            <button type="button" class="finance-chip" data-preset="custom">Personalizado</button>
+            <button type="button" class="finance-chip" data-preset="today" data-i18n="finance.chipToday">Hoje</button>
+            <button type="button" class="finance-chip" data-preset="yesterday" data-i18n="finance.chipYesterday">Ontem</button>
+            <button type="button" class="finance-chip" data-preset="week" data-i18n="finance.chipWeek">Esta Semana</button>
+            <button type="button" class="finance-chip active" data-preset="month" data-i18n="finance.chipMonth">Este Mês</button>
+            <button type="button" class="finance-chip" data-preset="lastMonth" data-i18n="finance.chipLastMonth">Mês Passado</button>
+            <button type="button" class="finance-chip" data-preset="30days" data-i18n="finance.chip30">Últimos 30 Dias</button>
+            <button type="button" class="finance-chip" data-preset="all" data-i18n="finance.chipAll">Todos</button>
+            <button type="button" class="finance-chip" data-preset="custom" data-i18n="finance.chipCustom">Personalizado</button>
           </div>
           <div class="finance-period-custom" id="financePeriodCustom" style="display:none;">
             <div class="form-group">
-              <label for="financeDateFrom">De</label>
+              <label for="financeDateFrom" data-i18n="finance.from">De</label>
               <input type="date" class="form-control" id="financeDateFrom">
             </div>
             <div class="form-group">
-              <label for="financeDateTo">Até</label>
+              <label for="financeDateTo" data-i18n="finance.to">Até</label>
               <input type="date" class="form-control" id="financeDateTo">
             </div>
           </div>
           <div class="finance-period-actions">
-            <button class="btn btn-primary" id="btnFinancePdf" title="Gerar relatório em PDF do período selecionado">
+            <button class="btn btn-primary" id="btnFinancePdf" title="Gerar relatório em PDF do período selecionado" data-i18n-title="finance.pdfTitle">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;vertical-align:-2px;margin-right:0.4rem;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 18 15 15"/></svg>
-              Gerar PDF
+              <span data-i18n="finance.pdfBtn">Gerar PDF</span>
             </button>
           </div>
         </div>
@@ -497,43 +497,43 @@
         <div class="metrics-grid">
           <div class="metric-card">
             <div class="metric-header">
-              <span class="metric-title">Faturamento do Período</span>
+              <span class="metric-title" data-i18n="finance.kpiRevenue">Faturamento do Período</span>
               <div class="metric-icon-wrapper pink">
                 <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
               </div>
             </div>
             <div class="metric-value" id="finKpiSalesMonth" style="color:var(--color-accent-pink);">R$ 0,00</div>
-            <div class="metric-footer">Total de vendas do período</div>
+            <div class="metric-footer" data-i18n="finance.footerRevenue">Total de vendas do período</div>
           </div>
           <div class="metric-card">
             <div class="metric-header">
-              <span class="metric-title">Custos do Período</span>
+              <span class="metric-title" data-i18n="finance.kpiCost">Custos do Período</span>
               <div class="metric-icon-wrapper blue">
                 <svg viewBox="0 0 24 24"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
               </div>
             </div>
             <div class="metric-value" id="finKpiCostMonth" style="color:var(--color-accent-blue);">R$ 0,00</div>
-            <div class="metric-footer">Total de custos do período</div>
+            <div class="metric-footer" data-i18n="finance.footerCost">Total de custos do período</div>
           </div>
           <div class="metric-card metric-card-highlight-green">
             <div class="metric-header">
-              <span class="metric-title" style="color:var(--color-success);">Lucro do Período</span>
+              <span class="metric-title" style="color:var(--color-success);" data-i18n="finance.kpiProfit">Lucro do Período</span>
               <div class="metric-icon-wrapper success">
                 <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
               </div>
             </div>
             <div class="metric-value" id="finKpiProfitMonth" style="color:var(--color-success);">R$ 0,00</div>
-            <div class="metric-footer">💰 Faturamento - Custos</div>
+            <div class="metric-footer" data-i18n="finance.footerProfit">💰 Faturamento - Custos</div>
           </div>
           <div class="metric-card">
             <div class="metric-header">
-              <span class="metric-title">Pedidos no Período</span>
+              <span class="metric-title" data-i18n="finance.kpiOrders">Pedidos no Período</span>
               <div class="metric-icon-wrapper purple">
                 <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
               </div>
             </div>
             <div class="metric-value" id="finKpiOrdersMonth" style="color:var(--color-accent-purple);">0</div>
-            <div class="metric-footer">Total de pedidos no período</div>
+            <div class="metric-footer" data-i18n="finance.footerOrders">Total de pedidos no período</div>
           </div>
         </div>
 
@@ -542,33 +542,33 @@
           <div class="panel-header">
             <span class="panel-title">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-              Custos de Matéria-Prima
+              <span data-i18n="finance.expTitle">Custos de Matéria-Prima</span>
             </span>
             <span class="expense-total" id="expenseTotalBadge">R$ 0,00</span>
           </div>
           <div class="expense-form">
             <div class="form-group">
-              <label for="expenseDescription">Descrição</label>
-              <input type="text" class="form-control" id="expenseDescription" placeholder="Ex: Farinha, ovos, embalagem..." maxlength="80">
+              <label for="expenseDescription" data-i18n="finance.expDesc">Descrição</label>
+              <input type="text" class="form-control" id="expenseDescription" placeholder="Ex: Farinha, ovos, embalagem..." maxlength="80" data-i18n-ph="finance.expPhDesc">
             </div>
             <div class="form-group" style="width: 140px;">
-              <label for="expenseAmount">Valor (R$)</label>
+              <label for="expenseAmount" data-i18n="finance.expAmount">Valor (R$)</label>
               <input type="number" class="form-control" id="expenseAmount" step="0.01" min="0" placeholder="0,00">
             </div>
             <div class="form-group" style="width: 160px;">
-              <label for="expenseDate">Data</label>
+              <label for="expenseDate" data-i18n="finance.expDate">Data</label>
               <input type="date" class="form-control" id="expenseDate">
             </div>
             <button class="btn btn-primary" id="btnAddExpense" style="align-self:flex-end;">
               <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-              Adicionar
+              <span data-i18n="finance.expAdd">Adicionar</span>
             </button>
           </div>
           <div id="expenseList" style="display:flex;flex-direction:column;gap:0.5rem;max-height:280px;overflow-y:auto;padding-right:0.25rem;">
             <div class="empty-state" style="padding:1.2rem 0;">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-              <h3>Nenhum custo cadastrado</h3>
-              <p style="font-size:0.8rem;">Registre aqui os gastos com matéria-prima do período.</p>
+              <h3 data-i18n="finance.expEmpty">Nenhum custo cadastrado</h3>
+              <p style="font-size:0.8rem;" data-i18n="finance.expEmptySub">Registre aqui os gastos com matéria-prima do período.</p>
             </div>
           </div>
         </div>
@@ -580,32 +580,32 @@
             <div class="panel-header">
               <span class="panel-title">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-                Resumo Geral
+                <span data-i18n="finance.sumTitle">Resumo Geral</span>
               </span>
             </div>
             <div id="financeGeneralSummary" style="display:flex;flex-direction:column;gap:0.75rem;">
               <div class="finance-summary-row">
-                <span class="finance-summary-label">Total de Pedidos (ativos)</span>
+                <span class="finance-summary-label" data-i18n="finance.sumOrders">Total de Pedidos (ativos)</span>
                 <span class="finance-summary-value" id="finGenOrders">0</span>
               </div>
               <div class="finance-summary-row">
-                <span class="finance-summary-label">Faturamento Total (acumulado)</span>
+                <span class="finance-summary-label" data-i18n="finance.sumRevenue">Faturamento Total (acumulado)</span>
                 <span class="finance-summary-value pink" id="finGenRevenue">R$ 0,00</span>
               </div>
               <div class="finance-summary-row">
-                <span class="finance-summary-label">Custo Total (acumulado)</span>
+                <span class="finance-summary-label" data-i18n="finance.sumCost">Custo Total (acumulado)</span>
                 <span class="finance-summary-value blue" id="finGenCost">R$ 0,00</span>
               </div>
               <div class="finance-summary-row">
-                <span class="finance-summary-label">Lucro Total (acumulado)</span>
+                <span class="finance-summary-label" data-i18n="finance.sumProfit">Lucro Total (acumulado)</span>
                 <span class="finance-summary-value green" id="finGenProfit">R$ 0,00</span>
               </div>
               <div class="finance-summary-row">
-                <span class="finance-summary-label">Ticket Médio</span>
+                <span class="finance-summary-label" data-i18n="finance.sumAvg">Ticket Médio</span>
                 <span class="finance-summary-value purple" id="finGenAvgTicket">R$ 0,00</span>
               </div>
               <div class="finance-summary-row">
-                <span class="finance-summary-label">Pedidos Cancelados</span>
+                <span class="finance-summary-label" data-i18n="finance.sumCanceled">Pedidos Cancelados</span>
                 <span class="finance-summary-value" id="finGenCanceled" style="color:var(--color-danger);">0</span>
               </div>
             </div>
@@ -616,7 +616,7 @@
             <div class="panel-header">
               <span class="panel-title">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
-                Pedidos por Tipo de Produto
+                <span data-i18n="finance.chartProduct">Pedidos por Tipo de Produto</span>
               </span>
             </div>
             <div class="finance-pie-container">
@@ -632,7 +632,7 @@
             <div class="panel-header">
               <span class="panel-title">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-                Formas de Pagamento
+                <span data-i18n="finance.chartPayment">Formas de Pagamento</span>
               </span>
             </div>
             <div class="finance-pie-container">
@@ -646,7 +646,7 @@
             <div class="panel-header">
               <span class="panel-title">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                Pedidos por Status
+                <span data-i18n="finance.chartStatus">Pedidos por Status</span>
               </span>
             </div>
             <div class="finance-pie-container">
@@ -661,29 +661,50 @@
       <section id="settings" class="tab-content">
         <div class="config-grid">
 
+          <!-- Language Card -->
+          <div class="config-card">
+            <div class="config-card-header">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+              <span data-i18n="settings.languageTitle">Idioma / Linguagem</span>
+            </div>
+            <p class="config-desc" data-i18n="settings.languageDesc">
+              Escolha o idioma do aplicativo. As configurações são salvas neste dispositivo.
+            </p>
+            <div style="display:flex;flex-direction:column;gap:0.5rem;">
+              <select class="form-control" id="langSelect" style="width:100%;max-width:280px;">
+                <option value="pt-BR">Português</option>
+                <option value="en">English</option>
+                <option value="es">Español</option>
+                <option value="de">Deutsch</option>
+                <option value="it">Italiano</option>
+                <option value="fr">Français</option>
+              </select>
+            </div>
+          </div>
+
           <!-- Catalog Management Card -->
           <div class="config-card config-card-highlight">
             <div class="config-card-header">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-              Catálogo de Sabores
-              <span class="config-card-badge">Mais usado</span>
+              <span data-i18n="settings.catalogTitle">Catálogo de Sabores</span>
+              <span class="config-card-badge" data-i18n="settings.catalogBadge">Mais usado</span>
             </div>
-            <p class="config-desc">
+            <p class="config-desc" data-i18n="settings.catalogDesc">
               Defina sabores e preços para preenchimento rápido ao criar pedidos.
             </p>
             <div style="display: flex; flex-direction: column; gap: 0.5rem; max-height: 150px; overflow-y: auto;" id="catalogListContainer">
               <!-- Flavors list -->
             </div>
             <div style="display: flex; gap: 0.5rem; margin-top: auto; flex-wrap: wrap;">
-              <input type="text" class="form-control" id="newCatalogFlavor" placeholder="Sabor" style="flex:1;min-width:120px;">
+              <input type="text" class="form-control" id="newCatalogFlavor" placeholder="Sabor" style="flex:1;min-width:120px;" data-i18n-ph="settings.catalogFlavorPh">
               <input type="number" class="form-control" id="newCatalogPrice" placeholder="R$" style="width:70px;" step="0.01">
               <select class="form-control" id="newCatalogType" style="width:auto;min-width:100px;">
-                <option value="Bolo de Kg">Bolo de Kg</option>
-                <option value="Doces / Brigadeiros">Doces</option>
-                <option value="Salgados">Salgados</option>
-                <option value="Outros">Outros</option>
+                <option value="Bolo de Kg" data-i18n-opt="product.Bolo de Kg">Bolo de Kg</option>
+                <option value="Doces / Brigadeiros" data-i18n-opt="product.Doces / Brigadeiros">Doces</option>
+                <option value="Salgados" data-i18n-opt="product.Salgados">Salgados</option>
+                <option value="Outros" data-i18n-opt="product.Outros">Outros</option>
               </select>
-              <button class="btn btn-primary btn-icon-only" id="btnAddCatalogItem" title="Adicionar Sabor">
+              <button class="btn btn-primary btn-icon-only" id="btnAddCatalogItem" title="Adicionar Sabor" data-i18n-title="settings.catalogAddTitle">
                 <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
               </button>
             </div>
@@ -693,15 +714,15 @@
           <div class="config-card">
             <div class="config-card-header">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-              Gerenciar Dados
+              <span data-i18n="settings.dataTitle">Gerenciar Dados</span>
             </div>
-            <p class="config-desc">
+            <p class="config-desc" data-i18n="settings.dataDesc">
               Faça backup, importe dados ou exporte relatórios. Tudo salvo localmente no seu dispositivo.
             </p>
             <div class="config-card-actions">
               <button class="btn btn-primary" id="btnExportData" style="flex:1;">
                 <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                Backup PDF
+                <span data-i18n="settings.backupPdf">Backup PDF</span>
               </button>
               <button class="btn btn-secondary" id="btnExportCSV" style="flex:1;">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
@@ -712,7 +733,7 @@
               <input type="file" id="importFileInput" accept=".pdf,.json" style="display:none;">
               <button class="btn btn-secondary" id="btnImportData" style="width:100%;">
                 <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                Importar Dados (PDF)
+                <span data-i18n="settings.importData">Importar Dados (PDF)</span>
               </button>
             </div>
           </div>
@@ -721,78 +742,78 @@
           <div class="config-card">
             <div class="config-card-header">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-              Notificações
+              <span data-i18n="settings.notifTitle">Notificações</span>
             </div>
-            <p class="config-desc">
+            <p class="config-desc" data-i18n="settings.notifDesc">
               Receba lembretes sobre entregas pendentes. Quando suportado e o app estiver instalado, os lembretes agendados funcionam até com o app fechado.
             </p>
             <div id="notificationStatusContainer" style="display:flex;flex-direction:column;gap:0.75rem;">
               <div style="display:flex;align-items:center;gap:0.75rem;">
                 <div id="notificationStatusDot" style="width:10px;height:10px;border-radius:50%;background:var(--text-muted);"></div>
-                <span id="notificationStatusText" style="font-weight:600;font-size:0.9rem;color:var(--text-muted);">Verificando...</span>
+                <span id="notificationStatusText" style="font-weight:600;font-size:0.9rem;color:var(--text-muted);"></span>
               </div>
               <div id="notificationInfoText" style="font-size:0.8rem;color:var(--text-secondary);"></div>
               <button class="btn btn-primary" id="btnToggleNotifications" style="width:100%;">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-                <span id="btnNotificationsText">Ativar Notificações</span>
+                <span id="btnNotificationsText"></span>
               </button>
               <button class="btn btn-secondary" id="btnTestNotification" style="width:100%;">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
-                Enviar Notificação de Teste
+                <span data-i18n="notif.settings.testBtn">Enviar Notificação de Teste</span>
               </button>
             </div>
 
             <div style="display:flex;flex-direction:column;gap:1rem;margin-top:1rem;border-top:1px solid rgba(255,255,255,0.06);padding-top:1rem;">
               <div>
-                <label for="notifReminderTime">Hora do lembrete (com o app fechado)</label>
+                <label for="notifReminderTime" data-i18n="notif.settings.reminderTime">Hora do lembrete (com o app fechado)</label>
                 <input type="time" class="form-control" id="notifReminderTime" value="08:00">
               </div>
 
               <div>
-                <label>Antecedência do lembrete</label>
+                <label data-i18n="notif.settings.leadLabel">Antecedência do lembrete</label>
                 <div style="display:flex;flex-wrap:wrap;gap:0.5rem 1rem;margin-top:0.4rem;">
-                  <label style="display:flex;align-items:center;gap:0.35rem;font-size:0.85rem;color:var(--text-secondary);"><input type="checkbox" class="notif-day-cb" data-day="0" style="accent-color:var(--color-accent-pink);"> Hoje</label>
-                  <label style="display:flex;align-items:center;gap:0.35rem;font-size:0.85rem;color:var(--text-secondary);"><input type="checkbox" class="notif-day-cb" data-day="1" style="accent-color:var(--color-accent-pink);"> Amanhã</label>
-                  <label style="display:flex;align-items:center;gap:0.35rem;font-size:0.85rem;color:var(--text-secondary);"><input type="checkbox" class="notif-day-cb" data-day="2" style="accent-color:var(--color-accent-pink);"> 2 dias</label>
-                  <label style="display:flex;align-items:center;gap:0.35rem;font-size:0.85rem;color:var(--text-secondary);"><input type="checkbox" class="notif-day-cb" data-day="3" style="accent-color:var(--color-accent-pink);"> 3 dias</label>
+                  <label style="display:flex;align-items:center;gap:0.35rem;font-size:0.85rem;color:var(--text-secondary);"><input type="checkbox" class="notif-day-cb" data-day="0" style="accent-color:var(--color-accent-pink);"> <span data-i18n="notif.settings.dayToday">Hoje</span></label>
+                  <label style="display:flex;align-items:center;gap:0.35rem;font-size:0.85rem;color:var(--text-secondary);"><input type="checkbox" class="notif-day-cb" data-day="1" style="accent-color:var(--color-accent-pink);"> <span data-i18n="notif.settings.dayTomorrow">Amanhã</span></label>
+                  <label style="display:flex;align-items:center;gap:0.35rem;font-size:0.85rem;color:var(--text-secondary);"><input type="checkbox" class="notif-day-cb" data-day="2" style="accent-color:var(--color-accent-pink);"> <span data-i18n="notif.settings.day2">2 dias</span></label>
+                  <label style="display:flex;align-items:center;gap:0.35rem;font-size:0.85rem;color:var(--text-secondary);"><input type="checkbox" class="notif-day-cb" data-day="3" style="accent-color:var(--color-accent-pink);"> <span data-i18n="notif.settings.day3">3 dias</span></label>
                 </div>
               </div>
 
               <div>
-                <label for="notifIntervalSelect">Verificar a cada (com o app aberto)</label>
+                <label for="notifIntervalSelect" data-i18n="notif.settings.intervalLabel">Verificar a cada (com o app aberto)</label>
                 <select class="form-control" id="notifIntervalSelect" style="width:auto;min-width:140px;">
-                  <option value="1">1 hora</option>
-                  <option value="2">2 horas</option>
-                  <option value="4">4 horas</option>
-                  <option value="12">12 horas</option>
-                  <option value="24">1 dia</option>
+                  <option value="1" data-i18n-opt="notif.settings.hour1">1 hora</option>
+                  <option value="2" data-i18n-opt="notif.settings.hour2">2 horas</option>
+                  <option value="4" data-i18n-opt="notif.settings.hour4">4 horas</option>
+                  <option value="12" data-i18n-opt="notif.settings.hour12">12 horas</option>
+                  <option value="24" data-i18n-opt="notif.settings.day1">1 dia</option>
                 </select>
               </div>
 
               <div>
-                <label>Status dos pedidos</label>
+                <label data-i18n="notif.settings.statusLabel">Status dos pedidos</label>
                 <div style="display:flex;flex-wrap:wrap;gap:0.5rem 1rem;margin-top:0.4rem;">
-                  <label style="display:flex;align-items:center;gap:0.35rem;font-size:0.85rem;color:var(--text-secondary);"><input type="checkbox" class="notif-status-cb" data-status="Pendente" style="accent-color:var(--color-accent-pink);"> Pendente</label>
-                  <label style="display:flex;align-items:center;gap:0.35rem;font-size:0.85rem;color:var(--text-secondary);"><input type="checkbox" class="notif-status-cb" data-status="Em Produção" style="accent-color:var(--color-accent-pink);"> Em Produção</label>
+                  <label style="display:flex;align-items:center;gap:0.35rem;font-size:0.85rem;color:var(--text-secondary);"><input type="checkbox" class="notif-status-cb" data-status="Pendente" style="accent-color:var(--color-accent-pink);"> <span data-i18n="notif.settings.pending">Pendente</span></label>
+                  <label style="display:flex;align-items:center;gap:0.35rem;font-size:0.85rem;color:var(--text-secondary);"><input type="checkbox" class="notif-status-cb" data-status="Em Produção" style="accent-color:var(--color-accent-pink);"> <span data-i18n="notif.settings.production">Em Produção</span></label>
                 </div>
               </div>
 
               <label style="display:flex;align-items:center;gap:0.5rem;font-size:0.85rem;color:var(--text-secondary);">
-                <input type="checkbox" id="notifPendingPayCb" style="accent-color:var(--color-accent-pink);"> Avisar o valor total dos pedidos
+                <input type="checkbox" id="notifPendingPayCb" style="accent-color:var(--color-accent-pink);"> <span data-i18n="notif.settings.alertValue">Avisar o valor total dos pedidos</span>
               </label>
 
               <label style="display:flex;align-items:center;gap:0.5rem;font-size:0.85rem;color:var(--text-secondary);">
-                <input type="checkbox" id="notifOverdueCb" style="accent-color:var(--color-accent-pink);"> Avisar sobre pedidos com entrega atrasada
+                <input type="checkbox" id="notifOverdueCb" style="accent-color:var(--color-accent-pink);"> <span data-i18n="notif.settings.alertOverdue">Avisar sobre pedidos com entrega atrasada</span>
               </label>
 
               <div>
                 <label style="display:flex;align-items:center;gap:0.5rem;font-size:0.85rem;color:var(--text-secondary);">
-                  <input type="checkbox" id="notifQuietCb" style="accent-color:var(--color-accent-pink);"> Horário de silêncio
+                  <input type="checkbox" id="notifQuietCb" style="accent-color:var(--color-accent-pink);"> <span data-i18n="notif.settings.quiet">Horário de silêncio</span>
                 </label>
                 <div id="notifQuietFields" style="display:none;align-items:center;gap:0.6rem;flex-wrap:wrap;margin-top:0.5rem;margin-left:1.5rem;font-size:0.8rem;color:var(--text-secondary);">
-                  <span>De</span>
+                  <span data-i18n="notif.settings.from">De</span>
                   <input type="time" class="form-control" id="notifQuietStart" value="22:00" style="width:auto;">
-                  <span>até</span>
+                  <span data-i18n="notif.settings.until">até</span>
                   <input type="time" class="form-control" id="notifQuietEnd" value="07:00" style="width:auto;">
                 </div>
               </div>
@@ -803,7 +824,7 @@
           <div class="config-card">
             <div class="config-card-header">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-              Segurança
+              <span data-i18n="settings.securityTitle">Segurança</span>
             </div>
             <div id="securitySettingsContainer">
               <!-- Populated by Auth.renderSecuritySettings() -->
@@ -814,18 +835,18 @@
           <div class="config-card" style="border-color: rgba(239, 68, 68, 0.2);">
             <div class="config-card-header" style="color: var(--color-danger);">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-              Avançado
+              <span data-i18n="settings.advancedTitle">Avançado</span>
             </div>
-            <p class="config-desc">
+            <p class="config-desc" data-i18n="settings.advancedDesc">
               Ações que alteram dados permanentemente. Use com cuidado.
             </p>
             <div class="config-btn-group">
               <button class="btn btn-secondary" id="btnLoadDemo" style="border-color: rgba(139, 92, 246, 0.3); color: var(--color-accent-purple);">
-                Carregar Dados de Exemplo
+                <span data-i18n="settings.demoBtn">Carregar Dados de Exemplo</span>
               </button>
               <button class="btn btn-danger" id="btnClearAllData">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                Apagar Todos os Dados
+                <span data-i18n="settings.clearBtn">Apagar Todos os Dados</span>
               </button>
             </div>
           </div>
@@ -852,39 +873,39 @@
           
           <!-- Seção 1: Cliente -->
           <div style="border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; display: flex; flex-direction: column; gap: 0.75rem;">
-            <h3 style="font-size: 0.9rem; font-weight: 700; color: var(--color-accent-pink); text-transform: uppercase; letter-spacing: 0.5px;">Informações do Cliente</h3>
+            <h3 style="font-size: 0.9rem; font-weight: 700; color: var(--color-accent-pink); text-transform: uppercase; letter-spacing: 0.5px;" data-i18n="orders.sectionClient">Informações do Cliente</h3>
             <div class="form-grid-2">
               <div class="form-group">
-                <label for="orderClientName">Nome do Cliente *</label>
-                <input type="text" class="form-control" id="orderClientName" required placeholder="Ex: Maria Oliveira">
+                <label for="orderClientName" data-i18n="orders.lblName">Nome do Cliente *</label>
+                <input type="text" class="form-control" id="orderClientName" required placeholder="Ex: Maria Oliveira" data-i18n-ph="orders.phName">
               </div>
               <div class="form-group">
-                <label for="orderClientPhone">Telefone de Contato</label>
-                <input type="text" class="form-control" id="orderClientPhone" placeholder="Ex: (11) 99999-9999">
+                <label for="orderClientPhone" data-i18n="orders.lblPhone">Telefone de Contato</label>
+                <input type="text" class="form-control" id="orderClientPhone" placeholder="Ex: (11) 99999-9999" data-i18n-ph="orders.phPhone">
               </div>
             </div>
           </div>
 
           <!-- Seção 2: Detalhes do Produto -->
           <div style="border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; display: flex; flex-direction: column; gap: 0.75rem;">
-            <h3 style="font-size: 0.9rem; font-weight: 700; color: var(--color-accent-purple); text-transform: uppercase; letter-spacing: 0.5px;">Especificações do Pedido</h3>
+            <h3 style="font-size: 0.9rem; font-weight: 700; color: var(--color-accent-purple); text-transform: uppercase; letter-spacing: 0.5px;" data-i18n="orders.sectionSpec">Especificações do Pedido</h3>
             
             <div class="form-grid-2">
               <div class="form-group">
-                <label for="orderProductType">Tipo de Produto *</label>
+                <label for="orderProductType" data-i18n="orders.lblProductType">Tipo de Produto *</label>
                 <select class="form-control" id="orderProductType" required>
-                  <option value="Bolo de Kg">Bolo de Quilo (Kg)</option>
-                  <option value="Bolo Unitário">Bolo Unitário</option>
-                  <option value="Doces / Brigadeiros">Doces / Brigadeiros</option>
-                  <option value="Salgados">Salgados</option>
-                  <option value="Outros">Outros / Adicionais</option>
+                  <option value="Bolo de Kg" data-i18n-opt="product.Bolo de Kg">Bolo de Quilo (Kg)</option>
+                  <option value="Bolo Unitário" data-i18n-opt="product.Bolo Unitário">Bolo Unitário</option>
+                  <option value="Doces / Brigadeiros" data-i18n-opt="product.Doces / Brigadeiros">Doces / Brigadeiros</option>
+                  <option value="Salgados" data-i18n-opt="product.Salgados">Salgados</option>
+                  <option value="Outros" data-i18n-opt="product.Outros">Outros / Adicionais</option>
                 </select>
               </div>
               
               <div class="form-group">
-                <label for="orderFlavorSelect">Sabor / Sugestão Rápida</label>
+                <label for="orderFlavorSelect" data-i18n="orders.lblFlavorSuggest">Sabor / Sugestão Rápida</label>
                 <select class="form-control" id="orderFlavorSelect">
-                  <option value="">-- Personalizado / Escolher do Catálogo --</option>
+                  <option value="" data-i18n-opt="orders.selectCustom">-- Personalizado / Escolher do Catálogo --</option>
                   <!-- Populated from Catalog via Javascript -->
                 </select>
               </div>
@@ -892,92 +913,92 @@
 
             <div class="form-grid-2">
               <div class="form-group">
-                <label for="orderFlavor">Sabor Informado *</label>
-                <input type="text" class="form-control" id="orderFlavor" required placeholder="Ex: Brigadeiro Tradicional">
+                <label for="orderFlavor" data-i18n="orders.lblFlavor">Sabor Informado *</label>
+                <input type="text" class="form-control" id="orderFlavor" required placeholder="Ex: Brigadeiro Tradicional" data-i18n-ph="orders.phFlavor">
               </div>
               <div class="form-group">
-                <label for="orderDetails">Recheio / Cobertura / Decoração</label>
-                <input type="text" class="form-control" id="orderDetails" placeholder="Ex: Recheio de coco, raspas de chocolate no topo">
+                <label for="orderDetails" data-i18n="orders.lblDetails">Recheio / Cobertura / Decoração</label>
+                <input type="text" class="form-control" id="orderDetails" placeholder="Ex: Recheio de coco, raspas de chocolate no topo" data-i18n-ph="orders.phDetails">
               </div>
             </div>
           </div>
 
           <!-- Seção 3: Valores, Peso e Entrega -->
           <div style="display: flex; flex-direction: column; gap: 0.75rem;">
-            <h3 style="font-size: 0.9rem; font-weight: 700; color: var(--color-success); text-transform: uppercase; letter-spacing: 0.5px;">Peso, Preço & Entrega</h3>
+            <h3 style="font-size: 0.9rem; font-weight: 700; color: var(--color-success); text-transform: uppercase; letter-spacing: 0.5px;" data-i18n="orders.sectionPrice">Peso, Preço & Entrega</h3>
             
             <div class="form-grid-2">
               <div class="form-group">
-                <label id="labelWeight" for="orderWeight">Peso (Kg) / Qtd *</label>
+                <label id="labelWeight" for="orderWeight" data-i18n="orders.lblWeight">Peso (Kg) / Qtd *</label>
                 <input type="number" class="form-control" id="orderWeight" required step="any" min="0.01" value="1.00">
               </div>
               <div class="form-group">
-                <label id="labelUnitPrice" for="orderUnitPrice">Valor por Kg (R$) / Unitário *</label>
+                <label id="labelUnitPrice" for="orderUnitPrice" data-i18n="orders.lblUnitPrice">Valor por Kg (R$) / Unitário *</label>
                 <input type="number" class="form-control" id="orderUnitPrice" required step="0.01" min="0" value="60.00">
               </div>
             </div>
 
             <div class="form-grid-2">
               <div class="form-group">
-                <label for="orderExtraCharges">Adicionais / Taxa de Entrega (R$)</label>
+                <label for="orderExtraCharges" data-i18n="orders.lblExtra">Adicionais / Taxa de Entrega (R$)</label>
                 <input type="number" class="form-control" id="orderExtraCharges" step="0.01" min="0" value="0.00">
               </div>
               <div class="form-group">
-                <label>Valor Total do Pedido (Calculado)</label>
+                <label data-i18n="orders.lblTotal">Valor Total do Pedido (Calculado)</label>
                 <input type="text" class="form-control" id="orderTotalValDisplay" readonly style="background: rgba(255, 255, 255, 0.05); color: var(--color-accent-pink); font-weight: 700;" value="R$ 60,00">
               </div>
             </div>
 
             <div class="form-grid-2">
               <div class="form-group">
-                <label for="orderDeliveryDate">Data de Entrega *</label>
+                <label for="orderDeliveryDate" data-i18n="orders.lblDeliveryDate">Data de Entrega *</label>
                 <input type="date" class="form-control" id="orderDeliveryDate" required>
               </div>
               <div class="form-group">
-                <label for="orderDeliveryTime">Horário de Entrega *</label>
+                <label for="orderDeliveryTime" data-i18n="orders.lblDeliveryTime">Horário de Entrega *</label>
                 <input type="time" class="form-control" id="orderDeliveryTime" required>
               </div>
             </div>
 
             <div class="form-grid-2">
               <div class="form-group">
-                <label for="orderDeliveryType">Tipo de Retirada</label>
+                <label for="orderDeliveryType" data-i18n="orders.lblPickupType">Tipo de Retirada</label>
                 <select class="form-control" id="orderDeliveryType">
-                  <option value="Retirada no Local">Retirada no Local</option>
-                  <option value="Entrega">Entrega</option>
+                  <option value="Retirada no Local" data-i18n-opt="delivery.Retirada no Local">Retirada no Local</option>
+                  <option value="Entrega" data-i18n-opt="delivery.Entrega">Entrega</option>
                 </select>
               </div>
               <div class="form-group">
-                <label for="orderStatus">Status do Pedido *</label>
+                <label for="orderStatus" data-i18n="orders.lblStatus">Status do Pedido *</label>
                 <select class="form-control" id="orderStatus" required>
-                  <option value="Pendente">Pendente</option>
-                  <option value="Em Produção">Em Produção</option>
-                  <option value="Entregue">Entregue</option>
-                  <option value="Cancelado">Cancelado</option>
+                  <option value="Pendente" data-i18n-opt="status.Pendente">Pendente</option>
+                  <option value="Em Produção" data-i18n-opt="status.Em Produção">Em Produção</option>
+                  <option value="Entregue" data-i18n-opt="status.Entregue">Entregue</option>
+                  <option value="Cancelado" data-i18n-opt="status.Cancelado">Cancelado</option>
                 </select>
               </div>
               <div class="form-group">
-                <label for="orderNotes">Observações Internas</label>
-                <input type="text" class="form-control" id="orderNotes" placeholder="Ex: Cliente vai retirar no local">
+                <label for="orderNotes" data-i18n="orders.lblNotes">Observações Internas</label>
+                <input type="text" class="form-control" id="orderNotes" placeholder="Ex: Cliente vai retirar no local" data-i18n-ph="orders.phNotes">
               </div>
             </div>
 
             <!-- Seção 4: Financeiro -->
             <div style="border-top:1px solid var(--border-color);padding-top:1rem;display:flex;flex-direction:column;gap:0.75rem;">
-              <h3 style="font-size:0.9rem;font-weight:700;color:var(--color-accent-blue);text-transform:uppercase;letter-spacing:0.5px;">Financeiro</h3>
+              <h3 style="font-size:0.9rem;font-weight:700;color:var(--color-accent-blue);text-transform:uppercase;letter-spacing:0.5px;" data-i18n="orders.sectionFinance">Financeiro</h3>
               <div class="form-grid-2">
                 <div class="form-group">
-                  <label for="orderPaymentMethod">Forma de Pagamento</label>
+                  <label for="orderPaymentMethod" data-i18n="orders.lblPayment">Forma de Pagamento</label>
                   <select class="form-control" id="orderPaymentMethod">
-                    <option value="Dinheiro">Dinheiro</option>
-                    <option value="Cartão de Crédito">Cartão de Crédito</option>
-                    <option value="Cartão de Débito">Cartão de Débito</option>
-                    <option value="Pix">Pix</option>
-                    <option value="Transferência">Transferência</option>
+                    <option value="Dinheiro" data-i18n-opt="payment.Dinheiro">Dinheiro</option>
+                    <option value="Cartão de Crédito" data-i18n-opt="payment.Cartão de Crédito">Cartão de Crédito</option>
+                    <option value="Cartão de Débito" data-i18n-opt="payment.Cartão de Débito">Cartão de Débito</option>
+                    <option value="Pix" data-i18n-opt="payment.Pix">Pix</option>
+                    <option value="Transferência" data-i18n-opt="payment.Transferência">Transferência</option>
                   </select>
                 </div>
                 <div class="form-group">
-                  <label for="orderCost">Custo do Pedido (R$)</label>
+                  <label for="orderCost" data-i18n="orders.lblCost">Custo do Pedido (R$)</label>
                   <input type="number" class="form-control" id="orderCost" step="0.01" min="0" value="0.00" placeholder="0,00">
                 </div>
               </div>
@@ -986,8 +1007,8 @@
 
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" id="btnModalOrderCancel">Cancelar</button>
-          <button type="submit" class="btn btn-primary" id="btnModalOrderSubmit">Salvar Pedido</button>
+          <button type="button" class="btn btn-secondary" id="btnModalOrderCancel" data-i18n="common.cancel">Cancelar</button>
+          <button type="submit" class="btn btn-primary" id="btnModalOrderSubmit" data-i18n="orders.footerSave">Salvar Pedido</button>
         </div>
       </form>
     </div>
@@ -999,14 +1020,14 @@
       <div class="modal-header">
         <h2>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
-          Histórico do Cliente
+          <span data-i18n="clients.detailTitle">Histórico do Cliente</span>
         </h2>
         <div style="display:flex;gap:0.5rem;">
           <button class="btn btn-secondary btn-sm" id="btnEditFromHistory" style="padding:0.3rem 0.6rem;font-size:0.75rem;">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-            Editar
+            <span data-i18n="common.edit">Editar</span>
           </button>
-          <button class="modal-close" id="btnModalClientClose" aria-label="Fechar">&times;</button>
+          <button class="modal-close" id="btnModalClientClose" aria-label="Fechar" data-i18n-title="common.close">&times;</button>
         </div>
       </div>
       <div class="modal-body">
@@ -1015,23 +1036,23 @@
           <p id="clientDetailPhone" style="font-size: 0.9rem; color: var(--text-secondary);">Telefone: -</p>
           <div style="display: flex; gap: 1.5rem; margin-top: 0.5rem; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 0.5rem;">
             <div>
-              <span style="font-size: 0.75rem; color: var(--text-muted); display: block; text-transform: uppercase;">Total de Pedidos</span>
+              <span style="font-size: 0.75rem; color: var(--text-muted); display: block; text-transform: uppercase;" data-i18n="clients.detailTotalOrders">Total de Pedidos</span>
               <strong id="clientDetailOrdersCount" style="font-size: 1.1rem; color: var(--color-accent-purple);">0</strong>
             </div>
             <div>
-              <span style="font-size: 0.75rem; color: var(--text-muted); display: block; text-transform: uppercase;">Total Investido</span>
+              <span style="font-size: 0.75rem; color: var(--text-muted); display: block; text-transform: uppercase;" data-i18n="clients.detailTotalSpent">Total Investido</span>
               <strong id="clientDetailSpent" style="font-size: 1.1rem; color: var(--color-accent-pink);">R$ 0,00</strong>
             </div>
           </div>
         </div>
 
-        <h4 style="font-size: 0.9rem; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); margin-top: 0.5rem;">Lista de Encomendas</h4>
+        <h4 style="font-size: 0.9rem; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); margin-top: 0.5rem;" data-i18n="clients.detailList">Lista de Encomendas</h4>
         <div id="clientOrdersHistoryList" style="display: flex; flex-direction: column; gap: 0.75rem; max-height: 300px; overflow-y: auto;">
           <!-- Dynamically populated -->
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-secondary" id="btnModalClientCloseBtn">Fechar</button>
+        <button class="btn btn-secondary" id="btnModalClientCloseBtn" data-i18n="common.close">Fechar</button>
       </div>
     </div>
   </div>
@@ -1042,25 +1063,25 @@
       <div class="modal-header">
         <h2>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-          Editar Cliente
+          <span data-i18n="clients.editTitle">Editar Cliente</span>
         </h2>
-        <button class="modal-close" id="btnClientEditClose" aria-label="Fechar">&times;</button>
+        <button class="modal-close" id="btnClientEditClose" aria-label="Fechar" data-i18n-title="common.close">&times;</button>
       </div>
       <div class="modal-body" style="gap:1rem;">
         <input type="hidden" id="editClientOriginalName">
         <input type="hidden" id="editClientOriginalPhone">
         <div class="form-group">
-          <label for="editClientName">Nome do Cliente *</label>
-          <input type="text" class="form-control" id="editClientName" required placeholder="Nome do cliente">
+          <label for="editClientName" data-i18n="clients.lblName">Nome do Cliente *</label>
+          <input type="text" class="form-control" id="editClientName" required placeholder="Nome do cliente" data-i18n-ph="clients.lblName">
         </div>
         <div class="form-group">
-          <label for="editClientPhone">Telefone</label>
-          <input type="text" class="form-control" id="editClientPhone" placeholder="(11) 99999-9999">
+          <label for="editClientPhone" data-i18n="clients.lblPhone">Telefone</label>
+          <input type="text" class="form-control" id="editClientPhone" placeholder="(11) 99999-9999" data-i18n-ph="clients.lblPhone">
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-secondary" id="btnClientEditCancel">Cancelar</button>
-        <button class="btn btn-primary" id="btnClientEditSave">Salvar</button>
+        <button class="btn btn-secondary" id="btnClientEditCancel" data-i18n="common.cancel">Cancelar</button>
+        <button class="btn btn-primary" id="btnClientEditSave" data-i18n="common.save">Salvar</button>
       </div>
     </div>
   </div>
@@ -1070,12 +1091,12 @@
       <div class="modal-header">
         <h2>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-          Lixeira
+          <span data-i18n="trash.title">Lixeira</span>
         </h2>
-        <button class="modal-close" id="btnTrashClose" aria-label="Fechar">&times;</button>
+        <button class="modal-close" id="btnTrashClose" aria-label="Fechar" data-i18n-title="common.close">&times;</button>
       </div>
       <div class="modal-body">
-        <p class="config-desc">
+        <p class="config-desc" data-i18n="trash.desc">
           Itens excluídos ficam disponíveis aqui por 7 dias. Restaure quando quiser ou exclua de vez.
         </p>
         <div id="trashListContainer" style="display:flex;flex-direction:column;gap:0.5rem;max-height:400px;overflow-y:auto;margin-top:0.75rem;">
@@ -1083,16 +1104,16 @@
         </div>
         <div id="trashEmptyState" class="empty-state" style="display:none;padding:2rem 0;">
           <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-          <h3>Lixeira vazia</h3>
-          <p>Pedidos e clientes excluídos aparecerão aqui.</p>
+          <h3 data-i18n="trash.empty">Lixeira vazia</h3>
+          <p data-i18n="trash.emptySub">Pedidos e clientes excluídos aparecerão aqui.</p>
         </div>
       </div>
       <div class="modal-footer">
         <button class="btn btn-danger" id="btnEmptyTrash">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-          Esvaziar Lixeira
+          <span data-i18n="trash.emptyBtn">Esvaziar Lixeira</span>
         </button>
-        <button class="btn btn-secondary" id="btnTrashCloseBtn">Fechar</button>
+        <button class="btn btn-secondary" id="btnTrashCloseBtn" data-i18n="common.close">Fechar</button>
       </div>
     </div>
   </div>
@@ -1132,8 +1153,6 @@
     if (migrated) console.log('[Migrate] Dados antigos migrados para Confeitex');
   })();
   </script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-  <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
   <script src="js/state.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/utils.js"></script>
@@ -1148,6 +1167,7 @@
   <script src="js/settings.js"></script>
   <script src="js/finances.js"></script>
   <script src="js/updates.js"></script>
+  <script src="js/i18n.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

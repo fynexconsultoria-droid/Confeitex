@@ -6,7 +6,7 @@ const Settings = {
       <div style="display:flex;justify-content:space-between;align-items:center;padding:0.5rem;border-bottom:1px solid rgba(255,255,255,0.03);gap:0.5rem;">
         <div style="flex:1;">
           <span style="font-weight:600;font-size:0.9rem;color:white;">${escapeHTML(item.flavor)}</span>
-          <span style="font-size:0.75rem;color:var(--text-muted);display:block;">${item.type}</span>
+          <span style="font-size:0.75rem;color:var(--text-muted);display:block;">${escapeHTML(I18n.value('product', item.type))}</span>
         </div>
         <div style="font-weight:700;color:var(--color-accent-pink);font-size:0.9rem;margin-right:0.5rem;">R$ ${item.pricePerKg.toFixed(2)}${item.type === 'Bolo de Kg' ? '/Kg' : '/un'}</div>
         <button class="btn btn-secondary btn-icon-only btn-del-cat" data-id="${item.id}" style="padding:0.3rem;color:var(--color-danger);border-color:rgba(239,68,68,0.2);">
@@ -47,7 +47,7 @@ const Settings = {
     const btnDemo = document.getElementById('btnLoadDemo');
     if (btnDemo) {
       btnDemo.addEventListener('click', async () => {
-        const ok = await UI.confirm({ title: 'Carregar Dados Demo', message: 'Isso substituirá TODOS os dados atuais pelos dados de demonstração. Deseja continuar?', confirmText: 'Carregar', variant: 'danger' });
+        const ok = await UI.confirm({ title: I18n.t('settings.confirmDemoTitle'), message: I18n.t('settings.confirmDemo'), confirmText: I18n.t('settings.demoBtn'), variant: 'danger' });
         if (!ok) return;
         State.loadDemo(true);
         State.emptyTrash();
@@ -56,14 +56,14 @@ const Settings = {
         if (tab === 'dashboard') Dashboard.update();
         else if (tab === 'orders') Orders.render();
         else if (tab === 'clients') Clients.render();
-        UI.toast('Dados de demonstração carregados');
+        UI.toast(I18n.t('settings.toastDemo'));
       });
     }
 
     const btnClear = document.getElementById('btnClearAllData');
     if (btnClear) {
       btnClear.addEventListener('click', async () => {
-        const ok = await UI.confirm({ title: 'Apagar Todos os Dados', message: 'ATENÇÃO: Isso apagará TODOS os dados permanentemente. Deseja continuar?', confirmText: 'Apagar', variant: 'danger' });
+        const ok = await UI.confirm({ title: I18n.t('settings.confirmClearTitle'), message: I18n.t('settings.confirmClear'), confirmText: I18n.t('settings.clearBtn'), variant: 'danger' });
         if (!ok) return;
         State.orders = [];
         State.catalog = [...DEFAULT_CATALOG];
@@ -81,9 +81,9 @@ const Settings = {
           localStorage.removeItem('confeitex_lock_hash');
           Auth.lockHash = '';
           if (Auth.renderSecuritySettings) Auth.renderSecuritySettings();
-          UI.toast('Dados, catálogo e bloqueio removidos');
+          UI.toast(I18n.t('settings.toastDataCleared2'));
         } else {
-          UI.toast('Todos os dados foram excluídos');
+          UI.toast(I18n.t('settings.toastDataCleared'));
         }
         this.renderCatalog();
         Dashboard.update();
@@ -99,7 +99,7 @@ const Settings = {
         const type = document.getElementById('newCatalogType').value;
 
         if (!flavor || price <= 0) {
-          UI.alert('Preencha o sabor e um preço válido.');
+          UI.alert(I18n.t('settings.alertCat'));
           return;
         }
 
@@ -108,7 +108,7 @@ const Settings = {
         document.getElementById('newCatalogFlavor').value = '';
         document.getElementById('newCatalogPrice').value = '';
         this.renderCatalog();
-        UI.toast('Sabor adicionado ao catálogo');
+        UI.toast(I18n.t('settings.toastCatAdded'));
       });
     }
 
@@ -129,11 +129,11 @@ const Settings = {
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
-        link.download = `confeitex_relatorio_${new Date().toISOString().split('T')[0]}.csv`;
+        link.download = `confeitex_relatorio_${fmtISO(new Date())}.csv`;
         link.href = url;
         link.click();
         URL.revokeObjectURL(url);
-        UI.toast('Relatório CSV exportado');
+        UI.toast(I18n.t('settings.toastCsv'));
       });
     }
 
@@ -148,24 +148,24 @@ const Settings = {
     if (btnToggleNotif) {
       btnToggleNotif.addEventListener('click', async () => {
         if (Notifications.status === 'unsupported') {
-          UI.alert('Notificações não são suportadas neste navegador.');
+          UI.alert(I18n.t('notif.settings.alertUnsupported'));
           return;
         }
         if (Notifications.status === 'denied') {
-          UI.alert('A permissão de notificações foi negada. Ative nas configurações do navegador.');
+          UI.alert(I18n.t('notif.settings.alertDenied'));
           return;
         }
         if (Notifications.enabled) {
           Notifications.disable();
           this.renderNotificationStatus();
-          UI.toast('Notificações desativadas.');
+          UI.toast(I18n.t('notif.settings.toastDisabled'));
         } else {
           const ok = await Notifications.enable();
           this.renderNotificationStatus();
           if (ok) {
-            UI.toast('Notificações ativadas com sucesso!');
+            UI.toast(I18n.t('notif.settings.toastEnabled'));
           } else {
-            UI.alert('Não foi possível ativar as notificações. Verifique a permissão no navegador.');
+            UI.alert(I18n.t('notif.settings.alertEnableFail'));
           }
         }
       });
@@ -188,11 +188,11 @@ const Settings = {
     const linhas = State.orders.map(o =>
       `<tr>
         <td><strong>${escapeHTML(o.clientName)}</strong><br><small>${escapeHTML(o.clientPhone || '')}</small></td>
-        <td>${escapeHTML(o.flavor)}<br><small>${escapeHTML(o.productType)}</small></td>
+        <td>${escapeHTML(o.flavor)}<br><small>${escapeHTML(I18n.value('product', o.productType))}</small></td>
         <td>${fmtDateStr(o.deliveryDate)} ${o.deliveryTime || ''}</td>
         <td style="text-align:right">${o.weight}${o.productType === 'Bolo de Kg' ? ' Kg' : ' un'}</td>
         <td style="text-align:right;font-weight:bold;">${fmt(o.totalValue)}</td>
-        <td style="text-align:center">${o.status}</td>
+        <td style="text-align:center">${escapeHTML(I18n.value('status', o.status))}</td>
       </tr>`
     ).join('');
 
@@ -209,10 +209,10 @@ const Settings = {
   .data-footnote{font-size:6px;color:#eee;margin-top:2rem;word-break:break-all}
   @media print{body{padding:0}th{background:#eee!important}}
 </style></head><body>
-<h1>🎂 Confeitex — Relatório de Encomendas</h1>
-<p>Gerado em ${hoje} — Total de ${State.orders.length} pedido(s) cadastrado(s)</p>
+<h1>${I18n.t('settings.pdfTitle')}</h1>
+<p>${I18n.t('finance.pdfGenerated', { date: hoje })} — ${I18n.t('settings.pdfCount', { count: State.orders.length })}</p>
 <table><thead><tr>
-<th>Cliente</th><th>Produto / Sabor</th><th>Data Entrega</th><th>Peso/Qtd</th><th>Valor Total</th><th>Status</th>
+<th>${I18n.t('finance.pdfClient')}</th><th>${I18n.t('finance.pdfProduct')}</th><th>${I18n.t('finance.pdfDelivery')}</th><th>${I18n.t('settings.pdfWeight')}</th><th>${I18n.t('finance.pdfValue')}</th><th>${I18n.t('finance.pdfStatus')}</th>
 </tr></thead><tbody>${linhas}</tbody></table>
 <div class="data-footnote">CONFEITEX:DATA:${dataJson}:DATA:CONFEITEX</div>
 </body></html>`;
@@ -238,10 +238,10 @@ const Settings = {
       try {
         iframe.contentWindow.focus();
         iframe.contentWindow.print();
-        UI.toast('Relatório pronto para salvar como PDF');
+        UI.toast(I18n.t('finance.toastPdf'));
       } catch (e) {
         console.warn('[PDF Print Error]:', e);
-        UI.alert('Não foi possível iniciar a impressão. Verifique se o navegador bloqueou a ação.');
+        UI.alert(I18n.t('settings.alertNoPdf'));
       }
     }, 400);
   },
@@ -260,10 +260,10 @@ const Settings = {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `confeitex_backup_${new Date().toISOString().split('T')[0]}.json`;
+    link.download = `confeitex_backup_${fmtISO(new Date())}.json`;
     link.click();
     URL.revokeObjectURL(url);
-    UI.toast('Backup JSON exportado com sucesso!');
+    UI.toast(I18n.t('settings.toastJson'));
   },
 
   async handleImportFile(e) {
@@ -278,7 +278,7 @@ const Settings = {
       }
     } catch (err) {
       console.error('[Import Error]:', err);
-      UI.alert('Não foi possível importar o arquivo. Verifique se é um backup JSON ou PDF válido do Confeitex.');
+      UI.alert(I18n.t('settings.alertImport'));
     }
     e.target.value = '';
   },
@@ -303,11 +303,11 @@ const Settings = {
       throw new Error('Nenhum dado encontrado no arquivo JSON');
     }
 
-    const confirmMsg = `Foram encontrados:\n• ${newOrders.length} pedido(s)\n• ${newCatalog.length} sabor(es) no catálogo\n• ${newExpenses.length} custo(s) de matéria-prima.\n\nDeseja importar e atualizar seus dados atuais?`;
+    const confirmMsg = I18n.t('settings.confirmImportJson', { orders: newOrders.length, catalog: newCatalog.length, expenses: newExpenses.length });
     const ok = await UI.confirm({
-      title: 'Importar Backup JSON',
+      title: I18n.t('settings.importJsonTitle'),
       message: confirmMsg,
-      confirmText: 'Importar',
+      confirmText: I18n.t('settings.importBtn'),
       variant: 'primary'
     });
     if (!ok) return;
@@ -325,7 +325,7 @@ const Settings = {
       State.saveExpenses();
     }
 
-    UI.toast('Dados importados do arquivo JSON com sucesso!');
+    UI.toast(I18n.t('settings.toastImported'));
     const tab = document.querySelector('.nav-link.active')?.dataset.tab;
     if (tab === 'dashboard') Dashboard.update();
     else if (tab === 'orders') Orders.render();
@@ -333,9 +333,29 @@ const Settings = {
     else if (tab === 'settings') this.renderCatalog();
   },
 
+  // Carrega pdf.js sob demanda (evita baixar ~250KB no startup do app)
+  _ensurePdfJs() {
+    if (window.pdfjsLib) return Promise.resolve(true);
+    return new Promise((resolve) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+      s.onload = () => {
+        try {
+          pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+          resolve(true);
+        } catch (e) {
+          resolve(false);
+        }
+      };
+      s.onerror = () => resolve(false);
+      document.head.appendChild(s);
+    });
+  },
+
   async importPDFFile(file) {
-    if (!window.pdfjsLib) {
-      UI.alert('O leitor de PDF não pôde ser carregado. Recomendamos usar o backup em formato .json!');
+    const loaded = await this._ensurePdfJs();
+    if (!window.pdfjsLib || !loaded) {
+      UI.alert(I18n.t('settings.alertNoPdf'));
       return;
     }
 
@@ -388,16 +408,16 @@ const Settings = {
     if (orders.length === 0) throw new Error('Nenhum pedido encontrado no PDF');
 
     const ok = await UI.confirm({
-      title: 'Importar Dados do PDF',
-      message: `Foram encontrados ${orders.length} pedido(s) no PDF. Deseja importá-los? (Os dados atuais serão substituídos.)`,
-      confirmText: 'Importar',
+      title: I18n.t('settings.importPdfTitle'),
+      message: I18n.t('settings.confirmImportPdf', { count: orders.length }),
+      confirmText: I18n.t('settings.importBtn'),
       variant: 'danger'
     });
     if (!ok) return;
 
     State.orders = orders.map(migrateOrder);
     State.saveOrders();
-    UI.toast(`${orders.length} pedido(s) importados do PDF com sucesso!`);
+    UI.toast(I18n.t('settings.toastPdfImported', { count: orders.length }));
     const tab = document.querySelector('.nav-link.active')?.dataset.tab;
     if (tab === 'dashboard') Dashboard.update();
     else if (tab === 'orders') Orders.render();
@@ -517,7 +537,7 @@ const Settings = {
       quietHoursEnd
     });
 
-    UI.toast('Preferências de notificação salvas!');
+    UI.toast(I18n.t('notif.settings.toastSaved'));
   },
 
   renderNotificationStatus() {
@@ -530,20 +550,20 @@ const Settings = {
 
     if (Notifications.status === 'unsupported') {
       dot.style.background = 'var(--color-danger)';
-      text.textContent = 'Não suportado';
+      text.textContent = I18n.t('notif.settings.unsupported');
       text.style.color = 'var(--color-danger)';
-      info.textContent = 'Seu navegador não suporta notificações.';
-      btnText.textContent = 'Não suportado';
+      info.textContent = I18n.t('notif.settings.unsupportedInfo');
+      btnText.textContent = I18n.t('notif.settings.unsupportedBtn');
       btn.disabled = true;
       return;
     }
 
     if (Notifications.status === 'denied') {
       dot.style.background = 'var(--color-danger)';
-      text.textContent = 'Permissão negada';
+      text.textContent = I18n.t('notif.settings.denied');
       text.style.color = 'var(--color-danger)';
-      info.textContent = 'Ative as notificações nas configurações do navegador.';
-      btnText.textContent = 'Permissão Negada';
+      info.textContent = I18n.t('notif.settings.deniedInfo');
+      btnText.textContent = I18n.t('notif.settings.deniedBtn');
       btn.disabled = false;
       btn.className = 'btn btn-secondary';
       return;
@@ -551,24 +571,24 @@ const Settings = {
 
     if (Notifications.enabled) {
       dot.style.background = 'var(--color-success)';
-      text.textContent = 'Notificações ativas';
+      text.textContent = I18n.t('notif.settings.active');
       text.style.color = 'var(--color-success)';
       const mode = Notifications.backgroundMode;
       if (mode === 'triggers') {
-        info.textContent = 'Ativas mesmo com o app fechado — lembretes agendados no sistema.';
+        info.textContent = I18n.t('notif.settings.activeTriggers');
       } else if (mode === 'periodic') {
-        info.textContent = 'Ativas com o app fechado quando o navegador permitir (horário aproximado).';
+        info.textContent = I18n.t('notif.settings.activePeriodic');
       } else {
-        info.textContent = 'Ativas apenas com o app aberto. Instale o app via HTTPS para lembretes com o app fechado.';
+        info.textContent = I18n.t('notif.settings.activeOpen');
       }
-      btnText.textContent = 'Desativar Notificações';
+      btnText.textContent = I18n.t('notif.settings.disableBtn');
       btn.className = 'btn btn-secondary';
     } else {
       dot.style.background = 'var(--text-muted)';
-      text.textContent = 'Notificações inativas';
+      text.textContent = I18n.t('notif.settings.inactive');
       text.style.color = 'var(--text-muted)';
-      info.textContent = 'Ative para receber lembretes de entregas pendentes.';
-      btnText.textContent = 'Ativar Notificações';
+      info.textContent = I18n.t('notif.settings.inactiveInfo');
+      btnText.textContent = I18n.t('notif.settings.enableBtn');
       btn.className = 'btn btn-primary';
     }
   }

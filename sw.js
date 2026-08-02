@@ -24,6 +24,7 @@ const ASSETS_TO_CACHE = [
   './js/settings.js',
   './js/finances.js',
   './js/updates.js',
+  './js/i18n.js',
   './js/app.js',
   './js/trash.js',
   './icons/icon-192x192.png',
@@ -144,6 +145,24 @@ function swSet(key, value) {
   }));
 }
 
+// Mini-dicionário para as notificações em segundo plano (idioma salvo pelo usuário)
+const SW_NOTIF_STRINGS = {
+  'pt-BR': { d0: 'Hoje', d1: 'Amanhã', d2: 'em 2 Dias', d3: 'em 3 Dias', sched: '{count} entrega(s) agendada(s) para {day}:', more: '\ne mais {count} pedido(s)...', total: '\n💰 Valor total: R$ {value}', today: 'Confeitex - Entregas de Hoje! 🎂', reminder: 'Confeitex - Lembrete: Entregas {day} 🎂', overdueBody: '{count} pedido(s) com entrega atrasada:', overdueTitle: 'Confeitex - Pedidos Atrasados ⚠️' },
+  en: { d0: 'Today', d1: 'Tomorrow', d2: 'in 2 Days', d3: 'in 3 Days', sched: '{count} delivery(ies) scheduled for {day}:', more: '\nand {count} more order(s)...', total: '\n💰 Total value: R$ {value}', today: 'Confeitex - Deliveries Today! 🎂', reminder: 'Confeitex - Reminder: Deliveries {day} 🎂', overdueBody: '{count} order(s) with late delivery:', overdueTitle: 'Confeitex - Overdue Orders ⚠️' },
+  es: { d0: 'Hoy', d1: 'Mañana', d2: 'en 2 Días', d3: 'en 3 Días', sched: '{count} entrega(s) programada(s) para {day}:', more: '\ny {count} pedido(s) más...', total: '\n💰 Valor total: R$ {value}', today: 'Confeitex - ¡Entregas de Hoy! 🎂', reminder: 'Confeitex - Recordatorio: Entregas {day} 🎂', overdueBody: '{count} pedido(s) con entrega atrasada:', overdueTitle: 'Confeitex - Pedidos Atrasados ⚠️' },
+  de: { d0: 'Heute', d1: 'Morgen', d2: 'in 2 Tagen', d3: 'in 3 Tagen', sched: '{count} Lieferung(en) geplant für {day}:', more: '\nund {count} weitere Bestellung(en)...', total: '\n💰 Gesamtwert: R$ {value}', today: 'Confeitex - Lieferungen Heute! 🎂', reminder: 'Confeitex - Erinnerung: Lieferungen {day} 🎂', overdueBody: '{count} Bestellung(en) mit verspäteter Lieferung:', overdueTitle: 'Confeitex - Überfällige Bestellungen ⚠️' },
+  it: { d0: 'Oggi', d1: 'Domani', d2: 'fra 2 Giorni', d3: 'fra 3 Giorni', sched: '{count} consegna/e programmata/e per {day}:', more: '\ne altri {count} ordine/i...', total: '\n💰 Valore totale: R$ {value}', today: 'Confeitex - Consegne di Oggi! 🎂', reminder: 'Confeitex - Promemoria: Consegne {day} 🎂', overdueBody: '{count} ordine/i con consegna in ritardo:', overdueTitle: 'Confeitex - Ordini in Ritardo ⚠️' },
+  fr: { d0: "Aujourd'hui", d1: 'Demain', d2: 'dans 2 Jours', d3: 'dans 3 Jours', sched: '{count} livraison(s) prévue(s) pour {day}:', more: '\net {count} commande(s) de plus...', total: '\n💰 Valeur totale : R$ {value}', today: 'Confeitex - Livraisons Aujourd\'hui ! 🎂', reminder: 'Confeitex - Rappel : Livraisons {day} 🎂', overdueBody: '{count} commande(s) avec livraison en retard :', overdueTitle: 'Confeitex - Commandes en Retard ⚠️' }
+};
+
+function swInterp(tpl, vars) {
+  return tpl.replace(/\{(\w+)\}/g, (_, k) => (k in vars ? String(vars[k]) : ''));
+}
+
+function swNotif(lang) {
+  return SW_NOTIF_STRINGS[lang] || SW_NOTIF_STRINGS['pt-BR'];
+}
+
 // Periodic Background Sync — fallback para navegadores Chromium sem Notification Triggers.
 // O navegador acorda o service worker periodicamente e executamos a checagem.
 self.addEventListener('periodicsync', (event) => {
@@ -162,8 +181,9 @@ async function swRunCheck() {
   const allowedStatuses = settings.statuses || ['Pendente', 'Em Produção'];
   const sent = await swGet('confeitex_sent') || {};
   const now = new Date();
-  const todayStr = now.toISOString().split('T')[0];
-  const dayLabels = { 0: 'Hoje', 1: 'Amanhã', 2: 'em 2 Dias', 3: 'em 3 Dias' };
+  const todayStr = swFmtISO(now);
+  const s = swNotif(snapshot.lang);
+  const dayLabels = { 0: s.d0, 1: s.d1, 2: s.d2, 3: s.d3 };
   const newSent = { ...sent };
 
   // Horário de silêncio: não notifica dentro do intervalo configurado
@@ -179,7 +199,7 @@ async function swRunCheck() {
 
   for (const dayOffset of daysBeforeList) {
     const targetDateObj = new Date(now.getTime() + dayOffset * 86400000);
-    const targetDateStr = targetDateObj.toISOString().split('T')[0];
+    const targetDateStr = swFmtISO(targetDateObj);
 
     const matchingOrders = (snapshot.orders || []).filter(o =>
       o.deliveryDate === targetDateStr && allowedStatuses.includes(o.status));
@@ -188,22 +208,22 @@ async function swRunCheck() {
     const cacheKey = `notif_d${dayOffset}_${targetDateStr}`;
     if (sent[cacheKey]) continue;
 
-    let bodyMsg = `${matchingOrders.length} entrega(s) agendada(s) para ${dayLabels[dayOffset] || targetDateStr}:\n`;
+    let bodyMsg = swInterp(s.sched, { count: matchingOrders.length, day: dayLabels[dayOffset] || targetDateStr }) + '\n';
     bodyMsg += matchingOrders.slice(0, 3).map(o => `• ${o.deliveryTime || ''} ${o.clientName}: ${o.flavor}`).join('\n');
     if (matchingOrders.length > 3) {
-      bodyMsg += `\ne mais ${matchingOrders.length - 3} pedido(s)...`;
+      bodyMsg += swInterp(s.more, { count: matchingOrders.length - 3 });
     }
     if (settings.alertPendingPayment !== false) {
       const withPendingVal = matchingOrders.filter(o => (o.totalValue || 0) > 0);
       if (withPendingVal.length > 0) {
-        const totalVal = withPendingVal.reduce((s, o) => s + (o.totalValue || 0), 0);
-        bodyMsg += `\n💰 Valor total: R$ ${totalVal.toFixed(2).replace('.', ',')}`;
+        const totalVal = withPendingVal.reduce((sum, o) => sum + (o.totalValue || 0), 0);
+        bodyMsg += swInterp(s.total, { value: totalVal.toFixed(2).replace('.', ',') });
       }
     }
 
     const title = dayOffset === 0
-      ? 'Confeitex - Entregas de Hoje! 🎂'
-      : `Confeitex - Lembrete: Entregas ${dayLabels[dayOffset] || 'em breve'} 🎂`;
+      ? s.today
+      : swInterp(s.reminder, { day: dayLabels[dayOffset] || targetDateStr });
 
     self.registration.showNotification(title, {
       body: bodyMsg,
@@ -221,13 +241,13 @@ async function swRunCheck() {
     if (overdueOrders.length > 0) {
       const cacheKey = `overdue_${todayStr}`;
       if (!sent[cacheKey]) {
-        let bodyMsg = `${overdueOrders.length} pedido(s) com entrega atrasada:\n`;
+        let bodyMsg = swInterp(s.overdueBody, { count: overdueOrders.length }) + '\n';
         bodyMsg += overdueOrders.slice(0, 3).map(o =>
           `• ${o.clientName}: ${o.flavor} (${o.deliveryDate.split('-').reverse().join('/')})`).join('\n');
         if (overdueOrders.length > 3) {
-          bodyMsg += `\ne mais ${overdueOrders.length - 3} pedido(s)...`;
+          bodyMsg += swInterp(s.more, { count: overdueOrders.length - 3 });
         }
-        const title = 'Confeitex - Pedidos Atrasados ⚠️';
+        const title = s.overdueTitle;
         self.registration.showNotification(title, {
           body: bodyMsg,
           icon: 'icons/icon-192x192.png',
@@ -239,6 +259,11 @@ async function swRunCheck() {
   }
 
   await swSet('confeitex_sent', newSent);
+}
+
+// Data local em formato ISO (YYYY-MM-DD) — evita o bug de UTC (dia errado à noite)
+function swFmtISO(d) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
 // Verifica se agora está dentro do horário de silêncio configurado

@@ -2,17 +2,20 @@
   State.load();
   Auth.init();
 
+  // Aplica o idioma salvo aos elementos estáticos do HTML
+  try { I18n.apply(); } catch (e) { console.warn('[Confeitex] Erro ao aplicar idioma:', e); }
+
   if (Auth.isLocked()) {
     await Auth.showLogin();
   }
 
   const tabTitles = {
-    dashboard: { title: 'Painel de Controle', subtitle: 'Estatísticas gerais e entregas de hoje.' },
-    orders: { title: 'Encomendas', subtitle: 'Gerencie e busque todos os pedidos registrados.' },
-    clients: { title: 'Clientes', subtitle: 'Histórico de compras e contatos de clientes.' },
-    finances: { title: 'Financeiro', subtitle: 'Resumo financeiro, formas de pagamento e gráficos.' },
-    settings: { title: 'Configurações', subtitle: 'Ajustes do catálogo de sabores e utilitários.' },
-    updates: { title: 'Atualizações', subtitle: 'Verifique por novas versões do aplicativo.' }
+    dashboard: { title: 'tab.dash.title', subtitle: 'tab.dash.sub' },
+    orders: { title: 'tab.orders.title', subtitle: 'tab.orders.sub' },
+    clients: { title: 'tab.clients.title', subtitle: 'tab.clients.sub' },
+    finances: { title: 'tab.finances.title', subtitle: 'tab.finances.sub' },
+    settings: { title: 'tab.settings.title', subtitle: 'tab.settings.sub' },
+    updates: { title: 'tab.updates.title', subtitle: 'tab.updates.sub' }
   };
 
   let lastBackPressTime = 0;
@@ -28,8 +31,8 @@
 
     document.querySelectorAll('.nav-link').forEach(l => l.classList.toggle('active', l.dataset.tab === tabId));
     document.querySelectorAll('.tab-content').forEach(c => c.classList.toggle('active', c.id === tabId));
-    document.getElementById('mainTitle').textContent = tabTitles[tabId].title;
-    document.getElementById('mainSubtitle').textContent = tabTitles[tabId].subtitle;
+    document.getElementById('mainTitle').textContent = I18n.t(tabTitles[tabId].title);
+    document.getElementById('mainSubtitle').textContent = I18n.t(tabTitles[tabId].subtitle);
 
     if (pushState && history.state?.tab !== tabId) {
       try { history.pushState({ tab: tabId }, ''); } catch (e) {}
@@ -87,7 +90,7 @@
     // Primeira vez pressionando voltar no Dashboard: exibe toast e empurra estado para manter no app
     lastBackPressTime = now;
     try { history.pushState({ tab: 'dashboard' }, ''); } catch (e) {}
-    UI.toast('Pressione voltar novamente para sair do app');
+    UI.toast(I18n.t('dash.backPress'));
   });
 
   // Observe de abertura de modais para registrar no histórico
@@ -136,7 +139,7 @@
   // Se veio de uma atualização automática, mostra toast e limpa flag
   if (localStorage.getItem('confeitex_updated')) {
     const v = localStorage.getItem('confeitex_ver');
-    UI.toast(`✅ App atualizado para v${v}`);
+    UI.toast(I18n.t('updates.toastUpdated', { version: v }));
     localStorage.removeItem('confeitex_updated');
   }
 
@@ -151,7 +154,7 @@
       const updated = localStorage.getItem('confeitex_updated');
       if (downloading || !updated) return;
       reloading = true;
-      UI.toast('🔄 Nova versão instalada. Recarregando...');
+      UI.toast(I18n.t('updates.toastReload'));
       setTimeout(() => window.location.reload(), 1500);
     });
   }
@@ -161,16 +164,37 @@
 
   // Daily calculator
   const dateInput = document.getElementById('calcDateInput');
-  dateInput.value = new Date().toISOString().split('T')[0];
+  dateInput.value = fmtISO(new Date());
   dateInput.addEventListener('change', () => Dashboard.calcDayTotals(dateInput.value));
   document.getElementById('btnQuickCalcToday').addEventListener('click', () => {
-    const d = new Date().toISOString().split('T')[0];
+    const d = fmtISO(new Date());
     dateInput.value = d;
     Dashboard.calcDayTotals(d);
   });
 
   // Chart period
   document.getElementById('chartPeriodSelect').addEventListener('change', () => Chart.render());
+
+  // Language selector
+  const langSelect = document.getElementById('langSelect');
+  if (langSelect) {
+    langSelect.value = I18n.lang;
+    langSelect.addEventListener('change', () => {
+      const code = langSelect.value;
+      I18n.setLang(code);
+      UI.toast(I18n.t('settings.toastLang', { lang: I18n.names[code] }));
+    });
+  }
+
+  // Re-render dinâmico após mudar o idioma
+  I18n.onApply = () => {
+    const currentTab = document.querySelector('.nav-link.active')?.dataset.tab;
+    try { switchTab(currentTab || 'dashboard', false); } catch (e) {}
+    try { Chart.render(); } catch (e) {}
+    if (typeof Orders !== 'undefined' && Orders.refreshFlavorOptions) Orders.refreshFlavorOptions();
+    if (typeof Clients !== 'undefined' && Clients.refresh) Clients.refresh();
+    if (typeof Notifications !== 'undefined' && Notifications.refreshUI) Notifications.refreshUI();
+  };
 
 
 

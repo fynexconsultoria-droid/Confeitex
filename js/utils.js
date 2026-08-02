@@ -1,6 +1,15 @@
 const fmt = (val) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(isNaN(val) || val === null || val === undefined ? 0 : +val).replace(/\u00A0/g, ' ');
 const fmtDate = (d) => `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
 const fmtDateStr = (s) => s ? s.split('-').reverse().join('/') : '';
+// Data local em formato ISO (YYYY-MM-DD) — evita o bug de toISOString() que usa UTC
+// e retorna o dia errado à noite em fusos negativos (ex.: Brasil, UTC-3).
+const fmtISO = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const debounce = (fn, ms = 250) => {
+  let t;
+  const wrapped = (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
+  wrapped.cancel = () => clearTimeout(t);
+  return wrapped;
+};
 const escapeHTML = (s) => s ? String(s).replace(/[&<>'"]/g, t => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[t])) : '';
 
 function getOrderTotal(o) {

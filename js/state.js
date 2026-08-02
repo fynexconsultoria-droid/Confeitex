@@ -121,7 +121,7 @@ const State = {
         unitPrice: precoKg,
         extraCharges: 0,
         cost: +(precoKg * peso * 0.4).toFixed(2),
-        deliveryDate: d.toISOString().split('T')[0],
+        deliveryDate: fmtISO(d),
         deliveryTime: `${String(8 + Math.floor(Math.random() * 10)).padStart(2, '0')}:00`,
         status: statusList[Math.floor(Math.random() * statusList.length)],
         notes: '',
@@ -133,9 +133,9 @@ const State = {
       });
     }
     this.expenses = [
-      { id: 'e_demo_1', description: 'Compra de farinha, açúcar e ovos', amount: 85.00, date: d.toISOString().split('T')[0] },
-      { id: 'e_demo_2', description: 'Chocolate e recheios', amount: 120.00, date: d.toISOString().split('T')[0] },
-      { id: 'e_demo_3', description: 'Embalagens e caixas', amount: 40.00, date: d.toISOString().split('T')[0] }
+      { id: 'e_demo_1', description: 'Compra de farinha, açúcar e ovos', amount: 85.00, date: fmtISO(d) },
+      { id: 'e_demo_2', description: 'Chocolate e recheios', amount: 120.00, date: fmtISO(d) },
+      { id: 'e_demo_3', description: 'Embalagens e caixas', amount: 40.00, date: fmtISO(d) }
     ];
     this.saveExpenses();
     this.saveOrders();
