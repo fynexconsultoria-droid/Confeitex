@@ -74,26 +74,26 @@
       }
     } catch (e) {}
 
-    // Fallback para navegadores que não permitem lock (ex: iOS Safari)
-    const canLock = !!(screen.orientation && typeof screen.orientation.lock === 'function');
-    if (!canLock) {
-      const overlay = document.createElement('div');
-      overlay.className = 'rotate-overlay';
-      overlay.innerHTML = `
-        <div class="rotate-overlay-box">
-          <div class="rotate-phone">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="7" y="2" width="10" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18"/></svg>
-          </div>
-          <h3>Gire o celular</h3>
-          <p>Use o Confeitex na vertical para uma melhor experiência.</p>
-        </div>`;
-      document.body.appendChild(overlay);
+    // Overlay "gire o celular": exibe em todos os navegadores quando a tela
+    // ficar na horizontal (mesmo quando o lock acima falha silenciosamente,
+    // ex: iOS Safari ou quando o app roda fora do modo instalado/fullscreen).
+    const overlay = document.createElement('div');
+    overlay.className = 'rotate-overlay';
+    overlay.innerHTML = `
+      <div class="rotate-overlay-box">
+        <div class="rotate-phone">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="7" y="2" width="10" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18"/></svg>
+        </div>
+        <h3>Gire o celular</h3>
+        <p>Use o Confeitex na vertical para uma melhor experiência.</p>
+      </div>`;
+    document.body.appendChild(overlay);
 
-      const checkOrientation = () => {
-        overlay.classList.toggle('visible', window.innerHeight < window.innerWidth);
-      };
-      window.addEventListener('resize', checkOrientation);
-      checkOrientation();
-    }
+    const checkOrientation = () => {
+      overlay.classList.toggle('visible', window.innerHeight < window.innerWidth);
+    };
+    window.addEventListener('resize', checkOrientation);
+    window.addEventListener('orientationchange', checkOrientation);
+    checkOrientation();
   }
 })();

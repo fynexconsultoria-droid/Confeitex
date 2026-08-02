@@ -423,7 +423,7 @@
       this.groupName('Updates');
 
       this.assert(typeof Updates !== 'undefined', 'Updates existe', '');
-      this.assert(Updates.verAtual === '1.22.0', 'verAtual', Updates.verAtual);
+      this.assert(Updates.verAtual === '1.24.0', 'verAtual', Updates.verAtual);
       this.assert(Array.isArray(Updates.changelog) && Updates.changelog.length >= 5, 'changelog entradas', String(Updates.changelog.length));
 
       Updates.render();

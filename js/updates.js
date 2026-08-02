@@ -1,5 +1,5 @@
 const Updates = {
-  verAtual: '1.23.0',
+  verAtual: '1.24.0',
 
   setup() {
     document.getElementById('btnCheckUpdates').addEventListener('click', () => this.check());
@@ -240,6 +240,7 @@ const Updates = {
   },
 
   changelog: [
+    { ver: '1.24.0', date: '02/08/2026', keys: ['changelog.1240', 'changelog.1241'] },
     { ver: '1.23.0', date: '01/08/2026', keys: ['changelog.1230', 'changelog.1231', 'changelog.1232'] },
     { ver: '1.22.0', date: '01/08/2026', keys: ['changelog.1220', 'changelog.1221', 'changelog.1222'] },
     { ver: '1.21.0', date: '01/08/2026', keys: ['changelog.1210', 'changelog.1211', 'changelog.1212'] },
