@@ -102,9 +102,11 @@ const Chart = {
   },
 
   _axisFmt(v) {
-    if (v >= 1000000) return 'R$ ' + (v / 1000000).toFixed(1).replace('.', ',') + 'M';
-    if (v >= 1000) return 'R$ ' + (v / 1000).toFixed(v >= 10000 ? 0 : 1).replace('.', ',') + 'k';
-    return 'R$ ' + Math.round(v).toLocaleString('pt-BR');
+    const sym = (typeof I18n !== 'undefined' && I18n.currencySymbol) ? I18n.currencySymbol() : 'R$';
+    const loc = (typeof I18n !== 'undefined' && I18n.locale) ? I18n.locale() : 'pt-BR';
+    if (v >= 1000000) return sym + ' ' + (v / 1000000).toFixed(1).replace('.', ',') + 'M';
+    if (v >= 1000) return sym + ' ' + (v / 1000).toFixed(v >= 10000 ? 0 : 1).replace('.', ',') + 'k';
+    return sym + ' ' + Math.round(v).toLocaleString(loc);
   },
 
   _drawChart() {

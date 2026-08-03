@@ -183,7 +183,7 @@ foreach ($file in $jsFiles) {
 $duplicatedMethods = $methodCounts.GetEnumerator() | Where-Object { $_.Value.Count -gt 1 -and $_.Key -notin @('init', 'render', 'setup', 'update', 'check', 'load', 'enable', 'disable', 'toggle') }
 if ($duplicatedMethods) {
     foreach ($d in $duplicatedMethods) {
-        $warnings += "Metodo '$($d.Key)' aparece em: $($d.Value | Select-Object -Unique | Join-String -Separator ', ')"
+        $warnings += "Metodo '$($d.Key)' aparece em: $(($d.Value | Select-Object -Unique) -join ', ')"
     }
 }
 

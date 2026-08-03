@@ -49,6 +49,7 @@
   </div>
 
   <script src="js/state.js"></script>
+  <script src="js/i18n.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/utils.js"></script>
   <script src="js/ui.js"></script>
@@ -68,6 +69,8 @@
   // Setup DOM minimo para os modulos que dependem de elementos
   // ============================================================
   (function setupTestDOM() {
+    // Força idioma pt-BR para os testes serem determinísticos
+    try { localStorage.setItem('confeitex_lang', 'pt-BR'); I18n.apply(); } catch (e) {}
     const ids = [
       // Dashboard
       'kpiSalesToday', 'kpiWeightToday', 'kpiPendingOrders', 'kpiTotalEarnings',
@@ -347,6 +350,10 @@
       this.assert(fmt(NaN) === 'R$ 0,00', 'fmt(NaN)', '');
       this.assert(fmt('abc') === 'R$ 0,00', 'fmt("abc")', '');
 
+      this.assert(typeof I18n.currency === 'function', 'I18n.currency()', '');
+      this.assert(I18n.currency() === 'BRL', 'currency pt-BR', I18n.currency());
+      this.assert(I18n.currencies.en === 'USD' && I18n.currencies.es === 'EUR', 'moedas en/es', JSON.stringify(I18n.currencies));
+
       this.assert(typeof fmtDate === 'function', 'fmtDate()', '');
       this.assert(fmtDate(new Date(2026, 6, 14)) === '14/07/2026', 'fmtDate', '');
 
@@ -423,7 +430,7 @@
       this.groupName('Updates');
 
       this.assert(typeof Updates !== 'undefined', 'Updates existe', '');
-      this.assert(Updates.verAtual === '1.24.0', 'verAtual', Updates.verAtual);
+      this.assert(Updates.verAtual === '2.0.0', 'verAtual', Updates.verAtual);
       this.assert(Array.isArray(Updates.changelog) && Updates.changelog.length >= 5, 'changelog entradas', String(Updates.changelog.length));
 
       Updates.render();
@@ -461,6 +468,9 @@
       const salesEl = document.getElementById('kpiSalesToday');
       this.assert(salesEl.textContent.startsWith('R$'), 'KPIs vendas', salesEl.textContent);
       this.assert(document.getElementById('kpiPendingOrders').textContent === '1', 'KPIs pendentes', document.getElementById('kpiPendingOrders').textContent);
+      const trendEl = document.getElementById('kpiSalesTrend');
+      const trendVal = trendEl ? trendEl.textContent : '';
+      this.assert(!!trendVal && ['▲', '▼', 'Empatado com ontem', 'Sem dados de ontem'].some(s => trendVal.includes(s)), 'kpiSalesTrend preenchido', trendVal);
 
       const todayStr = new Date().toISOString().split('T')[0];
       Dashboard.calcDayTotals(todayStr);

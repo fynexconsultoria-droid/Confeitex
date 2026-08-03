@@ -8,7 +8,7 @@ const Settings = {
           <span style="font-weight:600;font-size:0.9rem;color:white;">${escapeHTML(item.flavor)}</span>
           <span style="font-size:0.75rem;color:var(--text-muted);display:block;">${escapeHTML(I18n.value('product', item.type))}</span>
         </div>
-        <div style="font-weight:700;color:var(--color-accent-pink);font-size:0.9rem;margin-right:0.5rem;">R$ ${item.pricePerKg.toFixed(2)}${item.type === 'Bolo de Kg' ? '/Kg' : '/un'}</div>
+        <div style="font-weight:700;color:var(--color-accent-pink);font-size:0.9rem;margin-right:0.5rem;">${I18n.currencySymbol()} ${item.pricePerKg.toFixed(2)}${item.type === 'Bolo de Kg' ? '/Kg' : '/un'}</div>
         <button class="btn btn-secondary btn-icon-only btn-del-cat" data-id="${item.id}" style="padding:0.3rem;color:var(--color-danger);border-color:rgba(239,68,68,0.2);">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
         </button>
@@ -26,7 +26,7 @@ const Settings = {
     // 1. Exportar PDF (Seguro via iframe — sem window.open, sem fechar PWA)
     const btnPdf = document.getElementById('btnExportData');
     if (btnPdf) {
-      btnPdf.addEventListener('click', () => this.exportPDF());
+      btnPdf.addEventListener('click', () => this.exportBackupPDF());
     }
 
     // 2. Exportar JSON Backup
@@ -93,6 +93,8 @@ const Settings = {
     // 5. Adicionar Sabor ao Catálogo
     const btnAddCat = document.getElementById('btnAddCatalogItem');
     if (btnAddCat) {
+      const priceInput = document.getElementById('newCatalogPrice');
+      if (priceInput) priceInput.placeholder = I18n.currencySymbol();
       btnAddCat.addEventListener('click', () => {
         const flavor = document.getElementById('newCatalogFlavor').value.trim();
         const price = parseFloat(document.getElementById('newCatalogPrice').value) || 0;
@@ -175,7 +177,7 @@ const Settings = {
     this.setupNotificationCustomControls();
   },
 
-  exportPDF() {
+  exportBackupPDF() {
     const hoje = new Date().toLocaleDateString('pt-BR');
     const dataJson = JSON.stringify(State.orders.map(o => ({
       clientName: o.clientName, clientPhone: o.clientPhone, productType: o.productType,
@@ -333,15 +335,15 @@ const Settings = {
     else if (tab === 'settings') this.renderCatalog();
   },
 
-  // Carrega pdf.js sob demanda (evita baixar ~250KB no startup do app)
+  // Carrega pdf.js sob demanda (embutido localmente para funcionar 100% offline)
   _ensurePdfJs() {
     if (window.pdfjsLib) return Promise.resolve(true);
     return new Promise((resolve) => {
       const s = document.createElement('script');
-      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+      s.src = 'vendor/pdf.min.js';
       s.onload = () => {
         try {
-          pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+          pdfjsLib.GlobalWorkerOptions.workerSrc = 'vendor/pdf.worker.min.js';
           resolve(true);
         } catch (e) {
           resolve(false);

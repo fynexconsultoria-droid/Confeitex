@@ -454,7 +454,7 @@ const Notifications = {
       const withPendingVal = matchingOrders.filter(o => (o.totalValue || 0) > 0);
       if (withPendingVal.length > 0) {
         const totalVal = withPendingVal.reduce((s, o) => s + (o.totalValue || 0), 0);
-        bodyMsg += I18n.t('notif.totalValue', { value: totalVal.toFixed(2).replace('.', ',') });
+        bodyMsg += I18n.t('notif.totalValue', { value: fmt(totalVal) });
       }
     }
     const title = dayOffset === 0
@@ -569,6 +569,7 @@ const Notifications = {
         enabled: true,
         updatedAt: Date.now(),
         lang: (typeof I18n !== 'undefined' && I18n.lang) || 'pt-BR',
+        currency: (typeof I18n !== 'undefined' && I18n.currency) ? I18n.currency() : 'BRL',
         settings: {
           daysBefore: settings.daysBefore,
           statuses: settings.statuses,

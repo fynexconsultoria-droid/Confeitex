@@ -8,8 +8,28 @@ const Dashboard = {
     const pending = State.orders.filter(o => o.status === 'Pendente' || o.status === 'Em Produção').length;
     const totalEarnings = State.orders.filter(o => o.status !== 'Cancelado').reduce((s, o) => s + getOrderTotal(o), 0);
 
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdaySales = State.orders.filter(o => o.deliveryDate === fmtISO(yesterday) && o.status !== 'Cancelado').reduce((s, o) => s + getOrderTotal(o), 0);
+
     const salesEl = document.getElementById('kpiSalesToday');
     if (salesEl) salesEl.textContent = fmt(todaySales);
+
+    const trendEl = document.getElementById('kpiSalesTrend');
+    if (trendEl) {
+      if (yesterdaySales > 0) {
+        const pct = (todaySales - yesterdaySales) / yesterdaySales * 100;
+        if (Math.abs(pct) < 0.5) {
+          trendEl.textContent = I18n.t('kpi.salesTrendSame');
+        } else if (pct >= 0) {
+          trendEl.textContent = I18n.t('kpi.salesTrendUp', { pct: Math.abs(pct).toFixed(0) });
+        } else {
+          trendEl.textContent = I18n.t('kpi.salesTrendDown', { pct: Math.abs(pct).toFixed(0) });
+        }
+      } else {
+        trendEl.textContent = I18n.t('kpi.salesTrendNoData');
+      }
+    }
 
     const weightEl = document.getElementById('kpiWeightToday');
     if (weightEl) weightEl.textContent = todayWeight.toFixed(1).replace('.', ',') + ' Kg';
@@ -24,19 +44,17 @@ const Dashboard = {
     if (pendingCard) {
       pendingCard.style.cursor = 'pointer';
       pendingCard.onclick = () => {
-        document.getElementById('sidebar')?.classList.remove('open');
-        document.getElementById('sidebarOverlay')?.classList.remove('active');
-        document.querySelectorAll('.nav-link').forEach(l => l.classList.toggle('active', l.dataset.tab === 'orders'));
-        document.querySelectorAll('.tab-content').forEach(c => c.classList.toggle('active', c.id === 'orders'));
-        document.getElementById('mainTitle').textContent = I18n.t('orders.title');
-        document.getElementById('mainSubtitle').textContent = I18n.t('orders.sub');
         const filterStatus = document.getElementById('orderFilterStatus');
         if (filterStatus) filterStatus.value = 'Pendente';
         const searchInput = document.getElementById('orderSearchInput');
         if (searchInput) searchInput.value = '';
         const filterDate = document.getElementById('orderFilterDate');
         if (filterDate) filterDate.value = '';
-        try { Orders.render(); } catch (e) { console.warn('[Confeitex]', e); }
+        if (typeof window.switchTab === 'function') {
+          window.switchTab('orders');
+        } else {
+          try { Orders.render(); } catch (e) { console.warn('[Confeitex]', e); }
+        }
       };
     }
 

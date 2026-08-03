@@ -48,6 +48,9 @@
     } catch (e) { console.warn('[Confeitex] Erro na aba', tabId, e); }
   }
 
+  // Expõe switchTab para módulos (ex.: card de pendentes no dashboard)
+  window.switchTab = switchTab;
+
   // Intercepta eventos de Voltar (botão de hardware / gestos no Android/celular)
   window.addEventListener('popstate', (e) => {
     // 1. Fecha diálogos de confirmação se houver algum aberto

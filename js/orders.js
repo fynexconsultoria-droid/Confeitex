@@ -7,7 +7,9 @@ const Orders = {
     const empty = document.getElementById('ordersEmptyState');
 
     let filtered = State.orders.filter(o => {
-      const matchSearch = o.clientName.toLowerCase().includes(search) || o.flavor.toLowerCase().includes(search) || o.clientPhone?.includes(search);
+      const matchSearch = (o.clientName || '').toLowerCase().includes(search)
+        || (o.flavor || '').toLowerCase().includes(search)
+        || (o.clientPhone || '').includes(search);
       const matchStatus = filterStatus === 'all' ? true : filterStatus === 'Pendente' ? (o.status === 'Pendente' || o.status === 'Em Produção') : o.status === filterStatus;
       return matchSearch && matchStatus && (!filterDate || o.deliveryDate === filterDate);
     });
@@ -219,7 +221,7 @@ const Orders = {
     const type = document.getElementById('orderProductType').value;
     const options = [`<option value="">${escapeHTML(I18n.t('orders.selectCustom'))}</option>`];
     State.catalog.filter(i => type === 'Bolo de Kg' ? i.type === 'Bolo de Kg' : i.type !== 'Bolo de Kg')
-      .forEach(i => options.push(`<option value="${i.id}">${escapeHTML(i.flavor)} (R$ ${i.pricePerKg.toFixed(2)}${i.type === 'Bolo de Kg' ? '/Kg' : '/un'})</option>`));
+      .forEach(i => options.push(`<option value="${i.id}">${escapeHTML(i.flavor)} (${I18n.currencySymbol()} ${i.pricePerKg.toFixed(2)}${i.type === 'Bolo de Kg' ? '/Kg' : '/un'})</option>`));
     sel.innerHTML = options.join('');
   },
 

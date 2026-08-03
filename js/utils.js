@@ -1,4 +1,8 @@
-const fmt = (val) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(isNaN(val) || val === null || val === undefined ? 0 : +val).replace(/\u00A0/g, ' ');
+const fmt = (val) => {
+  const loc = (typeof I18n !== 'undefined' && I18n.locale) ? I18n.locale() : 'pt-BR';
+  const cur = (typeof I18n !== 'undefined' && I18n.currency) ? I18n.currency() : 'BRL';
+  return new Intl.NumberFormat(loc, { style: 'currency', currency: cur }).format(isNaN(val) || val === null || val === undefined ? 0 : +val).replace(/\u00A0/g, ' ');
+};
 const fmtDate = (d) => `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
 const fmtDateStr = (s) => s ? s.split('-').reverse().join('/') : '';
 // Data local em formato ISO (YYYY-MM-DD) — evita o bug de toISOString() que usa UTC

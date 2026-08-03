@@ -27,6 +27,8 @@ const ASSETS_TO_CACHE = [
   './js/i18n.js',
   './js/app.js',
   './js/trash.js',
+  './vendor/pdf.min.js',
+  './vendor/pdf.worker.min.js',
   './icons/icon-192x192.png',
   './icons/icon-512x512.png'
 ];
@@ -147,12 +149,9 @@ function swSet(key, value) {
 
 // Mini-dicionário para as notificações em segundo plano (idioma salvo pelo usuário)
 const SW_NOTIF_STRINGS = {
-  'pt-BR': { d0: 'Hoje', d1: 'Amanhã', d2: 'em 2 Dias', d3: 'em 3 Dias', sched: '{count} entrega(s) agendada(s) para {day}:', more: '\ne mais {count} pedido(s)...', total: '\n💰 Valor total: R$ {value}', today: 'Confeitex - Entregas de Hoje! 🎂', reminder: 'Confeitex - Lembrete: Entregas {day} 🎂', overdueBody: '{count} pedido(s) com entrega atrasada:', overdueTitle: 'Confeitex - Pedidos Atrasados ⚠️' },
-  en: { d0: 'Today', d1: 'Tomorrow', d2: 'in 2 Days', d3: 'in 3 Days', sched: '{count} delivery(ies) scheduled for {day}:', more: '\nand {count} more order(s)...', total: '\n💰 Total value: R$ {value}', today: 'Confeitex - Deliveries Today! 🎂', reminder: 'Confeitex - Reminder: Deliveries {day} 🎂', overdueBody: '{count} order(s) with late delivery:', overdueTitle: 'Confeitex - Overdue Orders ⚠️' },
-  es: { d0: 'Hoy', d1: 'Mañana', d2: 'en 2 Días', d3: 'en 3 Días', sched: '{count} entrega(s) programada(s) para {day}:', more: '\ny {count} pedido(s) más...', total: '\n💰 Valor total: R$ {value}', today: 'Confeitex - ¡Entregas de Hoy! 🎂', reminder: 'Confeitex - Recordatorio: Entregas {day} 🎂', overdueBody: '{count} pedido(s) con entrega atrasada:', overdueTitle: 'Confeitex - Pedidos Atrasados ⚠️' },
-  de: { d0: 'Heute', d1: 'Morgen', d2: 'in 2 Tagen', d3: 'in 3 Tagen', sched: '{count} Lieferung(en) geplant für {day}:', more: '\nund {count} weitere Bestellung(en)...', total: '\n💰 Gesamtwert: R$ {value}', today: 'Confeitex - Lieferungen Heute! 🎂', reminder: 'Confeitex - Erinnerung: Lieferungen {day} 🎂', overdueBody: '{count} Bestellung(en) mit verspäteter Lieferung:', overdueTitle: 'Confeitex - Überfällige Bestellungen ⚠️' },
-  it: { d0: 'Oggi', d1: 'Domani', d2: 'fra 2 Giorni', d3: 'fra 3 Giorni', sched: '{count} consegna/e programmata/e per {day}:', more: '\ne altri {count} ordine/i...', total: '\n💰 Valore totale: R$ {value}', today: 'Confeitex - Consegne di Oggi! 🎂', reminder: 'Confeitex - Promemoria: Consegne {day} 🎂', overdueBody: '{count} ordine/i con consegna in ritardo:', overdueTitle: 'Confeitex - Ordini in Ritardo ⚠️' },
-  fr: { d0: "Aujourd'hui", d1: 'Demain', d2: 'dans 2 Jours', d3: 'dans 3 Jours', sched: '{count} livraison(s) prévue(s) pour {day}:', more: '\net {count} commande(s) de plus...', total: '\n💰 Valeur totale : R$ {value}', today: 'Confeitex - Livraisons Aujourd\'hui ! 🎂', reminder: 'Confeitex - Rappel : Livraisons {day} 🎂', overdueBody: '{count} commande(s) avec livraison en retard :', overdueTitle: 'Confeitex - Commandes en Retard ⚠️' }
+  'pt-BR': { d0: 'Hoje', d1: 'Amanhã', d2: 'em 2 Dias', d3: 'em 3 Dias', sched: '{count} entrega(s) agendada(s) para {day}:', more: '\ne mais {count} pedido(s)...', total: '\n💰 Valor total: {value}', today: 'Confeitex - Entregas de Hoje! 🎂', reminder: 'Confeitex - Lembrete: Entregas {day} 🎂', overdueBody: '{count} pedido(s) com entrega atrasada:', overdueTitle: 'Confeitex - Pedidos Atrasados ⚠️' },
+  en: { d0: 'Today', d1: 'Tomorrow', d2: 'in 2 Days', d3: 'in 3 Days', sched: '{count} delivery(ies) scheduled for {day}:', more: '\nand {count} more order(s)...', total: '\n💰 Total value: {value}', today: 'Confeitex - Deliveries Today! 🎂', reminder: 'Confeitex - Reminder: Deliveries {day} 🎂', overdueBody: '{count} order(s) with late delivery:', overdueTitle: 'Confeitex - Overdue Orders ⚠️' },
+  es: { d0: 'Hoy', d1: 'Mañana', d2: 'en 2 Días', d3: 'en 3 Días', sched: '{count} entrega(s) programada(s) para {day}:', more: '\ny {count} pedido(s) más...', total: '\n💰 Valor total: {value}', today: 'Confeitex - ¡Entregas de Hoy! 🎂', reminder: 'Confeitex - Recordatorio: Entregas {day} 🎂', overdueBody: '{count} pedido(s) con entrega atrasada:', overdueTitle: 'Confeitex - Pedidos Atrasados ⚠️' }
 };
 
 function swInterp(tpl, vars) {
@@ -161,6 +160,16 @@ function swInterp(tpl, vars) {
 
 function swNotif(lang) {
   return SW_NOTIF_STRINGS[lang] || SW_NOTIF_STRINGS['pt-BR'];
+}
+
+function swFmtMoney(value, currency, lang) {
+  const locale = { 'pt-BR': 'pt-BR', en: 'en-US', es: 'es-ES' }[lang] || 'pt-BR';
+  try {
+    return new Intl.NumberFormat(locale, { style: 'currency', currency: currency || 'BRL' }).format(value).replace(/\u00A0/g, ' ');
+  } catch (e) {
+    const sym = { BRL: 'R$', USD: '$', EUR: '€' }[currency] || 'R$';
+    return sym + ' ' + Number(value).toFixed(2).replace('.', ',');
+  }
 }
 
 // Periodic Background Sync — fallback para navegadores Chromium sem Notification Triggers.
@@ -217,7 +226,7 @@ async function swRunCheck() {
       const withPendingVal = matchingOrders.filter(o => (o.totalValue || 0) > 0);
       if (withPendingVal.length > 0) {
         const totalVal = withPendingVal.reduce((sum, o) => sum + (o.totalValue || 0), 0);
-        bodyMsg += swInterp(s.total, { value: totalVal.toFixed(2).replace('.', ',') });
+        bodyMsg += swInterp(s.total, { value: swFmtMoney(totalVal, snapshot.currency, snapshot.lang) });
       }
     }
 
