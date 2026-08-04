@@ -4,7 +4,7 @@ const Dashboard = {
     const todayOrders = State.orders.filter(o => o.deliveryDate === todayStr && o.status !== 'Cancelado');
 
     const todaySales = todayOrders.reduce((s, o) => s + getOrderTotal(o), 0);
-    const todayWeight = todayOrders.reduce((s, o) => s + (o.weight || 0), 0);
+    const todayWeight = todayOrders.filter(o => o.productType === 'Bolo de Kg').reduce((s, o) => s + (o.weight || 0), 0);
     const pending = State.orders.filter(o => o.status === 'Pendente' || o.status === 'Em Produção').length;
     const totalEarnings = State.orders.filter(o => o.status !== 'Cancelado').reduce((s, o) => s + getOrderTotal(o), 0);
 
@@ -106,7 +106,7 @@ const Dashboard = {
     const dayVal = document.getElementById('calcDayValue');
     if (dayVal) dayVal.value = fmt(orders.reduce((s, o) => s + getOrderTotal(o), 0));
     const dayWeight = document.getElementById('calcDayWeight');
-    if (dayWeight) dayWeight.value = orders.reduce((s, o) => s + (o.weight || 0), 0).toFixed(2).replace('.', ',') + ' Kg';
+    if (dayWeight) dayWeight.value = orders.filter(o => o.productType === 'Bolo de Kg').reduce((s, o) => s + (o.weight || 0), 0).toFixed(2).replace('.', ',') + ' Kg';
   }
 };
 

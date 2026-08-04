@@ -208,6 +208,10 @@ const Orders = {
     document.getElementById('labelWeight').textContent = type === 'Bolo de Kg' ? I18n.t('orders.lblWeight') : I18n.t('orders.lblQty');
     document.getElementById('labelUnitPrice').textContent = type === 'Bolo de Kg' ? I18n.t('orders.lblUnitPrice') : I18n.t('orders.lblUnitPriceUnit');
     document.getElementById('orderWeight').step = type === 'Bolo de Kg' ? 'any' : '1';
+    if (type !== 'Bolo de Kg') {
+      const w = document.getElementById('orderWeight');
+      w.value = Math.round(parseFloat(w.value) || 1);
+    }
   },
 
   // Popula o select de sabores e ao selecionar preenche sabor+preço (usado em novo pedido)
@@ -235,9 +239,11 @@ const Orders = {
   },
 
   calcTotal() {
-    const w = parseFloat(document.getElementById('orderWeight').value) || 0;
+    const type = document.getElementById('orderProductType').value;
+    let w = parseFloat(document.getElementById('orderWeight').value) || 0;
     const p = parseFloat(document.getElementById('orderUnitPrice').value) || 0;
     const e = parseFloat(document.getElementById('orderExtraCharges').value) || 0;
+    if (type !== 'Bolo de Kg') w = Math.round(w);
     document.getElementById('orderTotalValDisplay').value = fmt((w * p) + e);
   },
 
@@ -310,7 +316,16 @@ const Orders = {
     // Phone mask
     document.getElementById('orderClientPhone').addEventListener('input', (e) => maskPhone(e.target));
 
-    ['orderWeight', 'orderUnitPrice', 'orderExtraCharges'].forEach(id =>
+    document.getElementById('orderWeight').addEventListener('input', () => {
+      const type = document.getElementById('orderProductType').value;
+      if (type !== 'Bolo de Kg') {
+        const w = document.getElementById('orderWeight');
+        const v = parseFloat(w.value);
+        if (v && !Number.isInteger(v)) w.value = Math.round(v);
+      }
+      this.calcTotal();
+    });
+    ['orderUnitPrice', 'orderExtraCharges'].forEach(id =>
       document.getElementById(id).addEventListener('input', () => this.calcTotal()));
 
     document.getElementById('orderProductType').addEventListener('change', (e) => {
@@ -347,7 +362,7 @@ const Orders = {
         productType: document.getElementById('orderProductType').value,
         flavor,
         details: document.getElementById('orderDetails').value.trim(),
-        weight: parseFloat(document.getElementById('orderWeight').value) || 0,
+        weight: document.getElementById('orderProductType').value !== 'Bolo de Kg' ? Math.round(parseFloat(document.getElementById('orderWeight').value) || 0) : parseFloat(document.getElementById('orderWeight').value) || 0,
         unitPrice: parseFloat(document.getElementById('orderUnitPrice').value) || 0,
         extraCharges: parseFloat(document.getElementById('orderExtraCharges').value) || 0,
         cost: parseFloat(document.getElementById('orderCost').value) || 0,
