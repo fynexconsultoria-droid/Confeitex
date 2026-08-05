@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Termos de Uso - Confeitex</title>
+  <meta name="description" content="Termos de Uso do Confeitex — sistema de controle de encomendas para confeitaria.">
+  <meta name="robots" content="noindex">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cdefs%3E%3ClinearGradient id='bg' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%230a0813'/%3E%3Cstop offset='100%25' style='stop-color:%231e1240'/%3E%3C/linearGradient%3E%3ClinearGradient id='flame' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23ec4899'/%3E%3Cstop offset='100%25' style='stop-color:%238b5cf6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='512' height='512' rx='110' fill='url(%23bg)'/%3E%3Cpath d='M 150 352 h 212' stroke='white' stroke-width='12' stroke-linecap='round'/%3E%3Crect x='168' y='286' width='176' height='64' rx='14' fill='none' stroke='white' stroke-width='12'/%3E%3Crect x='208' y='216' width='96' height='72' rx='12' fill='none' stroke='white' stroke-width='12'/%3E%3Cline x1='256' y1='216' x2='256' y2='184' stroke='white' stroke-width='12' stroke-linecap='round'/%3E%3Cpath d='M 256 148 c -14 14 -22 24 -22 36 a 22 22 0 0 0 44 0 c 0 -12 -8 -22 -22 -36 z' fill='url(%23flame)'/%3E%3C/svg%3E">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192x192.png?v=3">
+
+  <style>
+    :root {
+      --bg-primary: #0a0813;
+      --bg-secondary: #130f26;
+      --bg-card: rgba(30, 24, 53, 0.55);
+      --border-color: rgba(255, 255, 255, 0.08);
+      --text-primary: #f3f4f6;
+      --text-secondary: #9ca3af;
+      --text-muted: #6b7280;
+      --color-accent-pink: #ec4899;
+      --color-accent-purple: #8b5cf6;
+      --font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --border-radius-md: 14px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: var(--font-family);
+      background-color: var(--bg-primary);
+      background-image: radial-gradient(at 0% 0%, rgba(139, 92, 246, 0.12) 0px, transparent 50%);
+      background-attachment: fixed;
+      color: var(--text-primary);
+      min-height: 100dvh;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .legal-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem 1.5rem;
+      background: rgba(10, 8, 19, 0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .legal-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      text-decoration: none;
+    }
+
+    .legal-brand-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .legal-brand-icon svg {
+      width: 20px;
+      height: 20px;
+      fill: white;
+    }
+
+    .legal-brand-name {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .legal-header-actions {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.5rem 1rem;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+
+    .btn svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .btn-ghost {
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-secondary);
+      border: 1px solid var(--border-color);
+    }
+
+    .btn-ghost:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-primary);
+    }
+
+    .lang-select {
+      padding: 0.4rem 0.7rem;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-secondary);
+      border: 1px solid var(--border-color);
+      cursor: pointer;
+      font-family: var(--font-family);
+    }
+
+    .lang-select option {
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+    }
+
+    .legal-container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem 4rem;
+    }
+
+    .legal-title {
+      font-size: 2rem;
+      font-weight: 800;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .legal-meta {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 2rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .legal-content h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-top: 2rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .legal-content h3 {
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-top: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .legal-content p {
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+      margin-bottom: 1rem;
+      line-height: 1.7;
+    }
+
+    .legal-content ul, .legal-content ol {
+      margin-bottom: 1rem;
+      padding-left: 1.5rem;
+    }
+
+    .legal-content li {
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+      margin-bottom: 0.5rem;
+      line-height: 1.6;
+    }
+
+    .legal-content strong {
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+
+    .legal-footer {
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border-color);
+      text-align: center;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .legal-footer a {
+      color: var(--color-accent-pink);
+      text-decoration: none;
+    }
+
+    .legal-footer a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 580px) {
+      .legal-container {
+        padding: 1.5rem 1rem 3rem;
+      }
+      .legal-title {
+        font-size: 1.6rem;
+      }
+      .legal-header {
+        padding: 0.75rem 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="legal-header">
+    <a href="index.html" class="legal-brand">
+      <div class="legal-brand-icon">
+        <svg viewBox="0 0 24 24"><path d="M7 16.5h10"/><rect x="7.9" y="13.4" width="8.2" height="3" rx="0.6" fill="none" stroke="white" stroke-width="1.5"/><rect x="9.8" y="10.1" width="4.5" height="3.4" rx="0.5" fill="none" stroke="white" stroke-width="1.5"/><path d="M12 10.1V8.6" stroke="white" stroke-width="1.5" stroke-linecap="round"/><path d="M12 6.9c-.66.66-1.03 1.13-1.03 1.69a1.03 1.03 0 0 0 2.06 0c0-.56-.37-1.03-1.03-1.69z" fill="white"/></svg>
+      </div>
+      <span class="legal-brand-name">Confeitex</span>
+    </a>
+    <div class="legal-header-actions">
+      <select class="lang-select" id="langSelect" aria-label="Idioma">
+        <option value="pt-BR">PT</option>
+        <option value="en">EN</option>
+        <option value="es">ES</option>
+      </select>
+      <a href="index.html" class="btn btn-ghost">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        <span data-i18n="back">Voltar</span>
+      </a>
+    </div>
+  </header>
+
+  <main class="legal-container">
+    <h1 class="legal-title" data-i18n="title">Termos de Uso</h1>
+    <div class="legal-meta" data-i18n="meta">Última atualização: 04 de agosto de 2026 · Versão 2.1.0</div>
+
+    <div class="legal-content">
+
+      <div data-lang="pt-BR">
+        <h2>1. Aceitação dos Termos</h2>
+        <p>Ao acessar e utilizar o aplicativo Confeitex, você concorda com estes Termos de Uso. Se não concordar com algum dos termos aqui apresentados, não utilize o aplicativo.</p>
+
+        <h2>2. Descrição do Serviço</h2>
+        <p>O Confeitex é um aplicativo webProgressive (PWA) destinado ao <strong>controle de encomendas para confeitarias</strong>. O aplicativo permite gerenciar pedidos, clientes, entregas e informações financeiras de forma simples e eficiente.</p>
+        <p>O aplicativo funciona <strong>100% offline</strong>, armazenando todos os dados localmente no dispositivo do usuário através do navegador (localStorage). Não há necessidade de conexão com a internet para seu funcionamento.</p>
+
+        <h2>3. Uso Aceitável</h2>
+        <p>Ao utilizar o Confeitex, você concorda em:</p>
+        <ul>
+          <li>Utilizar o aplicativo apenas para fins lícitos e pessoais;</li>
+          <li>Não tentar acessar, modificar ou destruir dados de outros usuários;</li>
+          <li>Não utilizar o aplicativo para qualquer finalidade que viole leis ou regulamentos aplicáveis;</li>
+          <li>Não reproduzir, distribuir ou criar trabalhos derivados sem autorização.</li>
+        </ul>
+
+        <h2>4. Propriedade Intelectual</h2>
+        <p>O código-fonte do Confeitex é distribuído sob licença open-source. Os ícones, design da interface e a identidade visual são de propriedade do desenvolvedor. Você pode utilizar o aplicativo conforme a licença aplicável ao código-fonte.</p>
+
+        <h2>5. Isenção de Responsabilidade</h2>
+        <p>O Confeitex é fornecido <strong>"como está"</strong>, sem garantias de qualquer tipo, expressas ou implícitas. O desenvolvedor não se responsabiliza por:</p>
+        <ul>
+          <li>Perda de dados armazenados no dispositivo;</li>
+          <li>Danos decorrentes do uso ou impossibilidade de uso do aplicativo;</li>
+          <li>Decisões tomadas com base nas informações gerenciadas pelo aplicativo;</li>
+          <li>Interrupções no serviço devido a atualizações do navegador ou do sistema operacional.</li>
+        </ul>
+
+        <h2>6. Limitação de Responsabilidade</h2>
+        <p>Em nenhuma circunstância o desenvolvedor do Confeitex será responsável por danos diretos, indiretos, incidentais, especiais ou consequenciais decorrentes do uso do aplicativo.</p>
+
+        <h2>7. Alterações nos Termos</h2>
+        <p>O desenvolvedor reserva-se o direito de modificar estes Termos de Uso a qualquer momento. As alterações entrarão em vigor imediatamente após a publicação. O uso continuado do aplicativo após as alterações constitui aceitação dos novos termos.</p>
+
+        <h2>8. Legislação Aplicável</h2>
+        <p>Estes Termos de Uso são regidos pelas leis da República Federativa do Brasil. Quaisquer controvérsias serão resolvidas pelos tribunais competentes do Brasil.</p>
+      </div>
+
+      <div data-lang="en" style="display:none;">
+        <h2>1. Acceptance of Terms</h2>
+        <p>By accessing and using the Confeitex application, you agree to these Terms of Use. If you do not agree with any of the terms presented here, do not use the application.</p>
+
+        <h2>2. Description of the Service</h2>
+        <p>Confeitex is a Progressive Web Application (PWA) designed for <strong>order management for confectioneries</strong>. The application allows you to manage orders, customers, deliveries, and financial information in a simple and efficient way.</p>
+        <p>The application works <strong>100% offline</strong>, storing all data locally on the user's device through the browser (localStorage). No internet connection is required for its operation.</p>
+
+        <h2>3. Acceptable Use</h2>
+        <p>By using Confeitex, you agree to:</p>
+        <ul>
+          <li>Use the application only for lawful and personal purposes;</li>
+          <li>Not attempt to access, modify, or destroy other users' data;</li>
+          <li>Not use the application for any purpose that violates applicable laws or regulations;</li>
+          <li>Not reproduce, distribute, or create derivative works without authorization.</li>
+        </ul>
+
+        <h2>4. Intellectual Property</h2>
+        <p>The Confeitex source code is distributed under an open-source license. The icons, interface design, and visual identity are property of the developer. You may use the application in accordance with the license applicable to the source code.</p>
+
+        <h2>5. Disclaimer of Warranties</h2>
+        <p>Confeitex is provided <strong>"as is"</strong>, without warranties of any kind, express or implied. The developer is not responsible for:</p>
+        <ul>
+          <li>Loss of data stored on the device;</li>
+          <li>Damages arising from the use or inability to use the application;</li>
+          <li>Decisions made based on information managed by the application;</li>
+          <li>Service interruptions due to browser or operating system updates.</li>
+        </ul>
+
+        <h2>6. Limitation of Liability</h2>
+        <p>Under no circumstances shall the developer of Confeitex be liable for direct, indirect, incidental, special, or consequential damages arising from the use of the application.</p>
+
+        <h2>7. Changes to Terms</h2>
+        <p>The developer reserves the right to modify these Terms of Use at any time. Changes will take effect immediately upon publication. Continued use of the application after changes constitutes acceptance of the new terms.</p>
+
+        <h2>8. Applicable Law</h2>
+        <p>These Terms of Use are governed by the laws of the Federative Republic of Brazil. Any disputes will be resolved by the competent courts of Brazil.</p>
+      </div>
+
+      <div data-lang="es" style="display:none;">
+        <h2>1. Aceptación de los Términos</h2>
+        <p>Al acceder y utilizar la aplicación Confeitex, usted acepta estos Términos de Uso. Si no está de acuerdo con alguno de los términos aquí presentados, no utilice la aplicación.</p>
+
+        <h2>2. Descripción del Servicio</h2>
+        <p>Confeitex es una aplicación web progresiva (PWA) diseñada para la <strong>gestión de pedidos para confiterías</strong>. La aplicación permite gestionar pedidos, clientes, entregas e información financiera de forma sencilla y eficiente.</p>
+        <p>La aplicación funciona <strong>100% sin conexión</strong>, almacenando todos los datos localmente en el dispositivo del usuario a través del navegador (localStorage). No se necesita conexión a internet para su funcionamiento.</p>
+
+        <h2>3. Uso Aceptable</h2>
+        <p>Al utilizar Confeitex, usted acepta:</p>
+        <ul>
+          <li>Utilizar la aplicación solo para fines lícitos y personales;</li>
+          <li>No intentar acceder, modificar o destruir datos de otros usuarios;</li>
+          <li>No utilizar la aplicación para ningún fin que viole leyes o regulaciones aplicables;</li>
+          <li>No reproducir, distribuir o crear obras derivadas sin autorización.</li>
+        </ul>
+
+        <h2>4. Propiedad Intelectual</h2>
+        <p>El código fuente de Confeitex se distribuye bajo una licencia de código abierto. Los iconos, el diseño de la interfaz y la identidad visual son propiedad del desarrollador. Puede utilizar la aplicación de acuerdo con la licencia aplicable al código fuente.</p>
+
+        <h2>5. Exclusión de Garantías</h2>
+        <p>Confeitex se proporciona <strong>"tal cual"</strong>, sin garantías de ningún tipo, expresas o implícitas. El desarrollador no es responsable de:</p>
+        <ul>
+          <li>Pérdida de datos almacenados en el dispositivo;</li>
+          <li>Daños derivados del uso o imposibilidad de uso de la aplicación;</li>
+          <li>Decisiones tomadas basándose en la información gestionada por la aplicación;</li>
+          <li>Interrupciones del servicio debido a actualizaciones del navegador o del sistema operativo.</li>
+        </ul>
+
+        <h2>6. Limitación de Responsabilidad</h2>
+        <p>En ningún caso el desarrollador de Confeitex será responsable por daños directos, indirectos, incidentales, especiales o consecuentes derivados del uso de la aplicación.</p>
+
+        <h2>7. Cambios en los Términos</h2>
+        <p>El desarrollador se reserva el derecho de modificar estos Términos de Uso en cualquier momento. Los cambios entrarán en vigor inmediatamente después de su publicación. El uso continuado de la aplicación después de los cambios constituye la aceptación de los nuevos términos.</p>
+
+        <h2>8. Ley Aplicable</h2>
+        <p>Estos Términos de Uso se rigen por las leyes de la República Federativa del Brasil. Cualquier disputa será resuelta por los tribunales competentes de Brasil.</p>
+      </div>
+
+    </div>
+
+    <div class="legal-footer">
+      <p data-i18n="footer">Confeitex © 2026 — Todos os direitos reservados.</p>
+      <p><a href="privacidade.html" data-i18n="privacyLink">Política de Privacidade</a></p>
+    </div>
+  </main>
+
+  <script>
+    (function() {
+      var dict = {
+        'pt-BR': {
+          back: 'Voltar',
+          title: 'Termos de Uso',
+          meta: 'Última atualização: 04 de agosto de 2026 · Versão 2.1.0',
+          footer: 'Confeitex © 2026 — Todos os direitos reservados.',
+          privacyLink: 'Política de Privacidade'
+        },
+        'en': {
+          back: 'Back',
+          title: 'Terms of Use',
+          meta: 'Last updated: August 4, 2026 · Version 2.1.0',
+          footer: 'Confeitex © 2026 — All rights reserved.',
+          privacyLink: 'Privacy Policy'
+        },
+        'es': {
+          back: 'Volver',
+          title: 'Términos de Uso',
+          meta: 'Última actualización: 4 de agosto de 2026 · Versión 2.1.0',
+          footer: 'Confeitex © 2026 — Todos los derechos reservados.',
+          privacyLink: 'Política de Privacidad'
+        }
+      };
+
+      var storageKey = 'confeitex_lang';
+      var lang = 'pt-BR';
+      try { lang = localStorage.getItem(storageKey) || lang; } catch(e) {}
+      if (dict['pt-BR'] === undefined) lang = 'pt-BR';
+
+      function applyLang(code) {
+        if (!dict[code]) code = 'pt-BR';
+        document.documentElement.lang = code;
+        document.querySelectorAll('[data-i18n]').forEach(function(el) {
+          el.textContent = dict[code][el.dataset.i18n] || el.textContent;
+        });
+        document.querySelectorAll('[data-lang]').forEach(function(el) {
+          el.style.display = el.dataset.lang === code ? '' : 'none';
+        });
+        document.getElementById('langSelect').value = code;
+        document.title = dict[code].title + ' - Confeitex';
+      }
+
+      applyLang(lang);
+
+      document.getElementById('langSelect').addEventListener('change', function() {
+        var newLang = this.value;
+        try { localStorage.setItem(storageKey, newLang); } catch(e) {}
+        location.reload();
+      });
+    })();
+  </script>
+</body>
+</html>
