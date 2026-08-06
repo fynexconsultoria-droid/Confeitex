@@ -48,5 +48,7 @@ function badgeClass(status) {
 
 function formatWeight(o) {
   const w = o.weight || 0;
-  return o.productType === 'Bolo de Kg' ? `${w.toFixed(2).replace('.', ',')} Kg` : `${Math.round(w)} un`;
+  if (o.productType === 'Bolo de Kg') return `${w.toFixed(2).replace('.', ',')} Kg`;
+  const isInt = Number.isInteger(w) || w === Math.floor(w);
+  return isInt ? `${Math.round(w)} un` : `${w.toFixed(2).replace('.', ',')} un`;
 }

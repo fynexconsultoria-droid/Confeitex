@@ -207,10 +207,13 @@ const Orders = {
   updateLabels(type) {
     document.getElementById('labelWeight').textContent = type === 'Bolo de Kg' ? I18n.t('orders.lblWeight') : I18n.t('orders.lblQty');
     document.getElementById('labelUnitPrice').textContent = type === 'Bolo de Kg' ? I18n.t('orders.lblUnitPrice') : I18n.t('orders.lblUnitPriceUnit');
-    document.getElementById('orderWeight').step = type === 'Bolo de Kg' ? 'any' : '1';
-    if (type !== 'Bolo de Kg') {
-      const w = document.getElementById('orderWeight');
-      w.value = Math.round(parseFloat(w.value) || 1);
+    const weightEl = document.getElementById('orderWeight');
+    if (type === 'Bolo de Kg') {
+      weightEl.step = 'any';
+      weightEl.min = '0.01';
+    } else {
+      weightEl.step = '1';
+      weightEl.min = '1';
     }
   },
 
@@ -239,11 +242,9 @@ const Orders = {
   },
 
   calcTotal() {
-    const type = document.getElementById('orderProductType').value;
-    let w = parseFloat(document.getElementById('orderWeight').value) || 0;
+    const w = parseFloat(document.getElementById('orderWeight').value) || 0;
     const p = parseFloat(document.getElementById('orderUnitPrice').value) || 0;
     const e = parseFloat(document.getElementById('orderExtraCharges').value) || 0;
-    if (type !== 'Bolo de Kg') w = Math.round(w);
     document.getElementById('orderTotalValDisplay').value = fmt((w * p) + e);
   },
 
@@ -291,6 +292,19 @@ const Orders = {
     const modal = document.getElementById('orderModal');
     const form = document.getElementById('orderForm');
 
+    // Aceitar vírgula como separador decimal em campos numéricos
+    ['orderWeight', 'orderUnitPrice', 'orderExtraCharges', 'orderCost'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.addEventListener('input', () => {
+          const pos = el.selectionStart;
+          const old = el.value;
+          el.value = old.replace(',', '.');
+          if (el.value !== old) el.setSelectionRange(pos, pos);
+        });
+      }
+    });
+
     document.getElementById('btnNewOrder').addEventListener('click', () => {
       form.reset();
       document.getElementById('orderIdInput').value = '';
@@ -317,12 +331,6 @@ const Orders = {
     document.getElementById('orderClientPhone').addEventListener('input', (e) => maskPhone(e.target));
 
     document.getElementById('orderWeight').addEventListener('input', () => {
-      const type = document.getElementById('orderProductType').value;
-      if (type !== 'Bolo de Kg') {
-        const w = document.getElementById('orderWeight');
-        const v = parseFloat(w.value);
-        if (v && !Number.isInteger(v)) w.value = Math.round(v);
-      }
       this.calcTotal();
     });
     ['orderUnitPrice', 'orderExtraCharges'].forEach(id =>
@@ -331,6 +339,11 @@ const Orders = {
     document.getElementById('orderProductType').addEventListener('change', (e) => {
       this.updateLabels(e.target.value);
       this.populateFlavorSelect();
+      const weightEl = document.getElementById('orderWeight');
+      if (e.target.value !== 'Bolo de Kg') {
+        const val = parseFloat(weightEl.value) || 1;
+        weightEl.value = Math.round(val);
+      }
       this.calcTotal();
     });
 
@@ -362,7 +375,7 @@ const Orders = {
         productType: document.getElementById('orderProductType').value,
         flavor,
         details: document.getElementById('orderDetails').value.trim(),
-        weight: document.getElementById('orderProductType').value !== 'Bolo de Kg' ? Math.round(parseFloat(document.getElementById('orderWeight').value) || 0) : parseFloat(document.getElementById('orderWeight').value) || 0,
+        weight: parseFloat(document.getElementById('orderWeight').value) || 0,
         unitPrice: parseFloat(document.getElementById('orderUnitPrice').value) || 0,
         extraCharges: parseFloat(document.getElementById('orderExtraCharges').value) || 0,
         cost: parseFloat(document.getElementById('orderCost').value) || 0,
