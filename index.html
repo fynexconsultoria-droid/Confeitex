@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Confeitex - Controle de Encomendas</title>
   <meta name="description" content="Controle de encomendas para confeitaria — gerencie pedidos, clientes e entregas. 100% offline.">
-  <meta name="version" content="2.1.0">
+  <meta name="version" content="2.1.2">
 
   <!-- Google Fonts: Plus Jakarta Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -129,7 +129,7 @@
       </nav>
       
       <div style="font-size: 0.7rem; color: var(--text-muted); text-align: center; border-top: 1px solid var(--border-color); padding-top: 0.75rem;">
-        Confeitex v2.1.0<br><span data-i18n="nav.offline">Modo 100% Offline</span>
+        Confeitex v2.1.2<br><span data-i18n="nav.offline">Modo 100% Offline</span>
         <div style="margin-top: 0.5rem; display: flex; justify-content: center; gap: 0.5rem;">
           <a href="termos.html" style="color: var(--text-muted); text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='var(--color-accent-pink)'" onmouseout="this.style.color='var(--text-muted)'" data-i18n="nav.terms">Termos</a>
           <span>·</span>
@@ -558,7 +558,7 @@
             </div>
             <div class="form-group" style="width: 140px;">
               <label for="expenseAmount" data-i18n="finance.expAmount">Valor (R$)</label>
-              <input type="number" class="form-control" id="expenseAmount" step="0.01" min="0" placeholder="0,00">
+              <input type="text" inputmode="decimal" class="form-control" id="expenseAmount" step="0.01" min="0" placeholder="0,00">
             </div>
             <div class="form-group" style="width: 160px;">
               <label for="expenseDate" data-i18n="finance.expDate">Data</label>
@@ -699,7 +699,7 @@
             </div>
             <div style="display: flex; gap: 0.5rem; margin-top: auto; flex-wrap: wrap;">
               <input type="text" class="form-control" id="newCatalogFlavor" placeholder="Sabor" style="flex:1;min-width:120px;" data-i18n-ph="settings.catalogFlavorPh">
-              <input type="number" class="form-control" id="newCatalogPrice" placeholder="R$" style="width:70px;" step="0.01">
+              <input type="text" inputmode="decimal" class="form-control" id="newCatalogPrice" placeholder="R$" style="width:70px;" step="0.01">
               <select class="form-control" id="newCatalogType" style="width:auto;min-width:100px;">
                 <option value="Bolo de Kg" data-i18n-opt="product.Bolo de Kg">Bolo de Kg</option>
                 <option value="Doces / Brigadeiros" data-i18n-opt="product.Doces / Brigadeiros">Doces</option>
@@ -940,14 +940,14 @@
               </div>
               <div class="form-group">
                 <label id="labelUnitPrice" for="orderUnitPrice" data-i18n="orders.lblUnitPrice">Valor por Kg (R$) / Unitário *</label>
-                <input type="number" class="form-control" id="orderUnitPrice" required step="0.01" min="0" value="60.00">
+                <input type="text" inputmode="decimal" class="form-control" id="orderUnitPrice" required step="0.01" min="0" value="60.00">
               </div>
             </div>
 
             <div class="form-grid-2">
               <div class="form-group">
                 <label for="orderExtraCharges" data-i18n="orders.lblExtra">Adicionais / Taxa de Entrega (R$)</label>
-                <input type="number" class="form-control" id="orderExtraCharges" step="0.01" min="0" value="0.00">
+                <input type="text" inputmode="decimal" class="form-control" id="orderExtraCharges" step="0.01" min="0" value="0.00">
               </div>
               <div class="form-group">
                 <label data-i18n="orders.lblTotal">Valor Total do Pedido (Calculado)</label>
@@ -1005,7 +1005,7 @@
                 </div>
                 <div class="form-group">
                   <label for="orderCost" data-i18n="orders.lblCost">Custo do Pedido (R$)</label>
-                  <input type="number" class="form-control" id="orderCost" step="0.01" min="0" value="0.00" placeholder="0,00">
+                  <input type="text" inputmode="decimal" class="form-control" id="orderCost" step="0.01" min="0" value="0.00" placeholder="0,00">
                 </div>
               </div>
             </div>

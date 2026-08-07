@@ -234,14 +234,15 @@ const Finance = {
   },
 
   _addExpense(description, amount, date) {
-    if (!description.trim() || !amount || amount <= 0 || !date) {
+    const parsedAmount = parseFloat(String(amount).replace(',', '.'));
+    if (!description.trim() || !parsedAmount || parsedAmount <= 0 || !date) {
       UI.alert(I18n.t('finance.alertExpense'));
       return false;
     }
     State.expenses.push({
       id: 'e_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
       description: description.trim(),
-      amount: +(+amount).toFixed(2),
+      amount: +parsedAmount.toFixed(2),
       date
     });
     State.saveExpenses();
@@ -470,9 +471,19 @@ ${expenses.length > 0 ? `
     const dateInput = document.getElementById('expenseDate');
     if (dateInput && !dateInput.value) dateInput.value = _fmtISO(new Date());
 
+    const expenseAmountEl = document.getElementById('expenseAmount');
+    if (expenseAmountEl) {
+      expenseAmountEl.addEventListener('input', () => {
+        const pos = expenseAmountEl.selectionStart;
+        const old = expenseAmountEl.value;
+        expenseAmountEl.value = old.replace(',', '.');
+        if (expenseAmountEl.value !== old) expenseAmountEl.setSelectionRange(pos, pos);
+      });
+    }
+
     const onAddExpense = () => {
       const desc = document.getElementById('expenseDescription').value;
-      const amount = document.getElementById('expenseAmount').value;
+      const amount = document.getElementById('expenseAmount').value.replace(',', '.');
       const date = document.getElementById('expenseDate').value;
       if (this._addExpense(desc, amount, date)) {
         document.getElementById('expenseDescription').value = '';

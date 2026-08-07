@@ -94,10 +94,18 @@ const Settings = {
     const btnAddCat = document.getElementById('btnAddCatalogItem');
     if (btnAddCat) {
       const priceInput = document.getElementById('newCatalogPrice');
-      if (priceInput) priceInput.placeholder = I18n.currencySymbol();
+      if (priceInput) {
+        priceInput.placeholder = I18n.currencySymbol();
+        priceInput.addEventListener('input', () => {
+          const pos = priceInput.selectionStart;
+          const old = priceInput.value;
+          priceInput.value = old.replace(',', '.');
+          if (priceInput.value !== old) priceInput.setSelectionRange(pos, pos);
+        });
+      }
       btnAddCat.addEventListener('click', () => {
         const flavor = document.getElementById('newCatalogFlavor').value.trim();
-        const price = parseFloat(document.getElementById('newCatalogPrice').value) || 0;
+        const price = parseFloat(document.getElementById('newCatalogPrice').value.replace(',', '.')) || 0;
         const type = document.getElementById('newCatalogType').value;
 
         if (!flavor || price <= 0) {
