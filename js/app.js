@@ -5,6 +5,12 @@
   // Aplica o idioma salvo aos elementos estáticos do HTML
   try { I18n.apply(); } catch (e) { console.warn('[Confeitex] Erro ao aplicar idioma:', e); }
 
+  // Atualiza a versão no rodapé da sidebar
+  const sidebarVersion = document.getElementById('sidebarVersion');
+  if (sidebarVersion && typeof Updates !== 'undefined') {
+    sidebarVersion.textContent = 'v' + Updates.verAtual;
+  }
+
   if (Auth.isLocked()) {
     await Auth.showLogin();
   }
