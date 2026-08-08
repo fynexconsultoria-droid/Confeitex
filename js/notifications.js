@@ -77,7 +77,7 @@ const Notifications = {
   async _ensureSW() {
     if (!('serviceWorker' in navigator)) return null;
     if (this._swReg) return this._swReg;
-    const timeout = new Promise(resolve => setTimeout(() => resolve(null), 5000));
+    const timeout = new Promise(resolve => setTimeout(() => resolve(null), 3000));
     try {
       this._swReg = await Promise.race([navigator.serviceWorker.ready, timeout]);
     } catch (e) {
@@ -349,6 +349,7 @@ const Notifications = {
     if (this._enabled) return;
     this._enabled = true;
     localStorage.setItem('confeitex_notifications_enabled', 'true');
+    this.check();
     this._restartInterval();
     this.syncData();
   },
@@ -383,11 +384,8 @@ const Notifications = {
       const perm = await Notification.requestPermission();
       if (perm !== 'granted') return false;
     }
-    // Garante SW registrado antes de ativar
-    await this._ensureSW();
     this._enable();
-    await this.check();
-    await this.registerAll();
+    this.check();
     return true;
   },
 
@@ -419,21 +417,11 @@ const Notifications = {
     try {
       const title = I18n.t('notif.testTitle');
       const body = I18n.t('notif.testBody');
-      const tag = 'confeitex-test-' + Date.now();
-      const notifOpts = {
+      new Notification(title, {
         body,
         icon: 'icons/icon-192x192.png',
-        tag
-      };
-
-      // Tenta via Service Worker (funciona em PWAs e mobile)
-      const reg = await this._ensureSW();
-      if (reg && reg.showNotification) {
-        await reg.showNotification(title, notifOpts);
-      } else {
-        new Notification(title, notifOpts);
-      }
-
+        tag: 'confeitex-test-' + Date.now()
+      });
       this._recordNotification({
         id: 'test_' + Date.now(),
         type: 'test',
@@ -640,9 +628,8 @@ const Notifications = {
       if (o && o[1] < todayStr) { delete sent[k]; dirty = true; }
     }
 
-    // Obtém SW registration (para agendamentos e showNotification)
-    const reg = await this._ensureSW();
-    const useSW = reg && reg.showNotification;
+    // Se houver lembrete agendado no sistema para o combo, deixa o SO entregar
+    const reg = this.supportsTriggers() ? await this._ensureSW() : null;
 
     for (const dayOffset of daysBeforeList) {
       const targetDateObj = new Date(now.getTime() + dayOffset * 86400000);
@@ -658,7 +645,7 @@ const Notifications = {
       const cacheKey = `notif_d${dayOffset}_${targetDateStr}`;
       if (sent[cacheKey]) continue;
 
-      if (reg && this.supportsTriggers()) {
+      if (reg) {
         try {
           const pending = await reg.getNotifications({ tag: `confeitex-sched-d${dayOffset}-${targetDateStr}` });
           if (pending.length > 0) continue;
@@ -666,21 +653,11 @@ const Notifications = {
       }
 
       const { title, body, orderIds } = this._buildContent(matchingOrders, dayOffset, targetDateStr, settings);
-      const tag = `confeitex-day-${dayOffset}-${targetDateStr}`;
-      const notifOpts = {
+      new Notification(title, {
         body,
         icon: 'icons/icon-192x192.png',
-        tag
-      };
-
-      try {
-        if (useSW) {
-          await reg.showNotification(title, notifOpts);
-        } else {
-          new Notification(title, notifOpts);
-        }
-      } catch (e) {}
-
+        tag: `confeitex-day-${dayOffset}-${targetDateStr}`
+      });
       this._recordNotification({
         id: cacheKey,
         type: dayOffset === 0 ? 'today' : 'reminder',
@@ -709,15 +686,11 @@ const Notifications = {
             bodyMsg += I18n.t('notif.andMore', { count: overdueOrders.length - 3 });
           }
           const title = I18n.t('notif.overdueTitle');
-          const tag = `confeitex-overdue-${todayStr}`;
-          try {
-            if (useSW) {
-              await reg.showNotification(title, { body: bodyMsg, icon: 'icons/icon-192x192.png', tag });
-            } else {
-              new Notification(title, { body: bodyMsg, icon: 'icons/icon-192x192.png', tag });
-            }
-          } catch (e) {}
-
+          new Notification(title, {
+            body: bodyMsg,
+            icon: 'icons/icon-192x192.png',
+            tag: `confeitex-overdue-${todayStr}`
+          });
           this._recordNotification({
             id: cacheKey,
             type: 'overdue',

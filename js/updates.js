@@ -1,27 +1,12 @@
 const Updates = {
-  verAtual: '2.2.1',
+  verAtual: '2.1.3',
 
   setup() {
     document.getElementById('btnCheckUpdates').addEventListener('click', () => this.check());
-    this._detectWaitingSW();
   },
 
   _delay(ms) {
     return new Promise(r => setTimeout(r, ms));
-  },
-
-  // Detecta se há um Service Worker esperando (atualização pendente)
-  async _detectWaitingSW() {
-    if (!('serviceWorker' in navigator)) return;
-    try {
-      const reg = await navigator.serviceWorker.getRegistration();
-      if (reg && reg.waiting) {
-        const serverVer = await this._fetchVersion();
-        if (serverVer && serverVer !== this.verAtual) {
-          this._showUpdateBanner(serverVer);
-        }
-      }
-    } catch {}
   },
 
   // Verifica nova versão (retorna versão ou null)
@@ -79,11 +64,19 @@ const Updates = {
     localStorage.removeItem('confeitex_update_prompt');
     localStorage.removeItem('confeitex_pwa_dismissed');
 
+    // Remove Service Worker antigo
+    this._updateProgress(15, I18n.t('updates.progressClearCache'));
     let swOk = 'serviceWorker' in navigator;
+    if (swOk) {
+      try {
+        const r = await navigator.serviceWorker.getRegistration();
+        if (r) await r.unregister();
+      } catch (e) { console.warn('[Confeitex] Auto-update SW registration error:', e); }
+    }
 
-    // Sem suporte a SW — mostra banner direto
+    // Se não suportar SW, marca como atualizado e mostra banner
     if (!swOk) {
-      await this._settleProgress(startedAt, I18n.t('updates.progressApplying'));
+      await this._settleProgress(startedAt, I18n.t('updates.progressRegistering'));
       localStorage.setItem('confeitex_updated', 'true');
       localStorage.setItem('confeitex_ver', newVer);
       this._updateProgress(100, I18n.t('updates.progressDone'));
@@ -92,18 +85,13 @@ const Updates = {
       return;
     }
 
-    // Atualiza Registration existente ou registra novo SW
+    // Registra novo Service Worker
     this._updateProgress(40, I18n.t('updates.progressRegisteringSw'));
     let reg;
     try {
-      reg = await navigator.serviceWorker.getRegistration();
-      if (reg) {
-        // Força verificação de novo SW no servidor
-        await reg.update();
-      } else {
-        reg = await navigator.serviceWorker.register('./sw.js?v=' + newVer);
-      }
+      // Marca antes de registrar para o auto-reload saber que o update foi aceito
       localStorage.setItem('confeitex_updated', 'true');
+      reg = await navigator.serviceWorker.register('./sw.js?v=' + newVer);
     } catch {
       localStorage.removeItem('confeitex_updated');
       this._hideProgress();
@@ -111,46 +99,40 @@ const Updates = {
       return;
     }
 
-    // Aguarda instalação/ativação do novo SW (máx 20s)
+    // Aguarda instalação/ativação (máx 25s)
     this._updateProgress(60, I18n.t('updates.progressActivating'));
-    const ativado = await this._waitForSW(reg, 20000);
-
-    // Marca como atualizado
-    localStorage.setItem('confeitex_updated', 'true');
-    localStorage.setItem('confeitex_ver', newVer);
-
-    // Mantém a barra visível por pelo menos 3s para aplicar as mudanças
-    await this._settleProgress(startedAt, I18n.t('updates.progressApplying'));
-
-    this._updateProgress(100, ativado ? I18n.t('updates.progressDone') : I18n.t('updates.progressDoneDeferred'));
-    await this._delay(600);
-
-    // Mostra banner de notificação para o usuário decidir
-    this._showUpdateBanner(newVer);
-  },
-
-  // Aguarda o SW ativar com Promise resolved
-  _waitForSW(reg, timeoutMs) {
-    return Promise.race([
+    const ativado = await Promise.race([
       new Promise(resolve => {
-        // Se já há um SW ativo, aguarda o novo
-        const w = reg.installing || reg.waiting;
+        const w = reg.installing;
         if (w) {
-          if (w.state === 'activated') return resolve(true);
           w.addEventListener('statechange', () => {
-            if (w.state === 'activated') resolve(true);
-            else if (w.state === 'redundant') {
-              setTimeout(() => resolve(reg.active?.state === 'activated'), 500);
+            const st = w.state;
+            if (st === 'installed' || st === 'activated') resolve(true);
+            else if (st === 'redundant') {
+              setTimeout(() => resolve(!!(reg.active && reg.active.state === 'activated')), 1000);
             }
           });
         } else if (reg.active) {
           resolve(reg.active.state === 'activated');
         } else {
-          setTimeout(() => resolve(false), 1000);
+          setTimeout(() => resolve(false), 1500);
         }
       }),
-      this._delay(timeoutMs).then(() => false)
+      this._delay(25000).then(() => false)
     ]);
+
+    // Marca como atualizado
+    localStorage.setItem('confeitex_updated', 'true');
+    localStorage.setItem('confeitex_ver', newVer);
+
+    // Mantém a barra visível por pelo menos 10s para aplicar as mudanças com calma
+    await this._settleProgress(startedAt, I18n.t('updates.progressApplying'));
+
+    this._updateProgress(100, ativado ? I18n.t('updates.progressDone') : I18n.t('updates.progressDoneDeferred'));
+    await this._delay(800);
+
+    // Mostra banner de notificação para o usuário decidir
+    this._showUpdateBanner(newVer);
   },
 
   _showProgress(ver) {
@@ -199,7 +181,7 @@ const Updates = {
   },
 
   _settleProgress(startedAt, msg) {
-    const minMs = 3000;
+    const minMs = 10000;
     const remaining = Math.max(0, minMs - (Date.now() - startedAt));
     return this._animateProgress(99, remaining, msg);
   },
@@ -228,7 +210,7 @@ const Updates = {
     actions.style.display = 'flex';
     text.textContent = I18n.t('updates.installedTitle', { version: ver });
 
-    // Se o banner ainda não estiver visível, exibe
+    // Se o banner ainda não estiver visível (ex: sem SW), exibe
     if (!banner.classList.contains('visible')) {
       banner.style.display = 'flex';
       requestAnimationFrame(() => requestAnimationFrame(() => banner.classList.add('visible')));
@@ -239,14 +221,12 @@ const Updates = {
       banner.addEventListener('transitionend', () => {
         banner.style.display = 'none';
       }, { once: true });
-      setTimeout(() => { banner.style.display = 'none'; }, 500);
     };
 
     btnNow.onclick = () => {
       localStorage.removeItem('confeitex_updated');
       hide();
-      // Força reload com bypass de cache
-      window.location.href = window.location.pathname + '?t=' + Date.now();
+      setTimeout(() => window.location.reload(), 300);
     };
 
     btnLater.onclick = () => {
@@ -260,8 +240,6 @@ const Updates = {
   },
 
   changelog: [
-    { ver: '2.2.1', date: '07/08/2026', keys: ['changelog.2210'] },
-    { ver: '2.2.0', date: '07/08/2026', keys: ['changelog.2200'] },
     { ver: '2.1.3', date: '07/08/2026', keys: ['changelog.2130'] },
     { ver: '2.1.2', date: '06/08/2026', keys: ['changelog.2120'] },
     { ver: '2.1.1', date: '06/08/2026', keys: ['changelog.2110'] },
@@ -326,6 +304,18 @@ const Updates = {
     document.getElementById('updatesLastCheck').textContent = localStorage.getItem('confeitex_last_check');
 
     if (serverVer && serverVer !== this.verAtual) {
+      const confirmado = await UI.confirm({
+        title: I18n.t('updates.promptTitle'),
+        message: I18n.t('updates.promptFound', { version: serverVer }),
+        confirmText: I18n.t('updates.reloadNow'),
+        variant: 'primary'
+      });
+      if (!confirmado) {
+        this.updateStatus(I18n.t('updates.cancelled'));
+        btn.disabled = false;
+        btn.innerHTML = btnHtml;
+        return;
+      }
       this.updateStatus(I18n.t('updates.newFound', { version: serverVer }));
       btn.disabled = false;
       btn.innerHTML = btnHtml;

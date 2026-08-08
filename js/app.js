@@ -154,9 +154,11 @@
       if (reloading) return;
       const progress = document.getElementById('updateProgress');
       const downloading = progress && progress.style.display !== 'none';
-      if (downloading) return;
+      const updated = localStorage.getItem('confeitex_updated');
+      if (downloading || !updated) return;
       reloading = true;
-      setTimeout(() => window.location.reload(), 500);
+      UI.toast(I18n.t('updates.toastReload'));
+      setTimeout(() => window.location.reload(), 1500);
     });
   }
 

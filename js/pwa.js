@@ -2,17 +2,9 @@
   let deferredInstall = null;
 
   if ('serviceWorker' in navigator) {
-    // Registra SW com a versão hardcoded (sempre atualizada)
     window.addEventListener('load', () => {
-      const swVer = (typeof Updates !== 'undefined' ? Updates.verAtual : '1.10.2');
+      const swVer = localStorage.getItem('confeitex_ver') || (typeof Updates !== 'undefined' ? Updates.verAtual : '1.10.2');
       navigator.serviceWorker.register('./sw.js?v=' + swVer).catch(() => {});
-    });
-
-    // Ao focar a janela, verifica se há SW atualizado pendente
-    window.addEventListener('focus', () => {
-      navigator.serviceWorker.getRegistration().then(reg => {
-        if (reg) reg.update().catch(() => {});
-      });
     });
   }
 
