@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Confeitex - Controle de Encomendas</title>
   <meta name="description" content="Controle de encomendas para confeitaria — gerencie pedidos, clientes e entregas. 100% offline.">
-  <meta name="version" content="2.1.4">
+  <meta name="version" content="2.4.0">
 
   <!-- Google Fonts: Plus Jakarta Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -936,7 +936,7 @@
             <div class="form-grid-2">
               <div class="form-group">
                 <label id="labelWeight" for="orderWeight" data-i18n="orders.lblWeight">Peso (Kg) / Qtd *</label>
-                <input type="number" class="form-control" id="orderWeight" required step="any" min="0.01" value="1.00">
+                <input type="text" inputmode="decimal" class="form-control" id="orderWeight" required min="0.01" value="1.00" placeholder="0,00">
               </div>
               <div class="form-group">
                 <label id="labelUnitPrice" for="orderUnitPrice" data-i18n="orders.lblUnitPrice">Valor por Kg (R$) / Unitário *</label>

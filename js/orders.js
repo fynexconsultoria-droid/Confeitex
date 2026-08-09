@@ -209,10 +209,8 @@ const Orders = {
     document.getElementById('labelUnitPrice').textContent = type === 'Bolo de Kg' ? I18n.t('orders.lblUnitPrice') : I18n.t('orders.lblUnitPriceUnit');
     const weightEl = document.getElementById('orderWeight');
     if (type === 'Bolo de Kg') {
-      weightEl.step = 'any';
       weightEl.min = '0.01';
     } else {
-      weightEl.step = '1';
       weightEl.min = '1';
     }
   },
