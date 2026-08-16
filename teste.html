@@ -430,7 +430,7 @@
       this.groupName('Updates');
 
       this.assert(typeof Updates !== 'undefined', 'Updates existe', '');
-      this.assert(Updates.verAtual === '2.1.0', 'verAtual', Updates.verAtual);
+      this.assert(Updates.verAtual === '2.4.0', 'verAtual', Updates.verAtual);
       this.assert(Array.isArray(Updates.changelog) && Updates.changelog.length >= 5, 'changelog entradas', String(Updates.changelog.length));
 
       Updates.render();
@@ -511,11 +511,19 @@
         wEl.value = 3; pEl.value = 50; eEl.value = 10;
         Orders.calcTotal();
         this.assert(tEl.value === 'R$ 160,00', 'calcTotal 3*50+10', tEl.value);
+
+        // Testa substituicao virgula por ponto (simula input event)
+        wEl.value = '2,5';
+        wEl.dispatchEvent(new Event('input', { bubbles: true }));
+        this.assert(wEl.value === '2.5', 'input virgula vira ponto', wEl.value);
+        wEl.value = 2.5;
       }
 
       // updateLabels
       Orders.updateLabels('Bolo de Kg');
       this.assert(document.getElementById('labelWeight').textContent.includes('Peso'), 'updateLabels Kg peso', '');
+      this.assert(document.getElementById('orderWeight').type === 'text', 'orderWeight type text', document.getElementById('orderWeight').type);
+      this.assert(document.getElementById('orderWeight').inputMode === 'decimal', 'orderWeight inputmode decimal', document.getElementById('orderWeight').inputMode);
       Orders.updateLabels('Doces / Brigadeiros');
       this.assert(document.getElementById('labelWeight').textContent.includes('Quantidade'), 'updateLabels doces qtd', '');
       Orders.updateLabels('Bolo de Kg');
@@ -716,6 +724,17 @@
       const funcs = ['fmt', 'fmtDate', 'fmtDateStr', 'escapeHTML', 'maskPhone', 'badgeClass', 'formatWeight', 'migrateOrder', 'getOrderTotal'];
       const fpresent = funcs.filter(name => typeof globalGet(name) === 'function');
       this.assert(fpresent.length === funcs.length, 'funcoes globais', fpresent.length + '/' + funcs.length);
+
+      // Sidebar footer
+      const sidebarFooter = document.getElementById('sidebarFooter');
+      this.assert(!!sidebarFooter, 'sidebarFooter existe', '');
+      const sidebar = document.getElementById('sidebar');
+      this.assert(!!sidebar, 'sidebar existe', '');
+      const sidebarStyle = window.getComputedStyle(sidebar);
+      this.assert(sidebarStyle.display === 'flex', 'sidebar display flex', sidebarStyle.display);
+      this.assert(sidebarStyle.flexDirection === 'column', 'sidebar flex-direction column', sidebarStyle.flexDirection);
+      const sidebarOverflow = sidebarStyle.overflowY;
+      this.assert(sidebarOverflow === 'auto' || sidebarOverflow === 'scroll', 'sidebar overflow-y scrollable', sidebarOverflow);
     },
 
     // ========================================================

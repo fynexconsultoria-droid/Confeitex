@@ -17,8 +17,18 @@ const UI = {
 
     const el = document.createElement('div');
     el.className = 'ui-toast';
-    el.innerHTML = `<div class="ui-toast-icon">${icons[variant] || icons.primary}</div><div class="ui-toast-text">${message}</div>`;
     el.style.background = bgGradients[variant] || bgGradients.primary;
+
+    const iconEl = document.createElement('div');
+    iconEl.className = 'ui-toast-icon';
+    iconEl.innerHTML = icons[variant] || icons.primary;
+
+    const textEl = document.createElement('div');
+    textEl.className = 'ui-toast-text';
+    textEl.textContent = message;
+
+    el.appendChild(iconEl);
+    el.appendChild(textEl);
     document.body.appendChild(el);
     requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('visible')));
     setTimeout(() => {
@@ -42,16 +52,47 @@ const UI = {
 
       const overlay = document.createElement('div');
       overlay.className = 'ui-confirm-overlay';
-      overlay.innerHTML = `
-        <div class="ui-confirm-modal">
-          <div class="ui-confirm-icon" style="background:${gradient}">${icons[variant] || icons.primary}</div>
-          <div class="ui-confirm-title">${title}</div>
-          <div class="ui-confirm-message">${message}</div>
-          <div class="ui-confirm-actions">
-            ${cancelText ? `<button class="ui-confirm-btn ui-confirm-btn-cancel" data-action="cancel">${cancelText}</button>` : ''}
-            <button class="ui-confirm-btn ui-confirm-btn-confirm" data-action="confirm" style="background:${gradient}">${confirmText}</button>
-          </div>
-        </div>`;
+      
+      const modal = document.createElement('div');
+      modal.className = 'ui-confirm-modal';
+      
+      const iconWrap = document.createElement('div');
+      iconWrap.className = 'ui-confirm-icon';
+      iconWrap.style.background = gradient;
+      iconWrap.innerHTML = icons[variant] || icons.primary;
+      
+      const titleEl = document.createElement('div');
+      titleEl.className = 'ui-confirm-title';
+      titleEl.textContent = title;
+      
+      const msgEl = document.createElement('div');
+      msgEl.className = 'ui-confirm-message';
+      msgEl.textContent = message;
+      
+      const actions = document.createElement('div');
+      actions.className = 'ui-confirm-actions';
+      
+      if (cancelText) {
+        const btnCancel = document.createElement('button');
+        btnCancel.className = 'ui-confirm-btn ui-confirm-btn-cancel';
+        btnCancel.dataset.action = 'cancel';
+        btnCancel.textContent = cancelText;
+        actions.appendChild(btnCancel);
+      }
+      
+      const btnConfirm = document.createElement('button');
+      btnConfirm.className = 'ui-confirm-btn ui-confirm-btn-confirm';
+      btnConfirm.dataset.action = 'confirm';
+      btnConfirm.style.background = gradient;
+      btnConfirm.textContent = confirmText;
+      actions.appendChild(btnConfirm);
+      
+      modal.appendChild(iconWrap);
+      modal.appendChild(titleEl);
+      modal.appendChild(msgEl);
+      modal.appendChild(actions);
+      overlay.appendChild(modal);
+      
       document.body.appendChild(overlay);
       requestAnimationFrame(() => overlay.classList.add('active'));
 

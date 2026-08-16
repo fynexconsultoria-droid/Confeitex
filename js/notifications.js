@@ -20,7 +20,7 @@ const Notifications = {
 
   getSettings() {
     try {
-      const stored = localStorage.getItem('confeitex_notification_settings');
+      const stored = safeStorage.get('confeitex_notification_settings');
       if (stored) return { ...this.defaultSettings, ...JSON.parse(stored) };
     } catch (e) { console.warn('[Notifications] Erro ao carregar configurações:', e); }
     return { ...this.defaultSettings };
@@ -30,7 +30,7 @@ const Notifications = {
     try {
       const current = this.getSettings();
       const updated = { ...current, ...settings };
-      localStorage.setItem('confeitex_notification_settings', JSON.stringify(updated));
+      safeStorage.set('confeitex_notification_settings', JSON.stringify(updated));
       if (this._enabled) {
         this._restartInterval();
         this.syncData();
@@ -148,7 +148,7 @@ const Notifications = {
 
   getHistory() {
     try {
-      const raw = localStorage.getItem('confeitex_notif_history');
+      const raw = safeStorage.get('confeitex_notif_history');
       if (raw) {
         const arr = JSON.parse(raw);
         if (Array.isArray(arr)) return arr;
@@ -171,7 +171,7 @@ const Notifications = {
     }
     history = history.slice(0, 50);
     try {
-      localStorage.setItem('confeitex_notif_history', JSON.stringify(history));
+      safeStorage.set('confeitex_notif_history', JSON.stringify(history));
     } catch (e) { console.warn('[Notifications] Erro ao salvar histórico:', e); }
     this._updateBadge();
     const dd = document.getElementById('notifDropdown');
@@ -194,7 +194,7 @@ const Notifications = {
       return h;
     });
     if (changed) {
-      try { localStorage.setItem('confeitex_notif_history', JSON.stringify(history)); } catch (e) {}
+      try { safeStorage.set('confeitex_notif_history', JSON.stringify(history)); } catch (e) {}
       this._updateBadge();
       this._renderBellList();
     }
@@ -205,14 +205,14 @@ const Notifications = {
     let changed = false;
     history.forEach(h => { if (!h.read) { h.read = true; changed = true; } });
     if (changed) {
-      try { localStorage.setItem('confeitex_notif_history', JSON.stringify(history)); } catch (e) {}
+      try { safeStorage.set('confeitex_notif_history', JSON.stringify(history)); } catch (e) {}
       this._updateBadge();
       this._renderBellList();
     }
   },
 
   clearHistory() {
-    try { localStorage.removeItem('confeitex_notif_history'); } catch (e) {}
+    try { safeStorage.remove('confeitex_notif_history'); } catch (e) {}
     this._updateBadge();
     this._renderBellList();
   },
@@ -327,7 +327,7 @@ const Notifications = {
       return;
     }
 
-    const stored = localStorage.getItem('confeitex_notifications_enabled');
+    const stored = safeStorage.get('confeitex_notifications_enabled');
     if (stored === 'true' && Notification.permission === 'granted') {
       this._enable();
     }
@@ -348,7 +348,7 @@ const Notifications = {
   _enable() {
     if (this._enabled) return;
     this._enabled = true;
-    localStorage.setItem('confeitex_notifications_enabled', 'true');
+    safeStorage.set('confeitex_notifications_enabled', 'true');
     this.check();
     this._restartInterval();
     this.syncData();
@@ -368,7 +368,7 @@ const Notifications = {
 
   _disable() {
     this._enabled = false;
-    localStorage.setItem('confeitex_notifications_enabled', 'false');
+    safeStorage.set('confeitex_notifications_enabled', 'false');
     if (this._intervalId) {
       clearInterval(this._intervalId);
       this._intervalId = null;
@@ -480,7 +480,7 @@ const Notifications = {
     const daysBeforeList = settings.daysBefore || [0, 1];
     const allowedStatuses = settings.statuses || ['Pendente', 'Em Produção'];
     let sent = {};
-    try { sent = JSON.parse(localStorage.getItem('confeitex_notified') || '{}'); } catch (e) {}
+    try { sent = JSON.parse(safeStorage.get('confeitex_notified') || '{}'); } catch (e) {}
     const now = new Date();
     const [rh, rm] = (settings.reminderTime || '08:00').split(':').map(Number);
     const todayStr = fmtISO(now);
@@ -594,12 +594,12 @@ const Notifications = {
       // contam como "já notificado" para a verificação dentro do app.
       const swSent = await this._idbGet('confeitex_sent') || {};
       let sent = {};
-      try { sent = JSON.parse(localStorage.getItem('confeitex_notified') || '{}'); } catch (e) {}
+      try { sent = JSON.parse(safeStorage.get('confeitex_notified') || '{}'); } catch (e) {}
       let changed = false;
       for (const k in swSent) {
         if (!sent[k]) { sent[k] = true; changed = true; }
       }
-      if (changed) localStorage.setItem('confeitex_notified', JSON.stringify(sent));
+      if (changed) safeStorage.set('confeitex_notified', JSON.stringify(sent));
 
       await this.registerAll();
     }, 800);
@@ -615,7 +615,7 @@ const Notifications = {
     const daysBeforeList = settings.daysBefore || [0, 1];
     const allowedStatuses = settings.statuses || ['Pendente', 'Em Produção'];
     let sent = {};
-    try { sent = JSON.parse(localStorage.getItem('confeitex_notified') || '{}'); } catch (e) { sent = {}; }
+    try { sent = JSON.parse(safeStorage.get('confeitex_notified') || '{}'); } catch (e) { sent = {}; }
     const now = new Date();
     const todayStr = fmtISO(now);
 
@@ -707,7 +707,7 @@ const Notifications = {
     }
 
     if (dirty) {
-      localStorage.setItem('confeitex_notified', JSON.stringify(sent));
+      safeStorage.set('confeitex_notified', JSON.stringify(sent));
       this._idbSet('confeitex_sent', sent);
     }
   }

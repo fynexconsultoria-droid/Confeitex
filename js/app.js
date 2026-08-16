@@ -1,19 +1,11 @@
 (async () => {
-  State.load();
   Auth.init();
-
-  // Aplica o idioma salvo aos elementos estáticos do HTML
-  try { I18n.apply(); } catch (e) { console.warn('[Confeitex] Erro ao aplicar idioma:', e); }
-
-  // Atualiza a versão no rodapé da sidebar
-  const sidebarVersion = document.getElementById('sidebarVersion');
-  if (sidebarVersion && typeof Updates !== 'undefined') {
-    sidebarVersion.textContent = 'v' + Updates.verAtual;
-  }
 
   if (Auth.isLocked()) {
     await Auth.showLogin();
   }
+  
+  State.load();
 
   const tabTitles = {
     dashboard: { title: 'tab.dash.title', subtitle: 'tab.dash.sub' },
@@ -146,10 +138,10 @@
   });
 
   // Se veio de uma atualização automática, mostra toast e limpa flag
-  if (localStorage.getItem('confeitex_updated')) {
-    const v = localStorage.getItem('confeitex_ver');
+  if (safeStorage.get('confeitex_updated')) {
+    const v = safeStorage.get('confeitex_ver');
     UI.toast(I18n.t('updates.toastUpdated', { version: v }));
-    localStorage.removeItem('confeitex_updated');
+    safeStorage.remove('confeitex_updated');
   }
 
   // Recarrega automaticamente quando um novo Service Worker assumir o controle,
@@ -160,7 +152,7 @@
       if (reloading) return;
       const progress = document.getElementById('updateProgress');
       const downloading = progress && progress.style.display !== 'none';
-      const updated = localStorage.getItem('confeitex_updated');
+      const updated = safeStorage.get('confeitex_updated');
       if (downloading || !updated) return;
       reloading = true;
       UI.toast(I18n.t('updates.toastReload'));
@@ -221,11 +213,11 @@
 
   // Verifica atualização automaticamente (máx 1x por hora)
   (async () => {
-    const lastCheck = localStorage.getItem('confeitex_last_auto_check');
+    const lastCheck = safeStorage.get('confeitex_last_auto_check');
     const oneHour = 3600000;
     if (lastCheck && Date.now() - parseInt(lastCheck, 10) < oneHour) return;
 
-    localStorage.setItem('confeitex_last_auto_check', String(Date.now()));
+    safeStorage.set('confeitex_last_auto_check', String(Date.now()));
     await Updates.checkSilent();
   })();
 })();

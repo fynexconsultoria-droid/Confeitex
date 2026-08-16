@@ -3,7 +3,7 @@
 
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      const swVer = localStorage.getItem('confeitex_ver') || (typeof Updates !== 'undefined' ? Updates.verAtual : '1.10.2');
+      const swVer = safeStorage.get('confeitex_ver') || (typeof Updates !== 'undefined' ? Updates.verAtual : '1.10.2');
       navigator.serviceWorker.register('./sw.js?v=' + swVer).catch(() => {});
     });
   }
@@ -11,13 +11,13 @@
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredInstall = e;
-    if (!localStorage.getItem('confeitex_pwa_dismissed')) showBanner('android');
+    if (!safeStorage.get('confeitex_pwa_dismissed')) showBanner('android');
   });
 
   window.addEventListener('load', () => {
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
     const standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-    if (isIOS && !standalone && !localStorage.getItem('confeitex_pwa_dismissed')) setTimeout(() => showBanner('ios'), 2000);
+    if (isIOS && !standalone && !safeStorage.get('confeitex_pwa_dismissed')) setTimeout(() => showBanner('ios'), 2000);
   });
 
   function showBanner(platform) {
@@ -46,7 +46,7 @@
     });
 
     banner.querySelector('.pwa-btn-dismiss')?.addEventListener('click', () => {
-      localStorage.setItem('confeitex_pwa_dismissed', 'true');
+      safeStorage.set('confeitex_pwa_dismissed', 'true');
       banner.classList.remove('visible');
       setTimeout(() => banner.remove(), 500);
     });

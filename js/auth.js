@@ -5,8 +5,8 @@ const Auth = {
   lockHash: '',
 
   init() {
-    this.lockEnabled = localStorage.getItem('confeitex_lock_enabled') === 'true';
-    this.lockHash = localStorage.getItem('confeitex_lock_hash') || '';
+    this.lockEnabled = safeStorage.get('confeitex_lock_enabled') === 'true';
+    this.lockHash = safeStorage.get('confeitex_lock_hash') || '';
   },
 
   supported() {
@@ -31,7 +31,7 @@ const Auth = {
     const hash = await this._deriveKey(password, salt);
     const saltHex = Array.from(salt).map(b => b.toString(16).padStart(2, '0')).join('');
     this.lockHash = saltHex + ':' + hash;
-    localStorage.setItem('confeitex_lock_hash', this.lockHash);
+    safeStorage.set('confeitex_lock_hash', this.lockHash);
   },
 
   async verify(password) {
@@ -49,16 +49,16 @@ const Auth = {
 
   enable() {
     this.lockEnabled = true;
-    localStorage.setItem('confeitex_lock_enabled', 'true');
+    safeStorage.set('confeitex_lock_enabled', 'true');
   },
 
   disable() {
     this.lockEnabled = false;
-    localStorage.setItem('confeitex_lock_enabled', 'false');
+    safeStorage.set('confeitex_lock_enabled', 'false');
   },
 
   isLocked() {
-    return this.lockEnabled && !!this.lockHash && !sessionStorage.getItem('confeitex_auth');
+    return this.lockEnabled && !!this.lockHash && !safeStorage.sessionGet('confeitex_auth');
   },
 
   _loginShown: false,
@@ -118,7 +118,7 @@ const Auth = {
         try {
           const ok = await this.verify(pw);
           if (ok) {
-            sessionStorage.setItem('confeitex_auth', 'true');
+            safeStorage.sessionSet('confeitex_auth', 'true');
             cleanup();
             resolve();
             return;

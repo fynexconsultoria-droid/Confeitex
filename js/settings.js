@@ -73,12 +73,12 @@ const Settings = {
         State.saveExpenses();
         State.emptyTrash();
         if (Trash.updateBadge) Trash.updateBadge();
-        localStorage.removeItem('confeitex_notified');
-        localStorage.removeItem('confeitex_notifications_enabled');
+        safeStorage.remove('confeitex_notified');
+        safeStorage.remove('confeitex_notifications_enabled');
         Notifications._disable();
         if (Auth.lockEnabled) {
           Auth.disable();
-          localStorage.removeItem('confeitex_lock_hash');
+          safeStorage.remove('confeitex_lock_hash');
           Auth.lockHash = '';
           if (Auth.renderSecuritySettings) Auth.renderSecuritySettings();
           UI.toast(I18n.t('settings.toastDataCleared2'));
@@ -296,17 +296,18 @@ const Settings = {
   async importJSONFile(file) {
     const text = await file.text();
     const parsed = JSON.parse(text);
+    const validated = validateStateDump(parsed);
 
     let newOrders = [];
     let newCatalog = [];
     let newExpenses = [];
 
     if (Array.isArray(parsed)) {
-      newOrders = parsed;
+      newOrders = validated.orders;
     } else if (parsed && typeof parsed === 'object') {
-      if (Array.isArray(parsed.orders)) newOrders = parsed.orders;
-      if (Array.isArray(parsed.catalog)) newCatalog = parsed.catalog;
-      if (Array.isArray(parsed.expenses)) newExpenses = parsed.expenses;
+      if (Array.isArray(parsed.orders)) newOrders = validated.orders;
+      if (Array.isArray(parsed.catalog)) newCatalog = validated.catalog;
+      if (Array.isArray(parsed.expenses)) newExpenses = validated.expenses;
     }
 
     if (newOrders.length === 0 && newCatalog.length === 0 && newExpenses.length === 0) {

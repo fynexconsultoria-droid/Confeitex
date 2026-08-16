@@ -1600,7 +1600,7 @@ const I18n = {
 
   get lang() {
     let l = null;
-    try { l = localStorage.getItem(this.storageKey); } catch (e) {}
+    try { l = safeStorage.get(this.storageKey); } catch (e) {}
     if (!l || this.codes.indexOf(l) === -1) l = this._detect();
     return l;
   },
@@ -1620,7 +1620,7 @@ const I18n = {
 
   setLang(code) {
     if (this.codes.indexOf(code) === -1) return this.lang;
-    try { localStorage.setItem(this.storageKey, code); } catch (e) {}
+    try { safeStorage.set(this.storageKey, code); } catch (e) {}
     this.apply();
     document.documentElement.lang = code;
     if (typeof this.onApply === 'function') {

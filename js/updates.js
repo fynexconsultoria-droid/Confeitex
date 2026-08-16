@@ -1,5 +1,5 @@
 const Updates = {
-  verAtual: '2.4.0',
+  verAtual: '2.4.1',
 
   setup() {
     document.getElementById('btnCheckUpdates').addEventListener('click', () => this.check());
@@ -22,7 +22,7 @@ const Updates = {
   async checkSilent() {
     const serverVer = await this._fetchVersion();
     if (serverVer && serverVer !== this.verAtual) {
-      const deferred = localStorage.getItem('confeitex_update_deferred');
+      const deferred = safeStorage.get('confeitex_update_deferred');
       const oneDay = 86400000;
       if (deferred && Date.now() - parseInt(deferred, 10) < oneDay) {
         return serverVer;
@@ -44,25 +44,25 @@ const Updates = {
     });
 
     if (ok) {
-      localStorage.removeItem('confeitex_update_deferred');
-      localStorage.setItem('confeitex_ver', serverVer);
+      safeStorage.remove('confeitex_update_deferred');
+      safeStorage.set('confeitex_ver', serverVer);
       await this.downloadUpdate();
     } else {
-      localStorage.setItem('confeitex_update_deferred', String(Date.now()));
+      safeStorage.set('confeitex_update_deferred', String(Date.now()));
       UI.toast(I18n.t('updates.toastLater'));
     }
   },
 
   async downloadUpdate() {
-    const newVer = localStorage.getItem('confeitex_ver') || this.verAtual;
+    const newVer = safeStorage.get('confeitex_ver') || this.verAtual;
     const startedAt = Date.now();
 
     this._showProgress(newVer);
 
     // Limpa flags de cache/notificações antigas
-    localStorage.removeItem('confeitex_notified');
-    localStorage.removeItem('confeitex_update_prompt');
-    localStorage.removeItem('confeitex_pwa_dismissed');
+    safeStorage.remove('confeitex_notified');
+    safeStorage.remove('confeitex_update_prompt');
+    safeStorage.remove('confeitex_pwa_dismissed');
 
     // Remove Service Worker antigo
     this._updateProgress(15, I18n.t('updates.progressClearCache'));
@@ -77,8 +77,8 @@ const Updates = {
     // Se não suportar SW, marca como atualizado e mostra banner
     if (!swOk) {
       await this._settleProgress(startedAt, I18n.t('updates.progressRegistering'));
-      localStorage.setItem('confeitex_updated', 'true');
-      localStorage.setItem('confeitex_ver', newVer);
+      safeStorage.set('confeitex_updated', 'true');
+      safeStorage.set('confeitex_ver', newVer);
       this._updateProgress(100, I18n.t('updates.progressDone'));
       await this._delay(600);
       this._showUpdateBanner(newVer);
@@ -90,10 +90,10 @@ const Updates = {
     let reg;
     try {
       // Marca antes de registrar para o auto-reload saber que o update foi aceito
-      localStorage.setItem('confeitex_updated', 'true');
+      safeStorage.set('confeitex_updated', 'true');
       reg = await navigator.serviceWorker.register('./sw.js?v=' + newVer);
     } catch {
-      localStorage.removeItem('confeitex_updated');
+      safeStorage.remove('confeitex_updated');
       this._hideProgress();
       UI.alert(I18n.t('updates.noConnection') + ' ' + I18n.t('updates.retryMsg'));
       return;
@@ -122,8 +122,8 @@ const Updates = {
     ]);
 
     // Marca como atualizado
-    localStorage.setItem('confeitex_updated', 'true');
-    localStorage.setItem('confeitex_ver', newVer);
+    safeStorage.set('confeitex_updated', 'true');
+    safeStorage.set('confeitex_ver', newVer);
 
     // Mantém a barra visível por pelo menos 10s para aplicar as mudanças com calma
     await this._settleProgress(startedAt, I18n.t('updates.progressApplying'));
@@ -224,7 +224,7 @@ const Updates = {
     };
 
     btnNow.onclick = () => {
-      localStorage.removeItem('confeitex_updated');
+      safeStorage.remove('confeitex_updated');
       hide();
       setTimeout(() => window.location.reload(), 300);
     };
@@ -240,6 +240,7 @@ const Updates = {
   },
 
   changelog: [
+    { ver: '2.4.1', date: '16/08/2026', keys: ['changelog.2410'] },
     { ver: '2.4.0', date: '08/08/2026', keys: ['changelog.2400'] },
     { ver: '2.1.4', date: '08/08/2026', keys: ['changelog.2140'] },
     { ver: '2.1.3', date: '07/08/2026', keys: ['changelog.2130'] },
@@ -262,9 +263,9 @@ const Updates = {
 
   render() {
     const displayVer = this.verAtual;
-    localStorage.setItem('confeitex_ver', displayVer);
+    safeStorage.set('confeitex_ver', displayVer);
     document.getElementById('updatesCurrentVer').textContent = `v${displayVer}`;
-    const lastCheck = localStorage.getItem('confeitex_last_check');
+    const lastCheck = safeStorage.get('confeitex_last_check');
     document.getElementById('updatesLastCheck').textContent = lastCheck || I18n.t('updates.neverChecked');
     this.renderChangelog();
     this.updateStatus('');
@@ -302,8 +303,8 @@ const Updates = {
     this.updateStatus(I18n.t('updates.checking'));
 
     const serverVer = await this._fetchVersion();
-    localStorage.setItem('confeitex_last_check', new Date().toLocaleString(I18n.locales[I18n.lang] || 'pt-BR'));
-    document.getElementById('updatesLastCheck').textContent = localStorage.getItem('confeitex_last_check');
+    safeStorage.set('confeitex_last_check', new Date().toLocaleString(I18n.locales[I18n.lang] || 'pt-BR'));
+    document.getElementById('updatesLastCheck').textContent = safeStorage.get('confeitex_last_check');
 
     if (serverVer && serverVer !== this.verAtual) {
       const confirmado = await UI.confirm({
@@ -321,7 +322,7 @@ const Updates = {
       this.updateStatus(I18n.t('updates.newFound', { version: serverVer }));
       btn.disabled = false;
       btn.innerHTML = btnHtml;
-      localStorage.setItem('confeitex_ver', serverVer);
+      safeStorage.set('confeitex_ver', serverVer);
       await this.downloadUpdate();
       return;
     } else if (serverVer === this.verAtual) {

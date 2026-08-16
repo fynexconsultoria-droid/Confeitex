@@ -25,10 +25,12 @@ const State = {
 
   load() {
     try {
-      const savedOrders = localStorage.getItem('confeitex_orders');
-      const savedCatalog = localStorage.getItem('confeitex_catalog');
-      this.orders = savedOrders ? JSON.parse(savedOrders).map(migrateOrder) : [];
-      this.catalog = savedCatalog ? JSON.parse(savedCatalog) : [...DEFAULT_CATALOG];
+      const savedOrders = safeStorage.get('confeitex_orders');
+      const savedCatalog = safeStorage.get('confeitex_catalog');
+      const safeOrders = validateStateDump({ orders: savedOrders ? JSON.parse(savedOrders) : [] });
+      const safeCatalog = validateStateDump({ catalog: savedCatalog ? JSON.parse(savedCatalog) : [...DEFAULT_CATALOG] });
+      this.orders = safeOrders.orders.map(migrateOrder);
+      this.catalog = safeCatalog.catalog;
       if (!savedCatalog) this.saveCatalog();
     } catch (e) {
       this.orders = [];
@@ -36,14 +38,14 @@ const State = {
       const _warn = console.warn.bind(console); _warn('[Confeitex] Erro ao carregar dados:', e);
     }
     try {
-      const savedTrash = localStorage.getItem('confeitex_trash');
-      this.trash = savedTrash ? JSON.parse(savedTrash) : [];
+      const savedTrash = safeStorage.get('confeitex_trash');
+      this.trash = validateStateDump({ trash: savedTrash ? JSON.parse(savedTrash) : [] }).trash;
     } catch (e) {
       this.trash = [];
     }
     try {
-      const savedExpenses = localStorage.getItem('confeitex_expenses');
-      this.expenses = savedExpenses ? JSON.parse(savedExpenses) : [];
+      const savedExpenses = safeStorage.get('confeitex_expenses');
+      this.expenses = validateStateDump({ expenses: savedExpenses ? JSON.parse(savedExpenses) : [] }).expenses;
     } catch (e) {
       this.expenses = [];
     }
@@ -51,12 +53,12 @@ const State = {
   },
 
   saveOrders() {
-    localStorage.setItem('confeitex_orders', JSON.stringify(this.orders));
+    safeStorage.set('confeitex_orders', JSON.stringify(sanitizeForStorage(this.orders)));
     if (typeof Notifications !== 'undefined' && Notifications.syncData) Notifications.syncData();
   },
-  saveCatalog() { localStorage.setItem('confeitex_catalog', JSON.stringify(this.catalog)); },
-  saveTrash() { localStorage.setItem('confeitex_trash', JSON.stringify(this.trash)); },
-  saveExpenses() { localStorage.setItem('confeitex_expenses', JSON.stringify(this.expenses)); },
+  saveCatalog() { safeStorage.set('confeitex_catalog', JSON.stringify(sanitizeForStorage(this.catalog))); },
+  saveTrash() { safeStorage.set('confeitex_trash', JSON.stringify(sanitizeForStorage(this.trash))); },
+  saveExpenses() { safeStorage.set('confeitex_expenses', JSON.stringify(sanitizeForStorage(this.expenses))); },
 
   addToTrash(orders, type, label) {
     const now = new Date();
