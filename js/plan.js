@@ -369,6 +369,13 @@ const Plan = {
           <div id="paypal-button-container" style="display:none;"></div>
         </div>
 
+        <button class="plan-upgrade-btn-back" id="planUpgradeBack">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
+          </svg>
+          Voltar
+        </button>
+
         <div class="plan-upgrade-secure">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
@@ -381,6 +388,11 @@ const Plan = {
     requestAnimationFrame(() => overlay.classList.add('active'));
 
     document.getElementById('planUpgradeClose').onclick = () => {
+      overlay.classList.remove('active');
+      setTimeout(() => overlay.remove(), 400);
+    };
+
+    document.getElementById('planUpgradeBack').onclick = () => {
       overlay.classList.remove('active');
       setTimeout(() => overlay.remove(), 400);
     };

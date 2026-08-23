@@ -59,6 +59,13 @@
   // Expõe switchTab para módulos (ex.: card de pendentes no dashboard)
   window.switchTab = switchTab;
 
+  // Clicar no nome "Confeitex" no header volta para o dashboard
+  const brandEl = document.querySelector('.brand.mobile-brand');
+  if (brandEl) {
+    brandEl.style.cursor = 'pointer';
+    brandEl.addEventListener('click', () => switchTab('dashboard'));
+  }
+
   // Intercepta eventos de Voltar (botão de hardware / gestos no Android/celular)
   window.addEventListener('popstate', (e) => {
     // 1. Fecha diálogos de confirmação se houver algum aberto
