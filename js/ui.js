@@ -52,6 +52,9 @@ const UI = {
 
       const overlay = document.createElement('div');
       overlay.className = 'ui-confirm-overlay';
+      overlay.setAttribute('role', 'dialog');
+      overlay.setAttribute('aria-modal', 'true');
+      overlay.setAttribute('aria-label', title);
       
       const modal = document.createElement('div');
       modal.className = 'ui-confirm-modal';

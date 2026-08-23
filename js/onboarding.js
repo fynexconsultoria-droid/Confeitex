@@ -185,6 +185,9 @@ const Onboarding = {
     const overlay = document.createElement('div');
     overlay.className = 'ob-overlay';
     overlay.id = 'onboardingOverlay';
+    overlay.setAttribute('role', 'dialog');
+    overlay.setAttribute('aria-modal', 'true');
+    overlay.setAttribute('aria-label', 'Boas-vindas ao Confeitex');
     this._overlay = overlay;
     this._current = 0;
 

@@ -69,6 +69,9 @@ const Auth = {
     return new Promise(resolve => {
       const overlay = document.createElement('div');
       overlay.className = 'login-overlay';
+      overlay.setAttribute('role', 'dialog');
+      overlay.setAttribute('aria-modal', 'true');
+      overlay.setAttribute('aria-label', 'Login');
       overlay.innerHTML = `
         <div class="login-modal">
           <div class="login-brand">
@@ -146,6 +149,9 @@ const Auth = {
     return new Promise(resolve => {
       const overlay = document.createElement('div');
       overlay.className = 'modal-overlay';
+      overlay.setAttribute('role', 'dialog');
+      overlay.setAttribute('aria-modal', 'true');
+      overlay.setAttribute('aria-label', title || 'Definir Senha');
       overlay.innerHTML = `
         <div class="modal-container" style="max-width:400px;">
           <div class="modal-header"><h2>${esc(title)}</h2></div>
@@ -201,6 +207,9 @@ const Auth = {
     return new Promise(resolve => {
       const overlay = document.createElement('div');
       overlay.className = 'modal-overlay';
+      overlay.setAttribute('role', 'dialog');
+      overlay.setAttribute('aria-modal', 'true');
+      overlay.setAttribute('aria-label', title || 'Senha Atual');
       overlay.innerHTML = `
         <div class="modal-container" style="max-width:400px;">
           <div class="modal-header"><h2>${esc(title)}</h2></div>

@@ -196,6 +196,9 @@ const Plan = {
       const overlay = document.createElement('div');
       overlay.className = 'paywall-overlay';
       overlay.id = 'paywallOverlay';
+      overlay.setAttribute('role', 'dialog');
+      overlay.setAttribute('aria-modal', 'true');
+      overlay.setAttribute('aria-label', 'Recurso Premium');
 
       overlay.innerHTML = `
         <div class="paywall-modal">
@@ -298,6 +301,9 @@ const Plan = {
     const overlay = document.createElement('div');
     overlay.className = 'plan-upgrade-overlay';
     overlay.id = 'planUpgradeOverlay';
+    overlay.setAttribute('role', 'dialog');
+    overlay.setAttribute('aria-modal', 'true');
+    overlay.setAttribute('aria-label', 'Confeitex Premium');
 
     overlay.innerHTML = `
       <div class="plan-upgrade-modal">
