@@ -1,5 +1,5 @@
 const Updates = {
-  verAtual: '2.5.0',
+  verAtual: '2.5.1',
 
   setup() {
     document.getElementById('btnCheckUpdates').addEventListener('click', () => this.check());
@@ -240,6 +240,7 @@ const Updates = {
   },
 
   changelog: [
+    { ver: '2.5.1', date: '23/08/2026', keys: ['changelog.2510'] },
     { ver: '2.5.0', date: '23/08/2026', keys: ['changelog.2500'] },
     { ver: '2.4.0', date: '08/08/2026', keys: ['changelog.2400'] },
     { ver: '2.1.4', date: '08/08/2026', keys: ['changelog.2140'] },
@@ -265,6 +266,8 @@ const Updates = {
     const displayVer = this.verAtual;
     safeStorage.set('confeitex_ver', displayVer);
     document.getElementById('updatesCurrentVer').textContent = `v${displayVer}`;
+    const sidebarVersion = document.getElementById('sidebarVersion');
+    if (sidebarVersion) sidebarVersion.textContent = `v${displayVer}`;
     const lastCheck = safeStorage.get('confeitex_last_check');
     document.getElementById('updatesLastCheck').textContent = lastCheck || I18n.t('updates.neverChecked');
     this.renderChangelog();

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Confeitex - Controle de Encomendas</title>
   <meta name="description" content="Controle de encomendas para confeitaria — gerencie pedidos, clientes e entregas. 100% offline.">
-  <meta name="version" content="2.5.0">
+  <meta name="version" content="2.5.1">
 
   <!-- Google Fonts: Plus Jakarta Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -206,7 +206,7 @@
         <!-- Metrics Grid -->
         <div class="metrics-grid">
           <!-- Metric 1: Vendas Hoje -->
-          <div class="metric-card">
+          <div class="metric-card" id="kpiSalesCard" role="button" tabindex="0">
             <div class="metric-header">
               <span class="metric-title" data-i18n="kpi.salesTitle">Vendas de Hoje</span>
               <div class="metric-icon-wrapper pink">
@@ -218,7 +218,7 @@
           </div>
           
           <!-- Metric 2: Kg Vendidos Hoje -->
-          <div class="metric-card">
+          <div class="metric-card" id="kpiWeightCard" role="button" tabindex="0">
             <div class="metric-header">
               <span class="metric-title" data-i18n="kpi.kgTitle">Kg Vendidos Hoje</span>
               <div class="metric-icon-wrapper purple">
@@ -227,7 +227,7 @@
               </div>
             </div>
             <div class="metric-value" id="kpiWeightToday">0,0 Kg</div>
-            <div class="metric-footer" data-i18n="kpi.kgFooter">Soma de bolos encomendados</div>
+            <div class="metric-footer" data-i18n="kpi.kgFooter">Kg e unidades vendidos</div>
           </div>
           
           <!-- Metric 3: Pedidos Pendentes -->
@@ -243,7 +243,7 @@
           </div>
 
           <!-- Metric 4: Faturamento Total -->
-          <div class="metric-card metric-card-highlight-green">
+          <div class="metric-card metric-card-highlight-green" id="kpiTotalEarningsCard" role="button" tabindex="0">
             <div class="metric-header">
               <span class="metric-title metric-positive" data-i18n="kpi.totalTitle">Faturamento Total</span>
               <div class="metric-icon-wrapper success">
@@ -266,8 +266,8 @@
             <input type="text" class="form-control metric-readonly-pink" id="calcDayValue" readonly value="R$ 0,00" title="Soma de valor do dia" aria-label="Soma de valor do dia">
           </div>
           <div class="form-group">
-            <label data-i18n="dash.calcLabelWeight">Soma de Peso do Dia</label>
-            <input type="text" class="form-control metric-readonly-purple" id="calcDayWeight" readonly value="0,00 Kg" title="Soma de peso do dia" aria-label="Soma de peso do dia">
+            <label data-i18n="dash.calcLabelWeight">Kg e unidades vendidos</label>
+            <input type="text" class="form-control metric-readonly-purple" id="calcDayWeight" readonly value="0,00 Kg · 0 un" title="Kg e unidades vendidos no dia" aria-label="Kg e unidades vendidos no dia">
           </div>
           <button class="btn btn-secondary btn-inline-margin" id="btnQuickCalcToday" data-i18n="dash.calcTodayBtn">Hoje</button>
         </div>

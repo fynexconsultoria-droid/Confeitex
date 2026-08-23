@@ -22,7 +22,43 @@ const Chart = {
     const daysLimit = daysMap[period] || 30;
 
     this.points = [];
+    if (period === 'today') {
+      const todayStr = fmtISO(today);
+      const todayOrders = State.orders
+        .filter(o => o.deliveryDate === todayStr && o.status !== 'Cancelado')
+        .sort((a, b) => (a.deliveryTime || '').localeCompare(b.deliveryTime || ''));
+      let runningSales = 0;
+      todayOrders.forEach((order, index) => {
+        const orderValue = getOrderTotal(order);
+        runningSales += orderValue;
+        this.points.push({
+          date: todayStr,
+          label: order.deliveryTime || `${index + 1}`,
+          weekday: today.toLocaleDateString(locale, { weekday: 'long' }),
+          fullLabel: today.toLocaleDateString(locale, { weekday: 'long', day: '2-digit', month: 'long' }),
+          sales: runningSales,
+          count: index + 1,
+          avgTicket: runningSales / (index + 1),
+          salesDelta: index > 0 ? orderValue : null,
+          countDelta: index > 0 ? 1 : null
+        });
+      });
+      if (this.points.length === 0) {
+        this.points.push({
+          date: todayStr,
+          label: I18n.t('common.today'),
+          weekday: today.toLocaleDateString(locale, { weekday: 'long' }),
+          fullLabel: I18n.t('common.today'),
+          sales: 0,
+          count: 0,
+          avgTicket: 0,
+          salesDelta: null,
+          countDelta: null
+        });
+      }
+    }
     for (let i = daysLimit - 1; i >= 0; i--) {
+      if (period === 'today') break;
       const d = new Date(today);
       d.setDate(today.getDate() - i);
       const dateStr = fmtISO(d);
@@ -57,6 +93,7 @@ const Chart = {
     const cw = w - pl - pr, ch = h - pt - pb;
 
     this._ctx = ctx;
+    this.ctx = ctx;
     this._w = w;
     this._h = h;
     this._pb = pb;
@@ -110,7 +147,7 @@ const Chart = {
   },
 
   _drawChart() {
-    const { ctx, w, h, pt, pb, pl, pr, cw, ch } = this;
+    const { ctx, _w: w, _h: h, _pt: pt, _pb: pb, _pl: pl, _pr: pr, _cw: cw, _ch: ch } = this;
     const { _maxSales: maxSales, _maxCount: maxCount } = this;
 
     ctx.clearRect(0, 0, w, h);
@@ -176,7 +213,7 @@ const Chart = {
     const countData = this.pointPositions.map(p => ({ x: p.x, y: p.cY }));
 
     this._drawSmoothArea(ctx, salesData, h - pb);
-    this._drawSmoothLine(ctx, salesData, '#f43f5e', 3, true);
+    this._drawSmoothLine(ctx, salesData, '#f43f5e', 2.5, false);
     this._drawSmoothLine(ctx, countData, '#a855f7', 2, false, true);
 
     this.pointPositions.forEach((p, i) => {
@@ -188,13 +225,10 @@ const Chart = {
       const p = this.pointPositions[this._hoverIndex];
       ctx.save();
       ctx.strokeStyle = '#f43f5e';
-      ctx.shadowColor = '#f43f5e';
-      ctx.shadowBlur = 12;
       ctx.lineWidth = 2;
       ctx.beginPath();
       ctx.arc(p.x, p.sY, 9, 0, Math.PI * 2);
       ctx.stroke();
-      ctx.shadowBlur = 0;
       ctx.strokeStyle = '#a855f7';
       ctx.beginPath();
       ctx.arc(p.x, p.cY, 7, 0, Math.PI * 2);
@@ -204,61 +238,37 @@ const Chart = {
   },
 
   _drawSingle(p) {
-    const { ctx, w, h } = this;
+    const { ctx, _w: w, _h: h } = this;
     const cx = w / 2, cy = h / 2;
-    const radius = Math.min(64, h / 3.2);
+    const pointRadius = 5;
 
     ctx.save();
 
-    // Outer glow halo
-    const halo = ctx.createRadialGradient(cx, cy, radius - 6, cx, cy, radius + 20);
-    halo.addColorStop(0, 'rgba(244, 63, 94, 0.22)');
-    halo.addColorStop(1, 'rgba(244, 63, 94, 0)');
-    ctx.fillStyle = halo;
-    ctx.beginPath();
-    ctx.arc(cx, cy, radius + 20, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Donut background
-    ctx.fillStyle = 'rgba(244, 63, 94, 0.06)';
-    ctx.beginPath();
-    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Donut ring (gradient)
-    const ring = ctx.createLinearGradient(cx - radius, cy, cx + radius, cy);
-    ring.addColorStop(0, '#f43f5e');
-    ring.addColorStop(1, '#a855f7');
-    ctx.strokeStyle = ring;
-    ctx.lineWidth = 2.5;
-    ctx.shadowColor = '#f43f5e';
-    ctx.shadowBlur = 18;
-    ctx.beginPath();
-    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.shadowBlur = 0;
-
-    // Center dot
     ctx.fillStyle = '#f43f5e';
     ctx.beginPath();
-    ctx.arc(cx, cy, 5, 0, Math.PI * 2);
+    ctx.arc(cx, cy, pointRadius, 0, Math.PI * 2);
     ctx.fill();
 
-    // Center text
+    ctx.strokeStyle = 'rgba(244, 63, 94, 0.45)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(cx, cy, pointRadius + 5, 0, Math.PI * 2);
+    ctx.stroke();
+
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillStyle = '#f43f5e';
-    ctx.font = '700 15px "Plus Jakarta Sans", system-ui, sans-serif';
-    ctx.fillText(fmt(p.sales), cx, cy - radius - 24);
+    ctx.fillStyle = '#d7dde5';
+    ctx.font = '700 14px "Plus Jakarta Sans", system-ui, sans-serif';
+    ctx.fillText(fmt(p.sales), cx, cy - 30);
 
-    ctx.fillStyle = '#c084fc';
-    ctx.font = '600 12px "Plus Jakarta Sans", system-ui, sans-serif';
-    ctx.fillText(I18n.t('chart.ordersCount', { count: p.count }), cx, cy + radius + 22);
+    ctx.fillStyle = '#f43f5e';
+    ctx.font = '600 11px "Plus Jakarta Sans", system-ui, sans-serif';
+    ctx.fillText(I18n.t('chart.ordersCount', { count: p.count }), cx, cy + 30);
 
     if (p.count > 0) {
       ctx.fillStyle = '#8b93a7';
       ctx.font = '600 10px "Plus Jakarta Sans", system-ui, sans-serif';
-      ctx.fillText(`${I18n.t('chart.avgTicket')}: ${fmt(p.avgTicket)}`, cx, cy + radius + 40);
+      ctx.fillText(`${I18n.t('chart.avgTicket')}: ${fmt(p.avgTicket)}`, cx, cy + 47);
     }
 
     ctx.restore();
@@ -272,15 +282,12 @@ const Chart = {
     const grad = ctx.createRadialGradient(p.x - 1.5, p.sY - 1.5, 0, p.x, p.sY, isHover ? 9 : 6.5);
     grad.addColorStop(0, '#ffffff');
     grad.addColorStop(1, '#f43f5e');
-    ctx.shadowColor = '#f43f5e';
-    ctx.shadowBlur = isHover ? 14 : 8;
     ctx.fillStyle = grad;
     ctx.beginPath();
     ctx.arc(p.x, p.sY, isHover ? 5.5 : 4.5, 0, Math.PI * 2);
     ctx.fill();
 
     // Sales glow halo
-    ctx.shadowBlur = 0;
     ctx.strokeStyle = 'rgba(244, 63, 94, 0.45)';
     ctx.lineWidth = 1;
     ctx.beginPath();
@@ -341,10 +348,6 @@ const Chart = {
     ctx.lineWidth = width;
     ctx.lineJoin = 'round';
     ctx.lineCap = 'round';
-    if (glow) {
-      ctx.shadowColor = color;
-      ctx.shadowBlur = 12;
-    }
     ctx.stroke();
     ctx.restore();
   },
@@ -368,8 +371,8 @@ const Chart = {
     ctx.closePath();
 
     const grad = ctx.createLinearGradient(0, topY, 0, bottomY);
-    grad.addColorStop(0, 'rgba(244, 63, 94, 0.28)');
-    grad.addColorStop(0.5, 'rgba(244, 63, 94, 0.08)');
+    grad.addColorStop(0, 'rgba(244, 63, 94, 0.20)');
+    grad.addColorStop(0.5, 'rgba(244, 63, 94, 0.06)');
     grad.addColorStop(1, 'rgba(244, 63, 94, 0.00)');
     ctx.fillStyle = grad;
     ctx.fill();

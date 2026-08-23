@@ -4,7 +4,9 @@ const Dashboard = {
     const todayOrders = State.orders.filter(o => o.deliveryDate === todayStr && o.status !== 'Cancelado');
 
     const todaySales = todayOrders.reduce((s, o) => s + getOrderTotal(o), 0);
-    const todayWeight = todayOrders.filter(o => o.productType === 'Bolo de Kg').reduce((s, o) => s + (o.weight || 0), 0);
+    const todayWeightOrders = todayOrders.filter(o => o.productType === 'Bolo de Kg');
+    const todayWeight = todayWeightOrders.reduce((s, o) => s + (o.weight || 0), 0);
+    const todayUnits = todayOrders.filter(o => o.productType !== 'Bolo de Kg').reduce((s, o) => s + Math.round(o.weight || 0), 0);
     const pending = State.orders.filter(o => o.status === 'Pendente' || o.status === 'Em Produção').length;
     const totalEarnings = State.orders.filter(o => o.status !== 'Cancelado').reduce((s, o) => s + getOrderTotal(o), 0);
 
@@ -32,7 +34,7 @@ const Dashboard = {
     }
 
     const weightEl = document.getElementById('kpiWeightToday');
-    if (weightEl) weightEl.textContent = todayWeight.toFixed(1).replace('.', ',') + ' Kg';
+    if (weightEl) weightEl.textContent = `${todayWeight.toFixed(1).replace('.', ',')} Kg · ${todayUnits} un`;
 
     const pendingEl = document.getElementById('kpiPendingOrders');
     if (pendingEl) pendingEl.textContent = pending;
@@ -57,6 +59,19 @@ const Dashboard = {
         }
       };
     }
+
+    const navigateTo = (tabId) => {
+      if (typeof window.switchTab === 'function') window.switchTab(tabId);
+    };
+    const salesCard = document.getElementById('kpiSalesCard');
+    const weightCard = document.getElementById('kpiWeightCard');
+    const totalCard = document.getElementById('kpiTotalEarningsCard');
+    [salesCard, weightCard, totalCard].forEach(card => {
+      if (card) {
+        card.style.cursor = 'pointer';
+        card.onclick = () => navigateTo(card === totalCard ? 'finances' : 'orders');
+      }
+    });
 
     this.renderDeliveries();
     const dateInput = document.getElementById('calcDateInput');
@@ -106,7 +121,9 @@ const Dashboard = {
     const dayVal = document.getElementById('calcDayValue');
     if (dayVal) dayVal.value = fmt(orders.reduce((s, o) => s + getOrderTotal(o), 0));
     const dayWeight = document.getElementById('calcDayWeight');
-    if (dayWeight) dayWeight.value = orders.filter(o => o.productType === 'Bolo de Kg').reduce((s, o) => s + (o.weight || 0), 0).toFixed(2).replace('.', ',') + ' Kg';
+    const dayKg = orders.filter(o => o.productType === 'Bolo de Kg').reduce((s, o) => s + (o.weight || 0), 0);
+    const dayUnits = orders.filter(o => o.productType !== 'Bolo de Kg').reduce((s, o) => s + Math.round(o.weight || 0), 0);
+    if (dayWeight) dayWeight.value = `${dayKg.toFixed(2).replace('.', ',')} Kg · ${dayUnits} un`;
   }
 };
 

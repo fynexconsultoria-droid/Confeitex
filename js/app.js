@@ -7,6 +7,8 @@
 
   // Sistema de planos — inicia trial se for o primeiro acesso
   Plan.init();
+  const sidebarVersion = document.getElementById('sidebarVersion');
+  if (sidebarVersion && typeof Updates !== 'undefined') sidebarVersion.textContent = `v${Updates.verAtual}`;
 
   // Onboarding — exibe apenas na primeira abertura
   if (Onboarding.shouldShow()) {

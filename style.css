@@ -140,6 +140,7 @@ body {
 
 .sidebar-nav {
   flex: 1;
+  min-height: 0;
   margin-top: 0.5rem;
   overflow-y: auto;
 }
@@ -3332,6 +3333,7 @@ select.form-control {
   font-family: var(--font-family);
   cursor: pointer;
   transition: all 0.2s;
+  -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
 }
 .ob-skip:hover { background: rgba(255,255,255,0.15); color: white; }
@@ -3600,6 +3602,13 @@ select.form-control {
 .plan-badge--expired .plan-badge-sub { color: #f87171; }
 .plan-badge--premium .plan-badge-sub { color: #fbbf24; }
 .plan-badge-arrow svg { width: 14px; height: 14px; color: rgba(255,255,255,0.3); flex-shrink: 0; }
+.plan-badge-arrow { width: 14px; height: 14px; color: rgba(255,255,255,0.3); flex-shrink: 0; }
+
+@media (max-width: 768px) {
+  #planBadgeContainer { padding: 10px 0 4px; }
+  .plan-badge { padding: 9px 10px; }
+  .sidebar-footer { padding-bottom: max(0.5rem, env(safe-area-inset-bottom)); }
+}
 
 /* ═══════════════════════════════════════════════════════════════════════════
    PAYWALL — Funcionalidade bloqueada
@@ -3610,6 +3619,7 @@ select.form-control {
   inset: 0;
   z-index: 8000;
   background: rgba(10, 8, 19, 0.85);
+  -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
   display: flex;
   align-items: flex-end;
@@ -3698,6 +3708,7 @@ select.form-control {
   inset: 0;
   z-index: 8500;
   background: rgba(10, 8, 19, 0.88);
+  -webkit-backdrop-filter: blur(16px);
   backdrop-filter: blur(16px);
   display: flex;
   align-items: flex-end;

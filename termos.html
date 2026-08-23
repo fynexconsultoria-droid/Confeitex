@@ -51,8 +51,8 @@
       gap: 1rem;
       padding: 1rem 1.5rem;
       background: rgba(10, 8, 19, 0.85);
-      backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
+      backdrop-filter: blur(20px);
       border-bottom: 1px solid var(--border-color);
     }
 
@@ -203,6 +203,8 @@
       font-weight: 600;
     }
 
+    .legal-lang-hidden { display: none; }
+
     .legal-footer {
       margin-top: 3rem;
       padding-top: 1.5rem;
@@ -258,7 +260,7 @@
 
   <main class="legal-container">
     <h1 class="legal-title" data-i18n="title">Termos de Uso</h1>
-    <div class="legal-meta" data-i18n="meta">Última atualização: 23 de agosto de 2026 · Versão 2.5.0</div>
+    <div class="legal-meta" data-i18n="meta">Última atualização: 23 de agosto de 2026 · Versão 2.5.1</div>
 
     <div class="legal-content">
 
@@ -301,7 +303,7 @@
         <p>Estes Termos de Uso são regidos pelas leis da República Federativa do Brasil. Quaisquer controvérsias serão resolvidas pelos tribunais competentes do Brasil.</p>
       </div>
 
-      <div data-lang="en" style="display:none;">
+      <div data-lang="en" class="legal-lang-hidden">
         <h2>1. Acceptance of Terms</h2>
         <p>By accessing and using the Confeitex application, you agree to these Terms of Use. If you do not agree with any of the terms presented here, do not use the application.</p>
 
@@ -340,7 +342,7 @@
         <p>These Terms of Use are governed by the laws of the Federative Republic of Brazil. Any disputes will be resolved by the competent courts of Brazil.</p>
       </div>
 
-      <div data-lang="es" style="display:none;">
+      <div data-lang="es" class="legal-lang-hidden">
         <h2>1. Aceptación de los Términos</h2>
         <p>Al acceder y utilizar la aplicación Confeitex, usted acepta estos Términos de Uso. Si no está de acuerdo con alguno de los términos aquí presentados, no utilice la aplicación.</p>
 
@@ -393,21 +395,21 @@
         'pt-BR': {
           back: 'Voltar',
           title: 'Termos de Uso',
-          meta: 'Última atualização: 23 de agosto de 2026 · Versão 2.5.0',
+          meta: 'Última atualização: 23 de agosto de 2026 · Versão 2.5.1',
           footer: 'Confeitex © 2026 — Todos os direitos reservados.',
           privacyLink: 'Política de Privacidade'
         },
         'en': {
           back: 'Back',
           title: 'Terms of Use',
-          meta: 'Last updated: August 23, 2026 · Version 2.5.0',
+          meta: 'Last updated: August 23, 2026 · Version 2.5.1',
           footer: 'Confeitex © 2026 — All rights reserved.',
           privacyLink: 'Privacy Policy'
         },
         'es': {
           back: 'Volver',
           title: 'Términos de Uso',
-          meta: 'Última actualización: 23 de agosto de 2026 · Versión 2.5.0',
+          meta: 'Última actualización: 23 de agosto de 2026 · Versión 2.5.1',
           footer: 'Confeitex © 2026 — Todos los derechos reservados.',
           privacyLink: 'Política de Privacidad'
         }

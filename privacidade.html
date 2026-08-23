@@ -51,8 +51,8 @@
       gap: 1rem;
       padding: 1rem 1.5rem;
       background: rgba(10, 8, 19, 0.85);
-      backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
+      backdrop-filter: blur(20px);
       border-bottom: 1px solid var(--border-color);
     }
 
@@ -203,6 +203,8 @@
       font-weight: 600;
     }
 
+    .legal-lang-hidden { display: none; }
+
     .legal-footer {
       margin-top: 3rem;
       padding-top: 1.5rem;
@@ -258,7 +260,7 @@
 
   <main class="legal-container">
     <h1 class="legal-title" data-i18n="title">Política de Privacidade</h1>
-    <div class="legal-meta" data-i18n="meta">Última atualização: 23 de agosto de 2026 · Versão 2.5.0</div>
+    <div class="legal-meta" data-i18n="meta">Última atualização: 23 de agosto de 2026 · Versão 2.5.1</div>
 
     <div class="legal-content">
 
@@ -313,7 +315,7 @@
         <p><strong>https://github.com/fynexconsultoria-droid/Confeitex</strong></p>
       </div>
 
-      <div data-lang="en" style="display:none;">
+      <div data-lang="en" class="legal-lang-hidden">
         <h2>1. Introduction</h2>
         <p>This Privacy Policy describes how Confeitex handles information from its users. We are committed to protecting your privacy and complying with the <strong>Lei Geral de Proteção de Dados (LGPD — Law No. 13,709/2018)</strong> and other applicable regulations.</p>
 
@@ -364,7 +366,7 @@
         <p><strong>https://github.com/fynexconsultoria-droid/Confeitex</strong></p>
       </div>
 
-      <div data-lang="es" style="display:none;">
+      <div data-lang="es" class="legal-lang-hidden">
         <h2>1. Introducción</h2>
         <p>Esta Política de Privacidad describe cómo Confeitex trata la información de sus usuarios. Estamos comprometidos con la protección de su privacidad y con el cumplimiento de la <strong>Lei Geral de Proteção de Dados (LGPD — Ley Nº 13.709/2018)</strong> y demás normas aplicables.</p>
 
@@ -429,21 +431,21 @@
         'pt-BR': {
           back: 'Voltar',
           title: 'Política de Privacidade',
-          meta: 'Última atualização: 23 de agosto de 2026 · Versão 2.5.0',
+          meta: 'Última atualização: 23 de agosto de 2026 · Versão 2.5.1',
           footer: 'Confeitex © 2026 — Todos os direitos reservados.',
           termsLink: 'Termos de Uso'
         },
         'en': {
           back: 'Back',
           title: 'Privacy Policy',
-          meta: 'Last updated: August 23, 2026 · Version 2.5.0',
+          meta: 'Last updated: August 23, 2026 · Version 2.5.1',
           footer: 'Confeitex © 2026 — All rights reserved.',
           termsLink: 'Terms of Use'
         },
         'es': {
           back: 'Volver',
           title: 'Política de Privacidad',
-          meta: 'Última actualización: 23 de agosto de 2026 · Versión 2.5.0',
+          meta: 'Última actualización: 23 de agosto de 2026 · Versión 2.5.1',
           footer: 'Confeitex © 2026 — Todos los derechos reservados.',
           termsLink: 'Términos de Uso'
         }
