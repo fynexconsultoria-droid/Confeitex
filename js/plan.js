@@ -206,7 +206,7 @@ const Plan = {
                 <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
               </svg>
             </div>
-            <h2 class="paywall-title">Recurso Premium</h2>
+            <h2 class="paywall-title">Confeitex Premium</h2>
             <p class="paywall-subtitle">${featureName} está disponível apenas no plano pago.</p>
           </div>
           <div class="paywall-features">
@@ -216,11 +216,23 @@ const Plan = {
             </div>
             <div class="paywall-feature">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              Relatórios financeiros completos
+            </div>
+            <div class="paywall-feature">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
               Exportação PDF e JSON
             </div>
             <div class="paywall-feature">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-              Relatórios financeiros completos
+              Gestão de clientes ilimitada
+            </div>
+            <div class="paywall-feature">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              Notificações e lembretes
+            </div>
+            <div class="paywall-feature">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              Atualizações gratuitas
             </div>
             <div class="paywall-feature">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
@@ -233,7 +245,7 @@ const Plan = {
               <span class="paywall-price-amount">7,99</span>
               <span class="paywall-price-period">/mês</span>
             </div>
-            <p class="paywall-price-note">Cancele quando quiser</p>
+            <p class="paywall-price-note">Sem fidelidade · Cancele quando quiser</p>
           </div>
           <button class="paywall-btn-upgrade" id="paywallBtnUpgrade">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

@@ -3626,6 +3626,7 @@ select.form-control {
   justify-content: center;
   opacity: 0;
   transition: opacity 0.3s ease;
+  overflow-y: auto;
 }
 .paywall-overlay.active { opacity: 1; }
 
@@ -3638,6 +3639,8 @@ select.form-control {
   padding: 32px 24px 28px;
   width: 100%;
   max-width: 440px;
+  max-height: 90vh;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -3730,6 +3733,8 @@ select.form-control {
   padding: 36px 24px 28px;
   width: 100%;
   max-width: 480px;
+  max-height: 90vh;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   align-items: center;
