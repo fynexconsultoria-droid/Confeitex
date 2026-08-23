@@ -4,7 +4,8 @@
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       const swVer = safeStorage.get('confeitex_ver') || (typeof Updates !== 'undefined' ? Updates.verAtual : '1.10.2');
-      navigator.serviceWorker.register('./sw.js?v=' + swVer).catch(() => {});
+      const swUrl = './sw.js?v=' + encodeURIComponent(swVer) + '&t=' + Date.now();
+      navigator.serviceWorker.register(swUrl).catch(() => {});
     });
   }
 

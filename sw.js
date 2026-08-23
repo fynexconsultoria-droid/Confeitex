@@ -25,6 +25,8 @@ const ASSETS_TO_CACHE = [
   './js/finances.js',
   './js/updates.js',
   './js/i18n.js',
+  './js/plan.js',
+  './js/onboarding.js',
   './js/app.js',
   './js/trash.js',
   './vendor/pdf.min.js',
@@ -72,40 +74,67 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// FETCH — intercepta requisições e serve do cache (Cache-First)
-// IMPORTANTE: não revalida em segundo plano. O conteúdo do cache só muda quando
-// um novo Service Worker (nova versão aceita pelo usuário) instala o próprio cache.
-// Assim, clicar em "Mais Tarde" realmente adia a atualização.
+// FETCH — prioriza rede para navegação e assets do app para garantir que a
+// nova versão seja carregada em celulares e para evitar ficar preso em cache antigo.
+// Mantém fallback para offline quando não houver rede.
+function cachePutIfSafe(cache, request, response) {
+  if (!response || response.status !== 200 || response.type !== 'basic') return;
+  if (request.method !== 'GET') return;
+  if (request.url.includes('?v=')) return;
+  if (request.url.includes('google-analytics') || request.url.includes('fonts.googleapis.com') || request.url.includes('fonts.gstatic.com')) return;
+  const clone = response.clone();
+  cache.put(request, clone).catch(() => {});
+}
+
+async function networkFirstWithCacheFallback(event) {
+  const request = event.request;
+  const cache = await caches.open(CACHE_NAME);
+
+  try {
+    const networkResponse = await fetch(request, { cache: 'no-store' });
+    if (networkResponse && networkResponse.ok) {
+      cachePutIfSafe(cache, request, networkResponse);
+    }
+    return networkResponse;
+  } catch (error) {
+    const cachedResponse = await cache.match(request);
+    if (cachedResponse) return cachedResponse;
+    return new Response('Offline', { status: 504, statusText: 'Offline' });
+  }
+}
+
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
-  if (!event.request.url.startsWith('http')) return;
+  const url = new URL(event.request.url);
+  if (!url.origin.startsWith('http')) return;
 
   // version.txt sempre vai à rede — essencial para detectar atualizações
-  if (event.request.url.includes('version.txt')) {
-    event.respondWith(fetch(event.request));
+  if (url.pathname.endsWith('/version.txt')) {
+    event.respondWith(fetch(event.request, { cache: 'no-store' }));
     return;
   }
 
+  const isAppAsset = [
+    '/index.html', '/style.css', '/manifest.json', '/js/', '/vendor/', '/icons/', '/sw.js', '/termos.html', '/privacidade.html'
+  ].some((fragment) => url.pathname.endsWith(fragment) || url.pathname.includes(fragment));
+
+  if (event.request.mode === 'navigate' || isAppAsset) {
+    event.respondWith(networkFirstWithCacheFallback(event));
+    return;
+  }
+
+  // Recursos externos e terceiros continuam usando cache estático quando possível.
   event.respondWith(
     caches.match(event.request)
       .then((cachedResponse) => {
-        // Se está no cache, serve direto (sem substituir pelo conteúdo novo)
         if (cachedResponse) return cachedResponse;
-
-        // Cache miss: busca na rede e guarda (menos URLs com ?v=, que são temporárias)
-        return fetch(event.request)
+        return fetch(event.request, { cache: 'no-store' })
           .then((networkResponse) => {
-            if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
-              return networkResponse;
-            }
-            if (!event.request.url.includes('?v=')) {
-              const responseToCache = networkResponse.clone();
-              caches.open(CACHE_NAME)
-                .then((cache) => cache.put(event.request, responseToCache));
-            }
+            if (!networkResponse || !networkResponse.ok) return networkResponse;
+            caches.open(CACHE_NAME).then((cache) => cachePutIfSafe(cache, event.request, networkResponse));
             return networkResponse;
           })
-          .catch(() => cachedResponse || new Response('Offline', { status: 504, statusText: 'Offline' }));
+          .catch(() => new Response('Offline', { status: 504, statusText: 'Offline' }));
       })
   );
 });

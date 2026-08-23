@@ -4,6 +4,14 @@
   if (Auth.isLocked()) {
     await Auth.showLogin();
   }
+
+  // Sistema de planos — inicia trial se for o primeiro acesso
+  Plan.init();
+
+  // Onboarding — exibe apenas na primeira abertura
+  if (Onboarding.shouldShow()) {
+    Onboarding.show();
+  }
   
   State.load();
 
@@ -195,6 +203,7 @@
     if (typeof Orders !== 'undefined' && Orders.refreshFlavorOptions) Orders.refreshFlavorOptions();
     if (typeof Clients !== 'undefined' && Clients.refresh) Clients.refresh();
     if (typeof Notifications !== 'undefined' && Notifications.refreshUI) Notifications.refreshUI();
+    if (typeof Plan !== 'undefined') Plan.renderPlanBadge();
   };
 
 

@@ -114,6 +114,12 @@ function sanitizeForStorage(value) {
   return String(value);
 }
 
+function parseNumericValue(value, fallback = 0) {
+  if (value === null || value === undefined || value === '') return fallback;
+  const parsed = Number.parseFloat(String(value).replace(',', '.'));
+  return Number.isFinite(parsed) ? parsed : fallback;
+}
+
 function validateStateDump(data) {
   const candidate = data && typeof data === 'object' ? sanitizeForStorage(data) : {};
   const safe = { orders: [], catalog: [], expenses: [], trash: [] };
@@ -134,11 +140,11 @@ function validateStateDump(data) {
     order.notes = sanitizeText(order.notes || '');
     order.details = sanitizeText(order.details || '');
     order.clientPhone = sanitizeText(order.clientPhone || '');
-    order.weight = Number(parseFloat(String(order.weight ?? 0).replace(',', '.')) || 0);
-    order.unitPrice = Number(parseFloat(String(order.unitPrice ?? 0).replace(',', '.')) || 0);
-    order.extraCharges = Number(parseFloat(String(order.extraCharges ?? 0).replace(',', '.')) || 0);
-    order.cost = Number(parseFloat(String(order.cost ?? 0).replace(',', '.')) || 0);
-    order.totalValue = Number(parseFloat(String(order.totalValue ?? 0).replace(',', '.')) || 0);
+    order.weight = parseNumericValue(order.weight, 0);
+    order.unitPrice = parseNumericValue(order.unitPrice, 0);
+    order.extraCharges = parseNumericValue(order.extraCharges, 0);
+    order.cost = parseNumericValue(order.cost, 0);
+    order.totalValue = parseNumericValue(order.totalValue, 0);
     return order;
   });
 
@@ -148,7 +154,7 @@ function validateStateDump(data) {
     entry.id = sanitizeText(entry.id || `cat_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`);
     entry.flavor = sanitizeText(entry.flavor || '');
     entry.type = sanitizeText(entry.type || 'Bolo de Kg');
-    entry.pricePerKg = Number(parseFloat(String(entry.pricePerKg ?? 0).replace(',', '.')) || 0);
+    entry.pricePerKg = parseNumericValue(entry.pricePerKg, 0);
     return entry;
   });
 
@@ -158,7 +164,7 @@ function validateStateDump(data) {
     entry.id = sanitizeText(entry.id || `e_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`);
     entry.description = sanitizeText(entry.description || '');
     entry.date = sanitizeText(entry.date || fmtISO(new Date()));
-    entry.amount = Number(parseFloat(String(entry.amount ?? 0).replace(',', '.')) || 0);
+    entry.amount = parseNumericValue(entry.amount, 0);
     return entry;
   });
 
@@ -179,19 +185,18 @@ function validateStateDump(data) {
 function getOrderTotal(o) {
   if (!o) return 0;
   const compute = () => {
-    const w = typeof o.weight === 'number' ? o.weight : parseFloat(String(o.weight || 0).replace(',', '.'));
-    const p = typeof o.unitPrice === 'number' ? o.unitPrice : parseFloat(String(o.unitPrice || 0).replace(',', '.'));
-    const e = typeof o.extraCharges === 'number' ? o.extraCharges : parseFloat(String(o.extraCharges || 0).replace(',', '.'));
-    const v = ((isNaN(w) ? 0 : w) * (isNaN(p) ? 0 : p)) + (isNaN(e) ? 0 : e);
-    return isNaN(v) ? 0 : +v;
+    const w = parseNumericValue(typeof o.weight === 'number' ? o.weight : (o.weight || 0), 0);
+    const p = parseNumericValue(typeof o.unitPrice === 'number' ? o.unitPrice : (o.unitPrice || 0), 0);
+    const e = parseNumericValue(typeof o.extraCharges === 'number' ? o.extraCharges : (o.extraCharges || 0), 0);
+    return +(w * p + e);
   };
   const val = o.totalValue;
   if (val === undefined || val === null || val === '' || val === 0) return compute();
   if (typeof val === 'string') {
-    const parsed = parseFloat(val.replace(/[^\d.,-]/g, '').replace(',', '.'));
-    return isNaN(parsed) ? compute() : +parsed;
+    const parsed = parseNumericValue(val.replace(/[^\d.,-]/g, ''), 0);
+    return Number.isFinite(parsed) ? +parsed : compute();
   }
-  return isNaN(+val) ? compute() : +val;
+  return Number.isFinite(+val) ? +val : compute();
 }
 
 function maskPhone(input) {

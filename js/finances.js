@@ -286,6 +286,11 @@ const Finance = {
   },
 
   exportPDF() {
+    if (typeof Plan !== 'undefined' && !Plan.canUse('finances_advanced')) {
+      Plan.showPaywall('Relatórios financeiros avançados');
+      return;
+    }
+
     this._updateAll();
 
     const orders = this._getFilteredOrders();

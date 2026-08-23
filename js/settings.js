@@ -26,13 +26,25 @@ const Settings = {
     // 1. Exportar PDF (Seguro via iframe — sem window.open, sem fechar PWA)
     const btnPdf = document.getElementById('btnExportData');
     if (btnPdf) {
-      btnPdf.addEventListener('click', () => this.exportBackupPDF());
+      btnPdf.addEventListener('click', () => {
+        if (typeof Plan !== 'undefined' && !Plan.canUse('export')) {
+          Plan.showPaywall('Exportação de dados (PDF)');
+          return;
+        }
+        this.exportBackupPDF();
+      });
     }
 
     // 2. Exportar JSON Backup
     const btnJson = document.getElementById('btnExportJSON');
     if (btnJson) {
-      btnJson.addEventListener('click', () => this.exportJSON());
+      btnJson.addEventListener('click', () => {
+        if (typeof Plan !== 'undefined' && !Plan.canUse('export')) {
+          Plan.showPaywall('Exportação de backup (JSON)');
+          return;
+        }
+        this.exportJSON();
+      });
     }
 
     // 3. Importar Dados (PDF ou JSON)
