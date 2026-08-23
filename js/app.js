@@ -14,6 +14,11 @@
   if (Onboarding.shouldShow()) {
     Onboarding.show();
   }
+
+  // Se online e sem assinatura ativa, mostra modal de upgrade
+  if (navigator.onLine && !Plan.isSubscriptionActive()) {
+    setTimeout(() => Plan.showUpgradeModal(), 1500);
+  }
   
   State.load();
 
