@@ -240,7 +240,7 @@ const Updates = {
   },
 
   changelog: [
-    { ver: '2.5.0', date: '23/08/2026', keys: ['changelog.2410'] },
+    { ver: '2.5.0', date: '23/08/2026', keys: ['changelog.2500'] },
     { ver: '2.4.0', date: '08/08/2026', keys: ['changelog.2400'] },
     { ver: '2.1.4', date: '08/08/2026', keys: ['changelog.2140'] },
     { ver: '2.1.3', date: '07/08/2026', keys: ['changelog.2130'] },
