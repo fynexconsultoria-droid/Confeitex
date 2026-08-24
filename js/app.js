@@ -231,6 +231,25 @@
   Trash.setup();
   Dashboard.update();
 
+  // Mercado Pago — inicialização
+  if (typeof MercadoPagoCheckout !== 'undefined') {
+    MercadoPagoCheckout.init();
+    // Modal event listeners
+    const mpClose = document.getElementById('btnMpCheckoutClose');
+    const mpDone = document.getElementById('btnMpCheckoutDone');
+    const mpRetry = document.getElementById('btnMpRetry');
+    if (mpClose) mpClose.addEventListener('click', () => MercadoPagoCheckout.closeCheckout());
+    if (mpDone) mpDone.addEventListener('click', () => {
+      MercadoPagoCheckout.closeCheckout();
+      Orders.render();
+      Dashboard.update();
+    });
+    if (mpRetry) mpRetry.addEventListener('click', () => {
+      const modal = document.getElementById('mpCheckoutModal');
+      if (modal) modal.classList.remove('active');
+    });
+  }
+
   // Notificações programadas
   Notifications.init();
 

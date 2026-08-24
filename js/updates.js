@@ -1,5 +1,5 @@
 const Updates = {
-  verAtual: '2.5.6',
+  verAtual: '2.6.0',
 
   setup() {
     document.getElementById('btnCheckUpdates').addEventListener('click', () => this.check());
@@ -240,31 +240,9 @@ const Updates = {
   },
 
   changelog: [
+    { ver: '2.6.0', date: '24/08/2026', keys: ['changelog.2600'] },
     { ver: '2.5.6', date: '23/08/2026', keys: ['changelog.2560'] },
     { ver: '2.5.5', date: '23/08/2026', keys: ['changelog.2550'] },
-    { ver: '2.5.4', date: '23/08/2026', keys: ['changelog.2540'] },
-    { ver: '2.5.3', date: '23/08/2026', keys: ['changelog.2530'] },
-    { ver: '2.5.2', date: '23/08/2026', keys: ['changelog.2520'] },
-    { ver: '2.5.1', date: '23/08/2026', keys: ['changelog.2510'] },
-    { ver: '2.5.0', date: '23/08/2026', keys: ['changelog.2500'] },
-    { ver: '2.4.0', date: '08/08/2026', keys: ['changelog.2400'] },
-    { ver: '2.1.4', date: '08/08/2026', keys: ['changelog.2140'] },
-    { ver: '2.1.3', date: '07/08/2026', keys: ['changelog.2130'] },
-    { ver: '2.1.2', date: '06/08/2026', keys: ['changelog.2120'] },
-    { ver: '2.1.1', date: '06/08/2026', keys: ['changelog.2110'] },
-    { ver: '2.1.0', date: '04/08/2026', keys: ['changelog.2100', 'changelog.2101'] },
-    { ver: '2.0.1', date: '04/08/2026', keys: ['changelog.2010', 'changelog.2011', 'changelog.2012'] },
-    { ver: '2.0.0', date: '03/08/2026', keys: ['changelog.2000', 'changelog.2001', 'changelog.2002', 'changelog.2003', 'changelog.2004'] },
-    { ver: '1.24.0', date: '02/08/2026', keys: ['changelog.1240'] },
-    { ver: '1.23.0', date: '01/08/2026', keys: ['changelog.1230', 'changelog.1231', 'changelog.1232'] },
-    { ver: '1.22.0', date: '01/08/2026', keys: ['changelog.1220', 'changelog.1221', 'changelog.1222'] },
-    { ver: '1.21.0', date: '01/08/2026', keys: ['changelog.1210', 'changelog.1211', 'changelog.1212'] },
-    { ver: '1.20.1', date: '01/08/2026', keys: ['changelog.1201'] },
-    { ver: '1.20.0', date: '01/08/2026', keys: ['changelog.1200'] },
-    { ver: '1.19.0', date: '31/07/2026', keys: ['changelog.1190', 'changelog.1191', 'changelog.1192', 'changelog.1193'] },
-    { ver: '1.18.1', date: '31/07/2026', keys: ['changelog.1811'] },
-    { ver: '1.18.0', date: '31/07/2026', keys: ['changelog.1800', 'changelog.1801', 'changelog.1802', 'changelog.1803'] },
-    { ver: '1.17.0', date: '31/07/2026', keys: ['changelog.1170', 'changelog.1171', 'changelog.1172', 'changelog.1173', 'changelog.1174', 'changelog.1175'] },
   ],
 
   render() {

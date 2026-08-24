@@ -106,6 +106,15 @@ const Orders = {
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                 ${I18n.t('orders.actEdit')}
               </button>
+              ${!o.mpPaymentId && o.status !== 'Cancelado' && o.totalValue > 0 ? `
+              <button class="btn btn-secondary btn-sm btn-charge" data-id="${o.id}" style="color:var(--color-accent-blue);border-color:rgba(59,130,246,0.2);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                ${I18n.t('orders.actCharge')}
+              </button>` : o.mpPaymentId ? `
+              <span style="font-size:0.7rem;color:var(--color-accent-blue);display:flex;align-items:center;gap:0.35rem;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                ${I18n.t('orders.actPaid')}
+              </span>` : ''}
               ${currentStatusIdx >= 0 && currentStatusIdx < 2 ? `
               <button class="btn btn-secondary btn-sm btn-status-next" data-id="${o.id}" style="color:var(--color-success);border-color:rgba(16,185,129,0.2);">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
@@ -148,6 +157,13 @@ const Orders = {
     tbody.querySelectorAll('.btn-edit').forEach(b => b.addEventListener('click', (e) => { e.stopPropagation(); this.openEdit(b.dataset.id); }));
     tbody.querySelectorAll('.btn-delete').forEach(b => b.addEventListener('click', (e) => { e.stopPropagation(); this.delete(b.dataset.id); }));
     tbody.querySelectorAll('.btn-status-next').forEach(b => b.addEventListener('click', (e) => { e.stopPropagation(); this.advanceStatus(b.dataset.id); }));
+    tbody.querySelectorAll('.btn-charge').forEach(b => b.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const order = State.orders.find(o => o.id === b.dataset.id);
+      if (order && typeof MercadoPagoCheckout !== 'undefined') {
+        MercadoPagoCheckout.openCheckout(order);
+      }
+    }));
 
     // Filter listeners (once)
     ['orderFilterStatus', 'orderFilterDate'].forEach(id => {

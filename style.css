@@ -3907,3 +3907,132 @@ select.form-control {
     justify-content: flex-end;
   }
 }
+
+/* ══════════════════════════════════════════════════════════════════════
+   MERCADO PAGO — Checkout Embebido (Payment Brick)
+   ══════════════════════════════════════════════════════════════════════ */
+
+.mp-checkout-modal-container {
+  max-width: 520px;
+  width: 95vw;
+}
+
+.mp-checkout-body {
+  min-height: 280px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.mp-brick-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
+.mp-spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid rgba(255,255,255,0.1);
+  border-top-color: var(--color-accent-pink);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.mp-brick-container {
+  width: 100%;
+  min-height: 200px;
+}
+
+.mp-brick-container > div {
+  width: 100% !important;
+}
+
+.mp-brick-success {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  text-align: center;
+  padding: 1.5rem;
+}
+
+.mp-success-status {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.mp-success-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.mp-success-details code {
+  background: rgba(255,255,255,0.08);
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+}
+
+.mp-brick-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  text-align: center;
+  padding: 1.5rem;
+  color: var(--color-danger);
+  font-size: 0.85rem;
+}
+
+.mp-checkout-footer {
+  border-top: 1px solid var(--border-color);
+  padding: 0.75rem 1.5rem !important;
+}
+
+.mp-secure-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  justify-content: center;
+}
+
+.mp-secure-badge svg {
+  color: var(--color-success);
+}
+
+.btn-charge {
+  background: linear-gradient(135deg, rgba(59,130,246,0.15) 0%, rgba(59,130,246,0.05) 100%) !important;
+}
+
+.mp-config-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-end;
+  margin-top: 0.75rem;
+}
+
+.mp-config-row .form-group {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.mp-config-url {
+  font-family: monospace;
+  font-size: 0.75rem;
+  color: var(--color-accent-blue);
+  word-break: break-all;
+  margin-top: 0.5rem;
+  padding: 0.4rem 0.6rem;
+  background: rgba(59,130,246,0.08);
+  border-radius: 6px;
+}

@@ -166,6 +166,9 @@ const Settings = {
     Notifications.init();
     this.renderNotificationStatus();
 
+    // Mercado Pago — Configuração do Worker URL
+    this.setupMercadoPagoConfig();
+
     const btnToggleNotif = document.getElementById('btnToggleNotifications');
     if (btnToggleNotif) {
       btnToggleNotif.addEventListener('click', async () => {
@@ -614,6 +617,39 @@ const Settings = {
       btnText.textContent = I18n.t('notif.settings.enableBtn');
       btn.className = 'btn btn-primary';
     }
+  },
+
+  // ─── Mercado Pago: Configuração do Worker URL ──────────────────────
+  setupMercadoPagoConfig() {
+    const input = document.getElementById('mpWorkerUrl');
+    const btn = document.getElementById('btnSaveMpWorker');
+    const display = document.getElementById('mpWorkerUrlDisplay');
+    if (!input || !btn || !display) return;
+
+    // Carrega URL salva
+    const saved = localStorage.getItem('confeitex_mp_worker_url') || '';
+    if (saved) {
+      input.value = saved;
+      display.textContent = saved;
+      display.style.display = 'block';
+    } else {
+      display.style.display = 'none';
+    }
+
+    btn.addEventListener('click', () => {
+      const url = input.value.trim().replace(/\/+$/, '');
+      if (!url) {
+        UI.alert(I18n.t('mp.alertNoWorker'));
+        return;
+      }
+      localStorage.setItem('confeitex_mp_worker_url', url);
+      if (typeof MercadoPagoCheckout !== 'undefined') {
+        MercadoPagoCheckout.setWorkerUrl(url);
+      }
+      display.textContent = url;
+      display.style.display = 'block';
+      UI.toast(I18n.t('mp.toastConfigured'));
+    });
   }
 };
 

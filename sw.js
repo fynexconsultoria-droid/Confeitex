@@ -26,6 +26,7 @@ const ASSETS_TO_CACHE = [
   './js/updates.js',
   './js/i18n.js',
   './js/plan.js',
+  './js/mercadopago.js',
   './js/onboarding.js',
   './js/app.js',
   './js/trash.js',

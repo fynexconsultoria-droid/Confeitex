@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Confeitex - Controle de Encomendas</title>
   <meta name="description" content="Controle de encomendas para confeitaria — gerencie pedidos, clientes e entregas. 100% offline.">
-  <meta name="version" content="2.5.6">
+  <meta name="version" content="2.6.0">
 
   <!-- Google Fonts: Plus Jakarta Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -680,7 +680,6 @@
               <select class="form-control lang-select" id="langSelect" aria-label="Selecionar idioma" title="Selecionar idioma">
                 <option value="pt-BR">Português</option>
                 <option value="en">English</option>
-                <option value="es">Español</option>
               </select>
             </div>
           </div>
@@ -825,6 +824,25 @@
                 </div>
               </div>
             </div>
+          </div>
+
+          <!-- Mercado Pago Config Card -->
+          <div class="config-card">
+            <div class="config-card-header">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+              <span data-i18n="mp.settingsTitle">Mercado Pago (Checkout)</span>
+            </div>
+            <p class="config-desc" data-i18n="mp.settingsDesc">
+              Configure a URL do Worker para aceitar pagamentos via Cartão, Pix e boleto.
+            </p>
+            <div class="mp-config-row">
+              <div class="form-group">
+                <label for="mpWorkerUrl" data-i18n="mp.settingsLabel">URL do Worker</label>
+                <input type="url" class="form-control" id="mpWorkerUrl" placeholder="https://seu-worker.workers.dev" data-i18n-ph="mp.settingsPh">
+              </div>
+              <button class="btn btn-primary" id="btnSaveMpWorker" data-i18n="mp.settingsSave">Salvar URL</button>
+            </div>
+            <div class="mp-config-url" id="mpWorkerUrlDisplay"></div>
           </div>
 
           <!-- Security Card -->
@@ -1176,7 +1194,49 @@
   <script src="js/updates.js"></script>
   <script src="js/i18n.js"></script>
   <script src="js/plan.js"></script>
+  <script src="js/mercadopago.js"></script>
   <script src="js/onboarding.js"></script>
   <script src="js/app.js"></script>
+
+  <!-- MERCADO PAGO: Modal de Checkout Embebido -->
+  <div class="modal-overlay" id="mpCheckoutModal" role="dialog" aria-modal="true" aria-label="Pagamento Mercado Pago">
+    <div class="modal-container mp-checkout-modal-container">
+      <div class="modal-header">
+        <h2>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+          <span data-i18n="mp.modalTitle">Pagamento via Mercado Pago</span>
+        </h2>
+        <button class="modal-close" id="btnMpCheckoutClose" aria-label="Fechar">&times;</button>
+      </div>
+      <div class="modal-body mp-checkout-body">
+        <!-- Loading -->
+        <div class="mp-brick-loading" id="mpBrickLoading">
+          <div class="mp-spinner"></div>
+          <span data-i18n="mp.loading">Preparando checkout seguro...</span>
+        </div>
+        <!-- Brick Container -->
+        <div class="mp-brick-container" id="mpBrickContainer"></div>
+        <!-- Success -->
+        <div class="mp-brick-success" id="mpBrickSuccess" style="display:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:48px;height:48px;color:var(--color-success);"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          <span class="mp-success-status"></span>
+          <div class="mp-success-details"></div>
+          <button class="btn btn-primary" id="btnMpCheckoutDone" data-i18n="mp.btnDone">Concluir</button>
+        </div>
+        <!-- Error -->
+        <div class="mp-brick-error" id="mpBrickError" style="display:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:36px;height:36px;color:var(--color-danger);"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+          <span></span>
+          <button class="btn btn-secondary" id="btnMpRetry" data-i18n="mp.btnRetry">Tentar Novamente</button>
+        </div>
+      </div>
+      <div class="modal-footer mp-checkout-footer">
+        <div class="mp-secure-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          <span data-i18n="mp.secure">Pagamento 100% seguro via Mercado Pago</span>
+        </div>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
