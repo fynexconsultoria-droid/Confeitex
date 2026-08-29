@@ -341,16 +341,22 @@ const Onboarding = {
   finish() {
     this.markSeen();
 
-    if (typeof Plan !== 'undefined') {
-      Plan.init(); // garante que o trial começou
-    }
-
     if (this._overlay) {
       this._overlay.classList.add('ob-exit');
       setTimeout(() => {
         if (this._overlay) {
           this._overlay.remove();
           this._overlay = null;
+        }
+
+        // Se ainda não cadastrou o cartão para o trial e não tem assinatura ativa, abre o modal de cadastro de cartão
+        if (typeof Plan !== 'undefined') {
+          Plan.init();
+          if (!Plan.hasRegisteredCard() && !Plan.isSubscriptionActive()) {
+            setTimeout(() => {
+              Plan.showCardRegistrationModal({ forTrial: true });
+            }, 300);
+          }
         }
       }, 600);
     }

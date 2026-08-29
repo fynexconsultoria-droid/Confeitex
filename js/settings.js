@@ -166,6 +166,16 @@ const Settings = {
     Notifications.init();
     this.renderNotificationStatus();
 
+    // Plano Confeitex — Gerenciamento
+    const btnPlanManage = document.getElementById('btnOpenPlanManage');
+    if (btnPlanManage) {
+      btnPlanManage.addEventListener('click', () => {
+        if (typeof Plan !== 'undefined') {
+          Plan.showManageModal();
+        }
+      });
+    }
+
     // Mercado Pago — Configuração do Worker URL
     this.setupMercadoPagoConfig();
 
@@ -619,37 +629,100 @@ const Settings = {
     }
   },
 
-  // ─── Mercado Pago: Configuração do Worker URL ──────────────────────
+  // ─── Mercado Pago: Configuração do Worker URL & Public Key ──────────────────────
   setupMercadoPagoConfig() {
-    const input = document.getElementById('mpWorkerUrl');
-    const btn = document.getElementById('btnSaveMpWorker');
+    const inputUrl = document.getElementById('mpWorkerUrl');
+    const inputKey = document.getElementById('mpPublicKey');
+    const btnSave = document.getElementById('btnSaveMpWorker');
+    const btnTest = document.getElementById('btnTestMpWorker');
     const display = document.getElementById('mpWorkerUrlDisplay');
-    if (!input || !btn || !display) return;
+    const badge = document.getElementById('mpWorkerStatusBadge');
 
-    // Carrega URL salva
-    const saved = localStorage.getItem('confeitex_mp_worker_url') || '';
-    if (saved) {
-      input.value = saved;
-      display.textContent = saved;
-      display.style.display = 'block';
-    } else {
-      display.style.display = 'none';
+    if (!inputUrl || !btnSave) return;
+
+    // Carrega valores salvos
+    const savedUrl = localStorage.getItem('confeitex_mp_worker_url') || '';
+    const savedKey = localStorage.getItem('confeitex_mp_public_key') || '';
+
+    if (savedUrl) {
+      inputUrl.value = savedUrl;
+      if (display) {
+        display.textContent = savedUrl;
+        display.style.display = 'block';
+      }
+    }
+    if (inputKey && savedKey) {
+      inputKey.value = savedKey;
     }
 
-    btn.addEventListener('click', () => {
-      const url = input.value.trim().replace(/\/+$/, '');
+    // Salvar
+    btnSave.addEventListener('click', () => {
+      const url = inputUrl.value.trim().replace(/\/+$/, '');
+      const key = inputKey ? inputKey.value.trim() : '';
+
       if (!url) {
         UI.alert(I18n.t('mp.alertNoWorker'));
         return;
       }
+
       localStorage.setItem('confeitex_mp_worker_url', url);
+      if (key) {
+        localStorage.setItem('confeitex_mp_public_key', key);
+      } else {
+        localStorage.removeItem('confeitex_mp_public_key');
+      }
+
       if (typeof MercadoPagoCheckout !== 'undefined') {
         MercadoPagoCheckout.setWorkerUrl(url);
+        if (key) MercadoPagoCheckout.setPublicKey(key);
       }
-      display.textContent = url;
-      display.style.display = 'block';
-      UI.toast(I18n.t('mp.toastConfigured'));
+
+      if (display) {
+        display.textContent = url;
+        display.style.display = 'block';
+      }
+
+      UI.toast(I18n.t('mp.toastConfigured'), 'success');
     });
+
+    // Testar Conexão
+    if (btnTest) {
+      btnTest.addEventListener('click', async () => {
+        const url = inputUrl.value.trim().replace(/\/+$/, '');
+        if (!url) {
+          UI.alert(I18n.t('mp.alertNoWorker'));
+          return;
+        }
+
+        btnTest.disabled = true;
+        const originalText = btnTest.textContent;
+        btnTest.textContent = 'Testando...';
+
+        try {
+          const res = await fetch(`${url}/health`, { method: 'GET' });
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const data = await res.json();
+
+          if (badge) {
+            badge.className = 'mp-config-status ok';
+            badge.innerHTML = `<span>${I18n.t('mp.testSuccess')} (v${data.version || '2.0.0'})</span>`;
+            badge.style.display = 'flex';
+          }
+          UI.toast(I18n.t('mp.testSuccess'), 'success');
+        } catch (err) {
+          console.warn('[MP Worker Test Error]', err);
+          if (badge) {
+            badge.className = 'mp-config-status err';
+            badge.innerHTML = `<span>${I18n.t('mp.testFail')} (${err.message})</span>`;
+            badge.style.display = 'flex';
+          }
+          UI.toast(I18n.t('mp.testFail'), 'danger');
+        } finally {
+          btnTest.disabled = false;
+          btnTest.textContent = originalText;
+        }
+      });
+    }
   }
 };
 

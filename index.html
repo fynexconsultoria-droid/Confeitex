@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Confeitex - Controle de Encomendas</title>
   <meta name="description" content="Controle de encomendas para confeitaria — gerencie pedidos, clientes e entregas. 100% offline.">
-  <meta name="version" content="2.6.0">
+  <meta name="version" content="3.0.0">
 
   <!-- Google Fonts: Plus Jakarta Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -826,23 +826,48 @@
             </div>
           </div>
 
+          <!-- Plan & Subscription Card -->
+          <div class="config-card">
+            <div class="config-card-header">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <span data-i18n="plan.settingsTitle">Meu Plano Confeitex</span>
+            </div>
+            <p class="config-desc" data-i18n="plan.settingsDesc">
+              Gerencie sua assinatura, consulte o período de testes, altere o cartão de crédito cadastrado ou escolha como deseja pagar a mensalidade (Cartão Automático, Pix ou Boleto).
+            </p>
+            <div class="config-btn-group">
+              <button class="btn btn-primary" id="btnOpenPlanManage">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                <span>Gerenciar Meu Plano</span>
+              </button>
+            </div>
+          </div>
+
           <!-- Mercado Pago Config Card -->
           <div class="config-card">
             <div class="config-card-header">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-              <span data-i18n="mp.settingsTitle">Mercado Pago (Checkout)</span>
+              <span data-i18n="mp.settingsTitle">Mercado Pago (Checkout & Pagamentos)</span>
             </div>
             <p class="config-desc" data-i18n="mp.settingsDesc">
-              Configure a URL do Worker para aceitar pagamentos via Cartão, Pix e boleto.
+              Aceite pagamentos via Pix, Cartão de Crédito, Débito e Links de Pagamento para suas encomendas.
             </p>
-            <div class="mp-config-row">
-              <div class="form-group">
-                <label for="mpWorkerUrl" data-i18n="mp.settingsLabel">URL do Worker</label>
-                <input type="url" class="form-control" id="mpWorkerUrl" placeholder="https://seu-worker.workers.dev" data-i18n-ph="mp.settingsPh">
+            <div class="mp-config-group">
+              <div class="form-group mb-2">
+                <label for="mpWorkerUrl" data-i18n="mp.settingsLabel">URL do Cloudflare Worker *</label>
+                <input type="url" class="form-control" id="mpWorkerUrl" placeholder="https://confeitex-api.seu-subdominio.workers.dev" data-i18n-ph="mp.settingsPh">
               </div>
-              <button class="btn btn-primary" id="btnSaveMpWorker" data-i18n="mp.settingsSave">Salvar URL</button>
+              <div class="form-group mb-2">
+                <label for="mpPublicKey" data-i18n="mp.settingsPublicKey">Public Key do Mercado Pago (Opcional)</label>
+                <input type="text" class="form-control" id="mpPublicKey" placeholder="APP_USR-xxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
+              </div>
+              <div class="mp-config-actions">
+                <button class="btn btn-primary" id="btnSaveMpWorker" data-i18n="mp.settingsSave">Salvar Configurações</button>
+                <button class="btn btn-secondary" id="btnTestMpWorker" data-i18n="mp.settingsTest">Testar Conexão</button>
+              </div>
             </div>
-            <div class="mp-config-url" id="mpWorkerUrlDisplay"></div>
+            <div class="mp-config-status" id="mpWorkerStatusBadge" style="display:none;"></div>
+            <div class="mp-config-url" id="mpWorkerUrlDisplay" style="display:none;"></div>
           </div>
 
           <!-- Security Card -->
@@ -1198,42 +1223,135 @@
   <script src="js/onboarding.js"></script>
   <script src="js/app.js"></script>
 
-  <!-- MERCADO PAGO: Modal de Checkout Embebido -->
+  <!-- MERCADO PAGO: Modal de Checkout Embebido & Links -->
   <div class="modal-overlay" id="mpCheckoutModal" role="dialog" aria-modal="true" aria-label="Pagamento Mercado Pago">
     <div class="modal-container mp-checkout-modal-container">
-      <div class="modal-header">
-        <h2>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-          <span data-i18n="mp.modalTitle">Pagamento via Mercado Pago</span>
-        </h2>
+      <div class="modal-header mp-modal-header">
+        <div>
+          <h2>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+            <span data-i18n="mp.modalTitle">Cobrança Mercado Pago</span>
+          </h2>
+          <div class="mp-modal-order-summary" id="mpModalOrderSummary"></div>
+        </div>
         <button class="modal-close" id="btnMpCheckoutClose" aria-label="Fechar">&times;</button>
       </div>
+
+      <!-- Abas de Navegação -->
+      <div class="mp-tabs-nav">
+        <button class="mp-tab-btn active" id="mpTabDirect" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+          <span data-i18n="mp.tabDirect">Pagar no App (Cartão/Pix)</span>
+        </button>
+        <button class="mp-tab-btn" id="mpTabLink" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+          <span data-i18n="mp.tabLink">Enviar Link / WhatsApp</span>
+        </button>
+      </div>
+
       <div class="modal-body mp-checkout-body">
-        <!-- Loading -->
-        <div class="mp-brick-loading" id="mpBrickLoading">
-          <div class="mp-spinner"></div>
-          <span data-i18n="mp.loading">Preparando checkout seguro...</span>
+        <!-- PAINEL 1: Cobrança Direta (Payment Brick / Pix) -->
+        <div id="mpPanelDirect" class="mp-tab-panel">
+          <!-- Loading -->
+          <div class="mp-brick-loading" id="mpBrickLoading">
+            <div class="mp-spinner"></div>
+            <span id="mpLoadingText" data-i18n="mp.loading">Preparando checkout seguro...</span>
+          </div>
+
+          <!-- Brick Container Oficial MP -->
+          <div class="mp-brick-container" id="mpBrickContainer"></div>
+
+          <!-- Pix View Dedicada -->
+          <div class="mp-brick-pix" id="mpBrickPix" style="display:none;">
+            <div class="mp-pix-header">
+              <span class="mp-pix-badge">PIX Instantâneo</span>
+              <div class="mp-pix-amount-box">
+                <span data-i18n="mp.pixTotalLabel">Valor a pagar:</span>
+                <span class="mp-pix-amount" id="mpPixAmount">R$ 0,00</span>
+              </div>
+            </div>
+
+            <div class="mp-pix-qr-wrap">
+              <img id="mpPixQrImg" class="mp-pix-qr-img" alt="QR Code PIX" style="display:none;" />
+              <p class="mp-pix-instructions" data-i18n="mp.pixScanTip">Abra o app do seu banco e escaneie o QR Code acima ou use o Pix Copia e Cola:</p>
+            </div>
+
+            <div class="mp-pix-code-group">
+              <input type="text" class="form-control mp-pix-input" id="mpPixCodeInput" readonly />
+              <button class="btn btn-primary" id="btnCopyPixCode" type="button">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                <span data-i18n="mp.btnCopyPix">Copiar Código Pix</span>
+              </button>
+            </div>
+
+            <div class="mp-pix-status-check">
+              <div class="mp-pulse-dot"></div>
+              <span data-i18n="mp.pixAwaiting">Aguardando confirmação do pagamento...</span>
+              <button class="btn btn-secondary btn-sm" id="btnCheckPixStatus" type="button" data-i18n="mp.btnCheckStatus">Verificar Agora</button>
+            </div>
+          </div>
+
+          <!-- Success View -->
+          <div class="mp-brick-success" id="mpBrickSuccess" style="display:none;">
+            <div class="mp-success-icon-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            </div>
+            <h3 class="mp-success-status" id="mpSuccessStatus"></h3>
+            <div class="mp-success-details" id="mpSuccessDetails"></div>
+            <button class="btn btn-primary w-100" id="btnMpCheckoutDone" data-i18n="mp.btnDone">Concluir</button>
+          </div>
+
+          <!-- Error View -->
+          <div class="mp-brick-error" id="mpBrickError" style="display:none;">
+            <div class="mp-error-icon-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+            </div>
+            <span id="mpErrorMessage"></span>
+            <button class="btn btn-secondary" id="btnMpRetry" data-i18n="mp.btnRetry">Tentar Novamente</button>
+          </div>
         </div>
-        <!-- Brick Container -->
-        <div class="mp-brick-container" id="mpBrickContainer"></div>
-        <!-- Success -->
-        <div class="mp-brick-success" id="mpBrickSuccess" style="display:none;">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:48px;height:48px;color:var(--color-success);"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-          <span class="mp-success-status"></span>
-          <div class="mp-success-details"></div>
-          <button class="btn btn-primary" id="btnMpCheckoutDone" data-i18n="mp.btnDone">Concluir</button>
-        </div>
-        <!-- Error -->
-        <div class="mp-brick-error" id="mpBrickError" style="display:none;">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:36px;height:36px;color:var(--color-danger);"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
-          <span></span>
-          <button class="btn btn-secondary" id="btnMpRetry" data-i18n="mp.btnRetry">Tentar Novamente</button>
+
+        <!-- PAINEL 2: Link de Pagamento / WhatsApp -->
+        <div id="mpPanelLink" class="mp-tab-panel" style="display:none;">
+          <div class="mp-link-loading" id="mpLinkLoading" style="display:none;">
+            <div class="mp-spinner"></div>
+            <span data-i18n="mp.generatingLink">Gerando link seguro de pagamento...</span>
+          </div>
+
+          <div class="mp-link-content" id="mpLinkContent">
+            <div class="mp-link-info-card">
+              <p data-i18n="mp.linkInfoDesc">Envie este link para seu cliente pagar com segurança via Pix, Cartão de Crédito em até 12x ou Boleto.</p>
+              
+              <div class="form-group mb-3">
+                <label for="mpPaymentLinkInput" data-i18n="mp.lblPaymentLink">Link de Pagamento (Checkout Pro)</label>
+                <div class="mp-link-input-wrap">
+                  <input type="text" class="form-control" id="mpPaymentLinkInput" readonly />
+                  <button class="btn btn-secondary" id="btnCopyPaymentLink" type="button" title="Copiar link">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                  </button>
+                </div>
+              </div>
+
+              <div class="mp-link-action-buttons">
+                <button class="btn btn-whatsapp w-100" id="btnSendPaymentWhatsApp" type="button">
+                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.664-.699c.971.532 1.77.818 2.796.818 3.182 0 5.768-2.587 5.768-5.766.001-3.183-2.575-5.769-5.768-5.769zm10.024 5.766c-.001 5.547-4.512 10.057-10.055 10.057-1.747 0-3.391-.453-4.82-1.246l-5.18 1.359 1.385-5.048c-.87-1.493-1.37-3.23-1.37-5.122 0-5.545 4.51-10.055 10.054-10.055 5.544 0 10.055 4.51 10.055 10.055z"/></svg>
+                  <span data-i18n="mp.btnSendWhatsApp">Enviar Cobrança no WhatsApp</span>
+                </button>
+
+                <button class="btn btn-secondary w-100" id="btnOpenPaymentLink" type="button">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                  <span data-i18n="mp.btnOpenLink">Abrir Link de Pagamento</span>
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
+
       <div class="modal-footer mp-checkout-footer">
         <div class="mp-secure-badge">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-          <span data-i18n="mp.secure">Pagamento 100% seguro via Mercado Pago</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          <span data-i18n="mp.secure">Pagamento 100% criptografado e seguro via Mercado Pago</span>
         </div>
       </div>
     </div>

@@ -5,7 +5,7 @@
     await Auth.showLogin();
   }
 
-  // Sistema de planos — inicia trial se for o primeiro acesso
+  // Sistema de planos — inicializa badge
   Plan.init();
   const sidebarVersion = document.getElementById('sidebarVersion');
   if (sidebarVersion && typeof Updates !== 'undefined') sidebarVersion.textContent = `v${Updates.verAtual}`;
@@ -13,11 +13,14 @@
   // Onboarding — exibe apenas na primeira abertura
   if (Onboarding.shouldShow()) {
     Onboarding.show();
-  }
-
-  // Se online e sem assinatura ativa, mostra modal de upgrade
-  if (navigator.onLine && !Plan.isSubscriptionActive()) {
-    setTimeout(() => Plan.showUpgradeModal(), 1500);
+  } else if (navigator.onLine) {
+    // Se não tem cartão e não tem assinatura, exige cadastro do cartão para o teste
+    if (!Plan.hasRegisteredCard() && !Plan.isSubscriptionActive()) {
+      setTimeout(() => Plan.showCardRegistrationModal({ forTrial: true }), 1000);
+    } else if (!Plan.isTrialActive() && !Plan.isSubscriptionActive()) {
+      // Se já tinha cartão mas expirou o teste ou mensalidade
+      setTimeout(() => Plan.showUpgradeModal(), 1200);
+    }
   }
   
   State.load();
@@ -238,6 +241,9 @@
     const mpClose = document.getElementById('btnMpCheckoutClose');
     const mpDone = document.getElementById('btnMpCheckoutDone');
     const mpRetry = document.getElementById('btnMpRetry');
+    const btnCopyPix = document.getElementById('btnCopyPixCode');
+    const btnCheckPix = document.getElementById('btnCheckPixStatus');
+
     if (mpClose) mpClose.addEventListener('click', () => MercadoPagoCheckout.closeCheckout());
     if (mpDone) mpDone.addEventListener('click', () => {
       MercadoPagoCheckout.closeCheckout();
@@ -245,8 +251,17 @@
       Dashboard.update();
     });
     if (mpRetry) mpRetry.addEventListener('click', () => {
-      const modal = document.getElementById('mpCheckoutModal');
-      if (modal) modal.classList.remove('active');
+      if (MercadoPagoCheckout._currentOrder) {
+        MercadoPagoCheckout.openCheckout(MercadoPagoCheckout._currentOrder);
+      } else {
+        MercadoPagoCheckout.closeCheckout();
+      }
+    });
+    if (btnCopyPix) btnCopyPix.addEventListener('click', () => MercadoPagoCheckout.copyPixCode());
+    if (btnCheckPix) btnCheckPix.addEventListener('click', () => {
+      if (MercadoPagoCheckout._currentPaymentId) {
+        MercadoPagoCheckout.checkPaymentStatus(MercadoPagoCheckout._currentPaymentId, true);
+      }
     });
   }
 
