@@ -187,7 +187,7 @@ const Auth = {
         const newPw = document.getElementById('pwSetNew').value;
         const confirmPw = document.getElementById('pwSetConfirm').value;
         const errorEl = document.getElementById('pwSetError');
-        if (!newPw || newPw.length < 3) {
+        if (!newPw || newPw.length < 6) {
           errorEl.textContent = I18n.t('auth.pwErrorShort');
           errorEl.style.display = 'block';
           return;

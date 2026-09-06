@@ -5,9 +5,10 @@
 
 const MercadoPagoCheckout = {
   // ─── Configuração Padrão ────────────────────────────────────────────────
-  DEFAULT_PUBLIC_KEY: 'APP_USR-eb677887-c0aa-416f-972e-fc46103fbe4c',
+  DEFAULT_PUBLIC_KEY: '', // Não usar chave padrão — cada usuário deve configurar a sua
   PUBLIC_KEY: '',
   WORKER_URL: '',
+  APP_SECRET: '',
 
   // ─── Estado Interno ─────────────────────────────────────────────────────
   _mp: null,
@@ -21,20 +22,35 @@ const MercadoPagoCheckout = {
 
   // ─── Inicialização ──────────────────────────────────────────────────────
   init() {
-    this.PUBLIC_KEY = localStorage.getItem('confeitex_mp_public_key') || this.DEFAULT_PUBLIC_KEY;
-    this.WORKER_URL = (localStorage.getItem('confeitex_mp_worker_url') || '').trim().replace(/\/+$/, '');
+    this.PUBLIC_KEY = safeStorage.get('confeitex_mp_public_key') || this.DEFAULT_PUBLIC_KEY;
+    this.WORKER_URL = (safeStorage.get('confeitex_mp_worker_url') || '').trim().replace(/\/+$/, '');
+    this.APP_SECRET = (safeStorage.get('confeitex_mp_app_secret') || '').trim();
+    if (!this.PUBLIC_KEY && !this.WORKER_URL) {
+      console.warn('[MercadoPago] Chave pública e Worker URL não configurados. Vá em Configurações > Mercado Pago.');
+    }
   },
 
   setWorkerUrl(url) {
     this.WORKER_URL = (url || '').trim().replace(/\/+$/, '');
-    localStorage.setItem('confeitex_mp_worker_url', this.WORKER_URL);
+    safeStorage.set('confeitex_mp_worker_url', this.WORKER_URL);
   },
 
   setPublicKey(key) {
     this.PUBLIC_KEY = (key || '').trim();
-    localStorage.setItem('confeitex_mp_public_key', this.PUBLIC_KEY);
+    safeStorage.set('confeitex_mp_public_key', this.PUBLIC_KEY);
     this._mp = null;
     this._bricksBuilder = null;
+  },
+
+  setAppSecret(secret) {
+    this.APP_SECRET = (secret || '').trim();
+    safeStorage.set('confeitex_mp_app_secret', this.APP_SECRET);
+  },
+
+  _getHeaders(extra = {}) {
+    const h = { 'Content-Type': 'application/json', ...extra };
+    if (this.APP_SECRET) h['X-App-Secret'] = this.APP_SECRET;
+    return h;
   },
 
   isConfigured() {
@@ -253,7 +269,7 @@ const MercadoPagoCheckout = {
 
       const res = await fetch(`${this.WORKER_URL}/create-payment`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: this._getHeaders(),
         body: JSON.stringify(payload),
       });
 
@@ -416,7 +432,9 @@ const MercadoPagoCheckout = {
     if (!paymentId || !this.WORKER_URL) return null;
 
     try {
-      const res = await fetch(`${this.WORKER_URL}/payment/${paymentId}`);
+      const res = await fetch(`${this.WORKER_URL}/payment/${paymentId}`, {
+        headers: this._getHeaders(),
+      });
       if (!res.ok) return null;
       const data = await res.json();
 
@@ -531,7 +549,7 @@ const MercadoPagoCheckout = {
 
     const res = await fetch(`${this.WORKER_URL}/create-preference`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: this._getHeaders(),
       body: JSON.stringify({
         order_id: order.id,
         client_name: order.clientName,
@@ -681,6 +699,17 @@ const MercadoPagoCheckout = {
     }
   },
 
+  closeCheckout() {
+    this._stopPolling();
+    const modal = document.getElementById('mpPaymentModal');
+    if (modal) {
+      modal.classList.remove('active');
+      setTimeout(() => { modal.style.display = 'none'; }, 200);
+    }
+    if (this._currentBrickController && typeof this._currentBrickController.unmount === 'function') {
+      try { this._currentBrickController.unmount(); } catch (e) {}
+      this._currentBrickController = null;
+    }
     this._currentOrder = null;
     this._currentPaymentId = null;
   },
@@ -733,7 +762,7 @@ const MercadoPagoCheckout = {
 
       const res = await fetch(`${this.WORKER_URL}/validate-card`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: this._getHeaders(),
         body: JSON.stringify({
           token: token,
           email: cardData.email || 'assinante@confeitex.app',
@@ -790,7 +819,7 @@ const MercadoPagoCheckout = {
 
     const res = await fetch(`${this.WORKER_URL}/plan-payment`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: this._getHeaders(),
       body: JSON.stringify(payload),
     });
 

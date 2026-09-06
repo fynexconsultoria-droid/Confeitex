@@ -218,15 +218,16 @@ const Notifications = {
   },
 
   _timeAgo(ts) {
+    if (!ts) return '';
     const s = Math.floor((Date.now() - ts) / 1000);
-    if (s < 60) return 'agora';
+    if (s < 60) return typeof I18n !== 'undefined' ? I18n.t('notif.timeNow') : 'agora';
     const m = Math.floor(s / 60);
-    if (m < 60) return `${m} min`;
+    if (m < 60) return typeof I18n !== 'undefined' ? I18n.t('notif.timeMin', { n: m }) : `${m} min`;
     const h = Math.floor(m / 60);
-    if (h < 24) return `${h}h`;
+    if (h < 24) return typeof I18n !== 'undefined' ? I18n.t('notif.timeHour', { n: h }) : `${h}h`;
     const d = Math.floor(h / 24);
-    if (d === 1) return 'ontem';
-    return `${d}d`;
+    if (d === 1) return typeof I18n !== 'undefined' ? I18n.t('notif.timeYesterday') : 'ontem';
+    return typeof I18n !== 'undefined' ? I18n.t('notif.timeDays', { n: d }) : `${d}d`;
   },
 
   // Abre a aba de pedidos e, se o pedido ainda existir, abre o modal de edição
@@ -377,16 +378,24 @@ const Notifications = {
     this._unregisterBackground();
   },
 
+  _enabling: false,
+
   async enable() {
     if (!('Notification' in window)) return false;
     if (Notification.permission === 'denied') return false;
-    if (Notification.permission === 'default') {
-      const perm = await Notification.requestPermission();
-      if (perm !== 'granted') return false;
+    if (this._enabling) return false;
+    this._enabling = true;
+    try {
+      if (Notification.permission === 'default') {
+        const perm = await Notification.requestPermission();
+        if (perm !== 'granted') return false;
+      }
+      this._enable();
+      this.check();
+      return true;
+    } finally {
+      this._enabling = false;
     }
-    this._enable();
-    this.check();
-    return true;
   },
 
   disable() {

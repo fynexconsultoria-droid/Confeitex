@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Confeitex - Controle de Encomendas</title>
   <meta name="description" content="Controle de encomendas para confeitaria — gerencie pedidos, clientes e entregas. 100% offline.">
-  <meta name="version" content="3.0.0">
+  <meta name="version" content="3.0.1">
 
   <!-- Google Fonts: Plus Jakarta Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -860,6 +860,10 @@
               <div class="form-group mb-2">
                 <label for="mpPublicKey" data-i18n="mp.settingsPublicKey">Public Key do Mercado Pago (Opcional)</label>
                 <input type="text" class="form-control" id="mpPublicKey" placeholder="APP_USR-xxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
+              </div>
+              <div class="form-group mb-2">
+                <label for="mpAppSecret" data-i18n="mp.settingsAppSecret">Chave Secreta do App (Opcional - X-App-Secret)</label>
+                <input type="password" class="form-control" id="mpAppSecret" placeholder="Sua chave secreta configurada no Worker" autocomplete="off">
               </div>
               <div class="mp-config-actions">
                 <button class="btn btn-primary" id="btnSaveMpWorker" data-i18n="mp.settingsSave">Salvar Configurações</button>

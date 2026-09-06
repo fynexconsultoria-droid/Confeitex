@@ -11,7 +11,9 @@ function migrateOrder(o) {
   const order = { paymentMethod: 'Dinheiro', cost: 0, deliveredAt: null, totalValue: 0, deliveryType: 'Retirada no Local', ...o };
   order.totalValue = getOrderTotal(order);
   if (order.status === 'Entregue' && !order.deliveredAt) {
-    order.deliveredAt = new Date().toISOString();
+    order.deliveredAt = order.deliveryDate
+      ? new Date(order.deliveryDate + 'T23:59:00').toISOString()
+      : new Date().toISOString();
   }
   return order;
 }
@@ -134,10 +136,11 @@ const State = {
         deliveredAt: null
       });
     }
+    const demoExpenseDate = fmtISO(hoje);
     this.expenses = [
-      { id: 'e_demo_1', description: 'Compra de farinha, açúcar e ovos', amount: 85.00, date: fmtISO(d) },
-      { id: 'e_demo_2', description: 'Chocolate e recheios', amount: 120.00, date: fmtISO(d) },
-      { id: 'e_demo_3', description: 'Embalagens e caixas', amount: 40.00, date: fmtISO(d) }
+      { id: 'e_demo_1', description: 'Compra de farinha, açúcar e ovos', amount: 85.00, date: demoExpenseDate },
+      { id: 'e_demo_2', description: 'Chocolate e recheios', amount: 120.00, date: demoExpenseDate },
+      { id: 'e_demo_3', description: 'Embalagens e caixas', amount: 40.00, date: demoExpenseDate }
     ];
     this.saveExpenses();
     this.saveOrders();

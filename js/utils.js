@@ -102,8 +102,16 @@ function sanitizeForStorage(value) {
   if (typeof value === 'string') {
     const cleaned = sanitizeText(value);
     const numeric = cleaned.trim();
-    if (/^-?\d+(?:[.,]\d+)?$/.test(numeric) || /^-?\d*\.\d+$/.test(numeric)) {
-      const normalized = numeric.replace(/\./g, '').replace(',', '.');
+    // Preserva IDs, telefones (>=10 dígitos) e códigos com zero à esquerda como string
+    const preserveString = /^[a-zA-Z_]/.test(numeric) || /^\d{10,}$/.test(numeric) || /^0\d+$/.test(numeric);
+    if (preserveString) return cleaned;
+    if (/^-?\d+(?:[.,]\d+)?$/.test(numeric) || /^-?\d*\.\d+$/.test(numeric) || /^-?\d{1,3}(?:\.\d{3})+(?:,\d+)?$/.test(numeric)) {
+      let normalized = numeric;
+      if (numeric.includes(',') && numeric.includes('.')) {
+        normalized = numeric.replace(/\./g, '').replace(',', '.');
+      } else if (numeric.includes(',')) {
+        normalized = numeric.replace(',', '.');
+      }
       const parsed = Number(normalized);
       return Number.isFinite(parsed) ? parsed : cleaned;
     }

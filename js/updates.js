@@ -1,15 +1,24 @@
 const Updates = {
-  verAtual: '3.0.0',
+  verAtual: '3.0.1',
+
+  changelog: [
+    { ver: '3.0.1', date: '06/09/2026', keys: ['changelog.3010'] },
+    { ver: '3.0.0', date: '29/08/2026', keys: ['changelog.3000'] },
+    { ver: '2.6.0', date: '24/08/2026', keys: ['changelog.2600'] },
+    { ver: '2.5.6', date: '23/08/2026', keys: ['changelog.2560'] },
+    { ver: '2.5.5', date: '23/08/2026', keys: ['changelog.2550'] },
+  ],
 
   setup() {
-    document.getElementById('btnCheckUpdates').addEventListener('click', () => this.check());
+    const btn = document.getElementById('btnCheckUpdates');
+    if (btn) btn.onclick = () => this.checkManual();
   },
 
   _delay(ms) {
     return new Promise(r => setTimeout(r, ms));
   },
 
-  // Verifica nova versão (retorna versão ou null)
+  // Busca a versão no servidor (version.txt)
   async _fetchVersion() {
     try {
       const r = await fetch('./version.txt?t=' + Date.now(), { cache: 'no-store' });
@@ -18,7 +27,7 @@ const Updates = {
     } catch { return null; }
   },
 
-  // Verificação silenciosa (chamada pelo app.js) — Pergunta antes de atualizar
+  // Verificação silenciosa ao abrir o app
   async checkSilent() {
     const serverVer = await this._fetchVersion();
     if (serverVer && serverVer !== this.verAtual) {
@@ -33,7 +42,7 @@ const Updates = {
     return null;
   },
 
-  // Diálogo de confirmação de atualização: "Atualizar Agora" ou "Mais Tarde"
+  // Diálogo de confirmação de atualização
   async promptUpdate(serverVer) {
     const ok = await UI.confirm({
       title: I18n.t('updates.promptTitle'),
@@ -53,13 +62,53 @@ const Updates = {
     }
   },
 
+  // Verificação manual pela aba de Atualizações
+  async checkManual() {
+    const btn = document.getElementById('btnCheckUpdates');
+    const originalText = btn ? btn.innerHTML : '';
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = '<span class="login-spinner"></span> ' + I18n.t('updates.checking');
+    }
+    this.updateStatus(I18n.t('updates.checking'));
+
+    const serverVer = await this._fetchVersion();
+    const lastCheckStr = new Date().toLocaleString(I18n.locales?.[I18n.lang] || 'pt-BR');
+    safeStorage.set('confeitex_last_check', lastCheckStr);
+    const lastCheckEl = document.getElementById('updatesLastCheck');
+    if (lastCheckEl) lastCheckEl.textContent = lastCheckStr;
+
+    if (serverVer && serverVer !== this.verAtual) {
+      const ok = await UI.confirm({
+        title: I18n.t('updates.promptTitle'),
+        message: I18n.t('updates.promptFound', { version: serverVer }),
+        confirmText: I18n.t('updates.reloadNow'),
+        variant: 'primary'
+      });
+      if (ok) {
+        this.updateStatus(I18n.t('updates.newFound', { version: serverVer }));
+        safeStorage.set('confeitex_ver', serverVer);
+        await this.downloadUpdate();
+      } else {
+        this.updateStatus(I18n.t('updates.cancelled'));
+      }
+    } else if (serverVer === this.verAtual) {
+      this.updateStatus(I18n.t('updates.upToDate'));
+    } else {
+      this.updateStatus(I18n.t('updates.noConnection'), true);
+    }
+
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = originalText;
+    }
+  },
+
   async downloadUpdate() {
     const newVer = safeStorage.get('confeitex_ver') || this.verAtual;
     const startedAt = Date.now();
 
     this._showProgress(newVer);
-
-    // Limpa flags de cache/notificações antigas
     safeStorage.remove('confeitex_notified');
     safeStorage.remove('confeitex_update_prompt');
     safeStorage.remove('confeitex_pwa_dismissed');
@@ -71,10 +120,9 @@ const Updates = {
       try {
         const r = await navigator.serviceWorker.getRegistration();
         if (r) await r.unregister();
-      } catch (e) { console.warn('[Confeitex] Auto-update SW registration error:', e); }
+      } catch (e) { console.warn('[Confeitex] SW unregister error:', e); }
     }
 
-    // Se não suportar SW, marca como atualizado e mostra banner
     if (!swOk) {
       await this._settleProgress(startedAt, I18n.t('updates.progressRegistering'));
       safeStorage.set('confeitex_updated', 'true');
@@ -89,7 +137,6 @@ const Updates = {
     this._updateProgress(40, I18n.t('updates.progressRegisteringSw'));
     let reg;
     try {
-      // Marca antes de registrar para o auto-reload saber que o update foi aceito
       safeStorage.set('confeitex_updated', 'true');
       reg = await navigator.serviceWorker.register('./sw.js?v=' + newVer);
     } catch {
@@ -99,7 +146,6 @@ const Updates = {
       return;
     }
 
-    // Aguarda instalação/ativação (máx 25s)
     this._updateProgress(60, I18n.t('updates.progressActivating'));
     const ativado = await Promise.race([
       new Promise(resolve => {
@@ -121,17 +167,12 @@ const Updates = {
       this._delay(25000).then(() => false)
     ]);
 
-    // Marca como atualizado
     safeStorage.set('confeitex_updated', 'true');
     safeStorage.set('confeitex_ver', newVer);
 
-    // Mantém a barra visível por pelo menos 10s para aplicar as mudanças com calma
     await this._settleProgress(startedAt, I18n.t('updates.progressApplying'));
-
     this._updateProgress(100, ativado ? I18n.t('updates.progressDone') : I18n.t('updates.progressDoneDeferred'));
     await this._delay(800);
-
-    // Mostra banner de notificação para o usuário decidir
     this._showUpdateBanner(newVer);
   },
 
@@ -181,7 +222,7 @@ const Updates = {
   },
 
   _settleProgress(startedAt, msg) {
-    const minMs = 10000;
+    const minMs = 5000;
     const remaining = Math.max(0, minMs - (Date.now() - startedAt));
     return this._animateProgress(99, remaining, msg);
   },
@@ -210,7 +251,6 @@ const Updates = {
     actions.style.display = 'flex';
     text.textContent = I18n.t('updates.installedTitle', { version: ver });
 
-    // Se o banner ainda não estiver visível (ex: sem SW), exibe
     if (!banner.classList.contains('visible')) {
       banner.style.display = 'flex';
       requestAnimationFrame(() => requestAnimationFrame(() => banner.classList.add('visible')));
@@ -230,6 +270,7 @@ const Updates = {
     };
 
     btnLater.onclick = () => {
+      safeStorage.set('confeitex_update_deferred', Date.now().toString());
       hide();
     };
 
@@ -239,27 +280,23 @@ const Updates = {
     };
   },
 
-  changelog: [
-    { ver: '3.0.0', date: '29/08/2026', keys: ['changelog.3000'] },
-    { ver: '2.6.0', date: '24/08/2026', keys: ['changelog.2600'] },
-    { ver: '2.5.6', date: '23/08/2026', keys: ['changelog.2560'] },
-    { ver: '2.5.5', date: '23/08/2026', keys: ['changelog.2550'] },
-  ],
-
   render() {
     const displayVer = this.verAtual;
     safeStorage.set('confeitex_ver', displayVer);
-    document.getElementById('updatesCurrentVer').textContent = `v${displayVer}`;
+    const curVerEl = document.getElementById('updatesCurrentVer');
+    if (curVerEl) curVerEl.textContent = `v${displayVer}`;
     const sidebarVersion = document.getElementById('sidebarVersion');
     if (sidebarVersion) sidebarVersion.textContent = `v${displayVer}`;
     const lastCheck = safeStorage.get('confeitex_last_check');
-    document.getElementById('updatesLastCheck').textContent = lastCheck || I18n.t('updates.neverChecked');
+    const lastCheckEl = document.getElementById('updatesLastCheck');
+    if (lastCheckEl) lastCheckEl.textContent = lastCheck || I18n.t('updates.neverChecked');
     this.renderChangelog();
     this.updateStatus('');
   },
 
   renderChangelog() {
     const container = document.getElementById('updatesChangelog');
+    if (!container) return;
     container.innerHTML = this.changelog.map(v => {
       const items = v.keys.map(k => I18n.t(k));
       return `
@@ -276,49 +313,10 @@ const Updates = {
     }).join('');
   },
 
-  updateStatus(msg, isError) {
+  updateStatus(msg, isError = false) {
     const el = document.getElementById('updatesStatus');
+    if (!el) return;
     el.textContent = msg;
     el.style.color = isError ? 'var(--color-danger)' : 'var(--color-success)';
-  },
-
-  async check() {
-    const btn = document.getElementById('btnCheckUpdates');
-    const btnHtml = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg> ' + I18n.t('updates.checkNow');
-    btn.disabled = true;
-    btn.innerHTML = '<span class="login-spinner"></span> ' + I18n.t('updates.checking');
-    this.updateStatus(I18n.t('updates.checking'));
-
-    const serverVer = await this._fetchVersion();
-    safeStorage.set('confeitex_last_check', new Date().toLocaleString(I18n.locales[I18n.lang] || 'pt-BR'));
-    document.getElementById('updatesLastCheck').textContent = safeStorage.get('confeitex_last_check');
-
-    if (serverVer && serverVer !== this.verAtual) {
-      const confirmado = await UI.confirm({
-        title: I18n.t('updates.promptTitle'),
-        message: I18n.t('updates.promptFound', { version: serverVer }),
-        confirmText: I18n.t('updates.reloadNow'),
-        variant: 'primary'
-      });
-      if (!confirmado) {
-        this.updateStatus(I18n.t('updates.cancelled'));
-        btn.disabled = false;
-        btn.innerHTML = btnHtml;
-        return;
-      }
-      this.updateStatus(I18n.t('updates.newFound', { version: serverVer }));
-      btn.disabled = false;
-      btn.innerHTML = btnHtml;
-      safeStorage.set('confeitex_ver', serverVer);
-      await this.downloadUpdate();
-      return;
-    } else if (serverVer === this.verAtual) {
-      this.updateStatus(I18n.t('updates.upToDate'));
-    } else {
-      this.updateStatus(I18n.t('updates.noConnection'), true);
-    }
-
-    btn.disabled = false;
-    btn.innerHTML = btnHtml;
   }
 };

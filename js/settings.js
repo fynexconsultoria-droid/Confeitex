@@ -431,8 +431,10 @@ const Settings = {
     }
     if (dataJson) {
       try {
-        const parsed = JSON.parse(dataJson);
-        orders = parsed.map(o => ({
+        const rawParsed = JSON.parse(dataJson);
+        // Sanitiza via validateStateDump, igualando o nível de segurança ao importJSON
+        const { orders: sanitizedOrders } = validateStateDump({ orders: rawParsed });
+        orders = sanitizedOrders.map(o => ({
           ...o,
           id: 'o_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
           createdAt: new Date().toISOString(),
@@ -633,6 +635,7 @@ const Settings = {
   setupMercadoPagoConfig() {
     const inputUrl = document.getElementById('mpWorkerUrl');
     const inputKey = document.getElementById('mpPublicKey');
+    const inputSecret = document.getElementById('mpAppSecret');
     const btnSave = document.getElementById('btnSaveMpWorker');
     const btnTest = document.getElementById('btnTestMpWorker');
     const display = document.getElementById('mpWorkerUrlDisplay');
@@ -641,8 +644,9 @@ const Settings = {
     if (!inputUrl || !btnSave) return;
 
     // Carrega valores salvos
-    const savedUrl = localStorage.getItem('confeitex_mp_worker_url') || '';
-    const savedKey = localStorage.getItem('confeitex_mp_public_key') || '';
+    const savedUrl = safeStorage.get('confeitex_mp_worker_url') || '';
+    const savedKey = safeStorage.get('confeitex_mp_public_key') || '';
+    const savedSecret = safeStorage.get('confeitex_mp_app_secret') || '';
 
     if (savedUrl) {
       inputUrl.value = savedUrl;
@@ -654,27 +658,38 @@ const Settings = {
     if (inputKey && savedKey) {
       inputKey.value = savedKey;
     }
+    if (inputSecret && savedSecret) {
+      inputSecret.value = savedSecret;
+    }
 
     // Salvar
     btnSave.addEventListener('click', () => {
       const url = inputUrl.value.trim().replace(/\/+$/, '');
       const key = inputKey ? inputKey.value.trim() : '';
+      const secret = inputSecret ? inputSecret.value.trim() : '';
 
       if (!url) {
         UI.alert(I18n.t('mp.alertNoWorker'));
         return;
       }
 
-      localStorage.setItem('confeitex_mp_worker_url', url);
+      safeStorage.set('confeitex_mp_worker_url', url);
       if (key) {
-        localStorage.setItem('confeitex_mp_public_key', key);
+        safeStorage.set('confeitex_mp_public_key', key);
       } else {
-        localStorage.removeItem('confeitex_mp_public_key');
+        safeStorage.remove('confeitex_mp_public_key');
+      }
+
+      if (secret) {
+        safeStorage.set('confeitex_mp_app_secret', secret);
+      } else {
+        safeStorage.remove('confeitex_mp_app_secret');
       }
 
       if (typeof MercadoPagoCheckout !== 'undefined') {
         MercadoPagoCheckout.setWorkerUrl(url);
         if (key) MercadoPagoCheckout.setPublicKey(key);
+        MercadoPagoCheckout.setAppSecret(secret);
       }
 
       if (display) {
@@ -689,6 +704,7 @@ const Settings = {
     if (btnTest) {
       btnTest.addEventListener('click', async () => {
         const url = inputUrl.value.trim().replace(/\/+$/, '');
+        const secret = inputSecret ? inputSecret.value.trim() : (savedSecret || '');
         if (!url) {
           UI.alert(I18n.t('mp.alertNoWorker'));
           return;
@@ -699,7 +715,9 @@ const Settings = {
         btnTest.textContent = 'Testando...';
 
         try {
-          const res = await fetch(`${url}/health`, { method: 'GET' });
+          const headers = {};
+          if (secret) headers['X-App-Secret'] = secret;
+          const res = await fetch(`${url}/health`, { method: 'GET', headers });
           if (!res.ok) throw new Error(`HTTP ${res.status}`);
           const data = await res.json();
 

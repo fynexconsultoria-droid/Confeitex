@@ -8,7 +8,7 @@
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With, X-App-Secret',
 };
 
 function jsonResponse(data, status = 200) {
@@ -23,6 +23,15 @@ export default {
     // Tratamento de CORS Preflight
     if (request.method === 'OPTIONS') {
       return new Response(null, { status: 204, headers: CORS_HEADERS });
+    }
+
+    // Validação opcional de segredo da aplicação (se configurado no Worker)
+    const appSecret = env.APP_SECRET || '';
+    if (appSecret) {
+      const reqSecret = request.headers.get('X-App-Secret') || '';
+      if (reqSecret !== appSecret) {
+        return jsonResponse({ error: 'Acesso não autorizado: chave secreta da aplicação inválida.' }, 401);
+      }
     }
 
     const url = new URL(request.url);
@@ -323,34 +332,51 @@ export default {
     }
 
     // ── Rota: Validar / Salvar Cartão para Teste Grátis ─────────────────────
-    if (url.pathname === '/validate-card' && request.method === 'POST') {
-      try {
-        if (!accessToken) {
-          return jsonResponse({ error: 'MP_ACCESS_TOKEN não configurado' }, 500);
-        }
-
-        const body = await request.json();
-        const token = body.token;
-        const payerEmail = body.email || 'assinante@confeitex.app';
-
-        if (!token) {
-          return jsonResponse({ error: 'Token do cartão não informado' }, 400);
-        }
-
-        // Valida o token criando ou verificando com o Mercado Pago
-        // O token é gerado com segurança no client pelo SDK v2 do Mercado Pago
-        return jsonResponse({
-          valid: true,
-          message: 'Cartão validado com sucesso para início do período de testes.',
-          token: token,
-          email: payerEmail,
-          verified_at: new Date().toISOString()
-        });
-      } catch (err) {
-        console.error('[Worker Validate Card Error]', err);
-        return jsonResponse({ error: 'Erro ao validar cartão: ' + err.message }, 500);
+  if (url.pathname === '/validate-card' && request.method === 'POST') {
+    try {
+      if (!accessToken) {
+        return jsonResponse({ error: 'MP_ACCESS_TOKEN não configurado' }, 500);
       }
+
+      const body = await request.json();
+      const token = body.token;
+      const payerEmail = body.email || 'assinante@confeitex.app';
+
+      if (!token) {
+        return jsonResponse({ error: 'Token do cartão não informado' }, 400);
+      }
+
+      // Verifica o token consultando a API do Mercado Pago
+      const mpRes = await fetch(`https://api.mercadopago.com/v1/card_tokens/${token}`, {
+        headers: { 'Authorization': `Bearer ${accessToken}` }
+      });
+
+      if (!mpRes.ok) {
+        const errData = await mpRes.json().catch(() => ({}));
+        return jsonResponse({
+          valid: false,
+          error: errData.message || 'Token de cartão inválido ou expirado'
+        }, 400);
+      }
+
+      const cardData = await mpRes.json();
+
+      return jsonResponse({
+        valid: true,
+        message: 'Cartão validado com sucesso para início do período de testes.',
+        token: token,
+        email: payerEmail,
+        last_four_digits: cardData.last_four_digits || '',
+        cardholder: cardData.cardholder?.name || '',
+        expiration_month: cardData.expiration_month || '',
+        expiration_year: cardData.expiration_year || '',
+        verified_at: new Date().toISOString()
+      });
+    } catch (err) {
+      console.error('[Worker Validate Card Error]', err);
+      return jsonResponse({ error: 'Erro ao validar cartão: ' + err.message }, 500);
     }
+  }
 
     // ── Rota: Health Check & Status ────────────────────────────────────────
     if (url.pathname === '/' || url.pathname === '/health') {
