@@ -72,6 +72,18 @@ const debounce = (fn, ms = 250) => {
   wrapped.cancel = () => clearTimeout(t);
   return wrapped;
 };
+const hapticFeedback = (type = 'light') => {
+  if (typeof navigator === 'undefined' || typeof navigator.vibrate !== 'function') return;
+  try {
+    const patterns = {
+      light: 15,
+      medium: 35,
+      success: [20, 50, 20],
+      error: [50, 100, 50]
+    };
+    navigator.vibrate(patterns[type] || 15);
+  } catch (e) {}
+};
 const escapeHTML = (s) => s ? String(s).replace(/[&<>'"]/g, t => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[t])) : '';
 
 function sanitizeText(value) {

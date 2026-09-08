@@ -319,14 +319,44 @@ function swInQuietHours(settings) {
   return cur >= start || cur < end;
 }
 
-// Ao tocar/clicar na notificação, abre ou foca o app
+// Ouvinte de mensagens da aplicação (postMessage)
+self.addEventListener('message', (event) => {
+  if (!event.data) return;
+  const { type, payload } = event.data;
+
+  if (type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  } else if (type === 'CHECK_NOTIFICATIONS') {
+    event.waitUntil(swRunCheck());
+  } else if (type === 'TEST_NOTIFICATION') {
+    event.waitUntil(
+      self.registration.showNotification(payload?.title || 'Confeitex - Teste Offline! 🎂', {
+        body: payload?.body || 'Notificações offline funcionando perfeitamente no seu dispositivo!',
+        icon: 'icons/icon-192x192.png',
+        badge: 'icons/icon-192x192.png',
+        tag: 'confeitex-test-notification',
+        data: { tab: 'orders' }
+      })
+    );
+  }
+});
+
+// Ao tocar/clicar na notificação, abre ou foca o app diretamente na aba correta
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
+  const targetTab = event.notification.data?.tab || 'orders';
+
   event.waitUntil((async () => {
-    const clients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
-    for (const client of clients) {
-      if ('focus' in client) return client.focus();
+    const windowClients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    for (const client of windowClients) {
+      if ('focus' in client) {
+        await client.focus();
+        client.postMessage({ type: 'SWITCH_TAB', tab: targetTab });
+        return;
+      }
     }
-    if (self.clients.openWindow) return self.clients.openWindow('./');
+    if (self.clients.openWindow) {
+      return self.clients.openWindow('./#tab=' + targetTab);
+    }
   })());
 });

@@ -52,6 +52,7 @@ const State = {
       this.expenses = [];
     }
     this.purgeTrash();
+    this.autoSnapshotCheck();
   },
 
   saveOrders() {
@@ -144,5 +145,79 @@ const State = {
     ];
     this.saveExpenses();
     this.saveOrders();
+  },
+
+  createSnapshot(reason = 'manual') {
+    try {
+      const existingStr = safeStorage.get('confeitex_snapshots');
+      const existing = existingStr ? JSON.parse(existingStr) : [];
+      const newSnapshot = {
+        id: 'snap_' + Date.now(),
+        timestamp: new Date().toISOString(),
+        reason,
+        data: {
+          orders: sanitizeForStorage(this.orders),
+          catalog: sanitizeForStorage(this.catalog),
+          expenses: sanitizeForStorage(this.expenses)
+        }
+      };
+      const updated = [newSnapshot, ...existing].slice(0, 3);
+      safeStorage.set('confeitex_snapshots', JSON.stringify(updated));
+      return true;
+    } catch (e) {
+      console.warn('[State] Erro ao criar snapshot:', e);
+      return false;
+    }
+  },
+
+  autoSnapshotCheck() {
+    try {
+      const lastAuto = safeStorage.get('confeitex_last_auto_snapshot');
+      const now = Date.now();
+      if (!lastAuto || (now - parseInt(lastAuto, 10)) > 86400000) {
+        this.createSnapshot('auto_daily');
+        safeStorage.set('confeitex_last_auto_snapshot', String(now));
+      }
+    } catch (e) {}
+  },
+
+  restoreSnapshot(index = 0) {
+    try {
+      const existingStr = safeStorage.get('confeitex_snapshots');
+      if (!existingStr) return false;
+      const list = JSON.parse(existingStr);
+      if (!list[index] || !list[index].data) return false;
+      const snapData = list[index].data;
+      if (snapData.orders) this.orders = snapData.orders.map(migrateOrder);
+      if (snapData.catalog) this.catalog = snapData.catalog;
+      if (snapData.expenses) this.expenses = snapData.expenses;
+      this.saveOrders();
+      this.saveCatalog();
+      this.saveExpenses();
+      return true;
+    } catch (e) {
+      return false;
+    }
+  },
+
+  exportFormattedWhatsApp() {
+    const hojeStr = fmtISO(new Date());
+    const pedidosHoje = this.orders.filter(o => o.deliveryDate === hojeStr && o.status !== 'Cancelado');
+    let msg = `🎂 *CONFEITEX - RESUMO DE PEDIDOS DE HOJE (${fmtDate(new Date())})*\n\n`;
+    if (pedidosHoje.length === 0) {
+      msg += `Nenhum pedido agendado para hoje.`;
+    } else {
+      let totalGeral = 0;
+      pedidosHoje.forEach((o, i) => {
+        const val = getOrderTotal(o);
+        totalGeral += val;
+        msg += `*${i + 1}. ${o.clientName}* (${o.deliveryTime})\n`;
+        msg += `   • Sabor: ${o.flavor} (${formatWeight(o)})\n`;
+        msg += `   • Status: ${o.status}\n`;
+        msg += `   • Valor: ${fmt(val)}\n\n`;
+      });
+      msg += `💰 *Total do Dia:* ${fmt(totalGeral)}`;
+    }
+    return msg;
   }
 };

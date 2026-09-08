@@ -270,6 +270,7 @@ const Orders = {
     State.orders = State.orders.filter(item => item.id !== id);
     State.addToTrash([o], 'order', `${o.clientName} — ${o.flavor}`);
     State.saveOrders();
+    hapticFeedback('error');
     this.render();
     const tab = document.querySelector('.nav-link.active')?.dataset.tab;
     if (tab === 'dashboard') Dashboard.update();
@@ -288,6 +289,7 @@ const Orders = {
       State.orders[idx].status = cycle[ci + 1];
       if (cycle[ci + 1] === 'Entregue') State.orders[idx].deliveredAt = new Date().toISOString();
       State.saveOrders();
+      hapticFeedback('medium');
       this.render();
       const tab = document.querySelector('.nav-link.active')?.dataset.tab;
       if (tab === 'dashboard') Dashboard.update();
@@ -295,6 +297,7 @@ const Orders = {
     } else if (cur === 'Cancelado') {
       State.orders[idx].status = 'Pendente';
       State.saveOrders();
+      hapticFeedback('medium');
       this.render();
       UI.toast(I18n.t('orders.toastReopened'));
     } else if (cur === 'Entregue') {
@@ -447,6 +450,7 @@ const Orders = {
       }
 
       State.saveOrders();
+      hapticFeedback('success');
       modal.classList.remove('active');
       // Bug Fix #2: Dashboard SEMPRE atualiza ao salvar pedido (independente da aba ativa)
       Dashboard.update();

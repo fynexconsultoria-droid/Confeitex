@@ -5209,4 +5209,26 @@ select.form-control {
   color: var(--color-success);
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   PERFORMANCE 120Hz & HARDWARE ACCELERATION OPTIMIZATIONS
+   ═══════════════════════════════════════════════════════════════════════════ */
+html, body {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+.order-row, .client-card, .metric-card, .expense-item, .trash-item {
+  contain: content;
+  content-visibility: auto;
+}
+
+.modal-overlay, .sidebar, .sidebar-overlay, .update-notif-bar {
+  will-change: transform, opacity;
+  transform: translateZ(0);
+}
+
+.main-content, .orders-table-wrapper, .metrics-grid {
+  -webkit-overflow-scrolling: touch;
+}
+
 

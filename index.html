@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Confeitex - Controle de Encomendas</title>
   <meta name="description" content="Controle de encomendas para confeitaria — gerencie pedidos, clientes e entregas. 100% offline.">
-  <meta name="version" content="3.0.1">
+  <meta name="version" content="3.1.0">
 
   <!-- Google Fonts: Plus Jakarta Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -184,6 +184,7 @@
               <div class="notif-dropdown-header">
                 <span class="notif-dropdown-title" data-i18n="notif.title">Notificações</span>
                 <div class="notif-dropdown-actions">
+                  <button type="button" class="notif-action" id="btnTestNotif" title="Testar Notificação Offline">🔔 Testar</button>
                   <button type="button" class="notif-action" id="btnNotifReadAll" data-i18n="notif.readAll">Ler todas</button>
                   <button type="button" class="notif-action" id="btnNotifClear" data-i18n="notif.clear">Limpar</button>
                 </div>
@@ -1360,5 +1361,26 @@
       </div>
     </div>
   </div>
+
+  <!-- Core JavaScript Modules (non-blocking defer loading) -->
+  <script defer src="js/state.js?v=3.1.0"></script>
+  <script defer src="js/i18n.js?v=3.1.0"></script>
+  <script defer src="js/auth.js?v=3.1.0"></script>
+  <script defer src="js/plan.js?v=3.1.0"></script>
+  <script defer src="js/utils.js?v=3.1.0"></script>
+  <script defer src="js/ui.js?v=3.1.0"></script>
+  <script defer src="js/chart.js?v=3.1.0"></script>
+  <script defer src="js/notifications.js?v=3.1.0"></script>
+  <script defer src="js/trash.js?v=3.1.0"></script>
+  <script defer src="js/dashboard.js?v=3.1.0"></script>
+  <script defer src="js/orders.js?v=3.1.0"></script>
+  <script defer src="js/clients.js?v=3.1.0"></script>
+  <script defer src="js/settings.js?v=3.1.0"></script>
+  <script defer src="js/finances.js?v=3.1.0"></script>
+  <script defer src="js/updates.js?v=3.1.0"></script>
+  <script defer src="js/mercadopago.js?v=3.1.0"></script>
+  <script defer src="js/onboarding.js?v=3.1.0"></script>
+  <script defer src="js/pwa.js?v=3.1.0"></script>
+  <script defer src="js/app.js?v=3.1.0"></script>
 </body>
 </html>
