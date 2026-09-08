@@ -14,7 +14,7 @@ const Orders = {
       return matchSearch && matchStatus && (!filterDate || o.deliveryDate === filterDate);
     });
 
-    filtered.sort((a, b) => b.deliveryDate.localeCompare(a.deliveryDate) || b.deliveryTime.localeCompare(a.deliveryTime));
+    filtered.sort((a, b) => b.deliveryDate.localeCompare(a.deliveryDate) || (b.deliveryTime || '').localeCompare(a.deliveryTime || ''));
 
     // Atualiza barra de resumo de faturamento (uma única passagem)
     const summaryBar = document.getElementById('ordersSummaryBar');

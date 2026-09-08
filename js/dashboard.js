@@ -83,7 +83,7 @@ const Dashboard = {
     const container = document.getElementById('todayDeliveriesList');
     if (!container) return;
     const todayStr = fmtISO(new Date());
-    const orders = State.orders.filter(o => o.deliveryDate === todayStr).sort((a, b) => a.deliveryTime.localeCompare(b.deliveryTime));
+    const orders = State.orders.filter(o => o.deliveryDate === todayStr).sort((a, b) => (a.deliveryTime || '').localeCompare(b.deliveryTime || ''));
 
     if (orders.length === 0) {
       container.innerHTML = `<div class="empty-state" style="padding:1.5rem 0;">

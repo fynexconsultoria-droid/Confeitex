@@ -86,39 +86,6 @@ const Notifications = {
     return this._swReg;
   },
 
-  async sendTestNotification() {
-    if (!('Notification' in window)) {
-      if (typeof UI !== 'undefined' && UI.alert) UI.alert('Este navegador não suporta notificações nativas.');
-      return false;
-    }
-    if (Notification.permission !== 'granted') {
-      const perm = await Notification.requestPermission();
-      if (perm !== 'granted') {
-        if (typeof UI !== 'undefined' && UI.alert) UI.alert('Permissão de notificação negada. Ative as notificações no seu celular/navegador.');
-        return false;
-      }
-    }
-    
-    const reg = await this._ensureSW();
-    if (reg && reg.active) {
-      reg.active.postMessage({
-        type: 'TEST_NOTIFICATION',
-        payload: {
-          title: 'Confeitex - Teste Offline! 🎂',
-          body: 'As notificações do seu aplicativo estão 100% configuradas e funcionando offline.'
-        }
-      });
-      if (typeof UI !== 'undefined' && UI.toast) UI.toast('Notificação de teste enviada!');
-      return true;
-    }
-    
-    new Notification('Confeitex - Teste Offline! 🎂', {
-      body: 'As notificações do seu aplicativo estão 100% configuradas e funcionando offline.',
-      icon: 'icons/icon-192x192.png'
-    });
-    if (typeof UI !== 'undefined' && UI.toast) UI.toast('Notificação de teste enviada!');
-    return true;
-  },
 
   // ==== IndexedDB (compartilhado com o Service Worker) ====
 
