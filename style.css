@@ -5222,9 +5222,17 @@ html, body {
   content-visibility: auto;
 }
 
-.modal-overlay, .sidebar, .sidebar-overlay, .update-notif-bar {
+.modal-overlay, .sidebar-overlay {
   will-change: transform, opacity;
   transform: translateZ(0);
+}
+
+.sidebar {
+  will-change: transform, opacity;
+}
+
+.update-notif-bar {
+  will-change: transform, opacity;
 }
 
 .main-content, .orders-table-wrapper, .metrics-grid {
