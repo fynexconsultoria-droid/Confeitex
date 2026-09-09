@@ -701,7 +701,7 @@ const MercadoPagoCheckout = {
 
   closeCheckout() {
     this._stopPolling();
-    const modal = document.getElementById('mpPaymentModal');
+    const modal = document.getElementById('mpCheckoutModal');
     if (modal) {
       modal.classList.remove('active');
       setTimeout(() => { modal.style.display = 'none'; }, 200);

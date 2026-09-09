@@ -1,5 +1,5 @@
 const Updates = {
-  verAtual: '3.1.1',
+  verAtual: '3.1.2',
 
   changelog: [
     { ver: '3.1.1', date: '08/09/2026', keys: ['changelog.3110'] },

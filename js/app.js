@@ -37,8 +37,10 @@
   let lastBackPressTime = 0;
 
   // Garante estado inicial no histórico para o botão voltar funcionar como SPA
+  const hashTab = new URLSearchParams(location.hash.slice(1)).get('tab');
+  const initialTab = hashTab && tabTitles[hashTab] ? hashTab : 'dashboard';
   try {
-    history.replaceState({ tab: 'dashboard' }, '');
+    history.replaceState({ tab: initialTab }, '');
   } catch (e) {}
 
   function switchTab(tabId, pushState = true) {
@@ -232,7 +234,7 @@
   Updates.setup();
   Clients.setupEditModal();
   Trash.setup();
-  Dashboard.update();
+  switchTab(initialTab, false);
 
   // Mercado Pago — inicialização
   if (typeof MercadoPagoCheckout !== 'undefined') {
