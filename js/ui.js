@@ -111,5 +111,42 @@ const UI = {
 
   alert(message) {
     return this.confirm({ title: 'Aviso', message, confirmText: 'OK', cancelText: '', variant: 'primary' });
+  },
+
+  // Modal unificado para reduzir código duplicado
+  createModal({ id, title, content, onClose, className = 'modal-overlay' }) {
+    if (document.getElementById(id)) return null;
+
+    const overlay = document.createElement('div');
+    overlay.className = className;
+    overlay.id = id;
+    overlay.setAttribute('role', 'dialog');
+    overlay.setAttribute('aria-modal', 'true');
+    overlay.setAttribute('aria-label', title);
+
+    overlay.innerHTML = `
+      <div class="modal-container" style="max-width:400px;">
+        <div class="modal-header">
+          <h2>${escapeHTML(title)}</h2>
+          <button class="modal-close-btn" id="${id}Close">&times;</button>
+        </div>
+        <div class="modal-body">${content}</div>
+      </div>`;
+
+    document.body.appendChild(overlay);
+    requestAnimationFrame(() => overlay.classList.add('active'));
+
+    const closeModal = () => {
+      overlay.classList.remove('active');
+      setTimeout(() => overlay.remove(), 300);
+      if (typeof onClose === 'function') onClose();
+    };
+
+    document.getElementById(`${id}Close`).onclick = closeModal;
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) closeModal();
+    });
+
+    return { overlay, closeModal };
   }
 };

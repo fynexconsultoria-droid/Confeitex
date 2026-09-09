@@ -22,18 +22,60 @@ const Finance = {
 
   _updateAll() {
     const orders = this._getFilteredOrders();
-    const active = orders.filter(o => o.status !== 'Cancelado');
-    const canceled = orders.filter(o => o.status === 'Cancelado');
-
     const expenses = this._getFilteredExpenses();
     const expensesTotal = expenses.reduce((s, e) => s + (+e.amount || 0), 0);
 
-    const sales = active.reduce((s, o) => s + getOrderTotal(o), 0);
-    const cost = orders.reduce((s, o) => s + (o.cost || 0), 0) + expensesTotal;
-    const profit = sales - cost;
+    // Consolidação em uma única passagem para melhor performance
+    let sales = 0, cost = 0, canceledCount = 0;
+    let allActiveSales = 0, allActiveCost = 0, allCanceledCount = 0, allExpensesTotal = 0;
+
+    // Dados filtrados
+    orders.forEach(o => {
+      if (o.status !== 'Cancelado') {
+        sales += getOrderTotal(o);
+      }
+      cost += (o.cost || 0);
+      if (o.status === 'Cancelado') canceledCount++;
+    });
+
+    // Dados gerais (todos os pedidos)
+    State.orders.forEach(o => {
+      if (o.status !== 'Cancelado') {
+        allActiveSales += getOrderTotal(o);
+      }
+      allActiveCost += (o.cost || 0);
+      if (o.status === 'Cancelado') allCanceledCount++;
+    });
+    allExpensesTotal = State.expenses.reduce((s, e) => s + (+e.amount || 0), 0);
+
+    const totalCost = cost + expensesTotal;
+    const profit = sales - totalCost;
+    const totalRev = allActiveSales;
+    const totalCostAll = allActiveCost + allExpensesTotal;
+    const totalProfit = totalRev - totalCostAll;
+
+    this._renderExpenses(expenses, expensesTotal);
+    const avgTicket = orders.filter(o => o.status !== 'Cancelado').length > 0 ? totalRev / orders.filter(o => o.status !== 'Cancelado').length : 0;
+
+    document.getElementById('finGenOrders').textContent = orders.filter(o => o.status !== 'Cancelado').length;
+    document.getElementById('finGenRevenue').textContent = fmt(totalRev);
+    document.getElementById('finGenCost').textContent = fmt(totalCostAll);
+    document.getElementById('finGenProfit').textContent = fmt(totalProfit);
+    document.getElementById('finGenAvgTicket').textContent = fmt(avgTicket);
+    document.getElementById('finGenCanceled').textContent = allCanceledCount;
+
+    this._drawPieChart('finPieProductChart', 'finPieProductLegend', orders, 'productType', [
+      'Bolo de Kg', 'Bolo Unitário', 'Doces / Brigadeiros', 'Salgados', 'Outros'
+    ], ['#ec4899', '#8b5cf6', '#3b82f6', '#10b981', '#f59e0b']);
+
+    this._drawPieChart('finPiePaymentChart', 'finPiePaymentLegend', orders, 'paymentMethod', [], null);
+
+    this._drawPieChart('finPieStatusChart', 'finPieStatusLegend', orders, 'status', [
+      'Pendente', 'Em Produção', 'Entregue', 'Cancelado'
+    ], ['#f59e0b', '#3b82f6', '#10b981', '#ef4444']);
 
     document.getElementById('finKpiSalesMonth').textContent = fmt(sales);
-    document.getElementById('finKpiCostMonth').textContent = fmt(cost);
+    document.getElementById('finKpiCostMonth').textContent = fmt(totalCost);
     document.getElementById('finKpiProfitMonth').textContent = fmt(profit);
     document.getElementById('finKpiOrdersMonth').textContent = orders.length;
 
@@ -46,32 +88,6 @@ const Finance = {
     setMetricFooter(1, singleDay ? I18n.t('finance.footerRevenueDay') : I18n.t('finance.footerRevenue'));
     setMetricFooter(2, singleDay ? I18n.t('finance.footerCostDay') : I18n.t('finance.footerCost'));
     setMetricFooter(4, singleDay ? I18n.t('finance.footerOrdersDay') : I18n.t('finance.footerOrders'));
-
-    const allActive = State.orders.filter(o => o.status !== 'Cancelado');
-    const allCanceled = State.orders.filter(o => o.status === 'Cancelado');
-    const totalRev = allActive.reduce((s, o) => s + getOrderTotal(o), 0);
-    const totalCost = State.orders.reduce((s, o) => s + (o.cost || 0), 0) + State.expenses.reduce((s, e) => s + (+e.amount || 0), 0);
-    const totalProfit = totalRev - totalCost;
-
-    this._renderExpenses(expenses, expensesTotal);
-    const avgTicket = allActive.length > 0 ? totalRev / allActive.length : 0;
-
-    document.getElementById('finGenOrders').textContent = allActive.length;
-    document.getElementById('finGenRevenue').textContent = fmt(totalRev);
-    document.getElementById('finGenCost').textContent = fmt(totalCost);
-    document.getElementById('finGenProfit').textContent = fmt(totalProfit);
-    document.getElementById('finGenAvgTicket').textContent = fmt(avgTicket);
-    document.getElementById('finGenCanceled').textContent = allCanceled.length;
-
-    this._drawPieChart('finPieProductChart', 'finPieProductLegend', orders, 'productType', [
-      'Bolo de Kg', 'Bolo Unitário', 'Doces / Brigadeiros', 'Salgados', 'Outros'
-    ], ['#ec4899', '#8b5cf6', '#3b82f6', '#10b981', '#f59e0b']);
-
-    this._drawPieChart('finPiePaymentChart', 'finPiePaymentLegend', orders, 'paymentMethod', [], null);
-
-    this._drawPieChart('finPieStatusChart', 'finPieStatusLegend', orders, 'status', [
-      'Pendente', 'Em Produção', 'Entregue', 'Cancelado'
-    ], ['#f59e0b', '#3b82f6', '#10b981', '#ef4444']);
   },
 
   _drawPieChart(canvasId, legendId, orders, field, orderedLabels, colors) {

@@ -71,6 +71,9 @@ self.addEventListener('activate', (event) => {
     }).then(() => {
       // Toma controle imediato de todas as páginas abertas
       return self.clients.claim();
+    }).then(() => {
+      // Verifica notificações pendentes ao iniciar (após takeover)
+      return swRunCheck();
     })
   );
 });
@@ -326,7 +329,8 @@ self.addEventListener('message', (event) => {
 
   if (type === 'SKIP_WAITING') {
     self.skipWaiting();
-  } else if (type === 'CHECK_NOTIFICATIONS') {
+  } else if (type === 'CHECK_NOTIFICATIONS' || type === 'APP_OPENED') {
+    // Verifica notificações quando o app abre ou recebe mensagem
     event.waitUntil(swRunCheck());
   } else if (type === 'TEST_NOTIFICATION') {
     event.waitUntil(

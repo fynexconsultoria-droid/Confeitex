@@ -1,18 +1,55 @@
 const Dashboard = {
+  _debouncedUpdate: null,
+
   update() {
+    // Debounce para evitar múltiplas chamadas simultâneas
+    if (this._debouncedUpdate) {
+      this._debouncedUpdate();
+      return;
+    }
+    this._debouncedUpdate = debounce(() => {
+      this._debouncedUpdate = null;
+      this._performUpdate();
+    }, 100);
+    this._debouncedUpdate();
+  },
+
+  _performUpdate() {
     const todayStr = fmtISO(new Date());
-    const todayOrders = State.orders.filter(o => o.deliveryDate === todayStr && o.status !== 'Cancelado');
-
-    const todaySales = todayOrders.reduce((s, o) => s + getOrderTotal(o), 0);
-    const todayWeightOrders = todayOrders.filter(o => o.productType === 'Bolo de Kg');
-    const todayWeight = todayWeightOrders.reduce((s, o) => s + (o.weight || 0), 0);
-    const todayUnits = todayOrders.filter(o => o.productType !== 'Bolo de Kg').reduce((s, o) => s + Math.round(o.weight || 0), 0);
-    const pending = State.orders.filter(o => o.status === 'Pendente' || o.status === 'Em Produção').length;
-    const totalEarnings = State.orders.filter(o => o.status !== 'Cancelado').reduce((s, o) => s + getOrderTotal(o), 0);
-
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
-    const yesterdaySales = State.orders.filter(o => o.deliveryDate === fmtISO(yesterday) && o.status !== 'Cancelado').reduce((s, o) => s + getOrderTotal(o), 0);
+    const yesterdayStr = fmtISO(yesterday);
+
+    // Consolidação em uma única passagem para melhor performance
+    let todaySales = 0, todayWeight = 0, todayUnits = 0;
+    let pending = 0, totalEarnings = 0, yesterdaySales = 0;
+
+    State.orders.forEach(o => {
+      const val = getOrderTotal(o);
+      const isCanceled = o.status === 'Cancelado';
+      const isPending = o.status === 'Pendente' || o.status === 'Em Produção';
+
+      // Vendas de hoje
+      if (o.deliveryDate === todayStr && !isCanceled) {
+        todaySales += val;
+        if (o.productType === 'Bolo de Kg') {
+          todayWeight += (o.weight || 0);
+        } else {
+          todayUnits += Math.round(o.weight || 0);
+        }
+      }
+
+      // Vendas de ontem
+      if (o.deliveryDate === yesterdayStr && !isCanceled) {
+        yesterdaySales += val;
+      }
+
+      // Pedidos pendentes
+      if (isPending) pending++;
+
+      // Faturamento total (não cancelados)
+      if (!isCanceled) totalEarnings += val;
+    });
 
     const salesEl = document.getElementById('kpiSalesToday');
     if (salesEl) salesEl.textContent = fmt(todaySales);

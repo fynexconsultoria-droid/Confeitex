@@ -9,6 +9,8 @@ const Chart = {
   _w: 0,
   _h: 0,
   _pb: 0,
+  _lastPeriod: null,
+  _lastDataHash: null,
 
   render() {
     const canvas = document.getElementById('salesChart');
@@ -16,68 +18,78 @@ const Chart = {
 
     const periodSelect = document.getElementById('chartPeriodSelect');
     const period = periodSelect ? periodSelect.value : '30days';
-    const today = new Date();
-    const locale = I18n.locales[I18n.lang] || 'pt-BR';
-    const daysMap = { today: 1, '7days': 7, '15days': 15, '30days': 30, '90days': 90 };
-    const daysLimit = daysMap[period] || 30;
+    
+    // Hash dos dados para detectar mudanças
+    const dataHash = State.orders.length + '_' + (State.orders[0]?.id || '');
+    const needsRecalc = period !== this._lastPeriod || dataHash !== this._lastDataHash;
+    
+    if (needsRecalc) {
+      this._lastPeriod = period;
+      this._lastDataHash = dataHash;
+      
+      const today = new Date();
+      const locale = I18n.locales[I18n.lang] || 'pt-BR';
+      const daysMap = { today: 1, '7days': 7, '15days': 15, '30days': 30, '90days': 90 };
+      const daysLimit = daysMap[period] || 30;
 
-    this.points = [];
-    if (period === 'today') {
-      const todayStr = fmtISO(today);
-      const todayOrders = State.orders
-        .filter(o => o.deliveryDate === todayStr && o.status !== 'Cancelado')
-        .sort((a, b) => (a.deliveryTime || '').localeCompare(b.deliveryTime || ''));
-      let runningSales = 0;
-      todayOrders.forEach((order, index) => {
-        const orderValue = getOrderTotal(order);
-        runningSales += orderValue;
-        this.points.push({
-          date: todayStr,
-          label: order.deliveryTime || `${index + 1}`,
-          weekday: today.toLocaleDateString(locale, { weekday: 'long' }),
-          fullLabel: today.toLocaleDateString(locale, { weekday: 'long', day: '2-digit', month: 'long' }),
-          sales: runningSales,
-          count: index + 1,
-          avgTicket: runningSales / (index + 1),
-          salesDelta: index > 0 ? orderValue : null,
-          countDelta: index > 0 ? 1 : null
+      this.points = [];
+      if (period === 'today') {
+        const todayStr = fmtISO(today);
+        const todayOrders = State.orders
+          .filter(o => o.deliveryDate === todayStr && o.status !== 'Cancelado')
+          .sort((a, b) => (a.deliveryTime || '').localeCompare(b.deliveryTime || ''));
+        let runningSales = 0;
+        todayOrders.forEach((order, index) => {
+          const orderValue = getOrderTotal(order);
+          runningSales += orderValue;
+          this.points.push({
+            date: todayStr,
+            label: order.deliveryTime || `${index + 1}`,
+            weekday: today.toLocaleDateString(locale, { weekday: 'long' }),
+            fullLabel: today.toLocaleDateString(locale, { weekday: 'long', day: '2-digit', month: 'long' }),
+            sales: runningSales,
+            count: index + 1,
+            avgTicket: runningSales / (index + 1),
+            salesDelta: index > 0 ? orderValue : null,
+            countDelta: index > 0 ? 1 : null
+          });
         });
-      });
-      if (this.points.length === 0) {
+        if (this.points.length === 0) {
+          this.points.push({
+            date: todayStr,
+            label: I18n.t('common.today'),
+            weekday: today.toLocaleDateString(locale, { weekday: 'long' }),
+            fullLabel: I18n.t('common.today'),
+            sales: 0,
+            count: 0,
+            avgTicket: 0,
+            salesDelta: null,
+            countDelta: null
+          });
+        }
+      }
+      for (let i = daysLimit - 1; i >= 0; i--) {
+        if (period === 'today') break;
+        const d = new Date(today);
+        d.setDate(today.getDate() - i);
+        const dateStr = fmtISO(d);
+        const dayOrders = State.orders.filter(o => o.deliveryDate === dateStr && o.status !== 'Cancelado');
+        const salesVal = dayOrders.reduce((s, o) => s + getOrderTotal(o), 0);
+        const countVal = dayOrders.length;
+        const avgTicket = countVal > 0 ? salesVal / countVal : 0;
+        const prev = this.points[i === 0 ? 0 : i - 1];
         this.points.push({
-          date: todayStr,
-          label: I18n.t('common.today'),
-          weekday: today.toLocaleDateString(locale, { weekday: 'long' }),
-          fullLabel: I18n.t('common.today'),
-          sales: 0,
-          count: 0,
-          avgTicket: 0,
-          salesDelta: null,
-          countDelta: null
+          date: dateStr,
+          label: period === 'today' ? I18n.t('common.today') : d.toLocaleDateString(locale, { day: '2-digit', month: '2-digit' }),
+          weekday: d.toLocaleDateString(locale, { weekday: 'long' }),
+          fullLabel: period === 'today' ? I18n.t('common.today') : d.toLocaleDateString(locale, { weekday: 'long', day: '2-digit', month: 'long' }),
+          sales: salesVal,
+          count: countVal,
+          avgTicket: avgTicket,
+          salesDelta: prev ? salesVal - prev.sales : null,
+          countDelta: prev ? countVal - prev.count : null
         });
       }
-    }
-    for (let i = daysLimit - 1; i >= 0; i--) {
-      if (period === 'today') break;
-      const d = new Date(today);
-      d.setDate(today.getDate() - i);
-      const dateStr = fmtISO(d);
-      const dayOrders = State.orders.filter(o => o.deliveryDate === dateStr && o.status !== 'Cancelado');
-      const salesVal = dayOrders.reduce((s, o) => s + getOrderTotal(o), 0);
-      const countVal = dayOrders.length;
-      const avgTicket = countVal > 0 ? salesVal / countVal : 0;
-      const prev = this.points[i === 0 ? 0 : i - 1];
-      this.points.push({
-        date: dateStr,
-        label: period === 'today' ? I18n.t('common.today') : d.toLocaleDateString(locale, { day: '2-digit', month: '2-digit' }),
-        weekday: d.toLocaleDateString(locale, { weekday: 'long' }),
-        fullLabel: period === 'today' ? I18n.t('common.today') : d.toLocaleDateString(locale, { weekday: 'long', day: '2-digit', month: 'long' }),
-        sales: salesVal,
-        count: countVal,
-        avgTicket: avgTicket,
-        salesDelta: prev ? salesVal - prev.sales : null,
-        countDelta: prev ? countVal - prev.count : null
-      });
     }
 
     const rect = canvas.getBoundingClientRect();

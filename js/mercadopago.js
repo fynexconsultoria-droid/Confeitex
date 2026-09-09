@@ -204,10 +204,10 @@ const MercadoPagoCheckout = {
         },
         customization: {
           paymentMethods: {
-            bankTransfer: 'all', // Pix
             creditCard: 'all',   // Cartão de Crédito
             debitCard: 'all',    // Cartão de Débito
-            ticket: 'all',       // Boleto
+            bankTransfer: 'all', // Pix
+            ticket: 'off',       // Boleto desativado
           },
           visual: {
             style: {
@@ -374,7 +374,7 @@ const MercadoPagoCheckout = {
     this._startPixPolling(payment.id, order);
   },
 
-  // ─── Tela Pendente Genérica (Boleto / Análise) ───────────────────────────
+  // ─── Tela Pendente Genérica ─────────────────────────────────────────────
   _renderGenericPendingView(payment, order) {
     this._showView('success');
     const statusEl = document.getElementById('mpSuccessStatus');
@@ -393,7 +393,6 @@ const MercadoPagoCheckout = {
             <span>${I18n.t('mp.paymentId')}:</span>
             <strong>#${payment.id}</strong>
           </div>
-          ${payment.ticket_url ? `<a href="${payment.ticket_url}" target="_blank" class="btn btn-primary w-100 mt-2">${I18n.t('mp.btnViewBoleto')}</a>` : ''}
         </div>
       `;
     }
@@ -791,30 +790,13 @@ const MercadoPagoCheckout = {
 
   async processPlanPayment(payload) {
     if (!this.isConfigured()) {
-      // Modo demonstração
-      if (payload.payment_method_id === 'pix') {
-        return {
-          id: 'DEMO_PLAN_PIX_' + Date.now(),
-          status: 'pending',
-          transaction_amount: payload.amount || 7.99,
-          qr_code: '00020126580014br.gov.bcb.pix0136demo-confeitex-plano5204000053039865407.995802BR5915Confeitex App6009Sao Paulo62070503***6304ABCD',
-          qr_code_base64: null,
-        };
-      } else if (payload.payment_method_id === 'bolbradesco' || payload.payment_method_id === 'ticket') {
-        return {
-          id: 'DEMO_PLAN_BOLETO_' + Date.now(),
-          status: 'pending',
-          transaction_amount: payload.amount || 7.99,
-          ticket_url: 'https://confeitex.app/boleto-demo',
-        };
-      } else {
-        return {
-          id: 'DEMO_PLAN_CARD_' + Date.now(),
-          status: 'approved',
-          transaction_amount: payload.amount || 7.99,
-          date_approved: new Date().toISOString(),
-        };
-      }
+      // Modo demonstração - apenas cartão
+      return {
+        id: 'DEMO_PLAN_CARD_' + Date.now(),
+        status: 'approved',
+        transaction_amount: payload.amount || 7.99,
+        date_approved: new Date().toISOString(),
+      };
     }
 
     const res = await fetch(`${this.WORKER_URL}/plan-payment`, {

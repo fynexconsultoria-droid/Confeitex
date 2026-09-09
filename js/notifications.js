@@ -86,6 +86,15 @@ const Notifications = {
     return this._swReg;
   },
 
+  async _notifySW(type, payload) {
+    const reg = await this._ensureSW();
+    if (reg && reg.active) {
+      try {
+        reg.active.postMessage({ type, payload });
+      } catch (e) {}
+    }
+  },
+
 
   // ==== IndexedDB (compartilhado com o Service Worker) ====
 
@@ -338,10 +347,17 @@ const Notifications = {
     }
 
     document.addEventListener('visibilitychange', () => {
-      if (!document.hidden && this._enabled) this.check();
+      if (!document.hidden && this._enabled) {
+        this.check();
+        // Notifica o SW que o app foi aberto (verifica notificações pendentes)
+        this._notifySW('APP_OPENED');
+      }
     });
     window.addEventListener('focus', () => {
-      if (this._enabled) this.check();
+      if (this._enabled) {
+        this.check();
+        this._notifySW('APP_OPENED');
+      }
     });
 
     // Garante que a interface reflita o estado real após a inicialização
@@ -430,11 +446,28 @@ const Notifications = {
     try {
       const title = I18n.t('notif.testTitle');
       const body = I18n.t('notif.testBody');
-      new Notification(title, {
-        body,
-        icon: 'icons/icon-192x192.png',
-        tag: 'confeitex-test-' + Date.now()
-      });
+      const tag = 'confeitex-test-' + Date.now();
+      const notifData = { type: 'test', title, body, orderIds: [] };
+
+      // Tenta via Service Worker (mais confiável em PWA/mobile)
+      const reg = await this._ensureSW();
+      if (reg && reg.showNotification) {
+        await reg.showNotification(title, {
+          body,
+          icon: 'icons/icon-192x192.png',
+          badge: 'icons/icon-192x192.png',
+          tag,
+          data: notifData
+        });
+      } else {
+        // Fallback: Notification API direta
+        new Notification(title, {
+          body,
+          icon: 'icons/icon-192x192.png',
+          tag
+        });
+      }
+
       this._recordNotification({
         id: 'test_' + Date.now(),
         type: 'test',
@@ -666,11 +699,27 @@ const Notifications = {
       }
 
       const { title, body, orderIds } = this._buildContent(matchingOrders, dayOffset, targetDateStr, settings);
-      new Notification(title, {
-        body,
-        icon: 'icons/icon-192x192.png',
-        tag: `confeitex-day-${dayOffset}-${targetDateStr}`
-      });
+      const tag = `confeitex-day-${dayOffset}-${targetDateStr}`;
+      const notifData = { type: dayOffset === 0 ? 'today' : 'reminder', title, body, orderIds, deliveryDate: targetDateStr };
+
+      // Tenta via Service Worker (mais confiável em PWA/mobile)
+      const reg = this.supportsTriggers() ? await this._ensureSW() : null;
+      if (reg && reg.showNotification) {
+        await reg.showNotification(title, {
+          body,
+          icon: 'icons/icon-192x192.png',
+          badge: 'icons/icon-192x192.png',
+          tag,
+          data: notifData
+        });
+      } else {
+        new Notification(title, {
+          body,
+          icon: 'icons/icon-192x192.png',
+          tag
+        });
+      }
+
       this._recordNotification({
         id: cacheKey,
         type: dayOffset === 0 ? 'today' : 'reminder',
@@ -699,11 +748,25 @@ const Notifications = {
             bodyMsg += I18n.t('notif.andMore', { count: overdueOrders.length - 3 });
           }
           const title = I18n.t('notif.overdueTitle');
-          new Notification(title, {
-            body: bodyMsg,
-            icon: 'icons/icon-192x192.png',
-            tag: `confeitex-overdue-${todayStr}`
-          });
+          const tag = `confeitex-overdue-${todayStr}`;
+
+          // Tenta via Service Worker (mais confiável em PWA/mobile)
+          if (reg && reg.showNotification) {
+            await reg.showNotification(title, {
+              body: bodyMsg,
+              icon: 'icons/icon-192x192.png',
+              badge: 'icons/icon-192x192.png',
+              tag,
+              data: { type: 'overdue', title, body: bodyMsg, orderIds: overdueOrders.map(o => o.id) }
+            });
+          } else {
+            new Notification(title, {
+              body: bodyMsg,
+              icon: 'icons/icon-192x192.png',
+              tag
+            });
+          }
+
           this._recordNotification({
             id: cacheKey,
             type: 'overdue',

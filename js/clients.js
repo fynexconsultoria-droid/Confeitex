@@ -1,5 +1,20 @@
 const Clients = {
+  _debouncedRender: null,
+
   render() {
+    // Debounce para evitar múltiplas chamadas simultâneas
+    if (this._debouncedRender) {
+      this._debouncedRender();
+      return;
+    }
+    this._debouncedRender = debounce(() => {
+      this._debouncedRender = null;
+      this._performRender();
+    }, 100);
+    this._debouncedRender();
+  },
+
+  _performRender() {
     const tbody = document.getElementById('clientsTableBody');
     const search = document.getElementById('clientSearchInput').value.toLowerCase();
     const empty = document.getElementById('clientsEmptyState');

@@ -24,6 +24,7 @@ const State = {
   trash: [],
   expenses: [],
   TRASH_RETENTION_DAYS: 7,
+  _syncTimer: null,
 
   load() {
     try {
@@ -57,7 +58,11 @@ const State = {
 
   saveOrders() {
     safeStorage.set('confeitex_orders', JSON.stringify(sanitizeForStorage(this.orders)));
-    if (typeof Notifications !== 'undefined' && Notifications.syncData) Notifications.syncData();
+    // Debounce para evitar múltiplas chamadas ao Notifications.syncData()
+    if (this._syncTimer) clearTimeout(this._syncTimer);
+    this._syncTimer = setTimeout(() => {
+      if (typeof Notifications !== 'undefined' && Notifications.syncData) Notifications.syncData();
+    }, 500);
   },
   saveCatalog() { safeStorage.set('confeitex_catalog', JSON.stringify(sanitizeForStorage(this.catalog))); },
   saveTrash() { safeStorage.set('confeitex_trash', JSON.stringify(sanitizeForStorage(this.trash))); },

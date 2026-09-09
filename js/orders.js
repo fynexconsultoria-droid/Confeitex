@@ -139,31 +139,43 @@ const Orders = {
     });
     tbody.innerHTML = html;
 
-    // Row click to toggle detail
-    tbody.querySelectorAll('.order-row').forEach(row => {
-      row.addEventListener('click', (e) => {
-        if (e.target.closest('button')) return;
-        const id = row.dataset.id;
-        const detail = document.getElementById('detail-' + id.replace(/[^a-zA-Z0-9_-]/g, ''));
-        if (detail) {
-          const isVisible = detail.style.display !== 'none';
-          detail.style.display = isVisible ? 'none' : 'table-row';
-          row.classList.toggle('expanded', !isVisible);
+    // Delegate pattern - um único listener no tbody em vez de múltiplos
+    if (!tbody.dataset.hasDelegate) {
+      tbody.dataset.hasDelegate = '1';
+      tbody.addEventListener('click', (e) => {
+        const row = e.target.closest('.order-row');
+        const btnEdit = e.target.closest('.btn-edit');
+        const btnDelete = e.target.closest('.btn-delete');
+        const btnStatus = e.target.closest('.btn-status-next');
+        const btnCharge = e.target.closest('.btn-charge');
+
+        if (btnEdit) {
+          e.stopPropagation();
+          this.openEdit(btnEdit.dataset.id);
+        } else if (btnDelete) {
+          e.stopPropagation();
+          this.delete(btnDelete.dataset.id);
+        } else if (btnStatus) {
+          e.stopPropagation();
+          this.advanceStatus(btnStatus.dataset.id);
+        } else if (btnCharge) {
+          e.stopPropagation();
+          const order = State.orders.find(o => o.id === btnCharge.dataset.id);
+          if (order && typeof MercadoPagoCheckout !== 'undefined') {
+            MercadoPagoCheckout.openCheckout(order);
+          }
+        } else if (row && !e.target.closest('button')) {
+          const id = row.dataset.id;
+          const detail = document.getElementById('detail-' + id.replace(/[^a-zA-Z0-9_-]/g, ''));
+          if (detail) {
+            const isVisible = detail.style.display !== 'none';
+            detail.style.display = isVisible ? 'none' : 'table-row';
+            row.classList.toggle('expanded', !isVisible);
+          }
         }
       });
-      row.style.cursor = 'pointer';
-    });
-
-    tbody.querySelectorAll('.btn-edit').forEach(b => b.addEventListener('click', (e) => { e.stopPropagation(); this.openEdit(b.dataset.id); }));
-    tbody.querySelectorAll('.btn-delete').forEach(b => b.addEventListener('click', (e) => { e.stopPropagation(); this.delete(b.dataset.id); }));
-    tbody.querySelectorAll('.btn-status-next').forEach(b => b.addEventListener('click', (e) => { e.stopPropagation(); this.advanceStatus(b.dataset.id); }));
-    tbody.querySelectorAll('.btn-charge').forEach(b => b.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const order = State.orders.find(o => o.id === b.dataset.id);
-      if (order && typeof MercadoPagoCheckout !== 'undefined') {
-        MercadoPagoCheckout.openCheckout(order);
-      }
-    }));
+      tbody.style.cursor = 'pointer';
+    }
 
     // Filter listeners (once)
     ['orderFilterStatus', 'orderFilterDate'].forEach(id => {

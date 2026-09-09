@@ -2,7 +2,7 @@
  * Plan.js — Sistema de Planos Confeitex integrado ao Mercado Pago
  * - Teste Grátis de 7 dias com cadastro obrigatório de Cartão de Crédito
  * - Mensalidade de R$7,99/mês
- * - Escolha de preferência no vencimento: Cobrança direta no Cartão, Pix ou Boleto
+ * - Pagamento automático no Cartão de Crédito cadastrado
  */
 
 const Plan = {
@@ -19,11 +19,10 @@ const Plan = {
   KEY_SUB_STATUS:     'confeitex_sub_status', // 'active' | 'expired' | 'canceled'
   KEY_SUB_EXPIRES:    'confeitex_sub_expires',
   KEY_CARD_DATA:      'confeitex_plan_card',
-  KEY_RENEWAL_PREF:   'confeitex_plan_renewal_pref', // 'card' | 'pix' | 'boleto'
+  KEY_RENEWAL_PREF:   'confeitex_plan_renewal_pref', // 'card'
   KEY_PAYMENT_METHOD: 'confeitex_plan_pay_method',
 
   // ─── Estado interno ───────────────────────────────────────────────────────
-  _pixPollTimer: null,
 
   // ─────────────────────────────────────────────────────────────────────────
   // Inicialização
@@ -67,16 +66,15 @@ const Plan = {
   },
 
   // ─────────────────────────────────────────────────────────────────────────
-  // Preferência de Pagamento no Vencimento (Cartão direto / Pix / Boleto)
+  // Preferência de Pagamento no Vencimento (Cartão direto)
   // ─────────────────────────────────────────────────────────────────────────
   getRenewalPreference() {
-    return safeStorage.get(this.KEY_RENEWAL_PREF) || 'card';
+    return 'card';
   },
 
   setRenewalPreference(pref) {
-    if (['card', 'pix', 'boleto'].includes(pref)) {
-      safeStorage.set(this.KEY_RENEWAL_PREF, pref);
-    }
+    // Apenas cartão é aceito
+    safeStorage.set(this.KEY_RENEWAL_PREF, 'card');
   },
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -347,8 +345,8 @@ const Plan = {
             <div class="plan-terms-icon">✓</div>
             <div class="plan-terms-text">
               ${isForTrial
-                ? '<strong>Hoje: R$ 0,00</strong>. Após 7 dias de teste grátis, o plano será de apenas <strong>R$ 7,99/mês</strong>. Você poderá cancelar a qualquer momento ou alterar para pagamento via Pix/Boleto.'
-                : 'Seu cartão será validado com segurança e usado conforme a sua preferência de pagamento.'}
+                ? '<strong>Hoje: R$ 0,00</strong>. Após 7 dias de teste grátis, o plano será de apenas <strong>R$ 7,99/mês</strong>. Você poderá cancelar a qualquer momento.'
+                : 'Seu cartão será validado com segurança e usado para cobrança automática da mensalidade.'}
             </div>
           </div>
 
@@ -666,41 +664,6 @@ const Plan = {
             ${cardInfoHTML}
           </div>
 
-          <!-- Seção de Preferência de Pagamento no Vencimento -->
-          <div class="plan-section">
-            <h3 class="plan-section-title">Quando a mensalidade vencer, como prefere pagar?</h3>
-            <p class="plan-section-desc">Escolha sua forma favorita de pagamento da renovação (R$ 7,99/mês):</p>
-            
-            <div class="plan-renewal-options">
-              <label class="plan-renewal-option ${renewalPref === 'card' ? 'selected' : ''}" id="optRenewalCard">
-                <input type="radio" name="planRenewalPref" value="card" ${renewalPref === 'card' ? 'checked' : ''} />
-                <div class="plan-renewal-opt-icon">💳</div>
-                <div class="plan-renewal-opt-info">
-                  <strong>Cobrança Automática no Cartão</strong>
-                  <span>Debita direto no cartão cadastrado todo mês. Mais praticidade sem risco de esquecer.</span>
-                </div>
-              </label>
-
-              <label class="plan-renewal-option ${renewalPref === 'pix' ? 'selected' : ''}" id="optRenewalPix">
-                <input type="radio" name="planRenewalPref" value="pix" ${renewalPref === 'pix' ? 'checked' : ''} />
-                <div class="plan-renewal-opt-icon">⚡</div>
-                <div class="plan-renewal-opt-info">
-                  <strong>Pagar via Pix no Vencimento</strong>
-                  <span>Gera QR Code e código Copia e Cola instantâneo para pagar quando vencer.</span>
-                </div>
-              </label>
-
-              <label class="plan-renewal-option ${renewalPref === 'boleto' ? 'selected' : ''}" id="optRenewalBoleto">
-                <input type="radio" name="planRenewalPref" value="boleto" ${renewalPref === 'boleto' ? 'checked' : ''} />
-                <div class="plan-renewal-opt-icon">📄</div>
-                <div class="plan-renewal-opt-info">
-                  <strong>Pagar via Boleto Bancário</strong>
-                  <span>Gera boleto para pagamento em lotéricas ou internet banking.</span>
-                </div>
-              </label>
-            </div>
-          </div>
-
           <!-- Botões de Ação Imediata -->
           <div class="plan-manage-actions">
             <button class="btn btn-primary w-100" id="btnPayPlanNow">
@@ -745,27 +708,12 @@ const Plan = {
       };
     }
 
-    // Mudança de Preferência de Vencimento
-    const radios = overlay.querySelectorAll('input[name="planRenewalPref"]');
-    radios.forEach(radio => {
-      radio.addEventListener('change', e => {
-        const val = e.target.value;
-        this.setRenewalPreference(val);
-        overlay.querySelectorAll('.plan-renewal-option').forEach(el => el.classList.remove('selected'));
-        const parentOpt = radio.closest('.plan-renewal-option');
-        if (parentOpt) parentOpt.classList.add('selected');
-        
-        const labels = { card: 'Cartão de Crédito Automático', pix: 'Pix no Vencimento', boleto: 'Boleto Bancário' };
-        UI.toast(`Preferência de pagamento atualizada para: ${labels[val]}`, 'info');
-      });
-    });
-
     // Pagar Agora
     const btnPayNow = document.getElementById('btnPayPlanNow');
     if (btnPayNow) {
       btnPayNow.onclick = () => {
         closeModal();
-        this.showPlanPaymentModal(this.getRenewalPreference());
+        this.showPlanPaymentModal('card');
       };
     }
   },
@@ -782,9 +730,9 @@ const Plan = {
   },
 
   // ─────────────────────────────────────────────────────────────────────────
-  // Modal de Pagamento da Mensalidade (Pix / Cartão / Boleto via Mercado Pago)
+  // Modal de Pagamento da Mensalidade (Cartão via Mercado Pago)
   // ─────────────────────────────────────────────────────────────────────────
-  showPlanPaymentModal(initialMethod = 'pix') {
+  showPlanPaymentModal() {
     if (document.getElementById('planPaymentModalOverlay')) return;
 
     const overlay = document.createElement('div');
@@ -804,45 +752,11 @@ const Plan = {
           <button class="plan-payment-close" id="planPaymentClose">&times;</button>
         </div>
 
-        <!-- Abas de Pagamento -->
-        <div class="plan-pay-tabs">
-          <button class="plan-pay-tab ${initialMethod === 'pix' ? 'active' : ''}" id="tabPayPix" data-method="pix">
-            ⚡ Pix Instantâneo
-          </button>
-          <button class="plan-pay-tab ${initialMethod === 'card' ? 'active' : ''}" id="tabPayCard" data-method="card">
-            💳 Cartão de Crédito
-          </button>
-          <button class="plan-pay-tab ${initialMethod === 'boleto' ? 'active' : ''}" id="tabPayBoleto" data-method="boleto">
-            📄 Boleto Bancário
-          </button>
-        </div>
-
         <div class="plan-pay-body" id="planPayBody">
           <!-- Loading View -->
           <div class="plan-pay-loading" id="planPayLoading">
             <div class="plan-spinner"></div>
-            <span id="planPayLoadingText">Gerando cobrança segura no Mercado Pago...</span>
-          </div>
-
-          <!-- Pix Panel -->
-          <div class="plan-pay-panel" id="panelPayPix" style="display:none;">
-            <div class="plan-pix-box">
-              <div class="plan-pix-qr-wrap">
-                <img id="planPixQrImg" class="plan-pix-qr-img" alt="QR Code Pix Confeitex" style="display:none;" />
-              </div>
-              <p style="font-size:0.85rem;color:var(--text-secondary);text-align:center;">
-                Escaneie o QR Code no app do seu banco ou copie o código Pix abaixo:
-              </p>
-              <div class="plan-pix-code-row">
-                <input type="text" class="form-control" id="planPixCodeInput" readonly />
-                <button class="btn btn-primary" id="btnCopyPlanPixCode">Copiar Código</button>
-              </div>
-              <div class="plan-pix-awaiting">
-                <div class="plan-pulse-dot"></div>
-                <span>Aguardando confirmação do pagamento Pix...</span>
-                <button class="btn btn-secondary btn-sm" id="btnCheckPlanPixStatus">Verificar Agora</button>
-              </div>
-            </div>
+            <span id="planPayLoadingText">Processando pagamento no Mercado Pago...</span>
           </div>
 
           <!-- Card Panel -->
@@ -856,21 +770,6 @@ const Plan = {
               <button class="btn btn-secondary w-100 mt-2" id="btnUseAnotherCard">
                 Usar Outro Cartão
               </button>
-            </div>
-          </div>
-
-          <!-- Boleto Panel -->
-          <div class="plan-pay-panel" id="panelPayBoleto" style="display:none;">
-            <div class="plan-boleto-box">
-              <p>O boleto bancário de <strong>R$ 7,99</strong> foi gerado com sucesso pelo Mercado Pago.</p>
-              <div class="plan-boleto-actions">
-                <a href="#" target="_blank" class="btn btn-primary w-100" id="btnOpenPlanBoleto">
-                  Visualizar / Imprimir Boleto
-                </a>
-              </div>
-              <small style="color:var(--text-muted);display:block;margin-top:0.75rem;text-align:center;">
-                A compensação do boleto pode levar de 1 a 2 dias úteis.
-              </small>
             </div>
           </div>
 
@@ -896,193 +795,93 @@ const Plan = {
     requestAnimationFrame(() => overlay.classList.add('active'));
 
     const closeModal = () => {
-      this._stopPixPolling();
       overlay.classList.remove('active');
       setTimeout(() => overlay.remove(), 350);
     };
 
     document.getElementById('planPaymentClose').onclick = closeModal;
 
-    // Abas
-    const tabs = overlay.querySelectorAll('.plan-pay-tab');
-    tabs.forEach(tab => {
-      tab.onclick = () => {
-        tabs.forEach(t => t.classList.remove('active'));
-        tab.classList.add('active');
-        this._loadPlanMethodView(tab.dataset.method, overlay);
-      };
-    });
-
-    this._loadPlanMethodView(initialMethod, overlay);
+    this._loadPlanCardView(overlay);
   },
 
-  async _loadPlanMethodView(method, overlay) {
+  async _loadPlanCardView(overlay) {
     const loading = overlay.querySelector('#planPayLoading');
-    const panelPix = overlay.querySelector('#panelPayPix');
     const panelCard = overlay.querySelector('#panelPayCard');
-    const panelBoleto = overlay.querySelector('#panelPayBoleto');
     const panelSuccess = overlay.querySelector('#panelPaySuccess');
 
-    panelPix.style.display = 'none';
     panelCard.style.display = 'none';
-    panelBoleto.style.display = 'none';
     panelSuccess.style.display = 'none';
     loading.style.display = 'flex';
 
-    this._stopPixPolling();
-
     try {
-      if (method === 'pix') {
-        const card = this.getCardData();
-        const res = typeof MercadoPagoCheckout !== 'undefined'
-          ? await MercadoPagoCheckout.processPlanPayment({
-              amount: this.PRICE_BRL,
-              payment_method_id: 'pix',
-              plan_name: this.PLAN_NAME,
-              payer_email: card?.email || 'assinante@confeitex.app',
-              payer_name: card?.cardholderName || 'Assinante Confeitex',
-            })
-          : { id: 'DEMO_' + Date.now(), status: 'pending', qr_code: 'demo-pix-code', qr_code_base64: null };
+      loading.style.display = 'none';
+      panelCard.style.display = 'block';
 
-        loading.style.display = 'none';
-        panelPix.style.display = 'block';
-
-        const qrImg = overlay.querySelector('#planPixQrImg');
-        const codeInput = overlay.querySelector('#planPixCodeInput');
-        const btnCopy = overlay.querySelector('#btnCopyPlanPixCode');
-        const btnCheck = overlay.querySelector('#btnCheckPlanPixStatus');
-
-        if (res.qr_code_base64 && qrImg) {
-          qrImg.src = `data:image/png;base64,${res.qr_code_base64}`;
-          qrImg.style.display = 'block';
-        } else if (qrImg) {
-          qrImg.style.display = 'none';
-        }
-
-        if (codeInput) codeInput.value = res.qr_code || '00020126580014br.gov.bcb.pix0136confeitex-demo-pix5204000053039865407.995802BR5915Confeitex App';
-
-        if (btnCopy) {
-          btnCopy.onclick = async () => {
-            if (codeInput) {
-              try {
-                await navigator.clipboard.writeText(codeInput.value);
-                UI.toast('Código Pix Copiado com sucesso!', 'success');
-              } catch {
-                codeInput.select();
-                document.execCommand('copy');
-                UI.toast('Código Pix Copiado!', 'success');
-              }
-            }
-          };
-        }
-
-        if (btnCheck) {
-          btnCheck.onclick = async () => {
-            const status = typeof MercadoPagoCheckout !== 'undefined'
-              ? await MercadoPagoCheckout.checkPaymentStatus(res.id, false)
-              : 'approved';
-
-            if (status === 'approved') {
-              this._onPlanPaymentApproved(res.id, 'pix', overlay);
-            } else {
-              UI.toast('Pagamento Pix ainda pendente. Aguardando banco...', 'info');
-            }
-          };
-        }
-
-        // Inicia polling para detectar pagamento automático do Pix
-        this._startPixPolling(res.id, overlay);
-
-      } else if (method === 'card') {
-        loading.style.display = 'none';
-        panelCard.style.display = 'block';
-
-        const card = this.getCardData();
-        const details = overlay.querySelector('#planCardChargeDetails');
-        if (details) {
-          if (card) {
-            details.innerHTML = `
-              <div class="plan-saved-card-box" style="margin-top:0.75rem;">
-                <div class="plan-saved-card-left">
-                  <div class="plan-saved-card-icon">💳</div>
-                  <div>
-                    <strong>${(card.brand || 'Cartão').toUpperCase()} •••• ${card.lastFourDigits || '4242'}</strong>
-                    <div class="plan-saved-card-holder">${card.cardholderName || 'Titular'}</div>
-                  </div>
+      const card = this.getCardData();
+      const details = overlay.querySelector('#planCardChargeDetails');
+      if (details) {
+        if (card) {
+          details.innerHTML = `
+            <div class="plan-saved-card-box" style="margin-top:0.75rem;">
+              <div class="plan-saved-card-left">
+                <div class="plan-saved-card-icon">💳</div>
+                <div>
+                  <strong>${(card.brand || 'Cartão').toUpperCase()} •••• ${card.lastFourDigits || '4242'}</strong>
+                  <div class="plan-saved-card-holder">${card.cardholderName || 'Titular'}</div>
                 </div>
-              </div>`;
-          } else {
-            details.innerHTML = `<p style="color:var(--color-warning);">Nenhum cartão cadastrado ainda.</p>`;
+              </div>
+            </div>`;
+        } else {
+          details.innerHTML = `<p style="color:var(--color-warning);">Nenhum cartão cadastrado ainda.</p>`;
+        }
+      }
+
+      const btnConfirm = overlay.querySelector('#btnConfirmCardCharge');
+      const btnOther = overlay.querySelector('#btnUseAnotherCard');
+
+      if (btnConfirm) {
+        btnConfirm.onclick = async () => {
+          if (!card) {
+            this.showCardRegistrationModal({ forTrial: false });
+            return;
           }
-        }
+          btnConfirm.disabled = true;
+          btnConfirm.innerHTML = '<span class="plan-spinner"></span> Processando cobrança...';
 
-        const btnConfirm = overlay.querySelector('#btnConfirmCardCharge');
-        const btnOther = overlay.querySelector('#btnUseAnotherCard');
+          try {
+            const res = typeof MercadoPagoCheckout !== 'undefined'
+              ? await MercadoPagoCheckout.processPlanPayment({
+                  amount: this.PRICE_BRL,
+                  payment_method_id: card.brand || 'credit_card',
+                  token: card.token,
+                  plan_name: this.PLAN_NAME,
+                  payer_email: card.email || 'assinante@confeitex.app',
+                  payer_name: card.cardholderName,
+                })
+              : { id: 'DEMO_' + Date.now(), status: 'approved' };
 
-        if (btnConfirm) {
-          btnConfirm.onclick = async () => {
-            if (!card) {
-              this.showCardRegistrationModal({ forTrial: false });
-              return;
+            if (res.status === 'approved') {
+              this._onPlanPaymentApproved(res.id, 'card', overlay);
+            } else {
+              throw new Error('O pagamento com cartão foi recusado pela operadora.');
             }
-            btnConfirm.disabled = true;
-            btnConfirm.innerHTML = '<span class="plan-spinner"></span> Processando cobrança...';
+          } catch (err) {
+            UI.toast(err.message || 'Erro ao processar cartão.', 'danger');
+            btnConfirm.disabled = false;
+            btnConfirm.innerHTML = 'Cobrar R$ 7,99 no Cartão';
+          }
+        };
+      }
 
-            try {
-              const res = typeof MercadoPagoCheckout !== 'undefined'
-                ? await MercadoPagoCheckout.processPlanPayment({
-                    amount: this.PRICE_BRL,
-                    payment_method_id: card.brand || 'credit_card',
-                    token: card.token,
-                    plan_name: this.PLAN_NAME,
-                    payer_email: card.email || 'assinante@confeitex.app',
-                    payer_name: card.cardholderName,
-                  })
-                : { id: 'DEMO_' + Date.now(), status: 'approved' };
-
-              if (res.status === 'approved') {
-                this._onPlanPaymentApproved(res.id, 'card', overlay);
-              } else {
-                throw new Error('O pagamento com cartão foi recusado pela operadora.');
-              }
-            } catch (err) {
-              UI.toast(err.message || 'Erro ao processar cartão.', 'danger');
-              btnConfirm.disabled = false;
-              btnConfirm.innerHTML = 'Cobrar R$ 7,99 no Cartão';
-            }
-          };
-        }
-
-        if (btnOther) {
-          btnOther.onclick = () => {
-            const currentModal = document.getElementById('planPaymentModalOverlay');
-            if (currentModal) currentModal.remove();
-            this.showCardRegistrationModal({
-              forTrial: false,
-              onComplete: () => this.showPlanPaymentModal('card')
-            });
-          };
-        }
-
-      } else if (method === 'boleto') {
-        const card = this.getCardData();
-        const res = typeof MercadoPagoCheckout !== 'undefined'
-          ? await MercadoPagoCheckout.processPlanPayment({
-              amount: this.PRICE_BRL,
-              payment_method_id: 'bolbradesco',
-              plan_name: this.PLAN_NAME,
-              payer_email: card?.email || 'assinante@confeitex.app',
-              payer_name: card?.cardholderName || 'Assinante Confeitex',
-            })
-          : { id: 'DEMO_BOL_' + Date.now(), ticket_url: 'https://confeitex.app/boleto' };
-
-        loading.style.display = 'none';
-        panelBoleto.style.display = 'block';
-
-        const btnBoleto = overlay.querySelector('#btnOpenPlanBoleto');
-        if (btnBoleto && res.ticket_url) {
-          btnBoleto.href = res.ticket_url;
-        }
+      if (btnOther) {
+        btnOther.onclick = () => {
+          const currentModal = document.getElementById('planPaymentModalOverlay');
+          if (currentModal) currentModal.remove();
+          this.showCardRegistrationModal({
+            forTrial: false,
+            onComplete: () => this.showPlanPaymentModal()
+          });
+        };
       }
     } catch (err) {
       console.error('[Plan Payment Load Error]', err);
@@ -1091,34 +890,7 @@ const Plan = {
     }
   },
 
-  _startPixPolling(paymentId, overlay) {
-    this._stopPixPolling();
-    let attempts = 0;
-    this._pixPollTimer = setInterval(async () => {
-      attempts++;
-      if (attempts > 60) {
-        this._stopPixPolling();
-        return;
-      }
-      if (typeof MercadoPagoCheckout !== 'undefined') {
-        const status = await MercadoPagoCheckout.checkPaymentStatus(paymentId, false);
-        if (status === 'approved') {
-          this._stopPixPolling();
-          this._onPlanPaymentApproved(paymentId, 'pix', overlay);
-        }
-      }
-    }, 5000);
-  },
-
-  _stopPixPolling() {
-    if (this._pixPollTimer) {
-      clearInterval(this._pixPollTimer);
-      this._pixPollTimer = null;
-    }
-  },
-
   _onPlanPaymentApproved(paymentId, method, overlay) {
-    this._stopPixPolling();
     this.activateSubscription(paymentId, 30, method);
 
     if (overlay) {
@@ -1187,7 +959,7 @@ const Plan = {
               <span class="paywall-price-amount">7,99</span>
               <span class="paywall-price-period">/mês</span>
             </div>
-            <p class="paywall-price-note">Sem fidelidade · Pague com Cartão, Pix ou Boleto</p>
+            <p class="paywall-price-note">Sem fidelidade · Pague com Cartão de Crédito</p>
           </div>
           <button class="paywall-btn-upgrade" id="paywallBtnUpgrade">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
