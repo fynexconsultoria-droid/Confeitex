@@ -149,7 +149,14 @@ const Dashboard = {
       </div>`;
     }).join('');
 
-    container.querySelectorAll('[data-id]').forEach(el => el.addEventListener('click', () => Orders.openEdit(el.dataset.id)));
+    // Delegação de eventos — evita memory leak
+    if (!container.dataset.hasListener) {
+      container.dataset.hasListener = '1';
+      container.addEventListener('click', (e) => {
+        const item = e.target.closest('[data-id]');
+        if (item) Orders.openEdit(item.dataset.id);
+      });
+    }
   },
 
   calcDayTotals(dateStr) {

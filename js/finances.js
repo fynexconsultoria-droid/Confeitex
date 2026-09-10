@@ -55,7 +55,8 @@ const Finance = {
     const totalProfit = totalRev - totalCostAll;
 
     this._renderExpenses(expenses, expensesTotal);
-    const avgTicket = orders.filter(o => o.status !== 'Cancelado').length > 0 ? totalRev / orders.filter(o => o.status !== 'Cancelado').length : 0;
+    const activeFiltered = orders.filter(o => o.status !== 'Cancelado');
+    const avgTicket = activeFiltered.length > 0 ? sales / activeFiltered.length : 0;
 
     document.getElementById('finGenOrders').textContent = orders.filter(o => o.status !== 'Cancelado').length;
     document.getElementById('finGenRevenue').textContent = fmt(totalRev);
@@ -466,8 +467,8 @@ ${expenses.length > 0 ? `
       if (preset === 'custom') {
         activateCustom();
         const now = new Date();
-        if (!fromInput.value) fromInput.value = _fmtISO(now);
-        if (!toInput.value) toInput.value = _fmtISO(now);
+        if (!fromInput.value) fromInput.value = fmtISO(now);
+        if (!toInput.value) toInput.value = fmtISO(now);
         this._setRange({ from: fromInput.value, to: toInput.value });
       } else {
         this._applyPreset(preset);
@@ -490,7 +491,7 @@ ${expenses.length > 0 ? `
     // Custos de Matéria-Prima
     const btnAdd = document.getElementById('btnAddExpense');
     const dateInput = document.getElementById('expenseDate');
-    if (dateInput && !dateInput.value) dateInput.value = _fmtISO(new Date());
+    if (dateInput && !dateInput.value) dateInput.value = fmtISO(new Date());
 
     const expenseAmountEl = document.getElementById('expenseAmount');
     if (expenseAmountEl) {
@@ -531,7 +532,7 @@ ${expenses.length > 0 ? `
 // Utilitários de período
 // ============================================================
 
-const _fmtISO = fmtISO;
+const fmtISO = fmtISO;
 
 function _presetRange(preset) {
   const now = new Date();
@@ -540,28 +541,28 @@ function _presetRange(preset) {
 
   switch (preset) {
     case 'today':
-      return { from: _fmtISO(today), to: _fmtISO(today) };
+      return { from: fmtISO(today), to: fmtISO(today) };
     case 'yesterday': {
       const y = addDays(today, -1);
-      return { from: _fmtISO(y), to: _fmtISO(y) };
+      return { from: fmtISO(y), to: fmtISO(y) };
     }
     case 'week': {
       const day = today.getDay();
       const monday = addDays(today, day === 0 ? -6 : 1 - day);
-      return { from: _fmtISO(monday), to: _fmtISO(today) };
+      return { from: fmtISO(monday), to: fmtISO(today) };
     }
     case 'month': {
       const first = new Date(today.getFullYear(), today.getMonth(), 1);
       const last = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-      return { from: _fmtISO(first), to: _fmtISO(last) };
+      return { from: fmtISO(first), to: fmtISO(last) };
     }
     case 'lastMonth': {
       const first = new Date(today.getFullYear(), today.getMonth() - 1, 1);
       const last = new Date(today.getFullYear(), today.getMonth(), 0);
-      return { from: _fmtISO(first), to: _fmtISO(last) };
+      return { from: fmtISO(first), to: fmtISO(last) };
     }
     case '30days':
-      return { from: _fmtISO(addDays(today, -29)), to: _fmtISO(today) };
+      return { from: fmtISO(addDays(today, -29)), to: fmtISO(today) };
     case 'all':
     default:
       return { from: null, to: null };

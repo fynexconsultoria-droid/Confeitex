@@ -19,8 +19,8 @@ const Chart = {
     const periodSelect = document.getElementById('chartPeriodSelect');
     const period = periodSelect ? periodSelect.value : '30days';
     
-    // Hash dos dados para detectar mudanças
-    const dataHash = State.orders.length + '_' + (State.orders[0]?.id || '');
+    // Hash dos dados para detectar mudanças (mais estável)
+    const dataHash = State.orders.length + '_' + (State.orders.reduce((s, o) => s + (o.totalValue || 0), 0));
     const needsRecalc = period !== this._lastPeriod || dataHash !== this._lastDataHash;
     
     if (needsRecalc) {

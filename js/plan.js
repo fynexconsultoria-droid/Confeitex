@@ -19,6 +19,8 @@ const Plan = {
   KEY_SUB_STATUS:     'confeitex_sub_status', // 'active' | 'expired' | 'canceled'
   KEY_SUB_EXPIRES:    'confeitex_sub_expires',
   KEY_CARD_DATA:      'confeitex_plan_card',
+  KEY_CUSTOMER_ID:    'confeitex_mp_customer_id', // ID do cliente no MP (seguro armazenar)
+  KEY_CARD_ID:        'confeitex_mp_card_id',     // ID do cartão no MP (seguro armazenar)
   KEY_RENEWAL_PREF:   'confeitex_plan_renewal_pref', // 'card'
   KEY_PAYMENT_METHOD: 'confeitex_plan_pay_method',
 
@@ -49,20 +51,26 @@ const Plan = {
   },
 
   saveCardData(cardData) {
+    // Segurança: NÃO salva o token no localStorage
+    // Apenas dados seguros: últimos 4 dígitos, nome, validade, bandeira
     safeStorage.set(this.KEY_CARD_DATA, JSON.stringify({
       lastFourDigits: cardData.lastFourDigits || '4242',
       cardholderName: cardData.cardholderName || '',
       expirationMonth: cardData.expirationMonth || '',
       expirationYear: cardData.expirationYear || '',
       brand: cardData.brand || 'credit_card',
-      token: cardData.token || '',
       email: cardData.email || '',
       savedAt: new Date().toISOString(),
     }));
+    // Salva customer_id e card_id se fornecidos (seguro armazenar)
+    if (cardData.customer_id) safeStorage.set(this.KEY_CUSTOMER_ID, cardData.customer_id);
+    if (cardData.card_id) safeStorage.set(this.KEY_CARD_ID, cardData.card_id);
   },
 
   removeCardData() {
     safeStorage.remove(this.KEY_CARD_DATA);
+    safeStorage.remove(this.KEY_CUSTOMER_ID);
+    safeStorage.remove(this.KEY_CARD_ID);
   },
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -468,8 +476,19 @@ const Plan = {
 
       const [expMonth, expYear] = expiry.split('/');
       const monthNum = parseInt(expMonth, 10);
+      const yearNum = parseInt(expYear, 10);
+      const fullYear = expYear.length === 2 ? 2000 + yearNum : yearNum;
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      const currentMonth = now.getMonth() + 1;
       if (!expMonth || !expYear || monthNum < 1 || monthNum > 12) {
         errorEl.textContent = 'Informe uma data de validade válida (MM/AA).';
+        errorEl.style.display = 'block';
+        expiryInput.focus();
+        return;
+      }
+      if (fullYear < currentYear || (fullYear === currentYear && monthNum < currentMonth)) {
+        errorEl.textContent = 'Este cartão está expirado. Informe um cartão válido.';
         errorEl.style.display = 'block';
         expiryInput.focus();
         return;

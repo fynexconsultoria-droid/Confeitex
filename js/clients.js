@@ -97,30 +97,35 @@ const Clients = {
     });
     tbody.innerHTML = html;
 
-    // Row click to toggle detail
-    tbody.querySelectorAll('.client-row').forEach(row => {
-      row.addEventListener('click', (e) => {
-        if (e.target.closest('button')) return;
-        const idx = row.dataset.idx;
-        const detail = document.getElementById('client-detail-' + idx);
-        if (detail) {
-          const isVisible = detail.style.display !== 'none';
-          detail.style.display = isVisible ? 'none' : 'table-row';
-          row.classList.toggle('expanded', !isVisible);
+    // Delegação de eventos — evita memory leak
+    if (!tbody.dataset.hasListener) {
+      tbody.dataset.hasListener = '1';
+      tbody.addEventListener('click', (e) => {
+        const row = e.target.closest('.client-row');
+        const btnHistory = e.target.closest('.btn-view-history');
+        const btnEdit = e.target.closest('.btn-edit-client');
+        const btnDelete = e.target.closest('.btn-delete-client');
+
+        if (btnHistory) {
+          e.stopPropagation();
+          this.openHistory(clients[btnHistory.dataset.idx]);
+        } else if (btnEdit) {
+          e.stopPropagation();
+          this.openEdit(clients[btnEdit.dataset.idx]);
+        } else if (btnDelete) {
+          e.stopPropagation();
+          this.delete(clients[btnDelete.dataset.idx]);
+        } else if (row && !e.target.closest('button')) {
+          const idx = row.dataset.idx;
+          const detail = document.getElementById('client-detail-' + idx);
+          if (detail) {
+            const isVisible = detail.style.display !== 'none';
+            detail.style.display = isVisible ? 'none' : 'table-row';
+            row.classList.toggle('expanded', !isVisible);
+          }
         }
       });
-      row.style.cursor = 'pointer';
-    });
-
-    tbody.querySelectorAll('.btn-view-history').forEach(b => {
-      b.addEventListener('click', (e) => { e.stopPropagation(); this.openHistory(clients[b.dataset.idx]); });
-    });
-    tbody.querySelectorAll('.btn-edit-client').forEach(b => {
-      b.addEventListener('click', (e) => { e.stopPropagation(); this.openEdit(clients[b.dataset.idx]); });
-    });
-    tbody.querySelectorAll('.btn-delete-client').forEach(b => {
-      b.addEventListener('click', (e) => { e.stopPropagation(); this.delete(clients[b.dataset.idx]); });
-    });
+    }
 
     const searchInput = document.getElementById('clientSearchInput');
     if (!searchInput.dataset.hasListener) {

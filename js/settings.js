@@ -328,7 +328,10 @@ const Settings = {
     let newExpenses = [];
 
     if (Array.isArray(parsed)) {
-      newOrders = validated.orders;
+      newOrders = parsed.map(item => {
+        if (item && typeof item === 'object' && item.clientName) return item;
+        return null;
+      }).filter(Boolean);
     } else if (parsed && typeof parsed === 'object') {
       if (Array.isArray(parsed.orders)) newOrders = validated.orders;
       if (Array.isArray(parsed.catalog)) newCatalog = validated.catalog;
@@ -666,7 +669,6 @@ const Settings = {
     btnSave.addEventListener('click', () => {
       const url = inputUrl.value.trim().replace(/\/+$/, '');
       const key = inputKey ? inputKey.value.trim() : '';
-      const secret = inputSecret ? inputSecret.value.trim() : '';
 
       if (!url) {
         UI.alert(I18n.t('mp.alertNoWorker'));
@@ -680,10 +682,13 @@ const Settings = {
         safeStorage.remove('confeitex_mp_public_key');
       }
 
-      if (secret) {
-        safeStorage.set('confeitex_mp_app_secret', secret);
-      } else {
-        safeStorage.remove('confeitex_mp_app_secret');
+      // APP_SECRET agora fica apenas no Worker (removido do cliente por segurança)
+      safeStorage.remove('confeitex_mp_app_secret');
+
+      if (typeof MercadoPagoCheckout !== 'undefined') {
+        MercadoPagoCheckout.setWorkerUrl(url);
+        if (key) MercadoPagoCheckout.setPublicKey(key);
+      }
       }
 
       if (typeof MercadoPagoCheckout !== 'undefined') {
@@ -704,7 +709,6 @@ const Settings = {
     if (btnTest) {
       btnTest.addEventListener('click', async () => {
         const url = inputUrl.value.trim().replace(/\/+$/, '');
-        const secret = inputSecret ? inputSecret.value.trim() : (savedSecret || '');
         if (!url) {
           UI.alert(I18n.t('mp.alertNoWorker'));
           return;
@@ -715,9 +719,7 @@ const Settings = {
         btnTest.textContent = 'Testando...';
 
         try {
-          const headers = {};
-          if (secret) headers['X-App-Secret'] = secret;
-          const res = await fetch(`${url}/health`, { method: 'GET', headers });
+          const res = await fetch(`${url}/health`, { method: 'GET' });
           if (!res.ok) throw new Error(`HTTP ${res.status}`);
           const data = await res.json();
 

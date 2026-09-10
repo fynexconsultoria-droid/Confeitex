@@ -8,7 +8,6 @@ const MercadoPagoCheckout = {
   DEFAULT_PUBLIC_KEY: '', // Não usar chave padrão — cada usuário deve configurar a sua
   PUBLIC_KEY: '',
   WORKER_URL: '',
-  APP_SECRET: '',
 
   // ─── Estado Interno ─────────────────────────────────────────────────────
   _mp: null,
@@ -24,7 +23,12 @@ const MercadoPagoCheckout = {
   init() {
     this.PUBLIC_KEY = safeStorage.get('confeitex_mp_public_key') || this.DEFAULT_PUBLIC_KEY;
     this.WORKER_URL = (safeStorage.get('confeitex_mp_worker_url') || '').trim().replace(/\/+$/, '');
-    this.APP_SECRET = (safeStorage.get('confeitex_mp_app_secret') || '').trim();
+    // APP_SECRET agora fica apenas no Worker (localStorage removido por segurança)
+    // Validação de segurança: Worker URL deve usar HTTPS
+    if (this.WORKER_URL && !this.WORKER_URL.startsWith('https://') && !this.WORKER_URL.startsWith('http://localhost')) {
+      console.warn('[MercadoPago] Worker URL deve usar HTTPS. URL atual:', this.WORKER_URL);
+      this.WORKER_URL = '';
+    }
     if (!this.PUBLIC_KEY && !this.WORKER_URL) {
       console.warn('[MercadoPago] Chave pública e Worker URL não configurados. Vá em Configurações > Mercado Pago.');
     }
@@ -43,14 +47,13 @@ const MercadoPagoCheckout = {
   },
 
   setAppSecret(secret) {
-    this.APP_SECRET = (secret || '').trim();
-    safeStorage.set('confeitex_mp_app_secret', this.APP_SECRET);
+    // APP_SECRET agora fica apenas no Worker — método mantido para compatibilidade
+    safeStorage.remove('confeitex_mp_app_secret');
   },
 
   _getHeaders(extra = {}) {
-    const h = { 'Content-Type': 'application/json', ...extra };
-    if (this.APP_SECRET) h['X-App-Secret'] = this.APP_SECRET;
-    return h;
+    // APP_SECRET agora fica apenas no Worker — cliente não envia mais
+    return { 'Content-Type': 'application/json', ...extra };
   },
 
   isConfigured() {
@@ -703,7 +706,6 @@ const MercadoPagoCheckout = {
     const modal = document.getElementById('mpCheckoutModal');
     if (modal) {
       modal.classList.remove('active');
-      setTimeout(() => { modal.style.display = 'none'; }, 200);
     }
     if (this._currentBrickController && typeof this._currentBrickController.unmount === 'function') {
       try { this._currentBrickController.unmount(); } catch (e) {}

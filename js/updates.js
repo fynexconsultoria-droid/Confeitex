@@ -1,7 +1,9 @@
 const Updates = {
-  verAtual: '3.2.0',
+  verAtual: '4.0.0',
+  _checking: false,
 
   changelog: [
+    { ver: '4.0.0', date: '09/09/2026', keys: ['changelog.4000'] },
     { ver: '3.2.0', date: '09/09/2026', keys: ['changelog.3200'] },
     { ver: '3.1.1', date: '08/09/2026', keys: ['changelog.3110'] },
     { ver: '3.1.0', date: '08/09/2026', keys: ['changelog.3100'] },
@@ -15,6 +17,8 @@ const Updates = {
   setup() {
     const btn = document.getElementById('btnCheckUpdates');
     if (btn) btn.onclick = () => this.checkManual();
+    // Registra sincronização periódica para verificações de atualização
+    this._registerUpdateSync();
   },
 
   _delay(ms) {
@@ -32,17 +36,72 @@ const Updates = {
 
   // Verificação silenciosa ao abrir o app
   async checkSilent() {
-    const serverVer = await this._fetchVersion();
-    if (serverVer && serverVer !== this.verAtual) {
-      const deferred = safeStorage.get('confeitex_update_deferred');
-      const oneDay = 86400000;
-      if (deferred && Date.now() - parseInt(deferred, 10) < oneDay) {
+    if (this._checking) return null;
+    this._checking = true;
+    try {
+      const serverVer = await this._fetchVersion();
+      if (serverVer && serverVer !== this.verAtual) {
+        const deferred = safeStorage.get('confeitex_update_deferred');
+        const oneDay = 86400000;
+        if (deferred && Date.now() - parseInt(deferred, 10) < oneDay) {
+          return serverVer;
+        }
+        await this.promptUpdate(serverVer);
         return serverVer;
       }
-      await this.promptUpdate(serverVer);
-      return serverVer;
+      return null;
+    } finally {
+      this._checking = false;
     }
-    return null;
+  },
+
+  // Verifica atualização e registra no sino + mostra banner (chamado ao abrir e ao reconectar)
+  async checkAndUpdate() {
+    if (this._checking) return null;
+    this._checking = true;
+    try {
+      const serverVer = await this._fetchVersion();
+      if (serverVer && serverVer !== this.verAtual) {
+        const deferred = safeStorage.get('confeitex_update_deferred');
+        const oneDay = 86400000;
+        if (deferred && Date.now() - parseInt(deferred, 10) < oneDay) {
+          return serverVer;
+        }
+
+        // Verifica se já notificou esta versão (evita duplicatas)
+        const notifId = 'update_' + serverVer;
+        const alreadyNotified = typeof Notifications !== 'undefined'
+          && Notifications.getHistory
+          && Notifications.getHistory().some(n => n.id === notifId);
+        if (alreadyNotified) {
+          // Já notificou mas pode ainda precisar mostrar o banner
+          const banner = document.getElementById('updateNotification');
+          if (banner && !banner.classList.contains('visible')) {
+            this._showUpdateBanner(serverVer, false);
+          }
+          return serverVer;
+        }
+
+        // Registra no sino de notificações
+        if (typeof Notifications !== 'undefined' && Notifications._recordNotification) {
+          Notifications._recordNotification({
+            id: notifId,
+            type: 'update',
+            title: I18n.t('updates.notifTitle'),
+            body: I18n.t('updates.notifBody', { version: serverVer }),
+            orderIds: [],
+            read: false
+          });
+        }
+
+        // Mostra banner de atualização
+        this._showUpdateBanner(serverVer, false);
+        return serverVer;
+      }
+      return null;
+    } finally {
+      this._checking = false;
+    }
   },
 
   // Diálogo de confirmação de atualização
@@ -109,6 +168,7 @@ const Updates = {
 
   async downloadUpdate() {
     const newVer = safeStorage.get('confeitex_ver') || this.verAtual;
+    const oldVer = this.verAtual;
     const startedAt = Date.now();
 
     this._showProgress(newVer);
@@ -132,7 +192,7 @@ const Updates = {
       safeStorage.set('confeitex_ver', newVer);
       this._updateProgress(100, I18n.t('updates.progressDone'));
       await this._delay(600);
-      this._showUpdateBanner(newVer);
+      this._showUpdateBanner(newVer, true);
       return;
     }
 
@@ -144,6 +204,7 @@ const Updates = {
       reg = await navigator.serviceWorker.register('./sw.js?v=' + newVer);
     } catch {
       safeStorage.remove('confeitex_updated');
+      safeStorage.set('confeitex_ver', oldVer);
       this._hideProgress();
       UI.alert(I18n.t('updates.noConnection') + ' ' + I18n.t('updates.retryMsg'));
       return;
@@ -176,7 +237,7 @@ const Updates = {
     await this._settleProgress(startedAt, I18n.t('updates.progressApplying'));
     this._updateProgress(100, ativado ? I18n.t('updates.progressDone') : I18n.t('updates.progressDoneDeferred'));
     await this._delay(800);
-    this._showUpdateBanner(newVer);
+    this._showUpdateBanner(newVer, true);
   },
 
   _showProgress(ver) {
@@ -240,7 +301,7 @@ const Updates = {
     }
   },
 
-  _showUpdateBanner(ver) {
+  _showUpdateBanner(ver, installed = false) {
     const banner = document.getElementById('updateNotification');
     const text = document.getElementById('updateNotifText');
     const progress = document.getElementById('updateProgress');
@@ -252,7 +313,9 @@ const Updates = {
 
     progress.style.display = 'none';
     actions.style.display = 'flex';
-    text.textContent = I18n.t('updates.installedTitle', { version: ver });
+    text.textContent = installed
+      ? I18n.t('updates.installedTitle', { version: ver })
+      : I18n.t('updates.promptMsg', { version: ver });
 
     if (!banner.classList.contains('visible')) {
       banner.style.display = 'flex';
@@ -261,16 +324,22 @@ const Updates = {
 
     const hide = () => {
       banner.classList.remove('visible');
-      banner.addEventListener('transitionend', () => {
-        banner.style.display = 'none';
-      }, { once: true });
+      setTimeout(() => { banner.style.display = 'none'; }, 300);
     };
 
-    btnNow.onclick = () => {
-      safeStorage.remove('confeitex_updated');
-      hide();
-      setTimeout(() => window.location.reload(), 300);
-    };
+    if (installed) {
+      btnNow.onclick = () => {
+        safeStorage.remove('confeitex_updated');
+        hide();
+        setTimeout(() => window.location.reload(), 300);
+      };
+    } else {
+      btnNow.onclick = () => {
+        safeStorage.set('confeitex_ver', ver);
+        hide();
+        this.downloadUpdate();
+      };
+    }
 
     btnLater.onclick = () => {
       safeStorage.set('confeitex_update_deferred', Date.now().toString());
@@ -321,5 +390,17 @@ const Updates = {
     if (!el) return;
     el.textContent = msg;
     el.style.color = isError ? 'var(--color-danger)' : 'var(--color-success)';
+  },
+
+  // Registra sincronização periódica para verificações de atualização
+  async _registerUpdateSync() {
+    if (!('serviceWorker' in navigator)) return;
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      if (!reg || !('periodicSync' in reg)) return;
+      const status = await navigator.permissions.query({ name: 'periodic-background-sync' });
+      if (status.state !== 'granted') return;
+      await reg.periodicSync.register('confeitex-update-sync', { minInterval: 6 * 60 * 60 * 1000 });
+    } catch (e) {}
   }
 };

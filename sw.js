@@ -51,6 +51,10 @@ self.addEventListener('install', (event) => {
         );
       })
       .then(() => {
+        // Salva a versão atual no IndexedDB para comparação futura
+        return swSet('confeitex_current_version', SW_VERSION);
+      })
+      .then(() => {
         return self.skipWaiting();
       })
   );
@@ -183,8 +187,7 @@ function swSet(key, value) {
 // Mini-dicionário para as notificações em segundo plano (idioma salvo pelo usuário)
 const SW_NOTIF_STRINGS = {
   'pt-BR': { d0: 'Hoje', d1: 'Amanhã', d2: 'em 2 Dias', d3: 'em 3 Dias', sched: '{count} entrega(s) agendada(s) para {day}:', more: '\ne mais {count} pedido(s)...', total: '\n💰 Valor total: {value}', today: 'Confeitex - Entregas de Hoje! 🎂', reminder: 'Confeitex - Lembrete: Entregas {day} 🎂', overdueBody: '{count} pedido(s) com entrega atrasada:', overdueTitle: 'Confeitex - Pedidos Atrasados ⚠️' },
-  en: { d0: 'Today', d1: 'Tomorrow', d2: 'in 2 Days', d3: 'in 3 Days', sched: '{count} delivery(ies) scheduled for {day}:', more: '\nand {count} more order(s)...', total: '\n💰 Total value: {value}', today: 'Confeitex - Deliveries Today! 🎂', reminder: 'Confeitex - Reminder: Deliveries {day} 🎂', overdueBody: '{count} order(s) with late delivery:', overdueTitle: 'Confeitex - Overdue Orders ⚠️' },
-  es: { d0: 'Hoy', d1: 'Mañana', d2: 'en 2 Días', d3: 'en 3 Días', sched: '{count} entrega(s) programada(s) para {day}:', more: '\ny {count} pedido(s) más...', total: '\n💰 Valor total: {value}', today: 'Confeitex - ¡Entregas de Hoy! 🎂', reminder: 'Confeitex - Recordatorio: Entregas {day} 🎂', overdueBody: '{count} pedido(s) con entrega atrasada:', overdueTitle: 'Confeitex - Pedidos Atrasados ⚠️' }
+  en: { d0: 'Today', d1: 'Tomorrow', d2: 'in 2 Days', d3: 'in 3 Days', sched: '{count} delivery(ies) scheduled for {day}:', more: '\nand {count} more order(s)...', total: '\n💰 Total value: {value}', today: 'Confeitex - Deliveries Today! 🎂', reminder: 'Confeitex - Reminder: Deliveries {day} 🎂', overdueBody: '{count} order(s) with late delivery:', overdueTitle: 'Confeitex - Overdue Orders ⚠️' }
 };
 
 function swInterp(tpl, vars) {
@@ -208,8 +211,11 @@ function swFmtMoney(value, currency, lang) {
 // Periodic Background Sync — fallback para navegadores Chromium sem Notification Triggers.
 // O navegador acorda o service worker periodicamente e executamos a checagem.
 self.addEventListener('periodicsync', (event) => {
-  if (event.tag !== 'confeitex-notif-sync') return;
-  event.waitUntil(swRunCheck());
+  if (event.tag === 'confeitex-notif-sync') {
+    event.waitUntil(swRunCheck());
+  } else if (event.tag === 'confeitex-update-sync') {
+    event.waitUntil(swCheckForUpdate());
+  }
 });
 
 async function swRunCheck() {
@@ -322,6 +328,27 @@ function swInQuietHours(settings) {
   return cur >= start || cur < end;
 }
 
+// Verifica atualização via rede e notifica clientes se houver nova versão
+async function swCheckForUpdate() {
+  try {
+    const r = await fetch('./version.txt?t=' + Date.now(), { cache: 'no-store' });
+    if (!r.ok) return;
+    const serverVer = (await r.text()).trim();
+    const currentVer = await swGet('confeitex_current_version');
+    if (serverVer && serverVer !== currentVer) {
+      // Notifica todos os clientes sobre a atualização disponível
+      const clients = await self.clients.matchAll({ type: 'window' });
+      for (const client of clients) {
+        client.postMessage({ type: 'UPDATE_AVAILABLE', version: serverVer });
+      }
+      // NÃO salva a versão aqui — só salva quando o SW novo é ativado (install)
+      // Isso garante que a notificação possa ser reenviada se o usuário ignorar
+    }
+  } catch (e) {
+    console.warn('[SW] Erro ao verificar atualização:', e);
+  }
+}
+
 // Ouvinte de mensagens da aplicação (postMessage)
 self.addEventListener('message', (event) => {
   if (!event.data) return;
@@ -332,6 +359,9 @@ self.addEventListener('message', (event) => {
   } else if (type === 'CHECK_NOTIFICATIONS' || type === 'APP_OPENED') {
     // Verifica notificações quando o app abre ou recebe mensagem
     event.waitUntil(swRunCheck());
+  } else if (type === 'CHECK_UPDATES') {
+    // Verifica atualização e notifica clientes se houver nova versão
+    event.waitUntil(swCheckForUpdate());
   } else if (type === 'TEST_NOTIFICATION') {
     event.waitUntil(
       self.registration.showNotification(payload?.title || 'Confeitex - Teste Offline! 🎂', {

@@ -325,7 +325,7 @@ const Orders = {
         el.addEventListener('input', () => {
           const pos = el.selectionStart;
           const old = el.value;
-          el.value = old.replace(',', '.');
+          el.value = old.replaceAll(',', '.');
           if (el.value !== old) el.setSelectionRange(pos, pos);
         });
       }
@@ -452,7 +452,7 @@ const Orders = {
           }
         }
       } else {
-        data.id = 'o_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);
+        data.id = 'o_' + (crypto.randomUUID ? crypto.randomUUID() : Date.now() + '_' + Math.random().toString(36).slice(2, 10));
         data.createdAt = new Date().toISOString();
         data.deliveredAt = data.status === 'Entregue' ? new Date().toISOString() : null;
         State.orders.push(data);

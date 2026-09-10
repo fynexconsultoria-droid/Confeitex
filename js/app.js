@@ -143,6 +143,18 @@
     modalObserver.observe(modal, { attributes: true });
   });
 
+  // Observa modais criados dinamicamente (ex: Plan modals)
+  const bodyObserver = new MutationObserver(mutations => {
+    mutations.forEach(m => {
+      m.addedNodes.forEach(node => {
+        if (node.nodeType === 1 && node.classList && node.classList.contains('modal-overlay')) {
+          modalObserver.observe(node, { attributes: true });
+        }
+      });
+    });
+  });
+  bodyObserver.observe(document.body, { childList: true });
+
   // Tab navigation
   document.querySelectorAll('.nav-link').forEach(link => {
     link.addEventListener('click', (e) => {
@@ -178,12 +190,46 @@
     navigator.serviceWorker.addEventListener('controllerchange', () => {
       if (reloading) return;
       const progress = document.getElementById('updateProgress');
-      const downloading = progress && progress.style.display !== 'none';
+      const downloading = progress && window.getComputedStyle(progress).display !== 'none';
       const updated = safeStorage.get('confeitex_updated');
       if (downloading || !updated) return;
       reloading = true;
       UI.toast(I18n.t('updates.toastReload'));
       setTimeout(() => window.location.reload(), 1500);
+    });
+
+    // Escuta mensagem do SW sobre atualização disponível
+    navigator.serviceWorker.addEventListener('message', (event) => {
+      if (event.data && event.data.type === 'UPDATE_AVAILABLE' && event.data.version) {
+        const serverVer = event.data.version;
+        if (serverVer !== Updates.verAtual) {
+          // Verifica se já notificou esta versão
+          const notifId = 'update_' + serverVer;
+          const alreadyNotified = typeof Notifications !== 'undefined'
+            && Notifications.getHistory
+            && Notifications.getHistory().some(n => n.id === notifId);
+          if (alreadyNotified) {
+            const banner = document.getElementById('updateNotification');
+            if (banner && !banner.classList.contains('visible')) {
+              Updates._showUpdateBanner(serverVer, false);
+            }
+            return;
+          }
+          // Registra no sino de notificações
+          if (typeof Notifications !== 'undefined' && Notifications._recordNotification) {
+            Notifications._recordNotification({
+              id: notifId,
+              type: 'update',
+              title: I18n.t('updates.notifTitle'),
+              body: I18n.t('updates.notifBody', { version: serverVer }),
+              orderIds: [],
+              read: false
+            });
+          }
+          // Mostra banner
+          Updates._showUpdateBanner(serverVer, false);
+        }
+      }
     });
   }
 
@@ -269,14 +315,19 @@
 
   // Notificações programadas
   Notifications.init();
+  Notifications.initReconnectionListeners();
 
-  // Verifica atualização automaticamente (máx 1x por hora)
+  // Verifica atualização automaticamente (máx 1x por hora) + registra no sino
   (async () => {
     const lastCheck = safeStorage.get('confeitex_last_auto_check');
     const oneHour = 3600000;
     if (lastCheck && Date.now() - parseInt(lastCheck, 10) < oneHour) return;
 
+    try {
+      await Updates.checkAndUpdate();
+    } catch (e) {
+      console.warn('[Confeitex] Erro na verificação automática:', e);
+    }
     safeStorage.set('confeitex_last_auto_check', String(Date.now()));
-    await Updates.checkSilent();
   })();
 })();

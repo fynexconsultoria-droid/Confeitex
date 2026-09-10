@@ -54,7 +54,7 @@ const UI = {
       overlay.className = 'ui-confirm-overlay';
       overlay.setAttribute('role', 'dialog');
       overlay.setAttribute('aria-modal', 'true');
-      overlay.setAttribute('aria-label', title);
+      overlay.setAttribute('aria-labelledby', 'ui-confirm-title');
       
       const modal = document.createElement('div');
       modal.className = 'ui-confirm-modal';
@@ -66,6 +66,7 @@ const UI = {
       
       const titleEl = document.createElement('div');
       titleEl.className = 'ui-confirm-title';
+      titleEl.id = 'ui-confirm-title';
       titleEl.textContent = title;
       
       const msgEl = document.createElement('div');

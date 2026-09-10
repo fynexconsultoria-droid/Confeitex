@@ -1,5 +1,3 @@
-const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-
 const Auth = {
   lockEnabled: false,
   lockHash: '',
@@ -111,7 +109,25 @@ const Auth = {
       const cleanup = () => {
         overlay.classList.remove('active');
         setTimeout(() => overlay.remove(), 400);
+        document.removeEventListener('keydown', trapFocus);
       };
+
+      // Focus trap — mantém Tab dentro do modal
+      const trapFocus = (e) => {
+        if (e.key !== 'Tab') return;
+        const focusable = overlay.querySelectorAll('input, button:not([disabled])');
+        if (focusable.length === 0) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      };
+      document.addEventListener('keydown', trapFocus);
 
       const doLogin = async () => {
         const pw = input.value;

@@ -247,7 +247,7 @@ const Onboarding = {
       if (Math.abs(dx) > 50) {
         dx < 0 ? this.next() : this.prev();
       }
-    }, { passive: true });
+    });
 
     this._updateNav();
   },

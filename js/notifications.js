@@ -257,7 +257,7 @@ const Notifications = {
     const history = this.getHistory();
     empty.style.display = history.length === 0 ? 'block' : 'none';
     list.innerHTML = history.length === 0 ? '' : history.map(n => {
-      const icon = n.type === 'overdue' ? '⚠️' : (n.type === 'test' ? '🔔' : '🎂');
+      const icon = n.type === 'overdue' ? '⚠️' : (n.type === 'test' ? '🔔' : (n.type === 'update' ? '📦' : '🎂'));
       return `
         <button type="button" class="notif-item ${n.read ? '' : 'unread'}" data-id="${n.id}">
           <span class="notif-item-icon">${icon}</span>
@@ -276,7 +276,13 @@ const Notifications = {
         this.markRead(id);
         const dd = document.getElementById('notifDropdown');
         if (dd) dd.classList.remove('open');
-        if (entry && entry.orderIds && entry.orderIds.length > 0) {
+        if (entry && entry.type === 'update') {
+          // Clique em notificação de atualização: mostra o banner
+          const ver = id.replace('update_', '');
+          if (typeof Updates !== 'undefined' && Updates._showUpdateBanner) {
+            Updates._showUpdateBanner(ver);
+          }
+        } else if (entry && entry.orderIds && entry.orderIds.length > 0) {
           this.openOrder(entry.orderIds[0]);
         }
       });
@@ -566,7 +572,9 @@ const Notifications = {
           tag: `confeitex-sched-d${offset}-${date}`,
           showTrigger: new TimestampTrigger(when.getTime())
         });
-      } catch (e) {}
+      } catch (e) {
+        console.warn('[Notifications] Erro ao agendar notificação:', e);
+      }
     }
   },
 
@@ -702,8 +710,6 @@ const Notifications = {
       const tag = `confeitex-day-${dayOffset}-${targetDateStr}`;
       const notifData = { type: dayOffset === 0 ? 'today' : 'reminder', title, body, orderIds, deliveryDate: targetDateStr };
 
-      // Tenta via Service Worker (mais confiável em PWA/mobile)
-      const reg = this.supportsTriggers() ? await this._ensureSW() : null;
       if (reg && reg.showNotification) {
         await reg.showNotification(title, {
           body,
@@ -791,14 +797,17 @@ const Notifications = {
   initReconnectionListeners() {
     window.addEventListener('online', () => {
       if (typeof UI !== 'undefined' && UI.toast) {
-        UI.toast('Conexão reestabelecida! Atualizando dados...');
+        UI.toast(I18n.t('updates.reconnected'));
       }
       if (typeof Dashboard !== 'undefined' && Dashboard.update) Dashboard.update();
       if (typeof Orders !== 'undefined' && Orders.render) Orders.render();
+      // Verifica atualização ao reconectar à rede
+      if (typeof Updates !== 'undefined' && Updates.checkAndUpdate) {
+        setTimeout(() => Updates.checkAndUpdate(), 2000);
+      }
     });
   }
 };
-Notifications.initReconnectionListeners();
 
 if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
   navigator.serviceWorker.addEventListener('message', (event) => {

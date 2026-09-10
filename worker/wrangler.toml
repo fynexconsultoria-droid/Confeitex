@@ -1,0 +1,13 @@
+name = "confeitex-api"
+main = "worker.js"
+compatibility_date = "2024-01-01"
+
+# Variáveis de ambiente (configure via dashboard ou wrangler secret)
+# [vars]
+# MP_ACCESS_TOKEN = "APP_USR-xxxx"
+# APP_SECRET = "seu-segrede-aqui"
+# JWT_SECRET = "seu-jwt-secret-aqui"
+
+# Para Produção (use wrangler secret put MP_ACCESS_TOKEN)
+# [env.production]
+# name = "confeitex-api-prod"

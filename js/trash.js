@@ -48,8 +48,16 @@ const Trash = {
       </div>`;
     }).join('');
 
-    container.querySelectorAll('.btn-trash-restore').forEach(b => b.addEventListener('click', () => this.restore(b.dataset.id)));
-    container.querySelectorAll('.btn-trash-delete').forEach(b => b.addEventListener('click', () => this.remove(b.dataset.id)));
+    // Delegação de eventos — evita memory leak
+    if (!container.dataset.hasListener) {
+      container.dataset.hasListener = '1';
+      container.addEventListener('click', (e) => {
+        const btnRestore = e.target.closest('.btn-trash-restore');
+        const btnDelete = e.target.closest('.btn-trash-delete');
+        if (btnRestore) this.restore(btnRestore.dataset.id);
+        else if (btnDelete) this.remove(btnDelete.dataset.id);
+      });
+    }
   },
 
   async restore(id) {

@@ -38,7 +38,7 @@ const State = {
     } catch (e) {
       this.orders = [];
       this.catalog = [...DEFAULT_CATALOG];
-      const _warn = console.warn.bind(console); _warn('[Confeitex] Erro ao carregar dados:', e);
+      console.warn('[Confeitex] Erro ao carregar dados:', e);
     }
     try {
       const savedTrash = safeStorage.get('confeitex_trash');
@@ -85,8 +85,12 @@ const State = {
 
   purgeTrash() {
     const now = Date.now();
+    const thirtyDays = 30 * 24 * 60 * 60 * 1000;
     const before = this.trash.length;
-    this.trash = this.trash.filter(t => !t.expiresAt || new Date(t.expiresAt).getTime() > now);
+    this.trash = this.trash.filter(t => {
+      if (!t.expiresAt) return false; // Remove itens legados sem data de expiração
+      return new Date(t.expiresAt).getTime() > now;
+    });
     if (this.trash.length !== before) this.saveTrash();
   },
 
