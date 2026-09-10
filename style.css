@@ -5212,8 +5212,7 @@ html, body {
 }
 
 .order-row, .client-card, .metric-card, .expense-item, .trash-item {
-  contain: content;
-  content-visibility: auto;
+  transition: background var(--transition-fast);
 }
 
 .modal-overlay, .sidebar-overlay {

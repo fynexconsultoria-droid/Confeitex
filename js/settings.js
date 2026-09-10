@@ -689,13 +689,6 @@ const Settings = {
         MercadoPagoCheckout.setWorkerUrl(url);
         if (key) MercadoPagoCheckout.setPublicKey(key);
       }
-      }
-
-      if (typeof MercadoPagoCheckout !== 'undefined') {
-        MercadoPagoCheckout.setWorkerUrl(url);
-        if (key) MercadoPagoCheckout.setPublicKey(key);
-        MercadoPagoCheckout.setAppSecret(secret);
-      }
 
       if (display) {
         display.textContent = url;
