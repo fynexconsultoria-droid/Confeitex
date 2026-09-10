@@ -2,6 +2,18 @@
 // Estratégia: Stale-While-Revalidate — version.txt sempre vai à rede
 // O nome do cache usa a versão da URL (?v=X) para invalidar automaticamente
 
+// Polyfill: Promise.allSettled para navegadores antigos (Android 10 / Chrome 74-75)
+if (typeof Promise.allSettled === 'undefined') {
+  Promise.allSettled = function(promises) {
+    return Promise.all(promises.map(function(p) {
+      return Promise.resolve(p).then(
+        function(value) { return { state: 'fulfilled', value: value }; },
+        function(reason) { return { state: 'rejected', reason: reason }; }
+      );
+    }));
+  };
+}
+
 const SW_VERSION = (self.location.search.match(/[?&]v=([^&]+)/) || [null, '1.0.0'])[1];
 const CACHE_NAME = 'confeitex-cache-v' + SW_VERSION;
 

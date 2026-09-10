@@ -333,7 +333,8 @@ const Chart = {
     const handler = () => {
       if (this._resizeTimer) cancelAnimationFrame(this._resizeTimer);
       this._resizeTimer = requestAnimationFrame(() => {
-        if (document.getElementById('dashboard')?.classList.contains('active')) {
+        var dashEl = document.getElementById('dashboard');
+        if (dashEl && dashEl.classList.contains('active')) {
           this.render();
         }
       });
@@ -396,7 +397,8 @@ const Chart = {
     if (!tooltip) {
       tooltip = document.createElement('div');
       tooltip.id = 'chartTooltip';
-      document.querySelector('.chart-container')?.appendChild(tooltip);
+      var chartContainer = document.querySelector('.chart-container');
+      if (chartContainer) chartContainer.appendChild(tooltip);
     }
 
     if (this._tooltipCleanup) {

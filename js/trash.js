@@ -29,7 +29,7 @@ const Trash = {
       const daysLeft = Math.max(0, Math.ceil((new Date(t.expiresAt).getTime() - Date.now()) / 86400000));
       const detail = t.type === 'client'
         ? `${I18n.t('trash.ordersCount', { count: t.count })} · ${I18n.t('trash.expiresIn', { days: daysLeft })}`
-        : `${t.orders[0]?.flavor || ''} · ${fmt(getOrderTotal(t.orders[0]))} · ${I18n.t('trash.expiresIn', { days: daysLeft })}`;
+        : `${(t.orders[0] ? t.orders[0].flavor : '') || ''} · ${fmt(getOrderTotal(t.orders[0]))} · ${I18n.t('trash.expiresIn', { days: daysLeft })}`;
       return `<div class="trash-item">
         <div style="flex:1;min-width:0;">
           <div class="trash-item-title">${escapeHTML(t.label)}</div>
@@ -108,7 +108,8 @@ const Trash = {
   },
 
   refreshActiveTab() {
-    const tab = document.querySelector('.nav-link.active')?.dataset.tab;
+    var activeLink = document.querySelector('.nav-link.active');
+    var tab = activeLink ? activeLink.dataset.tab : null;
     if (tab === 'orders') Orders.render();
     else if (tab === 'clients') Clients.render();
     else if (tab === 'dashboard') Dashboard.update();

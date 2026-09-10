@@ -161,7 +161,8 @@ const Clients = {
     State.saveOrders();
     document.getElementById('clientEditModal').classList.remove('active');
     this.render();
-    const tab = document.querySelector('.nav-link.active')?.dataset.tab;
+    var activeLink = document.querySelector('.nav-link.active');
+    var tab = activeLink ? activeLink.dataset.tab : null;
     if (tab === 'dashboard') Dashboard.update();
     UI.toast(I18n.t('clients.toastSaved'));
   },
@@ -236,7 +237,8 @@ const Clients = {
     State.addToTrash(orders, 'client', `Cliente ${client.name}`);
     State.saveOrders();
     this.render();
-    const tab = document.querySelector('.nav-link.active')?.dataset.tab;
+    var activeLink = document.querySelector('.nav-link.active');
+    var tab = activeLink ? activeLink.dataset.tab : null;
     if (tab === 'dashboard') Dashboard.update();
     if (Trash.updateBadge) Trash.updateBadge();
     UI.toast(I18n.t('clients.toastDeleted'));

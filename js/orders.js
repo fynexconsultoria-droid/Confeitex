@@ -217,7 +217,7 @@ const Orders = {
     };
     Object.entries(fieldMap).forEach(([elId, stateKey]) => {
       const el = document.getElementById(elId);
-      if (el) el.value = o[stateKey] ?? '';
+      if (el) el.value = o[stateKey] != null ? o[stateKey] : '';
     });
     const label = document.getElementById('orderProductType').value;
     this.updateLabels(label);
@@ -283,7 +283,8 @@ const Orders = {
     State.addToTrash([o], 'order', `${o.clientName} — ${o.flavor}`);
     State.saveOrders();
     this.render();
-    const tab = document.querySelector('.nav-link.active')?.dataset.tab;
+    var activeLink = document.querySelector('.nav-link.active');
+    var tab = activeLink ? activeLink.dataset.tab : null;
     if (tab === 'dashboard') Dashboard.update();
     else if (tab === 'clients') Clients.render();
     if (Trash.updateBadge) Trash.updateBadge();
@@ -301,7 +302,8 @@ const Orders = {
       if (cycle[ci + 1] === 'Entregue') State.orders[idx].deliveredAt = new Date().toISOString();
       State.saveOrders();
       this.render();
-      const tab = document.querySelector('.nav-link.active')?.dataset.tab;
+      var activeLink = document.querySelector('.nav-link.active');
+    var tab = activeLink ? activeLink.dataset.tab : null;
       if (tab === 'dashboard') Dashboard.update();
       UI.toast(I18n.t('orders.toastStatus', { status: I18n.value('status', cycle[ci + 1]) }));
     } else if (cur === 'Cancelado') {
@@ -462,7 +464,8 @@ const Orders = {
       modal.classList.remove('active');
       // Bug Fix #2: Dashboard SEMPRE atualiza ao salvar pedido (independente da aba ativa)
       Dashboard.update();
-      const tab = document.querySelector('.nav-link.active')?.dataset.tab;
+      var activeLink = document.querySelector('.nav-link.active');
+    var tab = activeLink ? activeLink.dataset.tab : null;
       if (tab === 'orders') this.render();
       else if (tab === 'clients') Clients.render();
       UI.toast(I18n.t(id ? 'orders.toastUpdated' : 'orders.toastCreated'));

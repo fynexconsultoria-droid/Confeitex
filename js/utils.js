@@ -183,7 +183,7 @@ function validateStateDump(data) {
     entry.type = sanitizeText(entry.type || 'order');
     entry.label = sanitizeText(entry.label || '');
     entry.orders = normalizeList(entry.orders, order => sanitizeForStorage(order));
-    entry.count = Number(parseInt(String(entry.count ?? entry.orders.length), 10) || 0);
+    entry.count = Number(parseInt(String(entry.count != null ? entry.count : entry.orders.length), 10) || 0);
     return entry;
   });
 

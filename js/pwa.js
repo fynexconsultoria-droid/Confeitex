@@ -22,7 +22,8 @@
   });
 
   function showBanner(platform) {
-    document.querySelector('.pwa-install-banner')?.remove();
+    var existing = document.querySelector('.pwa-install-banner');
+    if (existing) existing.remove();
     const banner = document.createElement('div');
     banner.className = 'pwa-install-banner';
     banner.innerHTML = `
@@ -38,19 +39,26 @@
     document.body.appendChild(banner);
     requestAnimationFrame(() => requestAnimationFrame(() => banner.classList.add('visible')));
 
-    banner.querySelector('.pwa-btn-install')?.addEventListener('click', async () => {
-      deferredInstall?.prompt();
-      const { outcome } = await (deferredInstall?.userChoice || Promise.resolve({ outcome: 'dismissed' }));
-      deferredInstall = null;
-      banner.classList.remove('visible');
-      setTimeout(() => banner.remove(), 500);
-    });
+    var installBtn = banner.querySelector('.pwa-btn-install');
+    if (installBtn) {
+      installBtn.addEventListener('click', async () => {
+        if (deferredInstall) deferredInstall.prompt();
+        var result = deferredInstall ? deferredInstall.userChoice : Promise.resolve({ outcome: 'dismissed' });
+        var choice = await result;
+        deferredInstall = null;
+        banner.classList.remove('visible');
+        setTimeout(() => banner.remove(), 500);
+      });
+    }
 
-    banner.querySelector('.pwa-btn-dismiss')?.addEventListener('click', () => {
-      safeStorage.set('confeitex_pwa_dismissed', 'true');
-      banner.classList.remove('visible');
-      setTimeout(() => banner.remove(), 500);
-    });
+    var dismissBtn = banner.querySelector('.pwa-btn-dismiss');
+    if (dismissBtn) {
+      dismissBtn.addEventListener('click', () => {
+        safeStorage.set('confeitex_pwa_dismissed', 'true');
+        banner.classList.remove('visible');
+        setTimeout(() => banner.remove(), 500);
+      });
+    }
 
     setTimeout(() => {
       if (banner.classList.contains('visible')) {
@@ -62,7 +70,8 @@
 
   window.addEventListener('appinstalled', () => {
     deferredInstall = null;
-    document.querySelector('.pwa-install-banner')?.remove();
+    var existing = document.querySelector('.pwa-install-banner');
+    if (existing) existing.remove();
   });
 
   // ===== Trava a tela em retrato nos dispositivos =====

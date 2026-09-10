@@ -302,7 +302,8 @@ const Auth = {
     `;
 
     if (enabled) {
-      document.getElementById('btnDisableLock')?.addEventListener('click', async () => {
+      var disableBtn = document.getElementById('btnDisableLock');
+      if (disableBtn) disableBtn.addEventListener('click', async () => {
         const pw = await this.promptCurrentPassword(I18n.t('auth.disableBtn'));
         if (pw) {
           this.disable();
@@ -310,7 +311,8 @@ const Auth = {
           UI.toast(I18n.t('auth.toastLockDisabled'));
         }
       });
-      document.getElementById('btnChangePassword')?.addEventListener('click', async () => {
+      var changePwBtn = document.getElementById('btnChangePassword');
+      if (changePwBtn) changePwBtn.addEventListener('click', async () => {
         const pw = await this.promptCurrentPassword(I18n.t('auth.changePwBtn'));
         if (pw) {
           const newPw = await this.promptSetPassword(I18n.t('auth.changePwBtn'), I18n.t('auth.pwChangeMsg'));
@@ -320,7 +322,8 @@ const Auth = {
         }
       });
     } else {
-      document.getElementById('btnEnableLock')?.addEventListener('click', async () => {
+      var enableBtn = document.getElementById('btnEnableLock');
+      if (enableBtn) enableBtn.addEventListener('click', async () => {
         if (!this.supported()) {
           UI.alert(I18n.t('auth.alertNoCrypto'));
           return;

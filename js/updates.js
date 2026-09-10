@@ -1,8 +1,9 @@
 const Updates = {
-  verAtual: '4.0.1',
+  verAtual: '4.1.0',
   _checking: false,
 
   changelog: [
+    { ver: '4.1.0', date: '10/09/2026', keys: ['changelog.4100'] },
     { ver: '4.0.1', date: '10/09/2026', keys: ['changelog.4001'] },
     { ver: '4.0.0', date: '09/09/2026', keys: ['changelog.4000'] },
     { ver: '3.2.0', date: '09/09/2026', keys: ['changelog.3200'] },
@@ -136,7 +137,7 @@ const Updates = {
     this.updateStatus(I18n.t('updates.checking'));
 
     const serverVer = await this._fetchVersion();
-    const lastCheckStr = new Date().toLocaleString(I18n.locales?.[I18n.lang] || 'pt-BR');
+    const lastCheckStr = new Date().toLocaleString((I18n.locales && I18n.locales[I18n.lang]) || 'pt-BR');
     safeStorage.set('confeitex_last_check', lastCheckStr);
     const lastCheckEl = document.getElementById('updatesLastCheck');
     if (lastCheckEl) lastCheckEl.textContent = lastCheckStr;

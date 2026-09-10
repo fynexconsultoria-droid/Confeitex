@@ -264,8 +264,8 @@ const MercadoPagoCheckout = {
         installments: formData.installments,
         issuer_id: formData.issuer_id,
         payer: {
-          email: formData.payer?.email || order.clientEmail || 'cliente@confeitex.app',
-          identification: formData.payer?.identification,
+          email: (formData.payer && formData.payer.email) || order.clientEmail || 'cliente@confeitex.app',
+          identification: formData.payer ? formData.payer.identification : undefined,
           first_name: order.clientName,
         },
       };

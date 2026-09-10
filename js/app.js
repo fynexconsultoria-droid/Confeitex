@@ -52,7 +52,7 @@
     document.getElementById('mainTitle').textContent = I18n.t(tabTitles[tabId].title);
     document.getElementById('mainSubtitle').textContent = I18n.t(tabTitles[tabId].subtitle);
 
-    if (pushState && history.state?.tab !== tabId) {
+    if (pushState && !(history.state && history.state.tab === tabId)) {
       try { history.pushState({ tab: tabId }, ''); } catch (e) {}
     }
 
@@ -102,7 +102,7 @@
     }
 
     // 4. Se não estiver no Painel de Controle (Dashboard), navega de volta para a aba principal
-    const currentTab = document.querySelector('.nav-link.active')?.dataset.tab;
+    const currentTab = (function() { var el = document.querySelector('.nav-link.active'); return el ? el.dataset.tab : null; })();
     if (currentTab && currentTab !== 'dashboard') {
       switchTab('dashboard', false);
       return;
@@ -132,7 +132,7 @@
         const target = m.target;
         if (target.classList.contains('active')) {
           pushModalState();
-        } else if (history.state?.modalOpen) {
+        } else if (history.state && history.state.modalOpen) {
           try { history.back(); } catch (e) {}
         }
       }
@@ -262,7 +262,7 @@
 
   // Re-render dinâmico após mudar o idioma
   I18n.onApply = () => {
-    const currentTab = document.querySelector('.nav-link.active')?.dataset.tab;
+    const currentTab = (function() { var el = document.querySelector('.nav-link.active'); return el ? el.dataset.tab : null; })();
     try { switchTab(currentTab || 'dashboard', false); } catch (e) {}
     try { Chart.render(); } catch (e) {}
     if (typeof Orders !== 'undefined' && Orders.refreshFlavorOptions) Orders.refreshFlavorOptions();
