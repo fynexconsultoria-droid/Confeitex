@@ -18,6 +18,7 @@ const SW_VERSION = (self.location.search.match(/[?&]v=([^&]+)/) || [null, '1.0.0
 const CACHE_NAME = 'confeitex-cache-v' + SW_VERSION;
 
 // Arquivos que serão cacheados na instalação do Service Worker
+// Nota: pdf.min.js e pdf.worker.min.js (1.4MB) são carregados sob demanda (lazy-load) para otimizar instalação
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -42,8 +43,6 @@ const ASSETS_TO_CACHE = [
   './js/onboarding.js',
   './js/app.js',
   './js/trash.js',
-  './vendor/pdf.min.js',
-  './vendor/pdf.worker.min.js',
   './icons/icon-192x192.png',
   './icons/icon-512x512.png'
 ];
@@ -100,7 +99,6 @@ self.addEventListener('activate', (event) => {
 function cachePutIfSafe(cache, request, response) {
   if (!response || response.status !== 200 || response.type !== 'basic') return;
   if (request.method !== 'GET') return;
-  if (request.url.includes('?v=')) return;
   if (request.url.includes('google-analytics') || request.url.includes('fonts.googleapis.com') || request.url.includes('fonts.gstatic.com')) return;
   const clone = response.clone();
   cache.put(request, clone).catch(() => {});
@@ -117,7 +115,8 @@ async function networkFirstWithCacheFallback(event) {
     }
     return networkResponse;
   } catch (error) {
-    const cachedResponse = await cache.match(request);
+    // ignoreSearch: true garante que arquivos com ?v=4.1.0 façam match com ./js/state.js no cache
+    const cachedResponse = await cache.match(request, { ignoreSearch: true });
     if (cachedResponse) return cachedResponse;
     return new Response('Offline', { status: 504, statusText: 'Offline' });
   }
@@ -145,7 +144,7 @@ self.addEventListener('fetch', (event) => {
 
   // Recursos externos e terceiros continuam usando cache estático quando possível.
   event.respondWith(
-    caches.match(event.request)
+    caches.match(event.request, { ignoreSearch: true })
       .then((cachedResponse) => {
         if (cachedResponse) return cachedResponse;
         return fetch(event.request, { cache: 'no-store' })

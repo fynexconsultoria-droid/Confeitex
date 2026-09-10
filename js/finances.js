@@ -243,7 +243,7 @@ const Finance = {
           <span class="expense-item-date">📅 ${fmtDateStr(e.date)}</span>
         </div>
         <span class="expense-item-value">${fmt(e.amount)}</span>
-        <button class="btn btn-secondary btn-icon-only btn-del-expense" data-id="${escapeHTML(e.id)}" title="${I18n.t('common.delete')}" style="padding:0.3rem;color:var(--color-danger);border-color:rgba(239,68,68,0.2);">
+        <button class="btn btn-secondary btn-icon-only btn-del-expense" data-id="${escapeHTML(e.id)}" aria-label="${I18n.t('common.delete') || 'Excluir'}" title="${I18n.t('common.delete')}" style="padding:0.3rem;color:var(--color-danger);border-color:rgba(239,68,68,0.2);">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
         </button>
       </div>

@@ -196,15 +196,15 @@ function getOrderTotal(o) {
     const w = parseNumericValue(typeof o.weight === 'number' ? o.weight : (o.weight || 0), 0);
     const p = parseNumericValue(typeof o.unitPrice === 'number' ? o.unitPrice : (o.unitPrice || 0), 0);
     const e = parseNumericValue(typeof o.extraCharges === 'number' ? o.extraCharges : (o.extraCharges || 0), 0);
-    return +(w * p + e);
+    return Math.round((w * p + e) * 100) / 100;
   };
   const val = o.totalValue;
   if (val === undefined || val === null || val === '' || val === 0) return compute();
   if (typeof val === 'string') {
     const parsed = parseNumericValue(val.replace(/[^\d.,-]/g, ''), 0);
-    return Number.isFinite(parsed) ? +parsed : compute();
+    return Number.isFinite(parsed) ? Math.round(parsed * 100) / 100 : compute();
   }
-  return Number.isFinite(+val) ? +val : compute();
+  return Number.isFinite(+val) ? Math.round(+val * 100) / 100 : compute();
 }
 
 function maskPhone(input) {

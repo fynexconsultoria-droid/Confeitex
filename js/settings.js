@@ -9,7 +9,7 @@ const Settings = {
           <span style="font-size:0.75rem;color:var(--text-muted);display:block;">${escapeHTML(I18n.value('product', item.type))}</span>
         </div>
         <div style="font-weight:700;color:var(--color-accent-pink);font-size:0.9rem;margin-right:0.5rem;">${I18n.currencySymbol()} ${item.pricePerKg.toFixed(2)}${item.type === 'Bolo de Kg' ? '/Kg' : '/un'}</div>
-        <button class="btn btn-secondary btn-icon-only btn-del-cat" data-id="${item.id}" style="padding:0.3rem;color:var(--color-danger);border-color:rgba(239,68,68,0.2);">
+        <button class="btn btn-secondary btn-icon-only btn-del-cat" data-id="${item.id}" aria-label="${I18n.t('common.delete') || 'Excluir'}" title="${I18n.t('common.delete') || 'Excluir'}" style="padding:0.3rem;color:var(--color-danger);border-color:rgba(239,68,68,0.2);">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
         </button>
       </div>
