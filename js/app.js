@@ -273,13 +273,14 @@
 
 
 
-  // Init
-  Orders.setupForm();
-  Settings.setup();
-  Finance.setup();
-  Updates.setup();
-  Clients.setupEditModal();
-  Trash.setup();
+  // Init — cada módulo em try/catch isolado para que 1 erro não bloquee os demais
+  const _safe = (name, fn) => { try { fn(); } catch (e) { console.error('[Confeitex] Erro em ' + name + ':', e); } };
+  _safe('Orders.setupForm', () => Orders.setupForm());
+  _safe('Settings.setup', () => Settings.setup());
+  _safe('Finance.setup', () => Finance.setup());
+  _safe('Updates.setup', () => Updates.setup());
+  _safe('Clients.setupEditModal', () => Clients.setupEditModal());
+  _safe('Trash.setup', () => Trash.setup());
   switchTab(initialTab, false);
 
   // Mercado Pago — inicialização

@@ -1,8 +1,9 @@
 const Updates = {
-  verAtual: '4.0.0',
+  verAtual: '4.0.1',
   _checking: false,
 
   changelog: [
+    { ver: '4.0.1', date: '10/09/2026', keys: ['changelog.4001'] },
     { ver: '4.0.0', date: '09/09/2026', keys: ['changelog.4000'] },
     { ver: '3.2.0', date: '09/09/2026', keys: ['changelog.3200'] },
     { ver: '3.1.1', date: '08/09/2026', keys: ['changelog.3110'] },
