@@ -66,12 +66,28 @@ const Notifications = {
     return 'periodicSync' in ServiceWorkerRegistration.prototype;
   },
 
-  // Modo ativo de notificações em segundo plano: 'triggers' | 'periodic' | null
+  _iconUrl() {
+    try {
+      return new URL('icons/icon-192x192.png?v=3', window.location.href).href;
+    } catch (e) {
+      return 'icons/icon-192x192.png';
+    }
+  },
+
+  _badgeUrl() {
+    try {
+      return new URL('icons/icon-192x192.png?v=3', window.location.href).href;
+    } catch (e) {
+      return 'icons/icon-192x192.png';
+    }
+  },
+
+  // Modo ativo de notificações em segundo plano: 'triggers' | 'periodic' | 'sw' | null
   get backgroundMode() {
     if (!('serviceWorker' in navigator)) return null;
     if (this.supportsTriggers()) return 'triggers';
     if (this.supportsPeriodicSync()) return 'periodic';
-    return null;
+    return 'sw';
   },
 
   async _ensureSW() {
@@ -343,7 +359,7 @@ const Notifications = {
     }
   },
 
-  init() {
+  async init() {
     if (this._started) return;
     this._started = true;
     this.setupBell();
@@ -356,21 +372,56 @@ const Notifications = {
     }
 
     const stored = safeStorage.get('confeitex_notifications_enabled');
-    if (stored === 'true' && Notification.permission === 'granted') {
+    const perm = Notification.permission;
+
+    // Se o usuário já concedeu permissão e não desativou explicitamente ('false'), mantém ativo.
+    // Isso evita o bug no Samsung Note 9 / Samsung Internet onde o localStorage isolado/limpo voltava para Inativo.
+    if (perm === 'granted' && stored !== 'false') {
       this._enable();
+    } else if (stored === 'true' && perm === 'granted') {
+      this._enable();
+    } else {
+      // Recuperação assíncrona do IndexedDB caso o localStorage tenha sido isolado ou limpo no fechamento do app
+      try {
+        const snap = await this._idbGet('confeitex_snapshot');
+        if (snap && snap.enabled && perm === 'granted') {
+          this._enable();
+          if (typeof Settings !== 'undefined' && Settings.renderNotificationStatus) {
+            Settings.renderNotificationStatus();
+          }
+        }
+      } catch (e) {}
     }
 
+    // Monitora visibilidade e ciclo de vida do app (quando sai e quando entra)
     document.addEventListener('visibilitychange', () => {
       if (!document.hidden && this._enabled) {
         this.check();
-        // Notifica o SW que o app foi aberto (verifica notificações pendentes)
         this._notifySW('APP_OPENED');
+      } else if (document.hidden && this._enabled) {
+        // Ao minimizar ou sair do app, salva snapshot e sincroniza com o Service Worker imediatamente
+        this.syncData();
+        this._notifySW('CHECK_NOTIFICATIONS');
       }
     });
+
     window.addEventListener('focus', () => {
       if (this._enabled) {
         this.check();
         this._notifySW('APP_OPENED');
+      }
+    });
+
+    window.addEventListener('pageshow', () => {
+      if (this._enabled) {
+        this.check();
+        this._notifySW('APP_OPENED');
+      }
+    });
+
+    window.addEventListener('pagehide', () => {
+      if (this._enabled) {
+        this.syncData();
       }
     });
 
@@ -384,6 +435,7 @@ const Notifications = {
     if (this._enabled) return;
     this._enabled = true;
     safeStorage.set('confeitex_notifications_enabled', 'true');
+    this._idbSet('confeitex_snapshot', { enabled: true, updatedAt: Date.now() });
     this.check();
     this._restartInterval();
     this.syncData();
@@ -408,7 +460,7 @@ const Notifications = {
       clearInterval(this._intervalId);
       this._intervalId = null;
     }
-    this._idbSet('confeitex_snapshot', { enabled: false });
+    this._idbSet('confeitex_snapshot', { enabled: false, updatedAt: Date.now() });
     this._unregisterBackground();
   },
 
@@ -478,7 +530,7 @@ const Notifications = {
     }
 
     if (Notification.permission === 'denied') {
-      UI.alert('A permissão de notificações está bloqueada no navegador.\n\nPara desbloquear:\n• Toque no ícone de cadeado ou ajustes ao lado da barra de endereço do site e altere "Notificações" para "Permitir".');
+      UI.alert('A permissão de notificações está bloqueada no aparelho ou navegador.\n\nPara desbloquear:\n• No Android: acesse Configurações do Android > Aplicativos > Chrome (ou Samsung Internet / Confeitex) > Notificações > Ativar.\n• No navegador: toque no ícone de cadeado ao lado do endereço e altere Notificações para "Permitir".');
       return false;
     }
 
@@ -491,22 +543,27 @@ const Notifications = {
     }
 
     try {
-      const title = I18n.t('notif.testTitle');
-      const body = I18n.t('notif.testBody');
+      const title = I18n.t('notif.testTitle') || 'Confeitex - Teste de Notificação 🎂';
+      const body = I18n.t('notif.testBody') || 'Notificação funcionando perfeitamente na barra do seu celular!';
       const tag = 'confeitex-test-' + Date.now();
       const notifData = { type: 'test', title, body, orderIds: [] };
+      const iconUrl = this._iconUrl();
+      const badgeUrl = this._badgeUrl();
 
       let sent = false;
 
-      // 1. Tenta via Service Worker showNotification (essencial para Android e iOS PWA)
+      // 1. Tenta via Service Worker showNotification (essencial para barra de status do Android e iOS PWA)
       const reg = await this._ensureSW();
       if (reg && reg.showNotification) {
         try {
           await reg.showNotification(title, {
             body,
-            icon: 'icons/icon-192x192.png',
-            badge: 'icons/icon-192x192.png',
+            icon: iconUrl,
+            badge: badgeUrl,
+            vibrate: [200, 100, 200],
+            renotify: true,
             tag,
+            requireInteraction: false,
             data: notifData
           });
           sent = true;
@@ -523,12 +580,15 @@ const Notifications = {
         } catch (e) {}
       }
 
-      // 3. Fallback: API Notification direta (apenas em ambientes compatíveis, ex: desktop)
-      if (!sent) {
+      // 3. Fallback: API Notification direta (apenas em ambientes desktop compatíveis)
+      if (!sent && typeof Notification !== 'undefined' && Notification.permission === 'granted') {
         try {
           new Notification(title, {
             body,
-            icon: 'icons/icon-192x192.png',
+            icon: iconUrl,
+            badge: badgeUrl,
+            vibrate: [200, 100, 200],
+            renotify: true,
             tag
           });
           sent = true;
@@ -537,9 +597,9 @@ const Notifications = {
         }
       }
 
-      // Vibração tátil de confirmação
+      // Vibração tátil de confirmação no aparelho
       if (navigator.vibrate) {
-        try { navigator.vibrate([100, 50, 100]); } catch (e) {}
+        try { navigator.vibrate([200, 100, 200]); } catch (e) {}
       }
 
       // Registra no histórico do sino
@@ -552,9 +612,13 @@ const Notifications = {
         read: false
       });
 
-      // Feedback visual imediato na tela
-      UI.toast(I18n.t('notif.settings.toastTestSent'), 'success');
-      return true;
+      if (sent) {
+        UI.toast(I18n.t('notif.settings.toastTestSent'), 'success');
+        return true;
+      } else {
+        UI.alert('A notificação foi gerada, mas o sistema operacional (Android/Samsung) ou o navegador impediu a exibição na barra superior.\n\nVerifique se as notificações do navegador estão ativadas em:\nConfigurações do Android > Aplicativos > Chrome / Samsung Internet > Notificações.');
+        return false;
+      }
     } catch (e) {
       console.warn('[Notifications] Erro ao enviar notificação de teste:', e);
       UI.toast('Erro ao disparar notificação: ' + (e.message || e), 'danger');
@@ -641,7 +705,10 @@ const Notifications = {
       try {
         await reg.showNotification(title, {
           body,
-          icon: 'icons/icon-192x192.png',
+          icon: this._iconUrl(),
+          badge: this._badgeUrl(),
+          vibrate: [200, 100, 200],
+          renotify: true,
           tag: `confeitex-sched-d${offset}-${date}`,
           showTrigger: new TimestampTrigger(when.getTime())
         });
@@ -755,8 +822,10 @@ const Notifications = {
       if (o && o[1] < todayStr) { delete sent[k]; dirty = true; }
     }
 
-    // Se houver lembrete agendado no sistema para o combo, deixa o SO entregar
-    const reg = this.supportsTriggers() ? await this._ensureSW() : null;
+    // Garante referência ao Service Worker (essencial para mostrar notificações na barra do Android)
+    const reg = await this._ensureSW();
+    const iconUrl = this._iconUrl();
+    const badgeUrl = this._badgeUrl();
 
     for (const dayOffset of daysBeforeList) {
       const targetDateObj = new Date(now.getTime() + dayOffset * 86400000);
@@ -772,7 +841,7 @@ const Notifications = {
       const cacheKey = `notif_d${dayOffset}_${targetDateStr}`;
       if (sent[cacheKey]) continue;
 
-      if (reg) {
+      if (reg && this.supportsTriggers()) {
         try {
           const pending = await reg.getNotifications({ tag: `confeitex-sched-d${dayOffset}-${targetDateStr}` });
           if (pending.length > 0) continue;
@@ -783,20 +852,39 @@ const Notifications = {
       const tag = `confeitex-day-${dayOffset}-${targetDateStr}`;
       const notifData = { type: dayOffset === 0 ? 'today' : 'reminder', title, body, orderIds, deliveryDate: targetDateStr };
 
+      let shown = false;
       if (reg && reg.showNotification) {
-        await reg.showNotification(title, {
-          body,
-          icon: 'icons/icon-192x192.png',
-          badge: 'icons/icon-192x192.png',
-          tag,
-          data: notifData
-        });
-      } else {
-        new Notification(title, {
-          body,
-          icon: 'icons/icon-192x192.png',
-          tag
-        });
+        try {
+          await reg.showNotification(title, {
+            body,
+            icon: iconUrl,
+            badge: badgeUrl,
+            vibrate: [200, 100, 200],
+            renotify: true,
+            tag,
+            requireInteraction: false,
+            data: notifData
+          });
+          shown = true;
+        } catch (err) {
+          console.warn('[Notifications] reg.showNotification falhou:', err);
+        }
+      }
+
+      if (!shown && typeof Notification !== 'undefined') {
+        try {
+          new Notification(title, {
+            body,
+            icon: iconUrl,
+            badge: badgeUrl,
+            vibrate: [200, 100, 200],
+            renotify: true,
+            tag
+          });
+          shown = true;
+        } catch (err) {
+          console.warn('[Notifications] new Notification falhou:', err);
+        }
       }
 
       this._recordNotification({
@@ -829,21 +917,39 @@ const Notifications = {
           const title = I18n.t('notif.overdueTitle');
           const tag = `confeitex-overdue-${todayStr}`;
 
+          let shown = false;
           // Tenta via Service Worker (mais confiável em PWA/mobile)
           if (reg && reg.showNotification) {
-            await reg.showNotification(title, {
-              body: bodyMsg,
-              icon: 'icons/icon-192x192.png',
-              badge: 'icons/icon-192x192.png',
-              tag,
-              data: { type: 'overdue', title, body: bodyMsg, orderIds: overdueOrders.map(o => o.id) }
-            });
-          } else {
-            new Notification(title, {
-              body: bodyMsg,
-              icon: 'icons/icon-192x192.png',
-              tag
-            });
+            try {
+              await reg.showNotification(title, {
+                body: bodyMsg,
+                icon: iconUrl,
+                badge: badgeUrl,
+                vibrate: [200, 100, 200],
+                renotify: true,
+                tag,
+                requireInteraction: false,
+                data: { type: 'overdue', title, body: bodyMsg, orderIds: overdueOrders.map(o => o.id) }
+              });
+              shown = true;
+            } catch (err) {
+              console.warn('[Notifications] reg.showNotification overdue falhou:', err);
+            }
+          }
+
+          if (!shown && typeof Notification !== 'undefined') {
+            try {
+              new Notification(title, {
+                body: bodyMsg,
+                icon: iconUrl,
+                badge: badgeUrl,
+                vibrate: [200, 100, 200],
+                renotify: true,
+                tag
+              });
+            } catch (err) {
+              console.warn('[Notifications] new Notification overdue falhou:', err);
+            }
           }
 
           this._recordNotification({

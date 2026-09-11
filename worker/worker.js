@@ -124,7 +124,7 @@ export default {
         return json({
           status: 'ok',
           service: 'Confeitex Mercado Pago API',
-          version: '5.1.0',
+          version: '5.2.0',
           configured: Boolean(env.MP_ACCESS_TOKEN),
           timestamp: Date.now(),
         });

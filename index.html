@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Confeitex - Controle de Encomendas</title>
   <meta name="description" content="Controle de encomendas para confeitaria — gerencie pedidos, clientes e entregas. 100% offline.">
-  <meta name="version" content="5.1.0">
+  <meta name="version" content="5.2.0">
 
   <!-- Google Fonts: Plus Jakarta Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -768,6 +768,13 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
                 <span data-i18n="notif.settings.testBtn">Enviar Notificação de Teste</span>
               </button>
+              <div class="notification-android-tip" id="notifAndroidTip" style="font-size:0.78rem;color:var(--text-muted);background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:0.75rem;line-height:1.4;">
+                <div style="display:flex;align-items:center;gap:0.4rem;font-weight:600;color:var(--color-primary-light);margin-bottom:0.25rem;">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;flex-shrink:0;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                  <span data-i18n="notif.settings.androidTipTitle">Dica para Celulares Samsung e outros Android</span>
+                </div>
+                <span data-i18n="notif.settings.androidTipBody">Para receber alertas na barra com o app fechado: certifique-se de que as notificações do navegador estão ativadas no Android e desative a "Otimização de Bateria" (ou "Suspender aplicativo") para o Confeitex / Navegador nas Configurações do aparelho.</span>
+              </div>
             </div>
 
             <div class="notification-opts">
@@ -1343,24 +1350,24 @@
   </div>
 
   <!-- Core JavaScript Modules (non-blocking defer loading) -->
-  <script defer src="js/state.js?v=5.1.0"></script>
-  <script defer src="js/i18n.js?v=5.1.0"></script>
-  <script defer src="js/auth.js?v=5.1.0"></script>
-  <script defer src="js/plan.js?v=5.1.0"></script>
-  <script defer src="js/utils.js?v=5.1.0"></script>
-  <script defer src="js/ui.js?v=5.1.0"></script>
-  <script defer src="js/chart.js?v=5.1.0"></script>
-  <script defer src="js/notifications.js?v=5.1.0"></script>
-  <script defer src="js/trash.js?v=5.1.0"></script>
-  <script defer src="js/dashboard.js?v=5.1.0"></script>
-  <script defer src="js/orders.js?v=5.1.0"></script>
-  <script defer src="js/clients.js?v=5.1.0"></script>
-  <script defer src="js/settings.js?v=5.1.0"></script>
-  <script defer src="js/finances.js?v=5.1.0"></script>
-  <script defer src="js/updates.js?v=5.1.0"></script>
-  <script defer src="js/mercadopago.js?v=5.1.0"></script>
-  <script defer src="js/onboarding.js?v=5.1.0"></script>
-  <script defer src="js/pwa.js?v=5.1.0"></script>
-  <script defer src="js/app.js?v=5.1.0"></script>
+  <script defer src="js/state.js?v=5.2.0"></script>
+  <script defer src="js/i18n.js?v=5.2.0"></script>
+  <script defer src="js/auth.js?v=5.2.0"></script>
+  <script defer src="js/plan.js?v=5.2.0"></script>
+  <script defer src="js/utils.js?v=5.2.0"></script>
+  <script defer src="js/ui.js?v=5.2.0"></script>
+  <script defer src="js/chart.js?v=5.2.0"></script>
+  <script defer src="js/notifications.js?v=5.2.0"></script>
+  <script defer src="js/trash.js?v=5.2.0"></script>
+  <script defer src="js/dashboard.js?v=5.2.0"></script>
+  <script defer src="js/orders.js?v=5.2.0"></script>
+  <script defer src="js/clients.js?v=5.2.0"></script>
+  <script defer src="js/settings.js?v=5.2.0"></script>
+  <script defer src="js/finances.js?v=5.2.0"></script>
+  <script defer src="js/updates.js?v=5.2.0"></script>
+  <script defer src="js/mercadopago.js?v=5.2.0"></script>
+  <script defer src="js/onboarding.js?v=5.2.0"></script>
+  <script defer src="js/pwa.js?v=5.2.0"></script>
+  <script defer src="js/app.js?v=5.2.0"></script>
 </body>
 </html>

@@ -629,6 +629,8 @@ const Settings = {
         info.textContent = I18n.t('notif.settings.activeTriggers');
       } else if (mode === 'periodic') {
         info.textContent = I18n.t('notif.settings.activePeriodic');
+      } else if (mode === 'sw') {
+        info.textContent = I18n.t('notif.settings.activeSW') || 'Notificações ativas no dispositivo. O Service Worker sincroniza as entregas para alertar na barra do celular.';
       } else {
         info.textContent = I18n.t('notif.settings.activeOpen');
       }
@@ -727,11 +729,20 @@ const Settings = {
           const data = await res.json();
 
           if (badge) {
-            badge.className = 'mp-config-status ok';
-            badge.innerHTML = `<span>${I18n.t('mp.testSuccess')} (v${data.version || '2.0.0'})</span>`;
-            badge.style.display = 'flex';
+            if (data.configured === false) {
+              badge.className = 'mp-config-status warn';
+              badge.innerHTML = `<span>⚠️ Worker conectado (v${data.version || '5.2.0'}), mas MP_ACCESS_TOKEN pendente no Cloudflare!</span>`;
+              badge.style.display = 'flex';
+              UI.toast('Worker conectado, mas configure o MP_ACCESS_TOKEN no Cloudflare!', 'warning');
+            } else {
+              badge.className = 'mp-config-status ok';
+              badge.innerHTML = `<span>✅ Mercado Pago 100% conectado e pronto para receber mensalidades! (v${data.version || '5.2.0'})</span>`;
+              badge.style.display = 'flex';
+              UI.toast(I18n.t('mp.testSuccess'), 'success');
+            }
+          } else {
+            UI.toast(I18n.t('mp.testSuccess'), 'success');
           }
-          UI.toast(I18n.t('mp.testSuccess'), 'success');
         } catch (err) {
           console.warn('[MP Worker Test Error]', err);
           if (badge) {

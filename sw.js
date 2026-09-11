@@ -122,6 +122,15 @@ async function networkFirstWithCacheFallback(event) {
   }
 }
 
+let swLastCheck = 0;
+function swThrottleCheck() {
+  const now = Date.now();
+  if (now - swLastCheck > 15 * 60 * 1000) {
+    swLastCheck = now;
+    swRunCheck().catch(() => {});
+  }
+}
+
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
   const url = new URL(event.request.url);
@@ -138,6 +147,9 @@ self.addEventListener('fetch', (event) => {
   ].some((fragment) => url.pathname.endsWith(fragment) || url.pathname.includes(fragment));
 
   if (event.request.mode === 'navigate' || isAppAsset) {
+    if (event.request.mode === 'navigate') {
+      swThrottleCheck();
+    }
     event.respondWith(networkFirstWithCacheFallback(event));
     return;
   }
@@ -219,6 +231,14 @@ function swFmtMoney(value, currency, lang) {
   }
 }
 
+function swGetIconUrl() {
+  try {
+    return new URL('icons/icon-192x192.png?v=3', self.location.origin).href;
+  } catch (e) {
+    return 'icons/icon-192x192.png';
+  }
+}
+
 // Periodic Background Sync — fallback para navegadores Chromium sem Notification Triggers.
 // O navegador acorda o service worker periodicamente e executamos a checagem.
 self.addEventListener('periodicsync', (event) => {
@@ -244,6 +264,7 @@ async function swRunCheck() {
   const s = swNotif(snapshot.lang);
   const dayLabels = { 0: s.d0, 1: s.d1, 2: s.d2, 3: s.d3 };
   const newSent = { ...sent };
+  const iconUrl = swGetIconUrl();
 
   // Horário de silêncio: não notifica dentro do intervalo configurado
   if (swInQuietHours(settings)) return;
@@ -284,13 +305,21 @@ async function swRunCheck() {
       ? s.today
       : swInterp(s.reminder, { day: dayLabels[dayOffset] || targetDateStr });
 
-    self.registration.showNotification(title, {
-      body: bodyMsg,
-      icon: 'icons/icon-192x192.png',
-      tag: `confeitex-day-${dayOffset}-${targetDateStr}`
-    });
-
-    newSent[cacheKey] = true;
+    try {
+      await self.registration.showNotification(title, {
+        body: bodyMsg,
+        icon: iconUrl,
+        badge: iconUrl,
+        vibrate: [200, 100, 200],
+        renotify: true,
+        requireInteraction: false,
+        tag: `confeitex-day-${dayOffset}-${targetDateStr}`,
+        data: { tab: 'orders', type: dayOffset === 0 ? 'today' : 'reminder' }
+      });
+      newSent[cacheKey] = true;
+    } catch (e) {
+      console.warn('[SW] showNotification falhou:', e);
+    }
   }
 
   // Alertas de pedidos atrasados (data de entrega vencida e ainda pendente)
@@ -307,12 +336,21 @@ async function swRunCheck() {
           bodyMsg += swInterp(s.more, { count: overdueOrders.length - 3 });
         }
         const title = s.overdueTitle;
-        self.registration.showNotification(title, {
-          body: bodyMsg,
-          icon: 'icons/icon-192x192.png',
-          tag: `confeitex-overdue-${todayStr}`
-        });
-        newSent[cacheKey] = true;
+        try {
+          await self.registration.showNotification(title, {
+            body: bodyMsg,
+            icon: iconUrl,
+            badge: iconUrl,
+            vibrate: [200, 100, 200],
+            renotify: true,
+            requireInteraction: false,
+            tag: `confeitex-overdue-${todayStr}`,
+            data: { tab: 'orders', type: 'overdue' }
+          });
+          newSent[cacheKey] = true;
+        } catch (e) {
+          console.warn('[SW] showNotification overdue falhou:', e);
+        }
       }
     }
   }
@@ -349,10 +387,14 @@ async function swCheckForUpdate() {
     if (serverVer && serverVer !== currentVer) {
       // Dispara notificação nativa para o sistema operacional / dispositivo
       try {
+        const iconUrl = swGetIconUrl();
         await self.registration.showNotification('📦 Nova Atualização Disponível', {
           body: `Uma nova versão do Confeitex (v${serverVer}) está disponível. Toque para atualizar.`,
-          icon: 'icons/icon-192x192.png',
-          badge: 'icons/icon-192x192.png',
+          icon: iconUrl,
+          badge: iconUrl,
+          vibrate: [200, 100, 200],
+          renotify: true,
+          requireInteraction: false,
           tag: 'confeitex-update-' + serverVer,
           data: { tab: 'updates', type: 'update', version: serverVer }
         });
@@ -363,8 +405,6 @@ async function swCheckForUpdate() {
       for (const client of clients) {
         client.postMessage({ type: 'UPDATE_AVAILABLE', version: serverVer });
       }
-      // NÃO salva a versão aqui — só salva quando o SW novo é ativado (install)
-      // Isso garante que a notificação possa ser reenviada se o usuário ignorar
     }
   } catch (e) {
     console.warn('[SW] Erro ao verificar atualização:', e);
@@ -385,12 +425,16 @@ self.addEventListener('message', (event) => {
     // Verifica atualização e notifica clientes se houver nova versão
     event.waitUntil(swCheckForUpdate());
   } else if (type === 'TEST_NOTIFICATION') {
+    const iconUrl = swGetIconUrl();
     event.waitUntil(
       self.registration.showNotification(payload?.title || 'Confeitex - Teste Offline! 🎂', {
         body: payload?.body || 'Notificações offline funcionando perfeitamente no seu dispositivo!',
-        icon: 'icons/icon-192x192.png',
-        badge: 'icons/icon-192x192.png',
-        tag: 'confeitex-test-notification',
+        icon: iconUrl,
+        badge: iconUrl,
+        vibrate: [200, 100, 200],
+        renotify: true,
+        requireInteraction: false,
+        tag: 'confeitex-test-notification-' + Date.now(),
         data: { tab: 'orders' }
       })
     );

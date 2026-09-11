@@ -9,6 +9,7 @@ const Plan = {
   // ─── Configuração do Plano ────────────────────────────────────────────────
   TRIAL_DAYS: 7,
   PRICE_BRL: 7.99,
+  ANNUAL_PRICE_BRL: 79.90, // Economia de 2 meses grátis
   PLAN_NAME: 'Confeitex Premium',
   CURRENCY: 'BRL',
   MAX_ORDERS_FREE: 20,
@@ -18,6 +19,7 @@ const Plan = {
   KEY_SUB_ID:         'confeitex_sub_id',
   KEY_SUB_STATUS:     'confeitex_sub_status', // 'active' | 'expired' | 'canceled'
   KEY_SUB_EXPIRES:    'confeitex_sub_expires',
+  KEY_SUB_CYCLE:      'confeitex_sub_cycle',   // 'monthly' | 'annual'
   KEY_CARD_DATA:      'confeitex_plan_card',
   KEY_CUSTOMER_ID:    'confeitex_mp_customer_id', // ID do cliente no MP (seguro armazenar)
   KEY_CARD_ID:        'confeitex_mp_card_id',     // ID do cartão no MP (seguro armazenar)
@@ -116,10 +118,11 @@ const Plan = {
   // ─────────────────────────────────────────────────────────────────────────
   // Assinatura Ativa
   // ─────────────────────────────────────────────────────────────────────────
-  activateSubscription(subscriptionId, days = 30, method = 'card') {
+  activateSubscription(subscriptionId, days = 30, method = 'card', cycle = 'monthly') {
     safeStorage.set(this.KEY_SUB_ID, subscriptionId || `SUB_${Date.now()}`);
     safeStorage.set(this.KEY_SUB_STATUS, 'active');
     safeStorage.set(this.KEY_PAYMENT_METHOD, method);
+    safeStorage.set(this.KEY_SUB_CYCLE, cycle);
 
     const expires = new Date();
     expires.setDate(expires.getDate() + days);
@@ -140,38 +143,48 @@ const Plan = {
   // Status Geral do Plano
   // ─────────────────────────────────────────────────────────────────────────
   getStatus() {
+    const cycle = safeStorage.get(this.KEY_SUB_CYCLE) || 'monthly';
+    const expiresAt = safeStorage.get(this.KEY_SUB_EXPIRES);
+    const start = this.getTrialStart();
+
     if (this.isSubscriptionActive()) {
+      let daysLeft = null;
+      if (expiresAt) {
+        const diff = new Date(expiresAt).getTime() - Date.now();
+        daysLeft = Math.max(0, Math.ceil(diff / 86400000));
+      }
       return {
         type: 'active',
-        daysLeft: null,
-        expiresAt: safeStorage.get(this.KEY_SUB_EXPIRES),
+        daysLeft,
+        expiresAt,
         hasCard: this.hasRegisteredCard(),
+        cycle,
       };
     }
 
     if (this.isTrialActive()) {
-      const start = this.getTrialStart();
-      const expiresAt = start
+      const trialExpires = start
         ? new Date(start.getTime() + this.TRIAL_DAYS * 86400000).toISOString()
         : null;
       return {
         type: 'trial',
         daysLeft: this.getTrialDaysLeft(),
-        expiresAt,
+        expiresAt: trialExpires,
         hasCard: true,
+        cycle: 'monthly',
       };
     }
 
-    const start = this.getTrialStart();
-    const expiresAt = start
+    const expiredDate = expiresAt || (start
       ? new Date(start.getTime() + this.TRIAL_DAYS * 86400000).toISOString()
-      : null;
+      : null);
 
     return {
       type: 'expired',
       daysLeft: 0,
-      expiresAt,
+      expiresAt: expiredDate,
       hasCard: this.hasRegisteredCard(),
+      cycle,
     };
   },
 
@@ -584,6 +597,40 @@ const Plan = {
   },
 
   // ─────────────────────────────────────────────────────────────────────────
+  // Efeito de Celebração de Confetes
+  // ─────────────────────────────────────────────────────────────────────────
+  _triggerConfetti() {
+    try {
+      const count = 40;
+      const colors = ['#ec4899', '#8b5cf6', '#3b82f6', '#10b981', '#f59e0b'];
+      for (let i = 0; i < count; i++) {
+        const el = document.createElement('div');
+        el.className = 'plan-confetti-particle';
+        el.style.left = `${Math.random() * 100}vw`;
+        el.style.top = '-10px';
+        el.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        el.style.width = `${Math.random() * 8 + 6}px`;
+        el.style.height = `${Math.random() * 8 + 6}px`;
+        el.style.position = 'fixed';
+        el.style.zIndex = '999999';
+        el.style.pointerEvents = 'none';
+        el.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+        el.style.transform = `rotate(${Math.random() * 360}deg)`;
+        el.style.transition = `transform ${Math.random() * 2 + 1.5}s cubic-bezier(0.25, 1, 0.5, 1), top ${Math.random() * 2 + 1.5}s cubic-bezier(0.25, 1, 0.5, 1), opacity 2s ease-out`;
+        document.body.appendChild(el);
+
+        requestAnimationFrame(() => {
+          el.style.top = `${Math.random() * 70 + 20}vh`;
+          el.style.transform = `rotate(${Math.random() * 720}deg) translateX(${Math.random() * 120 - 60}px)`;
+          el.style.opacity = '0';
+        });
+
+        setTimeout(() => el.remove(), 2500);
+      }
+    } catch (e) {}
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────
   // Modal de Gerenciamento do Plano ("Meu Plano Confeitex")
   // ─────────────────────────────────────────────────────────────────────────
   showManageModal() {
@@ -591,7 +638,7 @@ const Plan = {
 
     const status = this.getStatus();
     const card = this.getCardData();
-    const renewalPref = this.getRenewalPreference();
+    const isConfiguredMP = typeof MercadoPagoCheckout !== 'undefined' && MercadoPagoCheckout.isConfigured();
 
     const overlay = document.createElement('div');
     overlay.className = 'plan-manage-modal-overlay';
@@ -600,30 +647,68 @@ const Plan = {
     overlay.setAttribute('aria-modal', 'true');
     overlay.setAttribute('aria-label', 'Gerenciamento do Plano Confeitex');
 
+    // Cabeçalho de Status
     let statusHeaderHTML = '';
+    let timelineHTML = '';
+    const expDate = status.expiresAt ? new Date(status.expiresAt).toLocaleDateString('pt-BR') : 'Auto-renovação';
+
     if (status.type === 'active') {
-      const expDate = status.expiresAt ? new Date(status.expiresAt).toLocaleDateString('pt-BR') : 'Auto-renovação';
+      const daysLeft = status.daysLeft !== null ? status.daysLeft : 30;
+      const totalCycleDays = status.cycle === 'annual' ? 365 : 30;
+      const progressPercent = Math.min(100, Math.max(5, Math.round(((totalCycleDays - daysLeft) / totalCycleDays) * 100)));
+
       statusHeaderHTML = `
         <div class="plan-status-card plan-status-card--active">
           <div class="plan-status-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
           </div>
           <div>
-            <div class="plan-status-title">Assinatura Premium Ativa</div>
-            <div class="plan-status-sub">Próximo vencimento: <strong>${expDate}</strong> · R$ 7,99/mês</div>
+            <div class="plan-status-title"><span class="plan-pulse-live"></span> Assinatura Premium Ativa</div>
+            <div class="plan-status-sub">Vencimento: <strong>${expDate}</strong> · ${status.cycle === 'annual' ? 'Plano Anual (R$ 79,90)' : 'Plano Mensal (R$ 7,99)'}</div>
+          </div>
+        </div>`;
+
+      timelineHTML = `
+        <div class="plan-timeline-box">
+          <div class="plan-timeline-header">
+            <span>Ciclo Atual</span>
+            <strong>${daysLeft} dia${daysLeft !== 1 ? 's' : ''} restante${daysLeft !== 1 ? 's' : ''}</strong>
+          </div>
+          <div class="plan-timeline-bar-bg">
+            <div class="plan-timeline-bar-fill" style="width:${progressPercent}%;"></div>
+          </div>
+          <div class="plan-timeline-footer">
+            <span>Início do ciclo</span>
+            <span>Próxima renovação: ${expDate}</span>
           </div>
         </div>`;
     } else if (status.type === 'trial') {
       const d = status.daysLeft;
-      const expDate = status.expiresAt ? new Date(status.expiresAt).toLocaleDateString('pt-BR') : '';
+      const progressPercent = Math.min(100, Math.max(10, Math.round(((7 - d) / 7) * 100)));
+
       statusHeaderHTML = `
         <div class="plan-status-card plan-status-card--trial">
           <div class="plan-status-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
           </div>
           <div>
-            <div class="plan-status-title">Período de Testes: ${d} dia${d !== 1 ? 's' : ''} restante${d !== 1 ? 's' : ''}</div>
-            <div class="plan-status-sub">Vence em: <strong>${expDate}</strong> · Depois R$ 7,99/mês</div>
+            <div class="plan-status-title"><span class="plan-pulse-live"></span> Período de Testes: ${d} dia${d !== 1 ? 's' : ''} restante${d !== 1 ? 's' : ''}</div>
+            <div class="plan-status-sub">Vence em: <strong>${expDate}</strong> · Depois apenas R$ 7,99/mês</div>
+          </div>
+        </div>`;
+
+      timelineHTML = `
+        <div class="plan-timeline-box">
+          <div class="plan-timeline-header">
+            <span>Progresso dos 7 Dias Grátis</span>
+            <strong>${d} dias restantes</strong>
+          </div>
+          <div class="plan-timeline-bar-bg">
+            <div class="plan-timeline-bar-fill" style="width:${progressPercent}%;"></div>
+          </div>
+          <div class="plan-timeline-footer">
+            <span>Cadastro do Cartão ✓</span>
+            <span>Primeira mensalidade: ${expDate}</span>
           </div>
         </div>`;
     } else {
@@ -633,8 +718,8 @@ const Plan = {
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
           </div>
           <div>
-            <div class="plan-status-title">Mensalidade Vencida</div>
-            <div class="plan-status-sub">Regularize o pagamento para continuar usando todas as funções.</div>
+            <div class="plan-status-title">Assinatura Pendente de Renovação</div>
+            <div class="plan-status-sub">Renove agora para continuar criando pedidos e usando todos os recursos.</div>
           </div>
         </div>`;
     }
@@ -652,7 +737,7 @@ const Plan = {
               <div class="plan-saved-card-holder">${card.cardholderName || 'Titular Cadastrado'} · Validade: ${card.expirationMonth}/${card.expirationYear}</div>
             </div>
           </div>
-          <button class="btn btn-secondary btn-sm" id="btnChangePlanCard">Alterar Cartão</button>
+          <button class="btn btn-secondary btn-sm" id="btnChangePlanCard">Trocar Cartão</button>
         </div>
       `;
     } else {
@@ -669,25 +754,86 @@ const Plan = {
         <div class="plan-manage-header">
           <h2>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            Meu Plano Confeitex
+            Assinatura Confeitex Premium
           </h2>
-          <button class="plan-manage-close" id="planManageClose">&times;</button>
+          <button class="plan-manage-close" id="planManageClose" aria-label="Fechar">&times;</button>
         </div>
 
         <div class="plan-manage-body">
           ${statusHeaderHTML}
+          ${timelineHTML}
+
+          <!-- Seletor de Ciclos (Mensal vs Anual) -->
+          <div class="plan-section">
+            <h3 class="plan-section-title">Escolha o Ciclo de Renovação</h3>
+            <div class="plan-cycles-grid">
+              <div class="plan-cycle-card selected" id="cycleCardMonthly" data-cycle="monthly">
+                <div class="plan-cycle-title">
+                  <span>Mensal</span>
+                  <div class="plan-cycle-check"></div>
+                </div>
+                <div class="plan-cycle-price">R$ 7,99 <span class="plan-cycle-period">/mês</span></div>
+                <div class="plan-cycle-period">Sem fidelidade, flexibilidade total</div>
+              </div>
+
+              <div class="plan-cycle-card" id="cycleCardAnnual" data-cycle="annual">
+                <div class="plan-cycle-discount-pill">2 Meses Grátis</div>
+                <div class="plan-cycle-title">
+                  <span>Anual</span>
+                  <div class="plan-cycle-check"></div>
+                </div>
+                <div class="plan-cycle-price">R$ 79,90 <span class="plan-cycle-period">/ano</span></div>
+                <div class="plan-cycle-saving">Equivale a R$ 6,65/mês (Economia de R$ 16)</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Benefícios Inclusos -->
+          <div class="plan-section">
+            <h3 class="plan-section-title">Tudo incluso na sua assinatura</h3>
+            <div class="plan-benefits-grid">
+              <div class="plan-benefit-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                <span>Pedidos Ilimitados</span>
+              </div>
+              <div class="plan-benefit-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                <span>Relatórios de Lucro Real</span>
+              </div>
+              <div class="plan-benefit-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                <span>Alertas na Barra do Celular</span>
+              </div>
+              <div class="plan-benefit-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                <span>Backup Automático Nuvem</span>
+              </div>
+              <div class="plan-benefit-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                <span>Cobrança via WhatsApp</span>
+              </div>
+              <div class="plan-benefit-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                <span>Exportação em PDF</span>
+              </div>
+            </div>
+          </div>
 
           <!-- Seção de Cartão de Crédito -->
           <div class="plan-section">
-            <h3 class="plan-section-title">Cartão de Crédito Cadastrado</h3>
+            <h3 class="plan-section-title">Forma de Cobrança Principal</h3>
             ${cardInfoHTML}
           </div>
 
-          <!-- Botões de Ação Imediata -->
+          <!-- Ações de Renovação Imediata -->
           <div class="plan-manage-actions">
-            <button class="btn btn-primary w-100" id="btnPayPlanNow">
+            <button class="btn btn-primary w-100 plan-btn-renew-card" id="btnPayPlanNow">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-              ${status.type === 'active' ? 'Pagar / Antecipar Próxima Mensalidade (R$ 7,99)' : 'Pagar Mensalidade Agora — R$ 7,99'}
+              <span id="btnPayPlanNowText">Renovar com Cartão — R$ 7,99</span>
+            </button>
+            <button class="btn w-100 plan-btn-renew-pix" id="btnPayPlanPix">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              <span id="btnPayPlanPixText">Pagar via Pix Instantâneo — R$ 7,99</span>
             </button>
           </div>
         </div>
@@ -695,7 +841,12 @@ const Plan = {
         <div class="plan-manage-footer">
           <div class="plan-manage-secure">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-            Cobrança processada com segurança pelo Mercado Pago · Sem carência ou fidelidade
+            Pagamento 100% criptografado e seguro · Mercado Pago · Cancele quando quiser
+          </div>
+          <div style="text-align:center;">
+            <span class="plan-mp-status-pill ${isConfiguredMP ? 'connected' : 'demo'}">
+              ${isConfiguredMP ? '● Mercado Pago Conectado' : '⚡ Modo Demonstração'}
+            </span>
           </div>
         </div>
       </div>
@@ -710,6 +861,31 @@ const Plan = {
     };
 
     document.getElementById('planManageClose').onclick = closeModal;
+
+    // Alternador de Ciclo (Mensal vs Anual)
+    let currentSelectedCycle = 'monthly';
+    const cardMonthly = overlay.querySelector('#cycleCardMonthly');
+    const cardAnnual = overlay.querySelector('#cycleCardAnnual');
+    const btnPayText = overlay.querySelector('#btnPayPlanNowText');
+    const btnPixText = overlay.querySelector('#btnPayPlanPixText');
+
+    const updateCycleSelection = (cycle) => {
+      currentSelectedCycle = cycle;
+      if (cycle === 'annual') {
+        cardAnnual.classList.add('selected');
+        cardMonthly.classList.remove('selected');
+        btnPayText.textContent = `Renovar Plano Anual — R$ 79,90`;
+        btnPixText.textContent = `Pagar Anual via Pix — R$ 79,90`;
+      } else {
+        cardMonthly.classList.add('selected');
+        cardAnnual.classList.remove('selected');
+        btnPayText.textContent = `Renovar com Cartão — R$ 7,99`;
+        btnPixText.textContent = `Pagar via Pix Instantâneo — R$ 7,99`;
+      }
+    };
+
+    cardMonthly.onclick = () => updateCycleSelection('monthly');
+    cardAnnual.onclick = () => updateCycleSelection('annual');
 
     // Ações do Cartão
     const btnChangeCard = document.getElementById('btnChangePlanCard');
@@ -727,12 +903,21 @@ const Plan = {
       };
     }
 
-    // Pagar Agora
+    // Pagar com Cartão
     const btnPayNow = document.getElementById('btnPayPlanNow');
     if (btnPayNow) {
       btnPayNow.onclick = () => {
         closeModal();
-        this.showPlanPaymentModal('card');
+        this.showPlanPaymentModal(currentSelectedCycle, 'card');
+      };
+    }
+
+    // Pagar com Pix
+    const btnPayPix = document.getElementById('btnPayPlanPix');
+    if (btnPayPix) {
+      btnPayPix.onclick = () => {
+        closeModal();
+        this.showPlanPaymentModal(currentSelectedCycle, 'pix');
       };
     }
   },
@@ -749,9 +934,9 @@ const Plan = {
   },
 
   // ─────────────────────────────────────────────────────────────────────────
-  // Modal de Pagamento da Mensalidade (Cartão via Mercado Pago)
+  // Modal de Pagamento da Mensalidade (Cartão & Pix via Mercado Pago)
   // ─────────────────────────────────────────────────────────────────────────
-  showPlanPaymentModal() {
+  showPlanPaymentModal(selectedCycle = 'monthly', selectedMethod = 'card') {
     if (document.getElementById('planPaymentModalOverlay')) return;
 
     const overlay = document.createElement('div');
@@ -761,33 +946,81 @@ const Plan = {
     overlay.setAttribute('aria-modal', 'true');
     overlay.setAttribute('aria-label', 'Pagamento da Mensalidade Confeitex');
 
+    let currentCycle = selectedCycle;
+    let currentMethod = selectedMethod;
+    const isConfiguredMP = typeof MercadoPagoCheckout !== 'undefined' && MercadoPagoCheckout.isConfigured();
+
     overlay.innerHTML = `
       <div class="plan-payment-modal">
         <div class="plan-payment-header">
           <div>
-            <h2>Mensalidade Confeitex Premium</h2>
-            <p>Valor: <strong style="color:var(--color-success);font-size:1.1rem;">R$ 7,99 / mês</strong></p>
+            <h2>Renovação Confeitex Premium</h2>
+            <p id="planPaymentSub">Escolha o método para confirmar sua assinatura</p>
           </div>
-          <button class="plan-payment-close" id="planPaymentClose">&times;</button>
+          <button class="plan-payment-close" id="planPaymentClose" aria-label="Fechar">&times;</button>
+        </div>
+
+        <!-- Abas de Pagamento (Cartão vs Pix) -->
+        <div class="plan-pay-tabs">
+          <button class="plan-pay-tab ${currentMethod === 'card' ? 'active' : ''}" id="tabPayCard" type="button">
+            💳 Cartão de Crédito
+          </button>
+          <button class="plan-pay-tab ${currentMethod === 'pix' ? 'active' : ''}" id="tabPayPix" type="button">
+            ⚡ Pix Instantâneo
+          </button>
         </div>
 
         <div class="plan-pay-body" id="planPayBody">
           <!-- Loading View -->
-          <div class="plan-pay-loading" id="planPayLoading">
+          <div class="plan-pay-loading" id="planPayLoading" style="display:none;">
             <div class="plan-spinner"></div>
-            <span id="planPayLoadingText">Processando pagamento no Mercado Pago...</span>
+            <span id="planPayLoadingText">Processando com segurança no Mercado Pago...</span>
           </div>
 
           <!-- Card Panel -->
-          <div class="plan-pay-panel" id="panelPayCard" style="display:none;">
+          <div class="plan-pay-panel" id="panelPayCard" style="display:${currentMethod === 'card' ? 'block' : 'none'};">
             <div class="plan-card-charge-box">
-              <p>Deseja efetuar a cobrança de <strong>R$ 7,99</strong> no seu cartão de crédito cadastrado?</p>
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;">
+                <span style="font-weight:700;color:white;font-size:0.95rem;" id="cardCycleTitle">Plano ${currentCycle === 'annual' ? 'Anual (12 Meses)' : 'Mensal (30 Dias)'}</span>
+                <span style="font-size:1.15rem;font-weight:800;color:var(--color-accent-pink);" id="cardCyclePrice">${currentCycle === 'annual' ? 'R$ 79,90' : 'R$ 7,99'}</span>
+              </div>
               <div id="planCardChargeDetails"></div>
-              <button class="btn btn-primary w-100 mt-3" id="btnConfirmCardCharge">
-                Cobrar R$ 7,99 no Cartão
+              <button class="btn btn-primary w-100 plan-btn-renew-card mt-3" id="btnConfirmCardCharge">
+                <span id="btnConfirmCardText">Confirmar Cobrança de ${currentCycle === 'annual' ? 'R$ 79,90' : 'R$ 7,99'}</span>
               </button>
               <button class="btn btn-secondary w-100 mt-2" id="btnUseAnotherCard">
                 Usar Outro Cartão
+              </button>
+            </div>
+          </div>
+
+          <!-- Pix Panel -->
+          <div class="plan-pay-panel" id="panelPayPix" style="display:${currentMethod === 'pix' ? 'block' : 'none'};">
+            <div class="plan-pix-box">
+              <div style="text-align:center;">
+                <span style="font-weight:700;color:white;font-size:0.95rem;" id="pixCycleTitle">Plano ${currentCycle === 'annual' ? 'Anual' : 'Mensal'} via Pix</span>
+                <div style="font-size:1.3rem;font-weight:800;color:#34d399;margin:0.25rem 0;" id="pixCyclePrice">${currentCycle === 'annual' ? 'R$ 79,90' : 'R$ 7,99'}</div>
+                <small style="color:var(--text-muted);">Aponte a câmera do banco ou copie o código abaixo:</small>
+              </div>
+
+              <div class="plan-pix-qr-wrap" id="planPixQrWrap">
+                <img id="planPixQrImg" class="plan-pix-qr-img" src="" alt="QR Code Pix" />
+              </div>
+
+              <div class="plan-pix-code-row">
+                <input type="text" class="form-control" id="planPixCodeInput" readonly />
+                <button class="btn btn-secondary" id="btnCopyPlanPixCode" type="button" title="Copiar código Pix">
+                  Copiar
+                </button>
+              </div>
+
+              <div class="plan-pix-awaiting">
+                <div class="plan-pulse-dot"></div>
+                <span>Aguardando pagamento no banco... Aprovação automática.</span>
+              </div>
+
+              <button class="btn btn-secondary w-100 mt-2" id="btnSimulatePixApprove" style="font-size:0.8rem;">
+                Simular Aprovação Imediata (Teste)
               </button>
             </div>
           </div>
@@ -796,16 +1029,19 @@ const Plan = {
           <div class="plan-pay-panel" id="panelPaySuccess" style="display:none;">
             <div class="plan-success-box">
               <div class="plan-success-icon">🎉</div>
-              <h3>Mensalidade Confirmada com Sucesso!</h3>
-              <p>Sua assinatura do <strong>Confeitex Premium</strong> foi ativada/renovada por mais 30 dias.</p>
-              <button class="btn btn-primary w-100 mt-3" id="btnPlanSuccessDone">Continuar</button>
+              <h3>Assinatura Renovada com Sucesso!</h3>
+              <p style="color:var(--text-secondary);font-size:0.9rem;line-height:1.5;">
+                Seu plano <strong>Confeitex Premium</strong> está ativo e liberado com todas as ferramentas de produção, clientes e relatórios.
+              </p>
+              <div id="planSuccessValidity" style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);padding:0.75rem;border-radius:12px;margin:1rem 0;color:#34d399;font-weight:600;font-size:0.85rem;"></div>
+              <button class="btn btn-primary w-100 plan-btn-renew-card mt-2" id="btnPlanSuccessDone">Continuar no Confeitex</button>
             </div>
           </div>
         </div>
 
         <div class="plan-payment-footer">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-          Pagamento 100% seguro via Mercado Pago
+          Transação segura via Mercado Pago · Confeitex Oficial
         </div>
       </div>
     `;
@@ -814,109 +1050,238 @@ const Plan = {
     requestAnimationFrame(() => overlay.classList.add('active'));
 
     const closeModal = () => {
+      this._stopPlanPixPolling();
       overlay.classList.remove('active');
       setTimeout(() => overlay.remove(), 350);
     };
 
     document.getElementById('planPaymentClose').onclick = closeModal;
 
-    this._loadPlanCardView(overlay);
-  },
-
-  async _loadPlanCardView(overlay) {
-    const loading = overlay.querySelector('#planPayLoading');
+    // Alternar Abas
+    const tabCard = overlay.querySelector('#tabPayCard');
+    const tabPix = overlay.querySelector('#tabPayPix');
     const panelCard = overlay.querySelector('#panelPayCard');
-    const panelSuccess = overlay.querySelector('#panelPaySuccess');
+    const panelPix = overlay.querySelector('#panelPayPix');
 
-    panelCard.style.display = 'none';
-    panelSuccess.style.display = 'none';
-    loading.style.display = 'flex';
-
-    try {
-      loading.style.display = 'none';
+    tabCard.onclick = () => {
+      currentMethod = 'card';
+      tabCard.classList.add('active');
+      tabPix.classList.remove('active');
       panelCard.style.display = 'block';
+      panelPix.style.display = 'none';
+      this._stopPlanPixPolling();
+      this._loadPlanCardView(overlay, currentCycle);
+    };
 
-      const card = this.getCardData();
-      const details = overlay.querySelector('#planCardChargeDetails');
-      if (details) {
-        if (card) {
-          details.innerHTML = `
-            <div class="plan-saved-card-box" style="margin-top:0.75rem;">
-              <div class="plan-saved-card-left">
-                <div class="plan-saved-card-icon">💳</div>
-                <div>
-                  <strong>${(card.brand || 'Cartão').toUpperCase()} •••• ${card.lastFourDigits || '4242'}</strong>
-                  <div class="plan-saved-card-holder">${card.cardholderName || 'Titular'}</div>
-                </div>
-              </div>
-            </div>`;
-        } else {
-          details.innerHTML = `<p style="color:var(--color-warning);">Nenhum cartão cadastrado ainda.</p>`;
-        }
-      }
+    tabPix.onclick = () => {
+      currentMethod = 'pix';
+      tabPix.classList.add('active');
+      tabCard.classList.remove('active');
+      panelPix.style.display = 'block';
+      panelCard.style.display = 'none';
+      this._loadPlanPixView(overlay, currentCycle);
+    };
 
-      const btnConfirm = overlay.querySelector('#btnConfirmCardCharge');
-      const btnOther = overlay.querySelector('#btnUseAnotherCard');
-
-      if (btnConfirm) {
-        btnConfirm.onclick = async () => {
-          if (!card) {
-            this.showCardRegistrationModal({ forTrial: false });
-            return;
-          }
-          btnConfirm.disabled = true;
-          btnConfirm.innerHTML = '<span class="plan-spinner"></span> Processando cobrança...';
-
-          try {
-            const res = typeof MercadoPagoCheckout !== 'undefined'
-              ? await MercadoPagoCheckout.processPlanPayment({
-                  amount: this.PRICE_BRL,
-                  payment_method_id: card.brand || 'credit_card',
-                  token: card.token,
-                  plan_name: this.PLAN_NAME,
-                  payer_email: card.email || 'assinante@confeitex.app',
-                  payer_name: card.cardholderName,
-                })
-              : { id: 'DEMO_' + Date.now(), status: 'approved' };
-
-            if (res.status === 'approved') {
-              this._onPlanPaymentApproved(res.id, 'card', overlay);
-            } else {
-              throw new Error('O pagamento com cartão foi recusado pela operadora.');
-            }
-          } catch (err) {
-            UI.toast(err.message || 'Erro ao processar cartão.', 'danger');
-            btnConfirm.disabled = false;
-            btnConfirm.innerHTML = 'Cobrar R$ 7,99 no Cartão';
-          }
-        };
-      }
-
-      if (btnOther) {
-        btnOther.onclick = () => {
-          const currentModal = document.getElementById('planPaymentModalOverlay');
-          if (currentModal) currentModal.remove();
-          this.showCardRegistrationModal({
-            forTrial: false,
-            onComplete: () => this.showPlanPaymentModal()
-          });
-        };
-      }
-    } catch (err) {
-      console.error('[Plan Payment Load Error]', err);
-      loading.style.display = 'none';
-      UI.toast(err.message || 'Erro ao carregar método de pagamento.', 'danger');
+    if (currentMethod === 'pix') {
+      this._loadPlanPixView(overlay, currentCycle);
+    } else {
+      this._loadPlanCardView(overlay, currentCycle);
     }
   },
 
-  _onPlanPaymentApproved(paymentId, method, overlay) {
-    this.activateSubscription(paymentId, 30, method);
+  _planPixPollTimer: null,
+
+  _stopPlanPixPolling() {
+    if (this._planPixPollTimer) {
+      clearInterval(this._planPixPollTimer);
+      this._planPixPollTimer = null;
+    }
+  },
+
+  async _loadPlanCardView(overlay, cycle = 'monthly') {
+    const card = this.getCardData();
+    const details = overlay.querySelector('#planCardChargeDetails');
+    const amount = cycle === 'annual' ? this.ANNUAL_PRICE_BRL : this.PRICE_BRL;
+
+    if (details) {
+      if (card) {
+        details.innerHTML = `
+          <div class="plan-saved-card-box" style="margin-top:0.75rem;">
+            <div class="plan-saved-card-left">
+              <div class="plan-saved-card-icon">💳</div>
+              <div>
+                <strong>${(card.brand || 'Cartão').toUpperCase()} •••• ${card.lastFourDigits || '4242'}</strong>
+                <div class="plan-saved-card-holder">${card.cardholderName || 'Titular'} · Validade: ${card.expirationMonth}/${card.expirationYear}</div>
+              </div>
+            </div>
+          </div>`;
+      } else {
+        details.innerHTML = `<p style="color:var(--color-warning);font-size:0.85rem;margin-top:0.5rem;">Nenhum cartão cadastrado ainda. Clique abaixo para cadastrar.</p>`;
+      }
+    }
+
+    const btnConfirm = overlay.querySelector('#btnConfirmCardCharge');
+    const btnOther = overlay.querySelector('#btnUseAnotherCard');
+
+    if (btnConfirm) {
+      btnConfirm.onclick = async () => {
+        if (!card) {
+          this.showCardRegistrationModal({ forTrial: false, onComplete: () => this.showPlanPaymentModal(cycle, 'card') });
+          return;
+        }
+        btnConfirm.disabled = true;
+        btnConfirm.innerHTML = '<span class="plan-spinner"></span> Processando cobrança no Mercado Pago...';
+
+        try {
+          const res = typeof MercadoPagoCheckout !== 'undefined'
+            ? await MercadoPagoCheckout.processPlanPayment({
+                amount: amount,
+                payment_method_id: card.brand || 'credit_card',
+                token: card.token,
+                plan_name: cycle === 'annual' ? 'Confeitex Premium Anual' : 'Confeitex Premium Mensal',
+                payer_email: card.email || 'assinante@confeitex.app',
+                payer_name: card.cardholderName,
+              })
+            : { id: 'DEMO_' + Date.now(), status: 'approved' };
+
+          if (res.status === 'approved') {
+            const daysToAdd = cycle === 'annual' ? 365 : 30;
+            this._onPlanPaymentApproved(res.id, 'card', overlay, daysToAdd, cycle);
+          } else {
+            throw new Error('A cobrança do cartão não foi autorizada pela operadora.');
+          }
+        } catch (err) {
+          UI.toast(err.message || 'Erro ao processar cartão.', 'danger');
+          btnConfirm.disabled = false;
+          btnConfirm.innerHTML = `<span>Confirmar Cobrança de R$ ${amount.toFixed(2).replace('.', ',')}</span>`;
+        }
+      };
+    }
+
+    if (btnOther) {
+      btnOther.onclick = () => {
+        const currentModal = document.getElementById('planPaymentModalOverlay');
+        if (currentModal) currentModal.remove();
+        this.showCardRegistrationModal({
+          forTrial: false,
+          onComplete: () => this.showPlanPaymentModal(cycle, 'card')
+        });
+      };
+    }
+  },
+
+  async _loadPlanPixView(overlay, cycle = 'monthly') {
+    const loading = overlay.querySelector('#planPayLoading');
+    const panelPix = overlay.querySelector('#panelPayPix');
+    const qrImg = overlay.querySelector('#planPixQrImg');
+    const qrWrap = overlay.querySelector('#planPixQrWrap');
+    const codeInput = overlay.querySelector('#planPixCodeInput');
+    const btnCopy = overlay.querySelector('#btnCopyPlanPixCode');
+    const btnSimulate = overlay.querySelector('#btnSimulatePixApprove');
+    const amount = cycle === 'annual' ? this.ANNUAL_PRICE_BRL : this.PRICE_BRL;
+    const daysToAdd = cycle === 'annual' ? 365 : 30;
+
+    loading.style.display = 'flex';
+    panelPix.style.display = 'none';
+
+    try {
+      let pixData;
+      if (typeof MercadoPagoCheckout !== 'undefined' && MercadoPagoCheckout.isConfigured()) {
+        const res = await fetch(`${MercadoPagoCheckout.WORKER_URL}/plan-payment`, {
+          method: 'POST',
+          headers: MercadoPagoCheckout._getHeaders(),
+          body: JSON.stringify({
+            amount: amount,
+            plan_name: cycle === 'annual' ? 'Confeitex Premium Anual' : 'Confeitex Premium Mensal',
+            payment_method_id: 'pix',
+            payer_email: safeStorage.get('confeitex_user_email') || 'assinante@confeitex.app',
+            payer_name: 'Assinante Confeitex',
+          }),
+        });
+        pixData = await res.json();
+      } else {
+        // Fallback Demonstração
+        pixData = {
+          id: 'DEMO_PIX_' + Date.now(),
+          status: 'pending',
+          qr_code: `00020126580014br.gov.bcb.pix0136confeitex-mensalidade-demo520400005303986540${amount.toFixed(2)}5802BR5915Confeitex App6009Sao Paulo62070503***6304DEMO`,
+          qr_code_base64: null,
+        };
+      }
+
+      loading.style.display = 'none';
+      panelPix.style.display = 'block';
+
+      const pixCode = pixData.qr_code || '00020126580014br.gov.bcb.pix0136confeitex-demo';
+      codeInput.value = pixCode;
+
+      if (pixData.qr_code_base64) {
+        qrImg.src = `data:image/png;base64,${pixData.qr_code_base64}`;
+        qrImg.style.display = 'block';
+      } else {
+        qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(pixCode)}`;
+        qrImg.style.display = 'block';
+      }
+
+      btnCopy.onclick = async () => {
+        try {
+          await navigator.clipboard.writeText(pixCode);
+          btnCopy.textContent = 'Copiado!';
+          setTimeout(() => { btnCopy.textContent = 'Copiar'; }, 2000);
+          UI.toast('✅ Código Pix Copia e Cola copiado com sucesso!', 'success');
+        } catch (e) {
+          codeInput.select();
+          document.execCommand('copy');
+          UI.toast('✅ Código Pix copiado!', 'success');
+        }
+      };
+
+      // Simulação de aprovação para testes
+      if (btnSimulate) {
+        btnSimulate.onclick = () => {
+          this._stopPlanPixPolling();
+          this._onPlanPaymentApproved(pixData.id || 'DEMO_' + Date.now(), 'pix', overlay, daysToAdd, cycle);
+        };
+      }
+
+      // Polling automático no Mercado Pago
+      if (pixData.id && typeof MercadoPagoCheckout !== 'undefined' && MercadoPagoCheckout.isConfigured()) {
+        this._stopPlanPixPolling();
+        this._planPixPollTimer = setInterval(async () => {
+          try {
+            const st = await MercadoPagoCheckout.checkPaymentStatus(pixData.id, false);
+            if (st === 'approved') {
+              this._stopPlanPixPolling();
+              this._onPlanPaymentApproved(pixData.id, 'pix', overlay, daysToAdd, cycle);
+            }
+          } catch (e) {}
+        }, 4000);
+      }
+    } catch (err) {
+      console.error('[Plan Pix Load Error]', err);
+      loading.style.display = 'none';
+      panelPix.style.display = 'block';
+      UI.toast(err.message || 'Erro ao gerar Pix do plano.', 'danger');
+    }
+  },
+
+  _onPlanPaymentApproved(paymentId, method, overlay, days = 30, cycle = 'monthly') {
+    this._stopPlanPixPolling();
+    this.activateSubscription(paymentId, days, method, cycle);
+    this._triggerConfetti();
 
     if (overlay) {
-      const panels = overlay.querySelectorAll('.plan-pay-panel, .plan-pay-loading');
+      const panels = overlay.querySelectorAll('.plan-pay-panel, .plan-pay-loading, .plan-pay-tabs');
       panels.forEach(p => p.style.display = 'none');
       const success = overlay.querySelector('#panelPaySuccess');
       if (success) success.style.display = 'block';
+
+      const validityEl = overlay.querySelector('#planSuccessValidity');
+      if (validityEl) {
+        const expiresStr = safeStorage.get(this.KEY_SUB_EXPIRES);
+        const expDate = expiresStr ? new Date(expiresStr).toLocaleDateString('pt-BR') : '';
+        validityEl.innerHTML = `✓ Assinatura ativa até <strong>${expDate}</strong> (${cycle === 'annual' ? 'Plano Anual' : 'Plano Mensal'})`;
+      }
 
       const btnDone = overlay.querySelector('#btnPlanSuccessDone');
       if (btnDone) {
@@ -927,7 +1292,7 @@ const Plan = {
       }
     }
 
-    UI.toast('🎉 Mensalidade Confeitex renovada com sucesso!', 'success');
+    UI.toast('🎉 Mensalidade Confeitex confirmada com sucesso!', 'success');
   },
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -940,36 +1305,35 @@ const Plan = {
       overlay.id = 'paywallOverlay';
       overlay.setAttribute('role', 'dialog');
       overlay.setAttribute('aria-modal', 'true');
-      overlay.setAttribute('aria-label', 'Recurso Premium');
+      overlay.setAttribute('aria-label', 'Recurso Premium Confeitex');
 
       overlay.innerHTML = `
         <div class="paywall-modal">
           <div class="paywall-header">
             <div class="paywall-lock-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
               </svg>
             </div>
             <h2 class="paywall-title">Confeitex Premium</h2>
-            <p class="paywall-subtitle">${featureName} está disponível no plano pago.</p>
+            <p class="paywall-subtitle">${featureName || 'Este recurso'} é exclusivo para assinantes Premium.</p>
           </div>
           <div class="paywall-features">
             <div class="paywall-feature">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-              Pedidos e encomendas ilimitadas
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              Pedidos e encomendas 100% ilimitadas
             </div>
             <div class="paywall-feature">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-              Relatórios financeiros completos
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              Relatórios financeiros com cálculo de lucro
             </div>
             <div class="paywall-feature">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-              Exportação PDF e backup completo
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              Notificações e lembretes na barra do celular
             </div>
             <div class="paywall-feature">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-              Gestão de clientes ilimitada
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              Exportação em PDF e Backup em Nuvem
             </div>
           </div>
           <div class="paywall-price">
@@ -978,13 +1342,13 @@ const Plan = {
               <span class="paywall-price-amount">7,99</span>
               <span class="paywall-price-period">/mês</span>
             </div>
-            <p class="paywall-price-note">Sem fidelidade · Pague com Cartão de Crédito</p>
+            <p class="paywall-price-note">Sem fidelidade · Opções em Cartão ou Pix</p>
           </div>
-          <button class="paywall-btn-upgrade" id="paywallBtnUpgrade">
+          <button class="paywall-btn-upgrade plan-btn-renew-card" id="paywallBtnUpgrade">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
             </svg>
-            ${this.hasRegisteredCard() ? 'Assinar / Renovar — R$7,99/mês' : 'Cadastrar Cartão & Começar 7 Dias Grátis'}
+            ${this.hasRegisteredCard() ? 'Assinar / Renovar Agora' : 'Cadastrar Cartão & 7 Dias Grátis'}
           </button>
           <button class="paywall-btn-cancel" id="paywallBtnCancel">Agora não</button>
         </div>`;

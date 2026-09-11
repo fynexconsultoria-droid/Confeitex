@@ -1,8 +1,9 @@
 const Updates = {
-  verAtual: '5.1.0',
+  verAtual: '5.2.0',
   _checking: false,
 
   changelog: [
+    { ver: '5.2.0', date: '11/09/2026', keys: ['changelog.5200'] },
     { ver: '5.1.0', date: '11/09/2026', keys: ['changelog.5100'] },
     { ver: '5.0.0', date: '10/09/2026', keys: ['changelog.5000'] },
     { ver: '4.1.0', date: '10/09/2026', keys: ['changelog.4100'] },
@@ -48,10 +49,14 @@ const Updates = {
       try {
         const reg = await navigator.serviceWorker.ready;
         if (reg && reg.showNotification) {
+          const iconUrl = new URL('icons/icon-192x192.png?v=3', window.location.href).href;
           await reg.showNotification(title, {
             body,
-            icon: 'icons/icon-192x192.png',
-            badge: 'icons/icon-192x192.png',
+            icon: iconUrl,
+            badge: iconUrl,
+            vibrate: [200, 100, 200],
+            renotify: true,
+            requireInteraction: false,
             tag: 'confeitex-update-' + serverVer,
             data: { tab: 'updates', type: 'update', version: serverVer }
           });
