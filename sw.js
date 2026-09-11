@@ -345,8 +345,19 @@ async function swCheckForUpdate() {
     const r = await fetch('./version.txt?t=' + Date.now(), { cache: 'no-store' });
     if (!r.ok) return;
     const serverVer = (await r.text()).trim();
-    const currentVer = await swGet('confeitex_current_version');
+    const currentVer = (await swGet('confeitex_current_version')) || SW_VERSION;
     if (serverVer && serverVer !== currentVer) {
+      // Dispara notificação nativa para o sistema operacional / dispositivo
+      try {
+        await self.registration.showNotification('📦 Nova Atualização Disponível', {
+          body: `Uma nova versão do Confeitex (v${serverVer}) está disponível. Toque para atualizar.`,
+          icon: 'icons/icon-192x192.png',
+          badge: 'icons/icon-192x192.png',
+          tag: 'confeitex-update-' + serverVer,
+          data: { tab: 'updates', type: 'update', version: serverVer }
+        });
+      } catch (err) {}
+
       // Notifica todos os clientes sobre a atualização disponível
       const clients = await self.clients.matchAll({ type: 'window' });
       for (const client of clients) {

@@ -203,31 +203,9 @@
       if (event.data && event.data.type === 'UPDATE_AVAILABLE' && event.data.version) {
         const serverVer = event.data.version;
         if (serverVer !== Updates.verAtual) {
-          // Verifica se já notificou esta versão
-          const notifId = 'update_' + serverVer;
-          const alreadyNotified = typeof Notifications !== 'undefined'
-            && Notifications.getHistory
-            && Notifications.getHistory().some(n => n.id === notifId);
-          if (alreadyNotified) {
-            const banner = document.getElementById('updateNotification');
-            if (banner && !banner.classList.contains('visible')) {
-              Updates._showUpdateBanner(serverVer, false);
-            }
-            return;
+          if (typeof Updates !== 'undefined' && Updates.checkAndUpdate) {
+            Updates.checkAndUpdate(true);
           }
-          // Registra no sino de notificações
-          if (typeof Notifications !== 'undefined' && Notifications._recordNotification) {
-            Notifications._recordNotification({
-              id: notifId,
-              type: 'update',
-              title: I18n.t('updates.notifTitle'),
-              body: I18n.t('updates.notifBody', { version: serverVer }),
-              orderIds: [],
-              read: false
-            });
-          }
-          // Mostra banner
-          Updates._showUpdateBanner(serverVer, false);
         }
       }
     });
@@ -318,17 +296,16 @@
   Notifications.init();
   Notifications.initReconnectionListeners();
 
-  // Verifica atualização automaticamente (máx 1x por hora) + registra no sino
+  // Verifica atualização automaticamente ao iniciar
   (async () => {
-    const lastCheck = safeStorage.get('confeitex_last_auto_check');
-    const oneHour = 3600000;
-    if (lastCheck && Date.now() - parseInt(lastCheck, 10) < oneHour) return;
-
+    // Aguarda carregar elementos críticos da interface
+    await new Promise(r => setTimeout(r, 1500));
     try {
-      await Updates.checkAndUpdate();
+      if (typeof Updates !== 'undefined' && Updates.checkAndUpdate) {
+        await Updates.checkAndUpdate();
+      }
     } catch (e) {
-      console.warn('[Confeitex] Erro na verificação automática:', e);
+      console.warn('[Confeitex] Erro na verificação automática de atualização:', e);
     }
-    safeStorage.set('confeitex_last_auto_check', String(Date.now()));
   })();
 })();

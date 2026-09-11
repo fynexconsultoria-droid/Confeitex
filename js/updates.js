@@ -1,11 +1,11 @@
 const Updates = {
-  verAtual: '5.0.0',
+  verAtual: '5.1.0',
   _checking: false,
 
   changelog: [
+    { ver: '5.1.0', date: '11/09/2026', keys: ['changelog.5100'] },
     { ver: '5.0.0', date: '10/09/2026', keys: ['changelog.5000'] },
     { ver: '4.1.0', date: '10/09/2026', keys: ['changelog.4100'] },
-    { ver: '4.0.1', date: '10/09/2026', keys: ['changelog.4001'] },
   ],
 
   setup() {
@@ -28,55 +28,70 @@ const Updates = {
     } catch { return null; }
   },
 
-  // Verificação silenciosa ao abrir o app
-  async checkSilent() {
-    if (this._checking) return null;
-    this._checking = true;
-    try {
-      const serverVer = await this._fetchVersion();
-      if (serverVer && serverVer !== this.verAtual) {
-        const deferred = safeStorage.get('confeitex_update_deferred');
-        const oneDay = 86400000;
-        if (deferred && Date.now() - parseInt(deferred, 10) < oneDay) {
-          return serverVer;
-        }
-        await this.promptUpdate(serverVer);
-        return serverVer;
-      }
-      return null;
-    } finally {
-      this._checking = false;
+  // Envia notificação real do sistema (push/OS) sobre a atualização
+  async _sendSystemNotification(serverVer) {
+    if (typeof Notification === 'undefined') return;
+    const title = I18n.t('updates.notifTitle');
+    const body = I18n.t('updates.notifBody', { version: serverVer });
+
+    // Solicita permissão se ainda não foi solicitada
+    if (Notification.permission === 'default') {
+      try {
+        await Notification.requestPermission();
+      } catch (e) {}
     }
+
+    if (Notification.permission !== 'granted') return;
+
+    // 1. Tenta via Service Worker ativo (funciona em PWA / celular / background)
+    if ('serviceWorker' in navigator) {
+      try {
+        const reg = await navigator.serviceWorker.ready;
+        if (reg && reg.showNotification) {
+          await reg.showNotification(title, {
+            body,
+            icon: 'icons/icon-192x192.png',
+            badge: 'icons/icon-192x192.png',
+            tag: 'confeitex-update-' + serverVer,
+            data: { tab: 'updates', type: 'update', version: serverVer }
+          });
+          return;
+        }
+      } catch (e) {}
+    }
+
+    // 2. Fallback: API Notification padrão do navegador
+    try {
+      const notif = new Notification(title, {
+        body,
+        icon: 'icons/icon-192x192.png',
+        tag: 'confeitex-update-' + serverVer
+      });
+      notif.onclick = () => {
+        window.focus();
+        this.promptUpdate(serverVer);
+      };
+    } catch (e) {}
   },
 
-  // Verifica atualização e registra no sino + mostra banner (chamado ao abrir e ao reconectar)
-  async checkAndUpdate() {
+  // Verificação silenciosa
+  async checkSilent() {
+    return this.checkAndUpdate(false);
+  },
+
+  // Verifica atualização e registra no sino + notifica sistema + pergunta se quer atualizar
+  async checkAndUpdate(forcePrompt = false) {
     if (this._checking) return null;
     this._checking = true;
     try {
       const serverVer = await this._fetchVersion();
       if (serverVer && serverVer !== this.verAtual) {
         const deferred = safeStorage.get('confeitex_update_deferred');
-        const oneDay = 86400000;
-        if (deferred && Date.now() - parseInt(deferred, 10) < oneDay) {
-          return serverVer;
-        }
-
-        // Verifica se já notificou esta versão (evita duplicatas)
-        const notifId = 'update_' + serverVer;
-        const alreadyNotified = typeof Notifications !== 'undefined'
-          && Notifications.getHistory
-          && Notifications.getHistory().some(n => n.id === notifId);
-        if (alreadyNotified) {
-          // Já notificou mas pode ainda precisar mostrar o banner
-          const banner = document.getElementById('updateNotification');
-          if (banner && !banner.classList.contains('visible')) {
-            this._showUpdateBanner(serverVer, false);
-          }
-          return serverVer;
-        }
+        const twoHours = 7200000;
+        const isDeferred = deferred && (Date.now() - parseInt(deferred, 10) < twoHours);
 
         // Registra no sino de notificações
+        const notifId = 'update_' + serverVer;
         if (typeof Notifications !== 'undefined' && Notifications._recordNotification) {
           Notifications._recordNotification({
             id: notifId,
@@ -88,8 +103,17 @@ const Updates = {
           });
         }
 
-        // Mostra banner de atualização
+        // Dispara notificação nativa para o sistema operacional / navegador
+        await this._sendSystemNotification(serverVer);
+
+        // Mostra o banner persistente
         this._showUpdateBanner(serverVer, false);
+
+        // Pergunta diretamente ao usuário com diálogo/modal se deseja atualizar agora
+        if (!isDeferred || forcePrompt) {
+          await this.promptUpdate(serverVer);
+        }
+
         return serverVer;
       }
       return null;

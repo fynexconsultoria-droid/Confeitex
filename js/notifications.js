@@ -76,8 +76,15 @@ const Notifications = {
 
   async _ensureSW() {
     if (!('serviceWorker' in navigator)) return null;
-    if (this._swReg) return this._swReg;
-    const timeout = new Promise(resolve => setTimeout(() => resolve(null), 3000));
+    if (this._swReg && this._swReg.active) return this._swReg;
+    try {
+      const reg = await navigator.serviceWorker.getRegistration();
+      if (reg && reg.active) {
+        this._swReg = reg;
+        return reg;
+      }
+    } catch (e) {}
+    const timeout = new Promise(resolve => setTimeout(() => resolve(null), 2500));
     try {
       this._swReg = await Promise.race([navigator.serviceWorker.ready, timeout]);
     } catch (e) {
@@ -277,10 +284,11 @@ const Notifications = {
         const dd = document.getElementById('notifDropdown');
         if (dd) dd.classList.remove('open');
         if (entry && entry.type === 'update') {
-          // Clique em notificação de atualização: mostra o banner
+          // Clique em notificação de atualização: pergunta diretamente se quer atualizar
           const ver = id.replace('update_', '');
-          if (typeof Updates !== 'undefined' && Updates._showUpdateBanner) {
-            Updates._showUpdateBanner(ver);
+          if (typeof Updates !== 'undefined') {
+            if (Updates.promptUpdate) Updates.promptUpdate(ver);
+            else if (Updates._showUpdateBanner) Updates._showUpdateBanner(ver);
           }
         } else if (entry && entry.orderIds && entry.orderIds.length > 0) {
           this.openOrder(entry.orderIds[0]);
@@ -407,6 +415,19 @@ const Notifications = {
   _enabling: false,
 
   async enable() {
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    const standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+
+    if (isIOS && !standalone) {
+      UI.alert('No iPhone/iPad (iOS), a Apple exige que o Confeitex seja instalado na Tela de Início para habilitar notificações:\n\n1. Toque no botão Compartilhar (⬆) no Safari;\n2. Role para baixo e toque em "Adicionar à Tela de Início";\n3. Abra o Confeitex pelo ícone na tela inicial para ativar.');
+      return false;
+    }
+
+    if (window.isSecureContext === false) {
+      UI.alert('Notificações no celular exigem conexão segura (HTTPS). Em conexões HTTP comuns, os navegadores bloqueiam notificações por segurança.');
+      return false;
+    }
+
     if (!('Notification' in window)) return false;
     if (Notification.permission === 'denied') return false;
     if (this._enabling) return false;
@@ -438,10 +459,29 @@ const Notifications = {
   },
 
   async sendTestNotification() {
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    const standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+
+    if (isIOS && !standalone) {
+      UI.alert('No iPhone/iPad (iOS), a Apple exige que o Confeitex seja instalado na Tela de Início para receber notificações:\n\n1. Toque no botão Compartilhar (⬆) no Safari;\n2. Escolha "Adicionar à Tela de Início";\n3. Abra o Confeitex pelo ícone na tela inicial.');
+      return false;
+    }
+
+    if (window.isSecureContext === false) {
+      UI.alert('Notificações no celular exigem conexão segura (HTTPS). Em conexões HTTP comuns, os navegadores desabilitam o envio de notificações.');
+      return false;
+    }
+
     if (!('Notification' in window)) {
       UI.alert(I18n.t('notif.settings.alertUnsupported'));
       return false;
     }
+
+    if (Notification.permission === 'denied') {
+      UI.alert('A permissão de notificações está bloqueada no navegador.\n\nPara desbloquear:\n• Toque no ícone de cadeado ou ajustes ao lado da barra de endereço do site e altere "Notificações" para "Permitir".');
+      return false;
+    }
+
     if (Notification.permission !== 'granted') {
       const ok = await this.enable();
       if (!ok) {
@@ -449,31 +489,60 @@ const Notifications = {
         return false;
       }
     }
+
     try {
       const title = I18n.t('notif.testTitle');
       const body = I18n.t('notif.testBody');
       const tag = 'confeitex-test-' + Date.now();
       const notifData = { type: 'test', title, body, orderIds: [] };
 
-      // Tenta via Service Worker (mais confiável em PWA/mobile)
+      let sent = false;
+
+      // 1. Tenta via Service Worker showNotification (essencial para Android e iOS PWA)
       const reg = await this._ensureSW();
       if (reg && reg.showNotification) {
-        await reg.showNotification(title, {
-          body,
-          icon: 'icons/icon-192x192.png',
-          badge: 'icons/icon-192x192.png',
-          tag,
-          data: notifData
-        });
-      } else {
-        // Fallback: Notification API direta
-        new Notification(title, {
-          body,
-          icon: 'icons/icon-192x192.png',
-          tag
-        });
+        try {
+          await reg.showNotification(title, {
+            body,
+            icon: 'icons/icon-192x192.png',
+            badge: 'icons/icon-192x192.png',
+            tag,
+            data: notifData
+          });
+          sent = true;
+        } catch (swErr) {
+          console.warn('[Notifications] reg.showNotification falhou:', swErr);
+        }
       }
 
+      // 2. Tenta via postMessage para o Service Worker
+      if (!sent && reg && reg.active) {
+        try {
+          reg.active.postMessage({ type: 'TEST_NOTIFICATION', payload: { title, body } });
+          sent = true;
+        } catch (e) {}
+      }
+
+      // 3. Fallback: API Notification direta (apenas em ambientes compatíveis, ex: desktop)
+      if (!sent) {
+        try {
+          new Notification(title, {
+            body,
+            icon: 'icons/icon-192x192.png',
+            tag
+          });
+          sent = true;
+        } catch (notifErr) {
+          console.warn('[Notifications] new Notification falhou:', notifErr);
+        }
+      }
+
+      // Vibração tátil de confirmação
+      if (navigator.vibrate) {
+        try { navigator.vibrate([100, 50, 100]); } catch (e) {}
+      }
+
+      // Registra no histórico do sino
       this._recordNotification({
         id: 'test_' + Date.now(),
         type: 'test',
@@ -482,9 +551,13 @@ const Notifications = {
         orderIds: [],
         read: false
       });
+
+      // Feedback visual imediato na tela
+      UI.toast(I18n.t('notif.settings.toastTestSent'), 'success');
       return true;
     } catch (e) {
       console.warn('[Notifications] Erro ao enviar notificação de teste:', e);
+      UI.toast('Erro ao disparar notificação: ' + (e.message || e), 'danger');
       return false;
     }
   },

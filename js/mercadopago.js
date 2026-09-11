@@ -485,7 +485,7 @@ const MercadoPagoCheckout = {
 
   // ─── Aba: Link de Pagamento (Checkout Pro & WhatsApp) ────────────────────
   async _loadLinkTab(order) {
-    const container = document.getElementById('mpLinkContainer');
+    const container = document.getElementById('mpPanelLink');
     const loading = document.getElementById('mpLinkLoading');
     const content = document.getElementById('mpLinkContent');
     if (!container) return;
