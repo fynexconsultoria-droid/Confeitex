@@ -657,7 +657,7 @@ const Plan = {
 
     if (status.type === 'active') {
       const daysLeft = status.daysLeft !== null ? status.daysLeft : 30;
-      const totalCycleDays = status.cycle === 'annual' ? 365 : 30;
+      const totalCycleDays = 30;
       const progressPercent = Math.min(100, Math.max(5, Math.round(((totalCycleDays - daysLeft) / totalCycleDays) * 100)));
 
       statusHeaderHTML = `
@@ -667,14 +667,14 @@ const Plan = {
           </div>
           <div>
             <div class="plan-status-title"><span class="plan-pulse-live"></span> Assinatura Premium Ativa</div>
-            <div class="plan-status-sub">Vencimento: <strong>${expDate}</strong> · ${status.cycle === 'annual' ? 'Plano Anual (R$ 79,90)' : 'Plano Mensal (R$ 9,99)'}</div>
+            <div class="plan-status-sub">Vencimento: <strong>${expDate}</strong> · Plano Mensal (R$ 9,99/mês)</div>
           </div>
         </div>`;
 
       timelineHTML = `
         <div class="plan-timeline-box">
           <div class="plan-timeline-header">
-            <span>Ciclo Atual</span>
+            <span>Ciclo Mensal</span>
             <strong>${daysLeft} dia${daysLeft !== 1 ? 's' : ''} restante${daysLeft !== 1 ? 's' : ''}</strong>
           </div>
           <div class="plan-timeline-bar-bg">
@@ -766,28 +766,21 @@ const Plan = {
           ${statusHeaderHTML}
           ${timelineHTML}
 
-          <!-- Seletor de Ciclos (Mensal vs Anual) -->
+          <!-- Plano Mensal (Sem plano anual) -->
           <div class="plan-section">
-            <h3 class="plan-section-title">Escolha o Ciclo de Renovação</h3>
-            <div class="plan-cycles-grid">
-              <div class="plan-cycle-card selected" id="cycleCardMonthly" data-cycle="monthly">
-                <div class="plan-cycle-title">
-                  <span>Mensal</span>
-                  <div class="plan-cycle-check"></div>
+            <h3 class="plan-section-title">Plano Mensal Confeitex Premium</h3>
+            <div class="plan-monthly-card">
+              <div class="plan-monthly-info">
+                <div class="plan-monthly-price">
+                  <span class="plan-currency">R$</span>
+                  <span class="plan-amount">9,99</span>
+                  <span class="plan-period">/mês</span>
                 </div>
-                <div class="plan-cycle-price">R$ 9,99 <span class="plan-cycle-period">/mês</span></div>
-                <div class="plan-cycle-period">Sem fidelidade, flexibilidade total</div>
+                <div class="plan-monthly-tag">Débito Automático no Cartão</div>
               </div>
-
-              <div class="plan-cycle-card" id="cycleCardAnnual" data-cycle="annual">
-                <div class="plan-cycle-discount-pill">2 Meses Grátis</div>
-                <div class="plan-cycle-title">
-                  <span>Anual</span>
-                  <div class="plan-cycle-check"></div>
-                </div>
-                <div class="plan-cycle-price">R$ 79,90 <span class="plan-cycle-period">/ano</span></div>
-                <div class="plan-cycle-saving">Equivale a R$ 6,65/mês (Economia de ~R$ 40 no anual)</div>
-              </div>
+              <p class="plan-monthly-desc">
+                Acesso completo e ilimitado a todos os recursos. Sem fidelidade, flexibilidade total para cancelar quando quiser.
+              </p>
             </div>
           </div>
 
@@ -861,28 +854,6 @@ const Plan = {
 
     document.getElementById('planManageClose').onclick = closeModal;
 
-    // Alternador de Ciclo (Mensal vs Anual)
-    let currentSelectedCycle = 'monthly';
-    const cardMonthly = overlay.querySelector('#cycleCardMonthly');
-    const cardAnnual = overlay.querySelector('#cycleCardAnnual');
-    const btnPayText = overlay.querySelector('#btnPayPlanNowText');
-
-    const updateCycleSelection = (cycle) => {
-      currentSelectedCycle = cycle;
-      if (cycle === 'annual') {
-        cardAnnual.classList.add('selected');
-        cardMonthly.classList.remove('selected');
-        btnPayText.textContent = `Renovar Plano Anual — R$ 79,90`;
-      } else {
-        cardMonthly.classList.add('selected');
-        cardAnnual.classList.remove('selected');
-        btnPayText.textContent = `Renovar com Cartão — R$ 9,99`;
-      }
-    };
-
-    cardMonthly.onclick = () => updateCycleSelection('monthly');
-    cardAnnual.onclick = () => updateCycleSelection('annual');
-
     // Ações do Cartão
     const btnChangeCard = document.getElementById('btnChangePlanCard');
     const btnAddCard = document.getElementById('btnAddPlanCard');
@@ -904,7 +875,7 @@ const Plan = {
     if (btnPayNow) {
       btnPayNow.onclick = () => {
         closeModal();
-        this.showPlanPaymentModal(currentSelectedCycle);
+        this.showPlanPaymentModal();
       };
     }
   },
@@ -923,7 +894,7 @@ const Plan = {
   // ─────────────────────────────────────────────────────────────────────────
   // Modal de Pagamento da Mensalidade (Cartão & Pix via Mercado Pago)
   // ─────────────────────────────────────────────────────────────────────────
-  showPlanPaymentModal(selectedCycle = 'monthly') {
+  showPlanPaymentModal() {
     if (document.getElementById('planPaymentModalOverlay')) return;
 
     const overlay = document.createElement('div');
@@ -933,15 +904,12 @@ const Plan = {
     overlay.setAttribute('aria-modal', 'true');
     overlay.setAttribute('aria-label', 'Pagamento da Mensalidade Confeitex');
 
-    let currentCycle = selectedCycle;
-    const isConfiguredMP = typeof MercadoPagoCheckout !== 'undefined' && MercadoPagoCheckout.isConfigured();
-
     overlay.innerHTML = `
       <div class="plan-payment-modal">
         <div class="plan-payment-header">
           <div>
             <h2>Renovação Confeitex Premium</h2>
-            <p id="planPaymentSub">Pagamento exclusivo e seguro via Cartão de Crédito</p>
+            <p id="planPaymentSub">Pagamento seguro via Cartão de Crédito</p>
           </div>
           <button class="plan-payment-close" id="planPaymentClose" aria-label="Fechar">&times;</button>
         </div>
@@ -956,13 +924,13 @@ const Plan = {
           <!-- Card Panel -->
           <div class="plan-pay-panel" id="panelPayCard" style="display:block;">
             <div class="plan-card-charge-box">
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;">
-                <span style="font-weight:700;color:white;font-size:0.95rem;" id="cardCycleTitle">Plano ${currentCycle === 'annual' ? 'Anual (12 Meses)' : 'Mensal (30 Dias)'}</span>
-                <span style="font-size:1.15rem;font-weight:800;color:var(--color-accent-pink);" id="cardCyclePrice">${currentCycle === 'annual' ? 'R$ 79,90' : 'R$ 9,99'}</span>
+              <div class="plan-charge-summary">
+                <span class="plan-charge-summary-title">Plano Mensal (30 Dias)</span>
+                <span class="plan-charge-summary-price">R$ 9,99</span>
               </div>
               <div id="planCardChargeDetails"></div>
-              <button class="btn btn-primary w-100 plan-btn-renew-card mt-3" id="btnConfirmCardCharge">
-                <span id="btnConfirmCardText">Confirmar Cobrança de ${currentCycle === 'annual' ? 'R$ 79,90' : 'R$ 9,99'}</span>
+              <button class="btn btn-primary w-100 plan-btn-renew-card" id="btnConfirmCardCharge">
+                <span id="btnConfirmCardText">Confirmar Cobrança de R$ 9,99</span>
               </button>
               <button class="btn btn-secondary w-100 mt-2" id="btnUseAnotherCard">
                 Usar / Cadastrar Outro Cartão
@@ -1000,13 +968,13 @@ const Plan = {
     };
 
     document.getElementById('planPaymentClose').onclick = closeModal;
-    this._loadPlanCardView(overlay, currentCycle);
+    this._loadPlanCardView(overlay);
   },
 
-  async _loadPlanCardView(overlay, cycle = 'monthly') {
+  async _loadPlanCardView(overlay) {
     const card = this.getCardData();
     const details = overlay.querySelector('#planCardChargeDetails');
-    const amount = cycle === 'annual' ? this.ANNUAL_PRICE_BRL : this.PRICE_BRL;
+    const amount = this.PRICE_BRL;
 
     if (details) {
       if (card) {
@@ -1031,7 +999,7 @@ const Plan = {
     if (btnConfirm) {
       btnConfirm.onclick = async () => {
         if (!card) {
-          this.showCardRegistrationModal({ forTrial: false, onComplete: () => this.showPlanPaymentModal(cycle) });
+          this.showCardRegistrationModal({ forTrial: false, onComplete: () => this.showPlanPaymentModal() });
           return;
         }
         btnConfirm.disabled = true;
@@ -1043,15 +1011,14 @@ const Plan = {
                 amount: amount,
                 payment_method_id: card.brand || 'credit_card',
                 token: card.token,
-                plan_name: cycle === 'annual' ? 'Confeitex Premium Anual' : 'Confeitex Premium Mensal',
+                plan_name: 'Confeitex Premium Mensal',
                 payer_email: card.email || 'assinante@confeitex.app',
                 payer_name: card.cardholderName,
               })
             : { id: 'DEMO_' + Date.now(), status: 'approved' };
 
           if (res.status === 'approved') {
-            const daysToAdd = cycle === 'annual' ? 365 : 30;
-            this._onPlanPaymentApproved(res.id, 'card', overlay, daysToAdd, cycle);
+            this._onPlanPaymentApproved(res.id, 'card', overlay, 30, 'monthly');
           } else {
             throw new Error('A cobrança do cartão não foi autorizada pela operadora.');
           }
@@ -1069,14 +1036,14 @@ const Plan = {
         if (currentModal) currentModal.remove();
         this.showCardRegistrationModal({
           forTrial: false,
-          onComplete: () => this.showPlanPaymentModal(cycle)
+          onComplete: () => this.showPlanPaymentModal()
         });
       };
     }
   },
 
   _onPlanPaymentApproved(paymentId, method, overlay, days = 30, cycle = 'monthly') {
-    this.activateSubscription(paymentId, days, 'card', cycle);
+    this.activateSubscription(paymentId, days, 'card', 'monthly');
     this._triggerConfetti();
 
     if (overlay) {
@@ -1089,7 +1056,7 @@ const Plan = {
       if (validityEl) {
         const expiresStr = safeStorage.get(this.KEY_SUB_EXPIRES);
         const expDate = expiresStr ? new Date(expiresStr).toLocaleDateString('pt-BR') : '';
-        validityEl.innerHTML = `✓ Assinatura ativa até <strong>${expDate}</strong> (${cycle === 'annual' ? 'Plano Anual' : 'Plano Mensal'})`;
+        validityEl.innerHTML = `✓ Assinatura ativa até <strong>${expDate}</strong> (Plano Mensal)`;
       }
 
       const btnDone = overlay.querySelector('#btnPlanSuccessDone');
