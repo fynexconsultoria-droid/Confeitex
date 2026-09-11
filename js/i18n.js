@@ -594,7 +594,7 @@ const I18n = {
 
       // plan & subscription
       'plan.settingsTitle': 'Meu Plano Confeitex',
-      'plan.settingsDesc': 'Gerencie sua assinatura, consulte o período de testes, altere o cartão de crédito cadastrado ou escolha como deseja pagar a mensalidade (Cartão Automático, Pix ou Boleto).',
+      'plan.settingsDesc': 'Gerencie sua assinatura, consulte o período de testes, altere o cartão de crédito cadastrado e configure a renovação automática por cartão de crédito.',
       'plan.manageBtn': 'Gerenciar Meu Plano',
       'plan.trialActive': 'Teste Grátis Ativo',
       'plan.premiumActive': 'Plano Premium Ativo'

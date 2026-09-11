@@ -303,7 +303,7 @@ export default {
       // ─── Rota: Pagamento de Mensalidade / Plano ────────────
       if (path === '/plan-payment' && request.method === 'POST') {
         const body = await request.json();
-        const amount = Number(body.amount) || 7.99;
+        const amount = Number(body.amount) || 9.99;
         const planName = body.plan_name || 'Confeitex Premium Mensal';
         const method = body.payment_method_id || 'credit_card';
         const userEmail = body.payer_email || body.email || 'assinante@confeitex.app';

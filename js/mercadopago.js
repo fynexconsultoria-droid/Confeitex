@@ -796,7 +796,7 @@ const MercadoPagoCheckout = {
       return {
         id: 'DEMO_PLAN_CARD_' + Date.now(),
         status: 'approved',
-        transaction_amount: payload.amount || 7.99,
+        transaction_amount: payload.amount || 9.99,
         date_approved: new Date().toISOString(),
       };
     }

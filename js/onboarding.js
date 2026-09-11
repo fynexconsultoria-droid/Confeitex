@@ -170,7 +170,7 @@ const Onboarding = {
         </svg>
       </div>`,
       title: 'Pronto para Decolar!',
-      desc: 'Você tem <strong>7 dias grátis</strong> para experimentar tudo. Depois, continue por apenas <strong>R$7,99/mês</strong>.',
+      desc: 'Você tem <strong>7 dias grátis</strong> para experimentar tudo. Ativação exclusiva com <strong>cartão cadastrado</strong> e débito automático de <strong>R$ 9,99/mês</strong> após o teste (cancele a qualquer momento).',
       color: 'pink',
       isFinal: true
     }
@@ -259,9 +259,9 @@ const Onboarding = {
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
           </svg>
-          Começar 7 Dias Grátis
+          Cadastrar Cartão & Começar 7 Dias Grátis
         </button>
-        <div class="ob-final-price">Depois, apenas R$7,99/mês · Cancele quando quiser</div>
+        <div class="ob-final-price">7 dias grátis · Débito automático de R$ 9,99/mês no cartão · Cancele quando quiser</div>
       </div>` : '';
 
     return `
