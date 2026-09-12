@@ -56,7 +56,10 @@ const MercadoPagoCheckout = {
     return { 'Content-Type': 'application/json', ...extra };
   },
 
-  isConfigured() {
+  isConfigured(forCard = false) {
+    if (forCard) {
+      return Boolean(this.WORKER_URL) && Boolean(this.PUBLIC_KEY);
+    }
     return Boolean(this.WORKER_URL);
   },
 
@@ -102,6 +105,9 @@ const MercadoPagoCheckout = {
     await this._loadSDK();
     if (!this._mp) {
       const pubKey = this.PUBLIC_KEY || this.DEFAULT_PUBLIC_KEY;
+      if (!pubKey) {
+        throw new Error(I18n.t('mp.alertMissingPublicKey') || 'Chave Pública do Mercado Pago não configurada.');
+      }
       this._mp = new MercadoPago(pubKey, {
         locale: 'pt-BR'
       });
@@ -356,7 +362,6 @@ const MercadoPagoCheckout = {
     const qrImg = document.getElementById('mpPixQrImg');
     const qrCodeInput = document.getElementById('mpPixCodeInput');
     const pixVal = document.getElementById('mpPixAmount');
-    const pixTimerText = document.getElementById('mpPixTimerText');
 
     if (pixVal) pixVal.textContent = fmt(payment.transaction_amount || order.totalValue);
 
@@ -743,8 +748,8 @@ const MercadoPagoCheckout = {
   },
 
   async validateCardForTrial(cardData) {
-    if (!this.isConfigured()) {
-      // Modo Demonstração quando worker não configurado
+    if (!this.isConfigured(true)) {
+      // Modo Demonstração quando worker ou chave pública não configurados
       return {
         valid: true,
         demo: true,
@@ -791,7 +796,7 @@ const MercadoPagoCheckout = {
   },
 
   async processPlanPayment(payload) {
-    if (!this.isConfigured()) {
+    if (!this.isConfigured(true)) {
       // Modo demonstração - apenas cartão
       return {
         id: 'DEMO_PLAN_CARD_' + Date.now(),

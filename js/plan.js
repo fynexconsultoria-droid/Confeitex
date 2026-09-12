@@ -98,13 +98,44 @@ const Plan = {
     this.renderPlanBadge();
   },
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // Validação de Documentos
+  // ─────────────────────────────────────────────────────────────────────────
+  isValidCPF(cpf) {
+    if (!cpf) return false;
+    const clean = String(cpf).replace(/\D/g, '');
+    if (clean.length !== 11) return false;
+    if (/^(\d)\1{10}$/.test(clean)) return false;
+
+    let sum = 0;
+    for (let i = 0; i < 9; i++) {
+      sum += parseInt(clean.charAt(i), 10) * (10 - i);
+    }
+    let rev = 11 - (sum % 11);
+    if (rev === 10 || rev === 11) rev = 0;
+    if (rev !== parseInt(clean.charAt(9), 10)) return false;
+
+    sum = 0;
+    for (let i = 0; i < 10; i++) {
+      sum += parseInt(clean.charAt(i), 10) * (11 - i);
+    }
+    rev = 11 - (sum % 11);
+    if (rev === 10 || rev === 11) rev = 0;
+    if (rev !== parseInt(clean.charAt(10), 10)) return false;
+
+    return true;
+  },
+
   getTrialStart() {
-    const v = safeStorage.get(this.KEY_TRIAL_START);
-    return v ? new Date(v) : null;
+    let v = safeStorage.get(this.KEY_TRIAL_START);
+    if (!v) {
+      v = new Date().toISOString();
+      safeStorage.set(this.KEY_TRIAL_START, v);
+    }
+    return new Date(v);
   },
 
   getTrialDaysLeft() {
-    if (!this.hasRegisteredCard()) return 0;
     const start = this.getTrialStart();
     if (!start) return 0;
     const elapsed = (Date.now() - start.getTime()) / 86400000;
@@ -112,7 +143,7 @@ const Plan = {
   },
 
   isTrialActive() {
-    return this.hasRegisteredCard() && this.getTrialDaysLeft() > 0;
+    return this.getTrialDaysLeft() > 0;
   },
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -170,7 +201,7 @@ const Plan = {
         type: 'trial',
         daysLeft: this.getTrialDaysLeft(),
         expiresAt: trialExpires,
-        hasCard: true,
+        hasCard: this.hasRegisteredCard(),
         cycle: 'monthly',
       };
     }
@@ -457,8 +488,9 @@ const Plan = {
     const closeModal = () => {
       overlay.classList.remove('active');
       setTimeout(() => overlay.remove(), 350);
+      safeStorage.set('confeitex_trial_prompted', 'true');
       if (isForTrial && !this.hasRegisteredCard()) {
-        UI.toast('⚠️ O teste de 7 dias grátis requer o cadastro de um cartão para ser ativado.', 'warning');
+        UI.toast('💡 Teste de 7 dias grátis ativo! Cadastre seu cartão quando desejar pelo menu do plano.', 'info');
       }
     };
 
@@ -517,8 +549,8 @@ const Plan = {
         return;
       }
 
-      if (cpf.length !== 11) {
-        errorEl.textContent = 'Informe um CPF válido com 11 dígitos.';
+      if (!this.isValidCPF(cpf)) {
+        errorEl.textContent = 'CPF inválido. Por favor, verifique os dígitos digitados.';
         errorEl.style.display = 'block';
         cpfInput.focus();
         return;

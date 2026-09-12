@@ -7,26 +7,43 @@
 //   JWT_SECRET       - Segredo para assinar/verificar tokens JWT
 // ============================================================
 
-const CORS_HEADERS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With, X-App-Secret',
-};
+function getCorsHeaders(request, env) {
+  const origin = (request && request.headers ? request.headers.get('Origin') : '') || '';
+  const allowedOrigins = [
+    'https://fynexconsultoria-droid.github.io',
+    'http://localhost',
+    'http://127.0.0.1',
+  ];
+  if (env && env.ALLOWED_ORIGIN) {
+    allowedOrigins.push(env.ALLOWED_ORIGIN);
+  }
 
-function json(data, status = 200) {
+  const isAllowed = !origin || allowedOrigins.some(o => origin === o || origin.startsWith(o + ':'));
+  const allowOrigin = isAllowed && origin ? origin : '*';
+
+  return {
+    'Access-Control-Allow-Origin': allowOrigin,
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With, X-App-Secret',
+    'Access-Control-Max-Age': '86400',
+  };
+}
+
+function json(data, status = 200, request = null, env = null) {
+  const headers = { 'Content-Type': 'application/json', ...getCorsHeaders(request, env) };
   return new Response(JSON.stringify(data), {
     status,
-    headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },
+    headers,
   });
 }
 
-function error(msg, status = 400, details = null) {
+function error(msg, status = 400, details = null, request = null, env = null) {
   const payload = { error: msg };
   if (details) payload.details = details;
-  return json(payload, status);
+  return json(payload, status, request, env);
 }
 
-// ─── Autenticação Segura (X-App-Secret & HMAC-SHA256 JWT) ─────────
+// ─── Autenticação Segura (X-App-Secret, JWT & Origem Autorizada) ─────────
 async function verifyJWT(token, secret) {
   if (!token || !secret) return null;
   const parts = token.split('.');
@@ -79,6 +96,18 @@ async function authenticate(request, env) {
     } catch {}
   }
 
+  // Permite requisições vindas da origem oficial da aplicação Confeitex
+  const origin = request.headers.get('Origin') || '';
+  const allowedOrigins = [
+    'https://fynexconsultoria-droid.github.io',
+    'http://localhost',
+    'http://127.0.0.1',
+  ];
+  if (env.ALLOWED_ORIGIN) allowedOrigins.push(env.ALLOWED_ORIGIN);
+  if (origin && allowedOrigins.some(o => origin === o || origin.startsWith(o + ':'))) {
+    return true;
+  }
+
   return false;
 }
 
@@ -112,7 +141,7 @@ export default {
   async fetch(request, env, ctx) {
     // Tratamento de CORS Preflight
     if (request.method === 'OPTIONS') {
-      return new Response(null, { status: 204, headers: CORS_HEADERS });
+      return new Response(null, { status: 204, headers: getCorsHeaders(request, env) });
     }
 
     const url = new URL(request.url);

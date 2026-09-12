@@ -650,7 +650,6 @@ const Settings = {
   setupMercadoPagoConfig() {
     const inputUrl = document.getElementById('mpWorkerUrl');
     const inputKey = document.getElementById('mpPublicKey');
-    const inputSecret = document.getElementById('mpAppSecret');
     const btnSave = document.getElementById('btnSaveMpWorker');
     const btnTest = document.getElementById('btnTestMpWorker');
     const display = document.getElementById('mpWorkerUrlDisplay');
@@ -661,7 +660,6 @@ const Settings = {
     // Carrega valores salvos
     const savedUrl = safeStorage.get('confeitex_mp_worker_url') || '';
     const savedKey = safeStorage.get('confeitex_mp_public_key') || '';
-    const savedSecret = safeStorage.get('confeitex_mp_app_secret') || '';
 
     if (savedUrl) {
       inputUrl.value = savedUrl;
@@ -672,9 +670,6 @@ const Settings = {
     }
     if (inputKey && savedKey) {
       inputKey.value = savedKey;
-    }
-    if (inputSecret && savedSecret) {
-      inputSecret.value = savedSecret;
     }
 
     // Salvar
@@ -694,7 +689,7 @@ const Settings = {
         safeStorage.remove('confeitex_mp_public_key');
       }
 
-      // APP_SECRET agora fica apenas no Worker (removido do cliente por segurança)
+      // APP_SECRET fica no Worker
       safeStorage.remove('confeitex_mp_app_secret');
 
       if (typeof MercadoPagoCheckout !== 'undefined') {
@@ -707,7 +702,11 @@ const Settings = {
         display.style.display = 'block';
       }
 
-      UI.toast(I18n.t('mp.toastConfigured'), 'success');
+      if (!key) {
+        UI.toast(I18n.t('mp.toastConfigured') + ' (Nota: Chave Pública pendente para pagamentos via cartão)', 'warning');
+      } else {
+        UI.toast(I18n.t('mp.toastConfigured'), 'success');
+      }
     });
 
     // Testar Conexão

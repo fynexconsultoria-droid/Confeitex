@@ -14,11 +14,11 @@
   if (Onboarding.shouldShow()) {
     Onboarding.show();
   } else if (navigator.onLine) {
-    // Se não tem cartão e não tem assinatura, exige cadastro do cartão para o teste
-    if (!Plan.hasRegisteredCard() && !Plan.isSubscriptionActive()) {
+    // Se não tem cartão e não tem assinatura, convida a cadastrar no primeiro acesso
+    if (!Plan.hasRegisteredCard() && !Plan.isSubscriptionActive() && !safeStorage.get('confeitex_trial_prompted')) {
       setTimeout(() => Plan.showCardRegistrationModal({ forTrial: true }), 1000);
     } else if (!Plan.isTrialActive() && !Plan.isSubscriptionActive()) {
-      // Se já tinha cartão mas expirou o teste ou mensalidade
+      // Se expirou o período de 7 dias ou mensalidade
       setTimeout(() => Plan.showUpgradeModal(), 1200);
     }
   }
