@@ -190,7 +190,7 @@
           </div>
           <div class="notif-bell" id="notifBellWrap">
             <button class="btn btn-secondary btn-bell" id="btnNotifBell" aria-label="Notificações" title="Notificações" data-i18n-title="notif.title">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="#ec4899" stroke-width="2" style="width:20px;height:20px;display:block;"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
               <span class="notif-badge" id="notifBadge">0</span>
             </button>
             <div class="notif-dropdown" id="notifDropdown">
@@ -355,13 +355,15 @@
           </select>
           
           <input type="date" class="form-control filter-date" id="orderFilterDate" title="Filtrar por data" aria-label="Filtrar por data">
-          <button class="btn btn-secondary btn-icon-only" id="btnClearFilters" title="Limpar Filtros" data-i18n-title="orders.clearFilters">
-            <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-          </button>
-          <button class="btn btn-secondary btn-icon-only btn-open-trash btn-trash-inline" title="Lixeira" data-i18n-title="orders.trash">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-            <span class="trash-badge d-none" data-trash-count>0</span>
-          </button>
+          <div class="filter-actions">
+            <button class="btn btn-secondary btn-icon-only" id="btnClearFilters" title="Limpar Filtros" data-i18n-title="orders.clearFilters">
+              <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+            <button class="btn btn-secondary btn-icon-only btn-open-trash btn-trash-inline" title="Lixeira" data-i18n-title="orders.trash">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+              <span class="trash-badge d-none" data-trash-count>0</span>
+            </button>
+          </div>
         </div>
 
         <!-- Barra de Resumo de Faturamento (atualiza com filtros) -->
@@ -511,10 +513,6 @@
             <input type="text" class="form-control" id="catalogSearchInput" placeholder="Buscar no cardápio..." data-i18n-ph="catalog.search_ph">
           </div>
           <div class="catalog-action-buttons">
-            <button class="btn btn-secondary" id="btnEditBakeryProfile">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 1 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-              <span data-i18n="catalog.edit_profile">Perfil da Confeitaria</span>
-            </button>
             <button class="btn btn-whatsapp" id="btnShareWhatsAppCatalog">
               <svg viewBox="0 0 24 24" fill="currentColor" style="width:14px;height:14px;"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.664-.699c.971.532 1.77.818 2.796.818 3.182 0 5.768-2.587 5.768-5.766.001-3.183-2.575-5.769-5.768-5.769zm10.024 5.766c-.001 5.547-4.512 10.057-10.055 10.057-1.747 0-3.391-.453-4.82-1.246l-5.18 1.359 1.385-5.048c-.87-1.493-1.37-3.23-1.37-5.122 0-5.545 4.51-10.055 10.054-10.055 5.544 0 10.055 4.51 10.055 10.055z"/></svg>
               <span data-i18n="catalog.btn_share_wa">Compartilhar Cardápio</span>
@@ -1159,7 +1157,7 @@
               <div class="form-group">
                 <label for="orderFlavorSelect" data-i18n="orders.lblFlavorSuggest">Sabor / Sugestão Rápida</label>
                 <select class="form-control" id="orderFlavorSelect">
-                  <option value="" data-i18n-opt="orders.selectCustom">-- Personalizado / Escolher do Catálogo --</option>
+                  <option value="" data-i18n-opt="orders.selectCustom">-- Escolher do Catálogo --</option>
                   <!-- Populated from Catalog via Javascript -->
                 </select>
               </div>

@@ -218,13 +218,14 @@ const Catalog = {
 
               <div class="catalog-card-actions" style="display:inline-flex;gap:0.35rem;">
                 <button class="btn btn-secondary btn-sm" onclick="Catalog.createQuoteFromItem('${item.id}')" title="${I18n.t('catalog.create_quote_direct')}">
-                  <span>📝 Orçar</span>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                  <span>Orçar</span>
                 </button>
                 <button class="btn btn-secondary btn-sm" onclick="Catalog.openItemModal('${item.id}')" title="${I18n.t('common.edit') || 'Editar'}">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                 </button>
                 <button class="btn btn-secondary btn-sm" style="color:var(--color-danger);border-color:rgba(239,68,68,0.25);" onclick="Catalog.deleteItem('${item.id}')" title="${I18n.t('common.delete') || 'Excluir'}">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
                 </button>
               </div>
             </div>
