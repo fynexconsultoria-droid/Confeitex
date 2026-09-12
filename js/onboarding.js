@@ -349,8 +349,11 @@ const Onboarding = {
           this._overlay = null;
         }
 
-        // Se ainda não cadastrou o cartão para o trial e não tem assinatura ativa, abre o modal de cadastro de cartão
-        if (typeof Plan !== 'undefined') {
+        // Abre o assistente de cadastro de usuário e empresa se ainda não configurado
+        if (typeof SetupWizard !== 'undefined' && SetupWizard.shouldShow()) {
+          setTimeout(() => SetupWizard.show(), 200);
+        } else if (typeof Plan !== 'undefined') {
+          // Se ainda não cadastrou o cartão para o trial e não tem assinatura ativa, abre o modal de cadastro de cartão
           Plan.init();
           if (!Plan.hasRegisteredCard() && !Plan.isSubscriptionActive()) {
             setTimeout(() => {

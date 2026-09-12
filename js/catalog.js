@@ -84,7 +84,7 @@ const Catalog = {
     profileBox.innerHTML = `
       <div class="catalog-store-header">
         <div class="catalog-store-avatar">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/><circle cx="12" cy="12" r="4"/></svg>
+          ${profile.logo ? `<img src="${escapeHTML(profile.logo)}" alt="Logo" class="catalog-store-logo-img" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;" />` : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/><circle cx="12" cy="12" r="4"/></svg>`}
         </div>
         <div class="catalog-store-info">
           <div class="catalog-store-title-row">
@@ -189,40 +189,44 @@ const Catalog = {
       const servingHtml = item.servingSize ? `<span class="catalog-serving">👥 ${escapeHTML(item.servingSize)}</span>` : '';
       const minOrderHtml = item.minOrder ? `<span class="catalog-min-order">📦 Mín: ${escapeHTML(item.minOrder)}</span>` : '';
 
+      const imageHtml = item.image ? `
+        <div class="catalog-card-thumb-wrap">
+          <img src="${escapeHTML(item.image)}" alt="${escapeHTML(name)}" class="catalog-card-thumb" />
+        </div>
+      ` : '';
+
       return `
         <div class="catalog-card ${item.active === false ? 'catalog-card-inactive' : ''}">
-          <div class="catalog-card-top">
-            <div class="catalog-card-header">
-              <span class="catalog-card-category">${escapeHTML(cat)}</span>
+          ${imageHtml}
+          <div class="catalog-card-body">
+            <div class="catalog-card-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.4rem;">
+              <span class="catalog-card-category" style="font-size:0.75rem;font-weight:700;color:var(--color-accent-pink);">${escapeHTML(cat)}</span>
               ${badgeHtml}
             </div>
-            <h3 class="catalog-card-title">${escapeHTML(name)}</h3>
-            ${item.description ? `<p class="catalog-card-desc">${escapeHTML(item.description)}</p>` : '<p class="catalog-card-desc text-muted"><em>Sem descrição</em></p>'}
+            <h3 class="catalog-card-title" style="font-size:1rem;font-weight:700;margin:0 0 0.35rem 0;color:#fff;">${escapeHTML(name)}</h3>
+            ${item.description ? `<p class="catalog-card-desc" style="font-size:0.82rem;color:var(--text-muted);margin:0 0 0.6rem 0;">${escapeHTML(item.description)}</p>` : '<p class="catalog-card-desc text-muted" style="font-size:0.82rem;color:var(--text-muted);margin:0 0 0.6rem 0;"><em>Sem descrição</em></p>'}
             
-            <div class="catalog-card-specs">
+            <div class="catalog-card-specs" style="display:flex;gap:0.5rem;font-size:0.75rem;color:var(--text-secondary);margin-bottom:0.75rem;">
               ${servingHtml}
               ${minOrderHtml}
             </div>
-          </div>
 
-          <div class="catalog-card-bottom">
-            <div class="catalog-price-row">
+            <div class="catalog-card-footer" style="display:flex;justify-content:space-between;align-items:center;padding-top:0.75rem;border-top:1px solid rgba(255,255,255,0.06);">
               <div class="catalog-price-main">
-                <span class="catalog-price-label">${I18n.t('catalog.price')}:</span>
-                <span class="catalog-price-val">${priceFormatted} <small style="font-size:0.75rem;color:var(--text-secondary);">${priceSuffix}</small></span>
+                <span class="catalog-price-val" style="font-size:1.15rem;font-weight:800;color:var(--color-accent-pink);">${priceFormatted} <small style="font-size:0.75rem;color:var(--text-secondary);">${priceSuffix}</small></span>
               </div>
-            </div>
 
-            <div class="catalog-card-actions">
-              <button class="btn btn-secondary btn-sm" onclick="Catalog.createQuoteFromItem('${item.id}')" title="${I18n.t('catalog.create_quote_direct')}">
-                <span>📝 Orçar</span>
-              </button>
-              <button class="btn btn-secondary btn-sm" onclick="Catalog.openItemModal('${item.id}')" title="${I18n.t('common.edit') || 'Editar'}">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-              </button>
-              <button class="btn btn-secondary btn-sm" style="color:var(--color-danger);border-color:rgba(239,68,68,0.25);" onclick="Catalog.deleteItem('${item.id}')" title="${I18n.t('common.delete') || 'Excluir'}">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
-              </button>
+              <div class="catalog-card-actions" style="display:inline-flex;gap:0.35rem;">
+                <button class="btn btn-secondary btn-sm" onclick="Catalog.createQuoteFromItem('${item.id}')" title="${I18n.t('catalog.create_quote_direct')}">
+                  <span>📝 Orçar</span>
+                </button>
+                <button class="btn btn-secondary btn-sm" onclick="Catalog.openItemModal('${item.id}')" title="${I18n.t('common.edit') || 'Editar'}">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                </button>
+                <button class="btn btn-secondary btn-sm" style="color:var(--color-danger);border-color:rgba(239,68,68,0.25);" onclick="Catalog.deleteItem('${item.id}')" title="${I18n.t('common.delete') || 'Excluir'}">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -393,6 +397,45 @@ const Catalog = {
     if (pixEl) pixEl.value = profile.pix || '';
     if (noticeEl) noticeEl.value = profile.orderNotice || '';
 
+    // Pré-visualização do logotipo
+    this._pendingProfileLogo = profile.logo || '';
+    const logoPreview = document.getElementById('profileBakeryLogoPreview');
+    const btnRemove = document.getElementById('btnRemoveBakeryProfileLogo');
+    const updateLogoUI = () => {
+      if (logoPreview) {
+        logoPreview.innerHTML = this._pendingProfileLogo
+          ? `<img src="${escapeHTML(this._pendingProfileLogo)}" alt="Logo" class="wizard-logo-img" style="width:100%;height:100%;object-fit:cover;" />`
+          : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>`;
+      }
+      if (btnRemove) {
+        btnRemove.style.display = this._pendingProfileLogo ? 'inline-block' : 'none';
+      }
+    };
+    updateLogoUI();
+
+    const logoInput = document.getElementById('profileBakeryLogoInput');
+    if (logoInput) {
+      logoInput.onchange = (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        if (typeof Utils !== 'undefined' && Utils.compressImage) {
+          Utils.compressImage(file, 400, 400, 0.85).then(dataUrl => {
+            this._pendingProfileLogo = dataUrl;
+            updateLogoUI();
+          }).catch(err => {
+            if (typeof UI !== 'undefined' && UI.toast) UI.toast(err.message || 'Erro ao carregar logo', 'error');
+          });
+        }
+      };
+    }
+
+    if (btnRemove) {
+      btnRemove.onclick = () => {
+        this._pendingProfileLogo = '';
+        updateLogoUI();
+      };
+    }
+
     modal.classList.add('active');
   },
 
@@ -405,6 +448,7 @@ const Catalog = {
     const instagram = document.getElementById('profileBakeryInstagram')?.value?.trim() || '';
     const pix = document.getElementById('profileBakeryPix')?.value?.trim() || '';
     const orderNotice = document.getElementById('profileBakeryNotice')?.value?.trim() || '';
+    const logo = this._pendingProfileLogo !== undefined ? this._pendingProfileLogo : (State.bakeryProfile?.logo || '');
 
     State.bakeryProfile = {
       name: sanitizeText(name),
@@ -413,12 +457,17 @@ const Catalog = {
       instagram: sanitizeText(instagram),
       pix: sanitizeText(pix),
       orderNotice: sanitizeText(orderNotice),
+      logo: logo || '',
       updatedAt: new Date().toISOString()
     };
 
     State.saveBakeryProfile();
     this.closeProfileModal();
     this.render();
+
+    if (typeof SetupWizard !== 'undefined' && SetupWizard.updateAppHeaderGreetings) {
+      SetupWizard.updateAppHeaderGreetings();
+    }
 
     if (typeof UI !== 'undefined' && UI.toast) {
       UI.toast(I18n.t('catalog.profile_saved'), 'success');

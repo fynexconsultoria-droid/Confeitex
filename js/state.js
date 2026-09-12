@@ -24,7 +24,8 @@ const State = {
   trash: [],
   expenses: [],
   quotes: [],
-  bakeryProfile: { name: '', phone: '', instagram: '', bio: '', pix: '', orderNotice: '' },
+  bakeryProfile: { name: '', phone: '', instagram: '', bio: '', pix: '', orderNotice: '', logo: '' },
+  userProfile: { name: '', email: '', phone: '', role: '', goal: '', weeklyVolume: '', avatar: '' },
   TRASH_RETENTION_DAYS: 7,
   _syncTimer: null,
 
@@ -64,7 +65,13 @@ const State = {
       const savedProfile = safeStorage.get('confeitex_bakery_profile');
       this.bakeryProfile = validateStateDump({ bakeryProfile: savedProfile ? JSON.parse(savedProfile) : {} }).bakeryProfile;
     } catch (e) {
-      this.bakeryProfile = { name: '', phone: '', instagram: '', bio: '', pix: '', orderNotice: '' };
+      this.bakeryProfile = { name: '', phone: '', instagram: '', bio: '', pix: '', orderNotice: '', logo: '' };
+    }
+    try {
+      const savedUser = safeStorage.get('confeitex_user_profile');
+      this.userProfile = validateStateDump({ userProfile: savedUser ? JSON.parse(savedUser) : {} }).userProfile;
+    } catch (e) {
+      this.userProfile = { name: '', email: '', phone: '', role: '', goal: '', weeklyVolume: '', avatar: '' };
     }
     this.purgeTrash();
     this.autoSnapshotCheck();
@@ -83,6 +90,7 @@ const State = {
   saveExpenses() { safeStorage.set('confeitex_expenses', JSON.stringify(sanitizeForStorage(this.expenses))); },
   saveQuotes() { safeStorage.set('confeitex_quotes', JSON.stringify(sanitizeForStorage(this.quotes))); },
   saveBakeryProfile() { safeStorage.set('confeitex_bakery_profile', JSON.stringify(sanitizeForStorage(this.bakeryProfile))); },
+  saveUserProfile() { safeStorage.set('confeitex_user_profile', JSON.stringify(sanitizeForStorage(this.userProfile))); },
 
   addToTrash(items, type, label) {
     const now = new Date();

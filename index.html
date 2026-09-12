@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Confeitex - Controle de Encomendas</title>
   <meta name="description" content="Controle de encomendas para confeitaria — gerencie pedidos, clientes e entregas. 100% offline.">
-  <meta name="version" content="5.2.0">
+  <meta name="version" content="6.1.0">
 
   <!-- Google Fonts: Plus Jakarta Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -60,9 +60,9 @@
   <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192x192.png?v=3">
 
   <!-- Performance: Preload critical assets -->
-  <link rel="preload" href="style.css" as="style">
+  <link rel="preload" href="style.css?v=6.1.0" as="style">
 
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=6.1.0">
 </head>
 <body>
 
@@ -142,10 +142,11 @@
       <div id="planBadgeContainer"></div>
 
       <div id="sidebarFooter" class="sidebar-footer">
-        Confeitex <span id="sidebarVersion"></span><br><span data-i18n="nav.offline">Modo 100% Offline</span>
+        <div class="sidebar-footer-brand">Confeitex <span id="sidebarVersion"></span></div>
+        <div class="sidebar-footer-mode" data-i18n="nav.offline">Modo 100% Offline</div>
         <div class="sidebar-footer-links">
           <a href="termos.html" class="sidebar-footer-link" data-i18n="nav.terms">Termos</a>
-          <span>·</span>
+          <span class="sidebar-footer-dot">·</span>
           <a href="privacidade.html" class="sidebar-footer-link" data-i18n="nav.privacy">Privacidade</a>
         </div>
       </div>
@@ -412,7 +413,7 @@
         <div class="kpi-grid mb-4">
           <div class="kpi-card">
             <div class="kpi-icon kpi-icon-purple">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:22px;height:22px;min-width:22px;min-height:22px;max-width:22px;max-height:22px;display:block;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
             </div>
             <div class="kpi-data">
               <span class="kpi-value" id="quoteKpiPendingCount">0</span>
@@ -421,7 +422,7 @@
           </div>
           <div class="kpi-card">
             <div class="kpi-icon kpi-icon-pink">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:22px;height:22px;min-width:22px;min-height:22px;max-width:22px;max-height:22px;display:block;"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
             </div>
             <div class="kpi-data">
               <span class="kpi-value" id="quoteKpiPendingVal">R$ 0,00</span>
@@ -430,7 +431,7 @@
           </div>
           <div class="kpi-card">
             <div class="kpi-icon kpi-icon-green">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:22px;height:22px;min-width:22px;min-height:22px;max-width:22px;max-height:22px;display:block;"><polyline points="20 6 9 17 4 12"/></svg>
             </div>
             <div class="kpi-data">
               <span class="kpi-value" id="quoteKpiApprovedCount">0</span>
@@ -439,7 +440,7 @@
           </div>
           <div class="kpi-card">
             <div class="kpi-icon kpi-icon-blue">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:22px;height:22px;min-width:22px;min-height:22px;max-width:22px;max-height:22px;display:block;"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
             </div>
             <div class="kpi-data">
               <span class="kpi-value" id="quoteKpiConvRate">0%</span>
@@ -806,6 +807,22 @@
       <section id="settings" class="tab-content">
         <div class="config-grid">
 
+          <!-- User & Bakery Profile Card -->
+          <div class="config-card">
+            <div class="config-card-header">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              <span>Cadastro do Usuário & Empresa</span>
+              <button class="btn btn-sm btn-secondary" onclick="SetupWizard.show()" style="margin-left:auto;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                <span>Editar Cadastro</span>
+              </button>
+            </div>
+            <p class="config-desc">
+              Suas informações de confeiteiro(a), nome da marca, WhatsApp de atendimento e chave Pix configurados no assistente.
+            </p>
+            <div class="settings-profile-summary" id="settingsProfileSummary"></div>
+          </div>
+
           <!-- Language Card -->
           <div class="config-card">
             <div class="config-card-header">
@@ -1027,6 +1044,47 @@
             </div>
           </div>
 
+          <!-- Legal / Terms & Privacy Card -->
+          <div class="config-card">
+            <div class="config-card-header">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+              <span data-i18n="settings.legalTitle">Termos & Privacidade</span>
+            </div>
+            <p class="config-desc" data-i18n="settings.legalDesc">
+              Consulte os termos de uso do aplicativo e nossa política de privacidade e proteção de dados.
+            </p>
+            <div class="settings-card-actions">
+              <a href="termos.html" class="btn btn-secondary btn-export-flex">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                <span data-i18n="nav.terms">Termos de Uso</span>
+              </a>
+              <a href="privacidade.html" class="btn btn-secondary btn-export-flex">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                <span data-i18n="nav.privacy">Privacidade</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- AI Assistant Card -->
+          <div class="config-card">
+            <div class="config-card-header">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2 2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zM4.93 4.93a2 2 0 0 1 2.83 0l1.41 1.41a2 2 0 0 1-2.83 2.83L4.93 7.76a2 2 0 0 1 0-2.83zM2 12a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2 2 2 0 0 1-2 2H4a2 2 0 0 1-2-2zM12 18a6 6 0 1 0 0-12 6 6 0 0 0 0 12z"/></svg>
+              <span data-i18n="settings.aiTitle">Assistente de Ajuda & IA</span>
+            </div>
+            <p class="config-desc" data-i18n="settings.aiDesc">
+              A inteligência artificial ajuda com dúvidas do app e confeitaria quando você estiver online.
+            </p>
+            <div class="settings-card-actions">
+              <button class="btn btn-primary" type="button" onclick="AIChat.open()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                <span>Abrir Chat com a IA</span>
+              </button>
+              <button class="btn btn-secondary" type="button" onclick="AIChat.clearHistory()">
+                <span data-i18n="settings.aiClearHistory">Limpar Histórico da IA</span>
+              </button>
+            </div>
+          </div>
+
           <!-- Advanced / Danger Zone -->
           <div class="config-card warning-card">
             <div class="config-card-header warning-card-header">
@@ -1058,7 +1116,7 @@
     <div class="modal-container">
       <div class="modal-header">
         <h2 id="modalOrderTitle">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px;height:20px;min-width:20px;max-width:20px;flex-shrink:0;display:inline-block;vertical-align:middle;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
           <span id="modalOrderTitleText">Novo Pedido de Confeitaria</span>
         </h2>
         <button class="modal-close" id="btnModalOrderClose" aria-label="Fechar">&times;</button>
@@ -1576,6 +1634,21 @@
       </div>
       <form id="bakeryProfileForm">
         <div class="modal-body">
+          <!-- Logo Picker -->
+          <div class="wizard-photo-upload-wrap mb-3">
+            <div class="wizard-logo-preview" id="profileBakeryLogoPreview">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            </div>
+            <div class="wizard-photo-actions">
+              <label class="btn btn-secondary btn-sm wizard-upload-btn" for="profileBakeryLogoInput">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                <span data-i18n="wizard.uploadLogo">Logo da Empresa</span>
+              </label>
+              <input type="file" id="profileBakeryLogoInput" accept="image/*" style="display:none;" />
+              <button type="button" class="btn btn-text btn-sm text-danger" id="btnRemoveBakeryProfileLogo" style="display:none;" data-i18n="wizard.removePhoto">Remover</button>
+            </div>
+          </div>
+
           <div class="form-group mb-3">
             <label for="profileBakeryName" data-i18n="catalog.profile_bakery_name">Nome da sua Confeitaria / Marca *</label>
             <input type="text" class="form-control" id="profileBakeryName" required placeholder="Ex: Confeitaria Doce Sonho" />
@@ -1745,27 +1818,107 @@
     </div>
   </div>
 
+  <!-- AI Help Chat Floating Action Button (FAB) -->
+  <button id="btnOpenAiChat" class="ai-chat-fab" type="button" aria-label="Abrir Assistente Confeitex IA" title="Ajuda & IA Confeitex" data-i18n-title="aiChat.fabTooltip">
+    <div class="ai-chat-fab-inner">
+      <svg class="ai-chat-fab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2 2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zM4.93 4.93a2 2 0 0 1 2.83 0l1.41 1.41a2 2 0 0 1-2.83 2.83L4.93 7.76a2 2 0 0 1 0-2.83zM2 12a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2 2 2 0 0 1-2 2H4a2 2 0 0 1-2-2zM12 18a6 6 0 1 0 0-12 6 6 0 0 0 0 12z"/>
+      </svg>
+      <span class="ai-chat-fab-status" id="aiChatFabBadge" title="IA Conectada"></span>
+    </div>
+  </button>
+
+  <!-- AI Help Chat Drawer / Window -->
+  <div id="aiChatModal" class="ai-chat-modal" role="dialog" aria-labelledby="aiChatTitle" aria-modal="true">
+    <div class="ai-chat-dialog">
+      <!-- Header -->
+      <div class="ai-chat-header">
+        <div class="ai-chat-header-info">
+          <div class="ai-chat-header-avatar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2 2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zM4.93 4.93a2 2 0 0 1 2.83 0l1.41 1.41a2 2 0 0 1-2.83 2.83L4.93 7.76a2 2 0 0 1 0-2.83zM2 12a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2 2 2 0 0 1-2 2H4a2 2 0 0 1-2-2zM12 18a6 6 0 1 0 0-12 6 6 0 0 0 0 12z"/>
+            </svg>
+          </div>
+          <div>
+            <h3 class="ai-chat-header-title" id="aiChatTitle" data-i18n="aiChat.title">Assistente Confeitex IA</h3>
+            <div class="ai-chat-header-status-row">
+              <span class="ai-chat-header-dot" id="aiChatStatusDot"></span>
+              <span class="ai-chat-header-status-text" id="aiChatStatusText" data-i18n="aiChat.statusOnline">Online • IA Conectada</span>
+            </div>
+          </div>
+        </div>
+        <div class="ai-chat-header-actions">
+          <button type="button" class="ai-chat-btn-header" id="btnAiChatClear" title="Limpar conversa" aria-label="Limpar conversa">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
+            </svg>
+          </button>
+          <button type="button" class="ai-chat-btn-header" id="btnAiChatClose" title="Fechar chat" aria-label="Fechar chat">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Offline Warning Banner -->
+      <div id="aiChatOfflineBanner" class="ai-chat-offline-banner" style="display:none;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="1" y1="1" x2="23" y2="23"/><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/><path d="M10.71 5.05A16 16 0 0 1 22.58 9"/><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/>
+        </svg>
+        <span data-i18n="aiChat.offlineBanner">Você está sem conexão com a internet. O assistente de inteligência artificial funciona somente quando você estiver online.</span>
+      </div>
+
+      <!-- Chat Body / Message List -->
+      <div class="ai-chat-body" id="aiChatBody">
+        <div class="ai-chat-messages" id="aiChatMessages">
+          <!-- Populated by AIChat.renderMessages() -->
+        </div>
+      </div>
+
+      <!-- Quick Suggestion Chips -->
+      <div class="ai-chat-suggestions" id="aiChatSuggestions">
+        <button type="button" class="ai-chat-chip" data-prompt="Quantos kg de bolo para quantas pessoas?" data-i18n="aiChat.chipCakeCalc">🎂 Bolo para quantas pessoas?</button>
+        <button type="button" class="ai-chat-chip" data-prompt="Como calcular preço de venda e custos?" data-i18n="aiChat.chipPrice">💰 Como precificar bolos e doces?</button>
+        <button type="button" class="ai-chat-chip" data-prompt="Como enviar orçamento no WhatsApp?" data-i18n="aiChat.chipQuotes">📋 Como enviar orçamento no WhatsApp?</button>
+        <button type="button" class="ai-chat-chip" data-prompt="Como fazer backup e trocar de celular?" data-i18n="aiChat.chipBackup">💾 Como salvar backup e trocar celular?</button>
+      </div>
+
+      <!-- Footer / Input Form -->
+      <form class="ai-chat-footer" id="aiChatForm">
+        <input type="text" class="form-control ai-chat-input" id="aiChatInput" placeholder="Pergunte sobre bolos, precificação ou o app..." data-i18n-ph="aiChat.inputPlaceholder" autocomplete="off">
+        <button type="submit" class="btn btn-primary ai-chat-send-btn" id="btnAiChatSend" title="Enviar mensagem" aria-label="Enviar mensagem">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+          </svg>
+        </button>
+      </form>
+    </div>
+  </div>
+
   <!-- Core JavaScript Modules (non-blocking defer loading) -->
-  <script defer src="js/state.js?v=5.2.0"></script>
-  <script defer src="js/i18n.js?v=5.2.0"></script>
-  <script defer src="js/auth.js?v=5.2.0"></script>
-  <script defer src="js/plan.js?v=5.2.0"></script>
-  <script defer src="js/utils.js?v=5.2.0"></script>
-  <script defer src="js/ui.js?v=5.2.0"></script>
-  <script defer src="js/chart.js?v=5.2.0"></script>
-  <script defer src="js/notifications.js?v=5.2.0"></script>
-  <script defer src="js/trash.js?v=5.2.0"></script>
-  <script defer src="js/dashboard.js?v=5.2.0"></script>
-  <script defer src="js/orders.js?v=5.2.0"></script>
-  <script defer src="js/quotes.js?v=5.2.0"></script>
-  <script defer src="js/catalog.js?v=5.2.0"></script>
-  <script defer src="js/clients.js?v=5.2.0"></script>
-  <script defer src="js/settings.js?v=5.2.0"></script>
-  <script defer src="js/finances.js?v=5.2.0"></script>
-  <script defer src="js/updates.js?v=5.2.0"></script>
-  <script defer src="js/mercadopago.js?v=5.2.0"></script>
-  <script defer src="js/onboarding.js?v=5.2.0"></script>
-  <script defer src="js/pwa.js?v=5.2.0"></script>
-  <script defer src="js/app.js?v=5.2.0"></script>
+  <script defer src="js/state.js?v=6.1.0"></script>
+  <script defer src="js/i18n.js?v=6.1.0"></script>
+  <script defer src="js/auth.js?v=6.1.0"></script>
+  <script defer src="js/plan.js?v=6.1.0"></script>
+  <script defer src="js/utils.js?v=6.1.0"></script>
+  <script defer src="js/ui.js?v=6.1.0"></script>
+  <script defer src="js/chart.js?v=6.1.0"></script>
+  <script defer src="js/notifications.js?v=6.1.0"></script>
+  <script defer src="js/trash.js?v=6.1.0"></script>
+  <script defer src="js/dashboard.js?v=6.1.0"></script>
+  <script defer src="js/orders.js?v=6.1.0"></script>
+  <script defer src="js/quotes.js?v=6.1.0"></script>
+  <script defer src="js/catalog.js?v=6.1.0"></script>
+  <script defer src="js/clients.js?v=6.1.0"></script>
+  <script defer src="js/settings.js?v=6.1.0"></script>
+  <script defer src="js/finances.js?v=6.1.0"></script>
+  <script defer src="js/updates.js?v=6.1.0"></script>
+  <script defer src="js/mercadopago.js?v=6.1.0"></script>
+  <script defer src="js/setup-wizard.js?v=6.1.0"></script>
+  <script defer src="js/ai-chat.js?v=6.1.0"></script>
+  <script defer src="js/onboarding.js?v=6.1.0"></script>
+  <script defer src="js/pwa.js?v=6.1.0"></script>
+  <script defer src="js/app.js?v=6.1.0"></script>
 </body>
 </html>

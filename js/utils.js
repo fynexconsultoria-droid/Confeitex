@@ -100,6 +100,8 @@ function sanitizeForStorage(value) {
     );
   }
   if (typeof value === 'string') {
+    const validImage = sanitizeImageData(value);
+    if (validImage) return validImage;
     const cleaned = sanitizeText(value);
     const numeric = cleaned.trim();
     // Preserva IDs, telefones (>=10 dígitos) e códigos com zero à esquerda como string
@@ -128,9 +130,61 @@ function parseNumericValue(value, fallback = 0) {
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
+function sanitizeImageData(val) {
+  if (!val || typeof val !== 'string') return '';
+  const trimmed = val.trim();
+  if (trimmed.length > 1000000) return '';
+  if (/^data:image\/(png|jpeg|jpg|webp|gif|svg\+xml);base64,[A-Za-z0-9+/=\s]+$/i.test(trimmed)) {
+    return trimmed;
+  }
+  if (/^https?:\/\/[^\s"'<>\\]+$/i.test(trimmed)) {
+    return trimmed;
+  }
+  return '';
+}
+
+function compressImage(file, maxWidth = 360, maxHeight = 360, quality = 0.82) {
+  return new Promise((resolve, reject) => {
+    if (!file || !file.type || !file.type.startsWith('image/')) {
+      return reject(new Error('Arquivo inválido. Selecione uma imagem.'));
+    }
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('Erro ao ler arquivo de imagem.'));
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('Erro ao processar dados da imagem.'));
+      img.onload = () => {
+        try {
+          let width = img.naturalWidth || img.width;
+          let height = img.naturalHeight || img.height;
+          if (width > maxWidth || height > maxHeight) {
+            const ratio = Math.min(maxWidth / width, maxHeight / height);
+            width = Math.max(1, Math.round(width * ratio));
+            height = Math.max(1, Math.round(height * ratio));
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) return resolve(e.target.result);
+          ctx.drawImage(img, 0, 0, width, height);
+          const outType = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+          const compressed = canvas.toDataURL(outType, quality);
+          resolve(compressed);
+        } catch (err) {
+          // Fallback para o dataURL original se canvas falhar (ex: restrição do ambiente)
+          resolve(e.target.result);
+        }
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 function validateStateDump(data) {
   const candidate = data && typeof data === 'object' ? sanitizeForStorage(data) : {};
-  const safe = { orders: [], catalog: [], expenses: [], trash: [], quotes: [], bakeryProfile: {} };
+  const safe = { orders: [], catalog: [], expenses: [], trash: [], quotes: [], bakeryProfile: {}, userProfile: {} };
   const normalizeList = (list, mapper) => Array.isArray(list) ? list.map(item => mapper(item)).filter(Boolean) : [];
 
   safe.orders = normalizeList(candidate.orders, (item) => {
@@ -160,13 +214,22 @@ function validateStateDump(data) {
     if (!item || typeof item !== 'object') return null;
     const entry = { ...item };
     entry.id = sanitizeText(entry.id || `cat_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`);
-    entry.flavor = sanitizeText(entry.flavor || '');
-    entry.type = sanitizeText(entry.type || 'Bolo de Kg');
-    entry.pricePerKg = parseNumericValue(entry.pricePerKg, 0);
+    const nameStr = sanitizeText(entry.flavor || entry.name || '');
+    entry.flavor = nameStr;
+    entry.name = nameStr;
+    const typeStr = sanitizeText(entry.type || entry.category || 'Bolo de Kg');
+    entry.type = typeStr;
+    entry.category = typeStr;
+    const priceVal = parseNumericValue(entry.pricePerKg != null ? entry.pricePerKg : (entry.salePrice != null ? entry.salePrice : entry.price), 0);
+    entry.pricePerKg = priceVal;
+    entry.salePrice = priceVal;
+    entry.price = priceVal;
+    entry.cost = parseNumericValue(entry.cost, 0);
     entry.description = sanitizeText(entry.description || '');
     entry.servingSize = sanitizeText(entry.servingSize || '');
     entry.minOrder = sanitizeText(entry.minOrder || '');
     entry.badge = sanitizeText(entry.badge || '');
+    entry.recipeId = sanitizeText(entry.recipeId || '');
     entry.active = entry.active !== false;
     return entry;
   });
@@ -223,9 +286,24 @@ function validateStateDump(data) {
       bio: sanitizeText(candidate.bakeryProfile.bio || ''),
       pix: sanitizeText(candidate.bakeryProfile.pix || ''),
       orderNotice: sanitizeText(candidate.bakeryProfile.orderNotice || ''),
+      logo: sanitizeImageData(candidate.bakeryProfile.logo || ''),
     };
   } else {
-    safe.bakeryProfile = { name: '', phone: '', instagram: '', bio: '', pix: '', orderNotice: '' };
+    safe.bakeryProfile = { name: '', phone: '', instagram: '', bio: '', pix: '', orderNotice: '', logo: '' };
+  }
+
+  if (candidate.userProfile && typeof candidate.userProfile === 'object') {
+    safe.userProfile = {
+      name: sanitizeText(candidate.userProfile.name || ''),
+      email: sanitizeText(candidate.userProfile.email || ''),
+      phone: sanitizeText(candidate.userProfile.phone || ''),
+      role: sanitizeText(candidate.userProfile.role || ''),
+      goal: sanitizeText(candidate.userProfile.goal || ''),
+      weeklyVolume: sanitizeText(candidate.userProfile.weeklyVolume || ''),
+      avatar: sanitizeImageData(candidate.userProfile.avatar || ''),
+    };
+  } else {
+    safe.userProfile = { name: '', email: '', phone: '', role: '', goal: '', weeklyVolume: '', avatar: '' };
   }
 
   return safe;
@@ -265,4 +343,33 @@ function formatWeight(o) {
   if (o.productType === 'Bolo de Kg') return `${w.toFixed(2).replace('.', ',')} Kg`;
   const isInt = Number.isInteger(w) || w === Math.floor(w);
   return isInt ? `${Math.round(w)} un` : `${w.toFixed(2).replace('.', ',')} un`;
+}
+
+const Utils = {
+  fmt,
+  fmtDate,
+  fmtDateStr,
+  fmtISO,
+  formatCurrency: fmt,
+  escapeHTML,
+  sanitizeText,
+  sanitizeForStorage,
+  parseNumericValue,
+  debounce,
+  maskPhone,
+  getOrderTotal,
+  validateStateDump,
+  formatWeight,
+  badgeClass,
+  compressImage,
+  sanitizeImageData,
+  showToast(msg, type = 'info') {
+    if (typeof UI !== 'undefined' && UI.toast) {
+      UI.toast(msg, type);
+    }
+  }
+};
+
+if (typeof window !== 'undefined') {
+  window.Utils = Utils;
 }

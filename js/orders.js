@@ -253,8 +253,11 @@ const Orders = {
     const sel = document.getElementById('orderFlavorSelect');
     const type = document.getElementById('orderProductType').value;
     const options = [`<option value="">${escapeHTML(I18n.t('orders.selectCustom'))}</option>`];
-    State.catalog.filter(i => type === 'Bolo de Kg' ? i.type === 'Bolo de Kg' : i.type !== 'Bolo de Kg')
-      .forEach(i => options.push(`<option value="${i.id}">${escapeHTML(i.flavor)} (${I18n.currencySymbol()} ${i.pricePerKg.toFixed(2)}${i.type === 'Bolo de Kg' ? '/Kg' : '/un'})</option>`));
+    State.catalog.filter(i => type === 'Bolo de Kg' ? (i.type || i.category) === 'Bolo de Kg' : (i.type || i.category) !== 'Bolo de Kg')
+      .forEach(i => {
+        const p = parseNumericValue(i.pricePerKg != null ? i.pricePerKg : (i.salePrice != null ? i.salePrice : i.price), 0);
+        options.push(`<option value="${i.id}">${escapeHTML(i.flavor || i.name)} (${I18n.currencySymbol()} ${p.toFixed(2)}${(i.type || i.category) === 'Bolo de Kg' ? '/Kg' : '/un'})</option>`);
+      });
     sel.innerHTML = options.join('');
   },
 
@@ -391,8 +394,9 @@ const Orders = {
     document.getElementById('orderFlavorSelect').addEventListener('change', (e) => {
       const item = State.catalog.find(c => c.id === e.target.value);
       if (item) {
-        document.getElementById('orderFlavor').value = item.flavor;
-        document.getElementById('orderUnitPrice').value = item.pricePerKg.toFixed(2);
+        document.getElementById('orderFlavor').value = item.flavor || item.name || '';
+        const rawPrice = item.pricePerKg != null ? item.pricePerKg : (item.salePrice != null ? item.salePrice : item.price);
+        document.getElementById('orderUnitPrice').value = parseNumericValue(rawPrice, 0).toFixed(2);
         this.calcTotal();
       }
     });
@@ -465,9 +469,10 @@ const Orders = {
       // Bug Fix #2: Dashboard SEMPRE atualiza ao salvar pedido (independente da aba ativa)
       Dashboard.update();
       var activeLink = document.querySelector('.nav-link.active');
-    var tab = activeLink ? activeLink.dataset.tab : null;
+      var tab = activeLink ? activeLink.dataset.tab : null;
       if (tab === 'orders') this.render();
       else if (tab === 'clients') Clients.render();
+      else if (tab === 'finances' && typeof Finance !== 'undefined' && Finance.render) Finance.render();
       UI.toast(I18n.t(id ? 'orders.toastUpdated' : 'orders.toastCreated'));
     });
   }

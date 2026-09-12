@@ -63,7 +63,8 @@ const Quotes = {
       nameInput.addEventListener('change', () => {
         const val = nameInput.value.trim().toLowerCase();
         if (!val) return;
-        const found = State.orders.find(o => o.clientName.toLowerCase() === val && o.clientPhone);
+        const found = (State.orders || []).find(o => o.clientName && o.clientName.toLowerCase() === val && o.clientPhone) ||
+                      (State.quotes || []).find(q => q.clientName && q.clientName.toLowerCase() === val && q.clientPhone);
         if (found && phoneInput && !phoneInput.value) {
           phoneInput.value = found.clientPhone;
         }
@@ -98,8 +99,9 @@ const Quotes = {
       flavorSelect.addEventListener('change', (e) => {
         const item = State.catalog.find(c => c.id === e.target.value);
         if (item) {
-          document.getElementById('quoteFlavor').value = item.flavor;
-          document.getElementById('quoteUnitPrice').value = item.pricePerKg.toFixed(2);
+          document.getElementById('quoteFlavor').value = item.flavor || item.name || '';
+          const rawPrice = item.pricePerKg != null ? item.pricePerKg : (item.salePrice != null ? item.salePrice : item.price);
+          document.getElementById('quoteUnitPrice').value = parseNumericValue(rawPrice, 0).toFixed(2);
           if (item.description && !document.getElementById('quoteDetails').value) {
             document.getElementById('quoteDetails').value = item.description;
           }
@@ -128,12 +130,16 @@ const Quotes = {
     const select = document.getElementById('quoteFlavorSelect');
     if (!select) return;
     const currentType = document.getElementById('quoteProductType')?.value || 'Bolo de Kg';
-    const filtered = State.catalog.filter(c => c.type === currentType && c.active !== false);
+    const filtered = (State.catalog || []).filter(c => (c.type === currentType || c.category === currentType) && c.active !== false);
 
     let html = `<option value="">${I18n.t('quotes.flavorSelectPh')}</option>`;
     filtered.forEach(c => {
-      const suffix = c.type === 'Bolo de Kg' ? '/Kg' : '/un';
-      html += `<option value="${escapeHTML(c.id)}">${escapeHTML(c.flavor)} — ${I18n.currencySymbol()} ${c.pricePerKg.toFixed(2)}${suffix}</option>`;
+      const type = c.type || c.category || 'Bolo de Kg';
+      const suffix = type === 'Bolo de Kg' ? '/Kg' : '/un';
+      const rawPrice = c.pricePerKg != null ? c.pricePerKg : (c.salePrice != null ? c.salePrice : c.price);
+      const priceVal = parseNumericValue(rawPrice, 0);
+      const flavorName = c.flavor || c.name || '';
+      html += `<option value="${escapeHTML(c.id)}">${escapeHTML(flavorName)} — ${I18n.currencySymbol()} ${priceVal.toFixed(2)}${suffix}</option>`;
     });
     select.innerHTML = html;
   },
@@ -217,7 +223,8 @@ const Quotes = {
 
     tbody.innerHTML = list.map(q => {
       const isExpired = q.status === 'Pendente' && q.validUntil && q.validUntil < nowStr;
-      const statusClass = isExpired ? 'badge-danger' : q.status === 'Aprovado' ? 'badge-success' : q.status === 'Recusado' ? 'badge-danger' : 'badge-pending';
+      const statusClass = isExpired ? 'quote-status-recusado' : (q.status === 'Aprovado' ? 'quote-status-aprovado' : (q.status === 'Recusado' ? 'quote-status-recusado' : 'quote-status-pendente'));
+      const statusIcon = isExpired ? '⚠️' : (q.status === 'Aprovado' ? '✅' : (q.status === 'Recusado' ? '❌' : '⏳'));
       const statusLabel = isExpired ? 'Expirado' : (q.status || 'Pendente');
 
       const isKg = q.productType === 'Bolo de Kg';
@@ -247,7 +254,7 @@ const Quotes = {
             ${fmt(q.totalValue)}
           </td>
           <td>
-            <span class="badge ${statusClass}" style="font-size:0.7rem;padding:0.2rem 0.5rem;">${statusLabel}</span>
+            <span class="quote-status-badge ${statusClass}">${statusIcon} ${statusLabel}</span>
           </td>
           <td class="text-right">
             <div class="quote-action-btns" style="display:inline-flex;gap:0.35rem;">

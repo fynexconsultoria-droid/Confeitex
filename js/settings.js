@@ -2,24 +2,44 @@ const Settings = {
   renderCatalog() {
     const container = document.getElementById('catalogListContainer');
     if (!container) return;
-    container.innerHTML = State.catalog.map(item => `
+    container.innerHTML = State.catalog.map(item => {
+      const flavorName = item.flavor || item.name || '';
+      const itemType = item.type || item.category || 'Bolo de Kg';
+      const rawPrice = item.pricePerKg != null ? item.pricePerKg : (item.salePrice != null ? item.salePrice : item.price);
+      const priceVal = parseNumericValue(rawPrice, 0);
+      return `
       <div style="display:flex;justify-content:space-between;align-items:center;padding:0.5rem;border-bottom:1px solid rgba(255,255,255,0.03);gap:0.5rem;">
         <div style="flex:1;">
-          <span style="font-weight:600;font-size:0.9rem;color:white;">${escapeHTML(item.flavor)}</span>
-          <span style="font-size:0.75rem;color:var(--text-muted);display:block;">${escapeHTML(I18n.value('product', item.type))}</span>
+          <span style="font-weight:600;font-size:0.9rem;color:white;">${escapeHTML(flavorName)}</span>
+          <span style="font-size:0.75rem;color:var(--text-muted);display:block;">${escapeHTML(I18n.value('product', itemType))}</span>
         </div>
-        <div style="font-weight:700;color:var(--color-accent-pink);font-size:0.9rem;margin-right:0.5rem;">${I18n.currencySymbol()} ${item.pricePerKg.toFixed(2)}${item.type === 'Bolo de Kg' ? '/Kg' : '/un'}</div>
+        <div style="font-weight:700;color:var(--color-accent-pink);font-size:0.9rem;margin-right:0.5rem;">${I18n.currencySymbol()} ${priceVal.toFixed(2)}${itemType === 'Bolo de Kg' ? '/Kg' : '/un'}</div>
         <button class="btn btn-secondary btn-icon-only btn-del-cat" data-id="${item.id}" aria-label="${I18n.t('common.delete') || 'Excluir'}" title="${I18n.t('common.delete') || 'Excluir'}" style="padding:0.3rem;color:var(--color-danger);border-color:rgba(239,68,68,0.2);">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
         </button>
       </div>
-    `).join('');
+    `;
+    }).join('');
 
-    container.querySelectorAll('.btn-del-cat').forEach(b => b.addEventListener('click', () => {
-      State.catalog = State.catalog.filter(c => c.id !== b.dataset.id);
-      State.saveCatalog();
-      this.renderCatalog();
-    }));
+    if (!container._hasDelListener) {
+      container.addEventListener('click', (e) => {
+        const btn = e.target.closest('.btn-del-cat');
+        if (!btn) return;
+        const id = btn.dataset.id;
+        const itemToDelete = State.catalog.find(c => c.id === id);
+        if (itemToDelete) {
+          if (State.addToTrash) {
+            State.addToTrash(itemToDelete, 'catalog', `${itemToDelete.flavor || itemToDelete.name} (${itemToDelete.type || itemToDelete.category})`);
+          }
+          State.catalog = State.catalog.filter(c => c.id !== id);
+          State.saveCatalog();
+          this.renderCatalog();
+          if (typeof Catalog !== 'undefined' && Catalog.render) Catalog.render();
+          UI.toast(I18n.t('common.deleted') || 'Item excluído');
+        }
+      });
+      container._hasDelListener = true;
+    }
   },
 
   setup() {
@@ -126,11 +146,26 @@ const Settings = {
           return;
         }
 
-        State.catalog.push({ id: 'cat_' + Date.now(), flavor, pricePerKg: price, type });
+        const rawPrice = price;
+        const newItem = {
+          id: 'cat_' + Date.now(),
+          flavor,
+          name: flavor,
+          pricePerKg: rawPrice,
+          salePrice: rawPrice,
+          price: rawPrice,
+          cost: 0,
+          type,
+          category: type,
+          active: true,
+          createdAt: new Date().toISOString()
+        };
+        State.catalog.push(newItem);
         State.saveCatalog();
         document.getElementById('newCatalogFlavor').value = '';
         document.getElementById('newCatalogPrice').value = '';
         this.renderCatalog();
+        if (typeof Catalog !== 'undefined' && Catalog.render) Catalog.render();
         UI.toast(I18n.t('settings.toastCatAdded'));
       });
     }

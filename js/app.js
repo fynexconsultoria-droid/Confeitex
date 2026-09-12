@@ -10,9 +10,13 @@
   const sidebarVersion = document.getElementById('sidebarVersion');
   if (sidebarVersion && typeof Updates !== 'undefined') sidebarVersion.textContent = `v${Updates.verAtual}`;
 
+  State.load();
+
   // Onboarding — exibe apenas na primeira abertura
   if (Onboarding.shouldShow()) {
     Onboarding.show();
+  } else if (typeof SetupWizard !== 'undefined' && SetupWizard.shouldShow()) {
+    setTimeout(() => SetupWizard.show(), 300);
   } else if (navigator.onLine) {
     // Se não tem cartão e não tem assinatura, convida a cadastrar no primeiro acesso
     if (!Plan.hasRegisteredCard() && !Plan.isSubscriptionActive() && !safeStorage.get('confeitex_trial_prompted')) {
@@ -22,14 +26,20 @@
       setTimeout(() => Plan.showUpgradeModal(), 1200);
     }
   }
-  
-  State.load();
+
+  if (typeof I18n !== 'undefined' && typeof I18n.apply === 'function') {
+    I18n.apply();
+  }
+
+  if (typeof SetupWizard !== 'undefined' && SetupWizard.updateAppHeaderGreetings) {
+    SetupWizard.updateAppHeaderGreetings();
+  }
 
   const tabTitles = {
     dashboard: { title: 'tab.dash.title', subtitle: 'tab.dash.sub' },
     orders: { title: 'tab.orders.title', subtitle: 'tab.orders.sub' },
-    quotes: { title: 'quotes.title', subtitle: 'quotes.subtitle' },
-    catalog: { title: 'catalog.title', subtitle: 'catalog.subtitle' },
+    quotes: { title: 'tab.quotes.title', subtitle: 'tab.quotes.sub' },
+    catalog: { title: 'tab.catalog.title', subtitle: 'tab.catalog.sub' },
     clients: { title: 'tab.clients.title', subtitle: 'tab.clients.sub' },
     finances: { title: 'tab.finances.title', subtitle: 'tab.finances.sub' },
     settings: { title: 'tab.settings.title', subtitle: 'tab.settings.sub' },
@@ -65,7 +75,12 @@
       else if (tabId === 'catalog') Catalog.render();
       else if (tabId === 'clients') Clients.render();
       else if (tabId === 'finances') Finance.render();
-      else if (tabId === 'settings') Settings.renderCatalog();
+      else if (tabId === 'settings') {
+        Settings.renderCatalog();
+        if (typeof SetupWizard !== 'undefined' && SetupWizard.updateAppHeaderGreetings) {
+          SetupWizard.updateAppHeaderGreetings();
+        }
+      }
       else if (tabId === 'updates') Updates.render();
     } catch (e) { console.warn('[Confeitex] Erro na aba', tabId, e); }
   }
@@ -90,7 +105,11 @@
       return;
     }
 
-    // 2. Fecha modais padrão se houver algum aberto
+    // 2. Fecha modais padrão ou chat de IA se houver algum aberto
+    if (typeof AIChat !== 'undefined' && AIChat.isOpen) {
+      AIChat.close();
+      return;
+    }
     const activeModals = document.querySelectorAll('.modal-overlay.active');
     if (activeModals.length > 0) {
       activeModals.forEach(m => m.classList.remove('active'));
@@ -299,6 +318,11 @@
   // Notificações programadas
   Notifications.init();
   Notifications.initReconnectionListeners();
+
+  // Assistente Confeitex IA (Help Chat)
+  if (typeof AIChat !== 'undefined' && AIChat.init) {
+    AIChat.init();
+  }
 
   // Verifica atualização automaticamente ao iniciar
   (async () => {

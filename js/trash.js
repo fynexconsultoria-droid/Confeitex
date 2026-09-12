@@ -114,6 +114,8 @@ const Trash = {
     else if (tab === 'clients') Clients.render();
     else if (tab === 'dashboard') Dashboard.update();
     else if (tab === 'finances') Finance.render();
+    else if (tab === 'quotes' && typeof Quotes !== 'undefined' && Quotes.render) Quotes.render();
+    else if (tab === 'catalog' && typeof Catalog !== 'undefined' && Catalog.render) Catalog.render();
   },
 
   setup() {
