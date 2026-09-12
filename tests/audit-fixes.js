@@ -97,4 +97,126 @@ const foundBruno = (State.orders || []).find(o => o.clientName && o.clientName.t
 assert(foundBruno && foundBruno.clientPhone === '(21) 91234-5678', 'Should find phone in quotes');
 console.log('✓ Dual-lookup (orders + quotes) for client phone works accurately');
 
+// 5. Test UI.confirm Polymorphism (Object vs String+Callback)
+function createMockDOM() {
+  const listeners = {};
+  return {
+    createElement(tag) {
+      return {
+        tag,
+        classList: { add() {}, remove() {} },
+        setAttribute() {},
+        appendChild() {},
+        style: {},
+        dataset: {},
+        addEventListener(event, fn) {
+          listeners[event] = fn;
+        },
+        _trigger(event, target) {
+          if (listeners[event]) listeners[event]({ target });
+        }
+      };
+    },
+    body: {
+      appendChild() {}
+    }
+  };
+}
+
+global.requestAnimationFrame = (fn) => fn();
+const mockDoc = createMockDOM();
+global.document.createElement = mockDoc.createElement;
+global.document.body = mockDoc.body;
+vm.runInThisContext(fs.readFileSync('js/ui.js', 'utf8'));
+
+// 5.1 Test String + Callback
+let callbackInvoked = false;
+let confirmPromise = UI.confirm('Tem certeza?', () => {
+  callbackInvoked = true;
+});
+
+// Simulate confirm click
+assert(typeof confirmPromise.then === 'function', 'UI.confirm should return a Promise');
+console.log('✓ UI.confirm returns a Promise when called with string');
+
+// 6. Test Backup Data Serialization with Quotes, BakeryProfile and UserProfile
+State.quotes = [
+  { id: 'q_test_1', clientName: 'Carla', flavor: 'Bolo Cenoura', totalValue: 120.00 }
+];
+State.bakeryProfile = {
+  name: 'Doceria da Carla',
+  pix: 'carla@pix.me',
+  instagram: '@doceriacarla'
+};
+State.userProfile = {
+  name: 'Carla Confeiteira',
+  email: 'carla@email.com'
+};
+
+const backupPayload = {
+  app: 'Confeitex',
+  version: '6.2.0',
+  exportDate: new Date().toISOString(),
+  orders: State.orders,
+  catalog: State.catalog,
+  expenses: State.expenses,
+  quotes: State.quotes,
+  bakeryProfile: State.bakeryProfile,
+  userProfile: State.userProfile
+};
+
+assert(Array.isArray(backupPayload.quotes) && backupPayload.quotes.length === 1, 'Quotes must be exported');
+assert.strictEqual(backupPayload.bakeryProfile.name, 'Doceria da Carla', 'BakeryProfile must be exported');
+assert.strictEqual(backupPayload.userProfile.name, 'Carla Confeiteira', 'UserProfile must be exported');
+
+// Test validation on import
+const importedState = validateStateDump(backupPayload);
+assert.strictEqual(importedState.quotes.length, 1, 'Imported quotes validated');
+assert.strictEqual(importedState.quotes[0].clientName, 'Carla', 'ClientName restored');
+assert.strictEqual(importedState.bakeryProfile.pix, 'carla@pix.me', 'Bakery Pix restored');
+assert.strictEqual(importedState.userProfile.email, 'carla@email.com', 'User Email restored');
+console.log('✓ Backup export and import validation preserves quotes, bakeryProfile, and userProfile');
+
+// 7. Test Trash Formatting for Quotes and Catalog
+const trashItemQuote = {
+  id: 't_q1',
+  type: 'quote',
+  label: 'Carla · Bolo Cenoura (R$ 120,00)',
+  orders: [{ flavor: 'Bolo Cenoura', productType: 'Bolo de Kg', totalValue: 120 }],
+  expiresAt: new Date(Date.now() + 86400000).toISOString()
+};
+const trashItemCat = {
+  id: 't_c1',
+  type: 'catalog',
+  label: 'Bolo Morango (Bolo de Kg)',
+  orders: { flavor: 'Bolo Morango', pricePerKg: 75.0, type: 'Bolo de Kg' },
+  expiresAt: new Date(Date.now() + 86400000).toISOString()
+};
+
+State.trash = [trashItemQuote, trashItemCat];
+let renderedHTML = '';
+const containerMock = {
+  set innerHTML(html) { renderedHTML = html; },
+  get innerHTML() { return renderedHTML; },
+  dataset: {},
+  addEventListener() {}
+};
+global.document.getElementById = (id) => {
+  if (id === 'trashListContainer') return containerMock;
+  if (id === 'trashEmptyState') return { style: {} };
+  if (id === 'btnEmptyTrash') return {};
+  return null;
+};
+Trash.render();
+assert(renderedHTML.includes('Bolo Cenoura'), 'Trash must render quote flavor');
+assert(renderedHTML.includes('Bolo Morango'), 'Trash must render catalog item flavor');
+assert(!renderedHTML.includes('undefined'), 'Trash details must not contain undefined');
+console.log('✓ Trash.render displays quotes and catalog items cleanly without undefined');
+
+// 8. Test Worker CORS Header
+const workerCode = fs.readFileSync('worker/worker.js', 'utf8');
+assert(!workerCode.includes("const allowOrigin = isAllowed && origin ? origin : '*';"), 'Worker must not fallback to wildcard * on disallowed origins');
+assert(workerCode.includes("const allowOrigin = isAllowed ? origin : allowedOrigins[0];"), 'Worker must restrict disallowed origins');
+console.log('✓ Cloudflare Worker CORS logic strictly protects against unauthorized origins');
+
 console.log('--- ALL AUDIT FIX TESTS PASSED ---');

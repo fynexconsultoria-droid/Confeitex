@@ -27,9 +27,24 @@ const Trash = {
     btnEmpty.disabled = false;
     container.innerHTML = State.trash.map(t => {
       const daysLeft = Math.max(0, Math.ceil((new Date(t.expiresAt).getTime() - Date.now()) / 86400000));
-      const detail = t.type === 'client'
-        ? `${I18n.t('trash.ordersCount', { count: t.count })} · ${I18n.t('trash.expiresIn', { days: daysLeft })}`
-        : `${(t.orders[0] ? t.orders[0].flavor : '') || ''} · ${fmt(getOrderTotal(t.orders[0]))} · ${I18n.t('trash.expiresIn', { days: daysLeft })}`;
+      let detail = '';
+      const firstItem = Array.isArray(t.orders) ? t.orders[0] : t.orders;
+
+      if (t.type === 'client') {
+        detail = `${I18n.t('trash.ordersCount', { count: t.count })} · ${I18n.t('trash.expiresIn', { days: daysLeft })}`;
+      } else if (t.type === 'quote') {
+        const qName = firstItem ? (firstItem.flavor || firstItem.productType || '') : '';
+        const qVal = firstItem ? (firstItem.totalValue || 0) : 0;
+        detail = `${qName} · ${fmt(qVal)} · ${I18n.t('trash.expiresIn', { days: daysLeft })}`;
+      } else if (t.type === 'catalog') {
+        const catName = firstItem ? (firstItem.flavor || firstItem.name || '') : '';
+        const catPrice = firstItem ? parseNumericValue(firstItem.pricePerKg != null ? firstItem.pricePerKg : (firstItem.salePrice != null ? firstItem.salePrice : firstItem.price), 0) : 0;
+        detail = `${catName} · ${fmt(catPrice)} · ${I18n.t('trash.expiresIn', { days: daysLeft })}`;
+      } else {
+        const ordFlavor = firstItem ? firstItem.flavor : '';
+        const ordVal = firstItem ? getOrderTotal(firstItem) : 0;
+        detail = `${ordFlavor || ''} · ${fmt(ordVal)} · ${I18n.t('trash.expiresIn', { days: daysLeft })}`;
+      }
       return `<div class="trash-item">
         <div style="flex:1;min-width:0;">
           <div class="trash-item-title">${escapeHTML(t.label)}</div>

@@ -37,8 +37,41 @@ const UI = {
     }, 3500);
   },
 
-  confirm({ title, message, confirmText = 'Confirmar', cancelText = 'Cancelar', variant = 'primary' }) {
+  confirm(param1, param2, param3) {
     return new Promise(resolve => {
+      let title = 'Confirmação';
+      let message = '';
+      let confirmText = 'Confirmar';
+      let cancelText = 'Cancelar';
+      let variant = 'primary';
+      let onConfirm = null;
+      let onCancel = null;
+
+      if (typeof I18n !== 'undefined' && I18n.t) {
+        title = I18n.t('common.confirmTitle') || 'Confirmação';
+        confirmText = I18n.t('common.confirm') || 'Confirmar';
+        cancelText = I18n.t('common.cancel') || 'Cancelar';
+      }
+
+      if (typeof param1 === 'string') {
+        message = param1;
+        if (typeof param2 === 'function') onConfirm = param2;
+        if (typeof param3 === 'function') onCancel = param3;
+        else if (param3 && typeof param3 === 'object') {
+          if (param3.title) title = param3.title;
+          if (param3.confirmText) confirmText = param3.confirmText;
+          if (param3.cancelText !== undefined) cancelText = param3.cancelText;
+          if (param3.variant) variant = param3.variant;
+        }
+      } else if (param1 && typeof param1 === 'object') {
+        if (param1.title) title = param1.title;
+        if (param1.message) message = param1.message;
+        if (param1.confirmText) confirmText = param1.confirmText;
+        if (param1.cancelText !== undefined) cancelText = param1.cancelText;
+        if (param1.variant) variant = param1.variant;
+        if (typeof param2 === 'function') onConfirm = param2;
+      }
+
       const icons = {
         primary: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
         danger: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
@@ -105,7 +138,14 @@ const UI = {
         if (!btn) return;
         overlay.classList.remove('active');
         setTimeout(() => overlay.remove(), 300);
-        resolve(btn.dataset.action === 'confirm');
+        const confirmed = btn.dataset.action === 'confirm';
+        if (confirmed) {
+          if (typeof onConfirm === 'function') onConfirm();
+          resolve(true);
+        } else {
+          if (typeof onCancel === 'function') onCancel();
+          resolve(false);
+        }
       });
     });
   },

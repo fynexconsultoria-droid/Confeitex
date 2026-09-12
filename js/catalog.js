@@ -364,7 +364,16 @@ const Catalog = {
     };
 
     if (typeof UI !== 'undefined' && UI.confirm) {
-      UI.confirm(`${I18n.t('catalog.confirm_delete')} "${item.flavor || item.name}"?`, doDelete);
+      UI.confirm(
+        `${I18n.t('catalog.confirm_delete')} "${item.flavor || item.name}"?`,
+        doDelete,
+        null,
+        {
+          title: I18n.t('common.delete') || 'Excluir Item',
+          confirmText: I18n.t('common.delete') || 'Excluir',
+          variant: 'danger'
+        }
+      );
     } else if (confirm(`${I18n.t('catalog.confirm_delete')} "${item.flavor || item.name}"?`)) {
       doDelete();
     }

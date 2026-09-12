@@ -554,7 +554,7 @@ const Quotes = {
     const q = State.quotes.find(item => item.id === quoteId);
     if (!q) return;
 
-    UI.confirm(I18n.t('quotes.confirmConvert') || 'Deseja aprovar este orçamento e criar um Pedido oficial agora?', () => {
+    const doConvert = () => {
       // Cria pedido
       const newOrder = {
         id: 'o_' + (crypto.randomUUID ? crypto.randomUUID() : Date.now() + '_' + Math.random().toString(36).slice(2, 8)),
@@ -594,19 +594,41 @@ const Quotes = {
       if (typeof window.switchTab === 'function') {
         setTimeout(() => window.switchTab('orders'), 400);
       }
-    });
+    };
+
+    UI.confirm(
+      I18n.t('quotes.confirmConvert') || 'Deseja aprovar este orçamento e criar um Pedido oficial agora?',
+      doConvert,
+      null,
+      {
+        title: I18n.t('quotes.actConvert') || 'Aprovar Orçamento',
+        confirmText: I18n.t('quotes.actConvert') || 'Aprovar e Criar Pedido',
+        variant: 'primary'
+      }
+    );
   },
 
   deleteQuote(quoteId) {
     const q = State.quotes.find(item => item.id === quoteId);
     if (!q) return;
 
-    UI.confirm(`Deseja excluir o orçamento de ${q.clientName}?`, () => {
+    const doDelete = () => {
       State.addToTrash(q, 'quote', `${q.clientName} · ${q.flavor} (${fmt(q.totalValue)})`);
       State.quotes = State.quotes.filter(item => item.id !== quoteId);
       State.saveQuotes();
       this.render();
       UI.toast(I18n.t('quotes.toastDeleted'), 'info');
-    });
+    };
+
+    UI.confirm(
+      `Deseja excluir o orçamento de ${q.clientName}?`,
+      doDelete,
+      null,
+      {
+        title: I18n.t('quotes.actDelete') || 'Excluir Orçamento',
+        confirmText: I18n.t('quotes.actDelete') || 'Excluir',
+        variant: 'danger'
+      }
+    );
   }
 };

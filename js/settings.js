@@ -101,9 +101,11 @@ const Settings = {
         State.orders = [];
         State.catalog = [...DEFAULT_CATALOG];
         State.expenses = [];
+        State.quotes = [];
         State.saveOrders();
         State.saveCatalog();
         State.saveExpenses();
+        State.saveQuotes();
         State.emptyTrash();
         if (Trash.updateBadge) Trash.updateBadge();
         safeStorage.remove('confeitex_notified');
@@ -324,7 +326,10 @@ const Settings = {
       exportDate: new Date().toISOString(),
       orders: State.orders,
       catalog: State.catalog,
-      expenses: State.expenses
+      expenses: State.expenses,
+      quotes: State.quotes,
+      bakeryProfile: State.bakeryProfile,
+      userProfile: State.userProfile
     };
     const jsonStr = JSON.stringify(backupData, null, 2);
     const blob = new Blob([jsonStr], { type: 'application/json;charset=utf-8' });
@@ -362,6 +367,9 @@ const Settings = {
     let newOrders = [];
     let newCatalog = [];
     let newExpenses = [];
+    let newQuotes = [];
+    let newBakeryProfile = null;
+    let newUserProfile = null;
 
     if (Array.isArray(parsed)) {
       newOrders = parsed.map(item => {
@@ -372,9 +380,12 @@ const Settings = {
       if (Array.isArray(parsed.orders)) newOrders = validated.orders;
       if (Array.isArray(parsed.catalog)) newCatalog = validated.catalog;
       if (Array.isArray(parsed.expenses)) newExpenses = validated.expenses;
+      if (Array.isArray(parsed.quotes)) newQuotes = validated.quotes;
+      if (parsed.bakeryProfile && typeof parsed.bakeryProfile === 'object') newBakeryProfile = validated.bakeryProfile;
+      if (parsed.userProfile && typeof parsed.userProfile === 'object') newUserProfile = validated.userProfile;
     }
 
-    if (newOrders.length === 0 && newCatalog.length === 0 && newExpenses.length === 0) {
+    if (newOrders.length === 0 && newCatalog.length === 0 && newExpenses.length === 0 && newQuotes.length === 0 && !newBakeryProfile && !newUserProfile) {
       throw new Error('Nenhum dado encontrado no arquivo JSON');
     }
 
@@ -399,12 +410,29 @@ const Settings = {
       State.expenses = newExpenses;
       State.saveExpenses();
     }
+    if (newQuotes.length > 0) {
+      State.quotes = newQuotes;
+      State.saveQuotes();
+    }
+    if (newBakeryProfile) {
+      State.bakeryProfile = newBakeryProfile;
+      State.saveBakeryProfile();
+    }
+    if (newUserProfile) {
+      State.userProfile = newUserProfile;
+      State.saveUserProfile();
+      if (typeof SetupWizard !== 'undefined' && SetupWizard.updateAppHeaderGreetings) {
+        SetupWizard.updateAppHeaderGreetings();
+      }
+    }
 
     UI.toast(I18n.t('settings.toastImported'));
     var activeLink = document.querySelector('.nav-link.active');
     var tab = activeLink ? activeLink.dataset.tab : null;
     if (tab === 'dashboard') Dashboard.update();
     else if (tab === 'orders') Orders.render();
+    else if (tab === 'quotes' && typeof Quotes !== 'undefined' && Quotes.render) Quotes.render();
+    else if (tab === 'catalog' && typeof Catalog !== 'undefined' && Catalog.render) Catalog.render();
     else if (tab === 'clients') Clients.render();
     else if (tab === 'settings') this.renderCatalog();
   },

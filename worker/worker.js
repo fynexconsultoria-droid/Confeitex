@@ -18,8 +18,8 @@ function getCorsHeaders(request, env) {
     allowedOrigins.push(env.ALLOWED_ORIGIN);
   }
 
-  const isAllowed = !origin || allowedOrigins.some(o => origin === o || origin.startsWith(o + ':'));
-  const allowOrigin = isAllowed && origin ? origin : '*';
+  const isAllowed = origin && allowedOrigins.some(o => origin === o || origin.startsWith(o + ':'));
+  const allowOrigin = isAllowed ? origin : allowedOrigins[0];
 
   return {
     'Access-Control-Allow-Origin': allowOrigin,
@@ -153,7 +153,7 @@ export default {
         return json({
           status: 'ok',
           service: 'Confeitex Mercado Pago API',
-          version: '6.1.0',
+          version: '6.2.0',
           configured: Boolean(env.MP_ACCESS_TOKEN),
           timestamp: Date.now(),
         });
@@ -417,6 +417,20 @@ export default {
 
       // ─── Rota: Cobrar com Cartão Salvo ─────────────────────
       if (path === '/charge-saved-card' && request.method === 'POST') {
+        if (env.APP_SECRET) {
+          const headerSecret = request.headers.get('X-App-Secret');
+          const auth = request.headers.get('Authorization') || '';
+          const hasSecret = headerSecret && headerSecret === env.APP_SECRET;
+          let hasValidJwt = false;
+          if (auth.startsWith('Bearer ')) {
+            const payload = await verifyJWT(auth.slice(7), env.JWT_SECRET || env.APP_SECRET);
+            if (payload && payload.exp && payload.exp > Date.now() / 1000) hasValidJwt = true;
+          }
+          if (!hasSecret && !hasValidJwt) {
+            return error('Cobrança com cartão salvo requer autenticação via APP_SECRET ou JWT válido.', 403, null, request, env);
+          }
+        }
+
         const body = await request.json();
         const { customer_id, card_id, amount, description } = body;
         if (!customer_id || !card_id || !amount) {
