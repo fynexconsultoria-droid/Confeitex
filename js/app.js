@@ -28,6 +28,8 @@
   const tabTitles = {
     dashboard: { title: 'tab.dash.title', subtitle: 'tab.dash.sub' },
     orders: { title: 'tab.orders.title', subtitle: 'tab.orders.sub' },
+    quotes: { title: 'quotes.title', subtitle: 'quotes.subtitle' },
+    catalog: { title: 'catalog.title', subtitle: 'catalog.subtitle' },
     clients: { title: 'tab.clients.title', subtitle: 'tab.clients.sub' },
     finances: { title: 'tab.finances.title', subtitle: 'tab.finances.sub' },
     settings: { title: 'tab.settings.title', subtitle: 'tab.settings.sub' },
@@ -59,6 +61,8 @@
     try {
       if (tabId === 'dashboard') Dashboard.update();
       else if (tabId === 'orders') Orders.render();
+      else if (tabId === 'quotes') Quotes.render();
+      else if (tabId === 'catalog') Catalog.render();
       else if (tabId === 'clients') Clients.render();
       else if (tabId === 'finances') Finance.render();
       else if (tabId === 'settings') Settings.renderCatalog();

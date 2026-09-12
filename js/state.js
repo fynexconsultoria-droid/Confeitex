@@ -23,6 +23,8 @@ const State = {
   catalog: [],
   trash: [],
   expenses: [],
+  quotes: [],
+  bakeryProfile: { name: '', phone: '', instagram: '', bio: '', pix: '', orderNotice: '' },
   TRASH_RETENTION_DAYS: 7,
   _syncTimer: null,
 
@@ -52,6 +54,18 @@ const State = {
     } catch (e) {
       this.expenses = [];
     }
+    try {
+      const savedQuotes = safeStorage.get('confeitex_quotes');
+      this.quotes = validateStateDump({ quotes: savedQuotes ? JSON.parse(savedQuotes) : [] }).quotes;
+    } catch (e) {
+      this.quotes = [];
+    }
+    try {
+      const savedProfile = safeStorage.get('confeitex_bakery_profile');
+      this.bakeryProfile = validateStateDump({ bakeryProfile: savedProfile ? JSON.parse(savedProfile) : {} }).bakeryProfile;
+    } catch (e) {
+      this.bakeryProfile = { name: '', phone: '', instagram: '', bio: '', pix: '', orderNotice: '' };
+    }
     this.purgeTrash();
     this.autoSnapshotCheck();
   },
@@ -67,16 +81,18 @@ const State = {
   saveCatalog() { safeStorage.set('confeitex_catalog', JSON.stringify(sanitizeForStorage(this.catalog))); },
   saveTrash() { safeStorage.set('confeitex_trash', JSON.stringify(sanitizeForStorage(this.trash))); },
   saveExpenses() { safeStorage.set('confeitex_expenses', JSON.stringify(sanitizeForStorage(this.expenses))); },
+  saveQuotes() { safeStorage.set('confeitex_quotes', JSON.stringify(sanitizeForStorage(this.quotes))); },
+  saveBakeryProfile() { safeStorage.set('confeitex_bakery_profile', JSON.stringify(sanitizeForStorage(this.bakeryProfile))); },
 
-  addToTrash(orders, type, label) {
+  addToTrash(items, type, label) {
     const now = new Date();
     const expires = new Date(now.getTime() + this.TRASH_RETENTION_DAYS * 86400000);
     this.trash.push({
       id: 't_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
       type,
       label,
-      orders,
-      count: orders.length,
+      orders: items,
+      count: Array.isArray(items) ? items.length : 1,
       deletedAt: now.toISOString(),
       expiresAt: expires.toISOString()
     });
@@ -85,7 +101,6 @@ const State = {
 
   purgeTrash() {
     const now = Date.now();
-    const thirtyDays = 30 * 24 * 60 * 60 * 1000;
     const before = this.trash.length;
     this.trash = this.trash.filter(t => {
       if (!t.expiresAt) return false; // Remove itens legados sem data de expiração
@@ -97,9 +112,17 @@ const State = {
   restoreFromTrash(id) {
     const entry = this.trash.find(t => t.id === id);
     if (!entry) return false;
-    entry.orders.forEach(o => this.orders.push(o));
+    if (entry.type === 'quote') {
+      (Array.isArray(entry.orders) ? entry.orders : [entry.orders]).forEach(q => this.quotes.push(q));
+      this.saveQuotes();
+    } else if (entry.type === 'catalog') {
+      (Array.isArray(entry.orders) ? entry.orders : [entry.orders]).forEach(c => this.catalog.push(c));
+      this.saveCatalog();
+    } else {
+      entry.orders.forEach(o => this.orders.push(o));
+      this.saveOrders();
+    }
     this.trash = this.trash.filter(t => t.id !== id);
-    this.saveOrders();
     this.saveTrash();
     return true;
   },

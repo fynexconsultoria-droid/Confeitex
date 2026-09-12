@@ -33,6 +33,8 @@ const ASSETS_TO_CACHE = [
   './js/notifications.js',
   './js/dashboard.js',
   './js/orders.js',
+  './js/quotes.js',
+  './js/catalog.js',
   './js/clients.js',
   './js/settings.js',
   './js/finances.js',

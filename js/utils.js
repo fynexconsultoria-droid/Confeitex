@@ -130,7 +130,7 @@ function parseNumericValue(value, fallback = 0) {
 
 function validateStateDump(data) {
   const candidate = data && typeof data === 'object' ? sanitizeForStorage(data) : {};
-  const safe = { orders: [], catalog: [], expenses: [], trash: [] };
+  const safe = { orders: [], catalog: [], expenses: [], trash: [], quotes: [], bakeryProfile: {} };
   const normalizeList = (list, mapper) => Array.isArray(list) ? list.map(item => mapper(item)).filter(Boolean) : [];
 
   safe.orders = normalizeList(candidate.orders, (item) => {
@@ -163,6 +163,11 @@ function validateStateDump(data) {
     entry.flavor = sanitizeText(entry.flavor || '');
     entry.type = sanitizeText(entry.type || 'Bolo de Kg');
     entry.pricePerKg = parseNumericValue(entry.pricePerKg, 0);
+    entry.description = sanitizeText(entry.description || '');
+    entry.servingSize = sanitizeText(entry.servingSize || '');
+    entry.minOrder = sanitizeText(entry.minOrder || '');
+    entry.badge = sanitizeText(entry.badge || '');
+    entry.active = entry.active !== false;
     return entry;
   });
 
@@ -186,6 +191,42 @@ function validateStateDump(data) {
     entry.count = Number(parseInt(String(entry.count != null ? entry.count : entry.orders.length), 10) || 0);
     return entry;
   });
+
+  safe.quotes = normalizeList(candidate.quotes, (item) => {
+    if (!item || typeof item !== 'object') return null;
+    const q = { ...item };
+    q.id = sanitizeText(q.id || `q_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`);
+    q.clientName = sanitizeText(q.clientName || 'Cliente');
+    q.clientPhone = sanitizeText(q.clientPhone || '');
+    q.productType = sanitizeText(q.productType || 'Bolo de Kg');
+    q.flavor = sanitizeText(q.flavor || '');
+    q.weight = parseNumericValue(q.weight, 1);
+    q.unitPrice = parseNumericValue(q.unitPrice, 0);
+    q.extraCharges = parseNumericValue(q.extraCharges, 0);
+    q.discount = parseNumericValue(q.discount, 0);
+    q.totalValue = parseNumericValue(q.totalValue, 0);
+    q.eventDate = sanitizeText(q.eventDate || fmtISO(new Date()));
+    q.eventTime = sanitizeText(q.eventTime || '14:00');
+    q.validUntil = sanitizeText(q.validUntil || '');
+    q.details = sanitizeText(q.details || '');
+    q.notes = sanitizeText(q.notes || '');
+    q.status = sanitizeText(q.status || 'Pendente');
+    q.createdAt = sanitizeText(q.createdAt || new Date().toISOString());
+    return q;
+  });
+
+  if (candidate.bakeryProfile && typeof candidate.bakeryProfile === 'object') {
+    safe.bakeryProfile = {
+      name: sanitizeText(candidate.bakeryProfile.name || ''),
+      phone: sanitizeText(candidate.bakeryProfile.phone || ''),
+      instagram: sanitizeText(candidate.bakeryProfile.instagram || ''),
+      bio: sanitizeText(candidate.bakeryProfile.bio || ''),
+      pix: sanitizeText(candidate.bakeryProfile.pix || ''),
+      orderNotice: sanitizeText(candidate.bakeryProfile.orderNotice || ''),
+    };
+  } else {
+    safe.bakeryProfile = { name: '', phone: '', instagram: '', bio: '', pix: '', orderNotice: '' };
+  }
 
   return safe;
 }

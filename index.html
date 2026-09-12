@@ -101,6 +101,18 @@
             </a>
           </li>
           <li class="nav-item">
+            <a class="nav-link" data-tab="quotes">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><path d="M10 9H8"/></svg>
+              <span data-i18n="nav.quotes">Orçamentos</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" data-tab="catalog">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+              <span data-i18n="nav.catalog">Catálogo</span>
+            </a>
+          </li>
+          <li class="nav-item">
             <a class="nav-link" data-tab="clients">
               <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
               <span data-i18n="nav.clients">Clientes</span>
@@ -392,6 +404,132 @@
           <h3 data-i18n="orders.empty">Nenhum pedido encontrado</h3>
           <p data-i18n="orders.emptySub">Tente ajustar os filtros de busca ou cadastre um novo pedido.</p>
         </div>
+      </section>
+
+      <!-- TAB: QUOTES (ORÇAMENTOS) -->
+      <section id="quotes" class="tab-content">
+        <!-- KPI Summary Cards -->
+        <div class="kpi-grid mb-4">
+          <div class="kpi-card">
+            <div class="kpi-icon kpi-icon-purple">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+            <div class="kpi-data">
+              <span class="kpi-value" id="quoteKpiPendingCount">0</span>
+              <span class="kpi-label" data-i18n="quotes.kpiPendingCount">Orçamentos Pendentes</span>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon kpi-icon-pink">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            </div>
+            <div class="kpi-data">
+              <span class="kpi-value" id="quoteKpiPendingVal">R$ 0,00</span>
+              <span class="kpi-label" data-i18n="quotes.kpiPendingVal">Valor em Negociação</span>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon kpi-icon-green">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div class="kpi-data">
+              <span class="kpi-value" id="quoteKpiApprovedCount">0</span>
+              <span class="kpi-label" data-i18n="quotes.kpiApprovedCount">Orçamentos Aprovados</span>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon kpi-icon-blue">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            </div>
+            <div class="kpi-data">
+              <span class="kpi-value" id="quoteKpiConvRate">0%</span>
+              <span class="kpi-label" data-i18n="quotes.kpiConvRate">Taxa de Conversão</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filter & Search Bar -->
+        <div class="filter-bar">
+          <div class="search-input-wrapper">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" class="form-control" id="quoteSearchInput" placeholder="Buscar orçamento por cliente ou sabor..." data-i18n-ph="quotes.searchPh">
+          </div>
+          <div class="filter-chips-group">
+            <button type="button" class="filter-chip quote-filter-chip active" data-status="all" data-i18n="quotes.filterAll">Todos</button>
+            <button type="button" class="filter-chip quote-filter-chip" data-status="Pendente" data-i18n="quotes.filterPending">Pendentes</button>
+            <button type="button" class="filter-chip quote-filter-chip" data-status="Aprovado" data-i18n="quotes.filterApproved">Aprovados</button>
+            <button type="button" class="filter-chip quote-filter-chip" data-status="Recusado" data-i18n="quotes.filterRejected">Recusados</button>
+          </div>
+          <div class="filter-actions">
+            <button class="btn btn-secondary btn-icon-only btn-open-trash btn-trash-inline" title="Lixeira" data-i18n-title="orders.trash">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+            </button>
+            <button class="btn btn-primary" id="btnNewQuote">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              <span data-i18n="quotes.btnNew">Novo Orçamento</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Table View -->
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th data-i18n="quotes.thClient">Cliente</th>
+                <th data-i18n="quotes.thProduct">Produto & Detalhes</th>
+                <th data-i18n="quotes.thEventDate">Data do Evento</th>
+                <th data-i18n="quotes.thValidUntil">Validade</th>
+                <th data-i18n="quotes.thTotal">Total</th>
+                <th data-i18n="quotes.thStatus">Status</th>
+                <th class="text-right" data-i18n="quotes.thActions">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="quotesTableBody">
+              <!-- Populated dynamically by Quotes.renderList -->
+            </tbody>
+          </table>
+        </div>
+
+        <div id="quotesEmptyState" class="empty-state" style="display:none;">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <h3 data-i18n="quotes.empty">Nenhum orçamento encontrado</h3>
+          <p data-i18n="quotes.emptySub">Crie uma nova proposta e envie direto pelo WhatsApp para seus clientes.</p>
+        </div>
+      </section>
+
+      <!-- TAB: CATALOG (CATÁLOGO PERSONALIZÁVEL) -->
+      <section id="catalog" class="tab-content">
+        <!-- Bakery Profile Banner -->
+        <div id="catalogProfileBanner" class="catalog-profile-banner-container mb-4"></div>
+
+        <!-- Actions & Search Bar -->
+        <div class="filter-bar">
+          <div class="search-input-wrapper">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" class="form-control" id="catalogSearchInput" placeholder="Buscar no cardápio..." data-i18n-ph="catalog.search_ph">
+          </div>
+          <div class="catalog-action-buttons">
+            <button class="btn btn-secondary" id="btnEditBakeryProfile">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 1 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+              <span data-i18n="catalog.edit_profile">Perfil da Confeitaria</span>
+            </button>
+            <button class="btn btn-whatsapp" id="btnShareWhatsAppCatalog">
+              <svg viewBox="0 0 24 24" fill="currentColor" style="width:14px;height:14px;"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.664-.699c.971.532 1.77.818 2.796.818 3.182 0 5.768-2.587 5.768-5.766.001-3.183-2.575-5.769-5.768-5.769zm10.024 5.766c-.001 5.547-4.512 10.057-10.055 10.057-1.747 0-3.391-.453-4.82-1.246l-5.18 1.359 1.385-5.048c-.87-1.493-1.37-3.23-1.37-5.122 0-5.545 4.51-10.055 10.054-10.055 5.544 0 10.055 4.51 10.055 10.055z"/></svg>
+              <span data-i18n="catalog.btn_share_wa">Compartilhar Cardápio</span>
+            </button>
+            <button class="btn btn-primary" id="btnNewCatalogItem">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              <span data-i18n="catalog.new_item">Novo Item</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Category Filters -->
+        <div class="catalog-categories-bar" id="catalogCategoryFilters"></div>
+
+        <!-- Products Showcase Grid -->
+        <div class="catalog-grid" id="catalogProductsGrid"></div>
       </section>
 
       <!-- TAB 3: CLIENTS -->
@@ -1211,6 +1349,268 @@
     if (migrated) console.log('[Migrate] Dados antigos migrados para Confeitex');
   })();
   </script>
+  <!-- MODAL: NOVO / EDITAR ORÇAMENTO -->
+  <div class="modal-overlay" id="quoteModal" role="dialog" aria-modal="true" aria-labelledby="quoteModalTitle">
+    <div class="modal-container modal-large">
+      <div class="modal-header">
+        <h2 id="quoteModalTitle" data-i18n="quotes.modalNew">Novo Orçamento</h2>
+        <button class="modal-close" id="btnModalQuoteClose" aria-label="Fechar">&times;</button>
+      </div>
+      <form id="quoteForm">
+        <input type="hidden" id="quoteIdInput" />
+        <div class="modal-body">
+          <div class="modal-section">
+            <h3 class="modal-section-title modal-section-pink" data-i18n="quotes.secClient">Cliente</h3>
+            <div class="form-row">
+              <div class="form-group flex-1">
+                <label for="quoteClientName" data-i18n="quotes.clientName">Nome do Cliente *</label>
+                <input type="text" class="form-control" id="quoteClientName" required placeholder="Ex: Ana Clara" />
+              </div>
+              <div class="form-group flex-1">
+                <label for="quoteClientPhone" data-i18n="quotes.clientPhone">WhatsApp do Cliente</label>
+                <input type="tel" class="form-control" id="quoteClientPhone" placeholder="(00) 00000-0000" />
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-section">
+            <h3 class="modal-section-title modal-section-purple" data-i18n="quotes.secProduct">Produto & Preços</h3>
+            <div class="form-row">
+              <div class="form-group flex-1">
+                <label for="quoteProductType" data-i18n="quotes.productType">Categoria</label>
+                <select class="form-control" id="quoteProductType">
+                  <option value="Bolo de Kg" data-i18n="product.Bolo de Kg">Bolo de Kg</option>
+                  <option value="Doces / Brigadeiros" data-i18n="product.Doces / Brigadeiros">Doces / Brigadeiros</option>
+                  <option value="Salgados" data-i18n="product.Salgados">Salgados</option>
+                  <option value="Bento Cake" data-i18n="product.Bento Cake">Bento Cake</option>
+                  <option value="Cupcake" data-i18n="product.Cupcake">Cupcake</option>
+                  <option value="Kit Festa" data-i18n="product.Kit Festa">Kit Festa</option>
+                </select>
+              </div>
+              <div class="form-group flex-1">
+                <label for="quoteFlavorSelect" data-i18n="quotes.flavorSelect">Puxar do Catálogo (Opcional)</label>
+                <select class="form-control" id="quoteFlavorSelect">
+                  <option value="" data-i18n="quotes.flavorSelectPh">-- Selecionar item do catálogo --</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group flex-2">
+                <label for="quoteFlavor" data-i18n="quotes.flavor">Sabor / Descrição do Produto *</label>
+                <input type="text" class="form-control" id="quoteFlavor" required placeholder="Ex: Ninho com Morango Especial" />
+              </div>
+              <div class="form-group flex-1">
+                <label for="quoteWeight" id="quoteWeightLabel" data-i18n="quotes.weightLabel">Peso estimado (Kg)</label>
+                <input type="number" step="0.01" min="0.01" class="form-control" id="quoteWeight" value="1.00" required />
+              </div>
+              <div class="form-group flex-1">
+                <label for="quoteUnitPrice" id="quotePriceLabel" data-i18n="quotes.unitPriceLabel">Preço / Kg</label>
+                <input type="number" step="0.01" min="0" class="form-control" id="quoteUnitPrice" value="60.00" required />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group flex-1">
+                <label for="quoteExtraCharges" data-i18n="quotes.extraCharges">Adicionais / Taxa Entrega</label>
+                <input type="number" step="0.01" min="0" class="form-control" id="quoteExtraCharges" value="0.00" />
+              </div>
+              <div class="form-group flex-1">
+                <label for="quoteDiscount" data-i18n="quotes.discount">Desconto</label>
+                <input type="number" step="0.01" min="0" class="form-control" id="quoteDiscount" value="0.00" />
+              </div>
+              <div class="form-group flex-1">
+                <label data-i18n="quotes.totalValue">Valor Total Calculado</label>
+                <div class="quote-total-badge" id="quoteTotalDisplay">R$ 0,00</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-section">
+            <h3 class="modal-section-title modal-section-green" data-i18n="quotes.secEvent">Data & Validade</h3>
+            <div class="form-row">
+              <div class="form-group flex-1">
+                <label for="quoteEventDate" data-i18n="quotes.eventDate">Data do Evento *</label>
+                <input type="date" class="form-control" id="quoteEventDate" required />
+              </div>
+              <div class="form-group flex-1">
+                <label for="quoteEventTime" data-i18n="quotes.eventTime">Horário Previsto</label>
+                <input type="time" class="form-control" id="quoteEventTime" value="14:00" />
+              </div>
+              <div class="form-group flex-1">
+                <label for="quoteValidityDays" data-i18n="quotes.validityDays">Validade da Proposta (dias)</label>
+                <input type="number" min="1" max="60" class="form-control" id="quoteValidityDays" value="7" />
+              </div>
+              <div class="form-group flex-1">
+                <label for="quoteStatus" data-i18n="quotes.status">Status</label>
+                <select class="form-control" id="quoteStatus">
+                  <option value="Pendente" data-i18n="quotes.statusPending">Pendente</option>
+                  <option value="Aprovado" data-i18n="quotes.statusApproved">Aprovado</option>
+                  <option value="Recusado" data-i18n="quotes.statusRejected">Recusado</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group mb-2">
+              <label for="quoteDetails" data-i18n="quotes.details">Detalhes da Massa, Recheio e Decoração</label>
+              <textarea class="form-control" id="quoteDetails" rows="2" placeholder="Ex: Massa branca fofinha, recheio de brigadeiro de ninho com morangos frescos picados e topo em chantininho."></textarea>
+            </div>
+            <div class="form-group">
+              <label for="quoteNotes" data-i18n="quotes.notes">Condições de Pagamento / Observações</label>
+              <textarea class="form-control" id="quoteNotes" rows="2" placeholder="Ex: Sinal de 50% para reserva de data e restante na entrega via Pix."></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="btnModalQuoteCancel" data-i18n="common.cancel">Cancelar</button>
+          <button type="submit" class="btn btn-primary" id="btnModalQuoteSave" data-i18n="common.save">Salvar Orçamento</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: PREVIEW & ENVIO WHATSAPP DO ORÇAMENTO -->
+  <div class="modal-overlay" id="quotePreviewModal" role="dialog" aria-modal="true" aria-labelledby="quotePreviewTitle">
+    <div class="modal-container modal-medium">
+      <div class="modal-header">
+        <h2 id="quotePreviewTitle">
+          <svg viewBox="0 0 24 24" fill="currentColor" style="width:20px;height:20px;color:#22c55e;"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.664-.699c.971.532 1.77.818 2.796.818 3.182 0 5.768-2.587 5.768-5.766.001-3.183-2.575-5.769-5.768-5.769zm10.024 5.766c-.001 5.547-4.512 10.057-10.055 10.057-1.747 0-3.391-.453-4.82-1.246l-5.18 1.359 1.385-5.048c-.87-1.493-1.37-3.23-1.37-5.122 0-5.545 4.51-10.055 10.054-10.055 5.544 0 10.055 4.51 10.055 10.055z"/></svg>
+          <span data-i18n="quotes.previewTitle">Proposta Comercial WhatsApp</span>
+        </h2>
+        <button class="modal-close" id="btnModalQuotePreviewClose" aria-label="Fechar">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:0.75rem;" data-i18n="quotes.previewSubtitle">
+          Esta é a mensagem formatada que será enviada diretamente no WhatsApp do cliente:
+        </p>
+        <textarea id="quotePreviewText" class="form-control" rows="11" readonly style="font-family:monospace;font-size:0.85rem;background:rgba(0,0,0,0.3);line-height:1.45;"></textarea>
+      </div>
+      <div class="modal-footer" style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:0.5rem;">
+        <button type="button" class="btn btn-secondary btn-sm" id="btnCopyQuoteText">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          <span data-i18n="quotes.btnCopy">Copiar Texto</span>
+        </button>
+        <div style="display:inline-flex;gap:0.5rem;">
+          <button type="button" class="btn btn-secondary btn-sm" id="btnConvertQuoteToOrder" style="color:var(--color-success);border-color:rgba(16,185,129,0.3);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><polyline points="20 6 9 17 4 12"/></svg>
+            <span data-i18n="quotes.btnApprove">Aprovar & Gerar Pedido</span>
+          </button>
+          <button type="button" class="btn btn-whatsapp btn-sm" id="btnSendQuoteWhatsApp">
+            <svg viewBox="0 0 24 24" fill="currentColor" style="width:14px;height:14px;"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.664-.699c.971.532 1.77.818 2.796.818 3.182 0 5.768-2.587 5.768-5.766.001-3.183-2.575-5.769-5.768-5.769zm10.024 5.766c-.001 5.547-4.512 10.057-10.055 10.057-1.747 0-3.391-.453-4.82-1.246l-5.18 1.359 1.385-5.048c-.87-1.493-1.37-3.23-1.37-5.122 0-5.545 4.51-10.055 10.054-10.055 5.544 0 10.055 4.51 10.055 10.055z"/></svg>
+            <span data-i18n="quotes.btnSendWhatsApp">Enviar no WhatsApp</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: ITEM DO CARDÁPIO / CATÁLOGO -->
+  <div class="modal-overlay" id="catalogItemModal" role="dialog" aria-modal="true" aria-labelledby="catalogItemModalTitle">
+    <div class="modal-container modal-medium">
+      <div class="modal-header">
+        <h2 id="catalogItemModalTitle" data-i18n="catalog.new_item">Novo Item no Catálogo</h2>
+        <button class="modal-close" id="btnCatalogItemModalClose" aria-label="Fechar">&times;</button>
+      </div>
+      <form id="catalogItemForm">
+        <input type="hidden" id="catalogItemId" />
+        <div class="modal-body">
+          <div class="form-row">
+            <div class="form-group flex-2">
+              <label for="catalogItemName" data-i18n="catalog.item_name">Nome do Produto *</label>
+              <input type="text" class="form-control" id="catalogItemName" required placeholder="Ex: Bolo Vulcão de Cenoura com Brigadeiro" />
+            </div>
+            <div class="form-group flex-1">
+              <label for="catalogItemCategory" data-i18n="catalog.category">Categoria *</label>
+              <select class="form-control" id="catalogItemCategory">
+                <option value="Bolo de Kg" data-i18n="product.Bolo de Kg">Bolo de Kg</option>
+                <option value="Doces / Brigadeiros" data-i18n="product.Doces / Brigadeiros">Doces / Brigadeiros</option>
+                <option value="Salgados" data-i18n="product.Salgados">Salgados</option>
+                <option value="Bento Cake" data-i18n="product.Bento Cake">Bento Cake</option>
+                <option value="Cupcake" data-i18n="product.Cupcake">Cupcake</option>
+                <option value="Kit Festa" data-i18n="product.Kit Festa">Kit Festa</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label for="catalogItemPrice" data-i18n="catalog.price">Preço de Venda (R$) *</label>
+              <input type="number" step="0.01" min="0.01" class="form-control" id="catalogItemPrice" required placeholder="75.00" />
+            </div>
+            <div class="form-group flex-1">
+              <label for="catalogItemBadge" data-i18n="catalog.badge">Destaque / Selo</label>
+              <select class="form-control" id="catalogItemBadge">
+                <option value="">Sem selo</option>
+                <option value="bestseller">⭐ Mais Pedido</option>
+                <option value="new">✨ Lançamento</option>
+                <option value="seasonal">🎄 Sazonal</option>
+                <option value="special">💎 Edição Especial</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label for="catalogItemServing" data-i18n="catalog.serving_size">Rendimento / Fatias</label>
+              <input type="text" class="form-control" id="catalogItemServing" placeholder="Ex: Rende 15 a 20 fatias" />
+            </div>
+            <div class="form-group flex-1">
+              <label for="catalogItemMinOrder" data-i18n="catalog.min_order">Pedido Mínimo</label>
+              <input type="text" class="form-control" id="catalogItemMinOrder" placeholder="Ex: Mínimo 100 unidades" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="catalogItemDescription" data-i18n="catalog.description">Descrição & Ingredientes Principais</label>
+            <textarea class="form-control" id="catalogItemDescription" rows="2" placeholder="Ex: Massa amanteigada macia, calda especial e cobertura generosa de chocolate belga."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="btnCatalogItemModalCancel" data-i18n="common.cancel">Cancelar</button>
+          <button type="submit" class="btn btn-primary" data-i18n="common.save">Salvar Produto</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: PERFIL DA CONFEITARIA -->
+  <div class="modal-overlay" id="bakeryProfileModal" role="dialog" aria-modal="true" aria-labelledby="bakeryProfileTitle">
+    <div class="modal-container modal-medium">
+      <div class="modal-header">
+        <h2 id="bakeryProfileTitle" data-i18n="catalog.edit_profile">Perfil da Confeitaria</h2>
+        <button class="modal-close" id="btnBakeryProfileModalClose" aria-label="Fechar">&times;</button>
+      </div>
+      <form id="bakeryProfileForm">
+        <div class="modal-body">
+          <div class="form-group mb-3">
+            <label for="profileBakeryName" data-i18n="catalog.profile_bakery_name">Nome da sua Confeitaria / Marca *</label>
+            <input type="text" class="form-control" id="profileBakeryName" required placeholder="Ex: Confeitaria Doce Sonho" />
+          </div>
+          <div class="form-group mb-3">
+            <label for="profileBakeryTagline" data-i18n="catalog.profile_tagline">Slogan / Frase Curta</label>
+            <input type="text" class="form-control" id="profileBakeryTagline" placeholder="Ex: Bolos e Doces Artesanais Feitos com Amor" />
+          </div>
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label for="profileBakeryPhone" data-i18n="catalog.profile_phone">WhatsApp de Atendimento</label>
+              <input type="tel" class="form-control" id="profileBakeryPhone" placeholder="(00) 00000-0000" />
+            </div>
+            <div class="form-group flex-1">
+              <label for="profileBakeryInstagram" data-i18n="catalog.profile_instagram">Instagram (@)</label>
+              <input type="text" class="form-control" id="profileBakeryInstagram" placeholder="@suaconfeitaria" />
+            </div>
+          </div>
+          <div class="form-group mb-3">
+            <label for="profileBakeryPix" data-i18n="catalog.profile_pix">Chave Pix para Pagamentos</label>
+            <input type="text" class="form-control" id="profileBakeryPix" placeholder="CNPJ, E-mail, Celular ou Chave Aleatória" />
+          </div>
+          <div class="form-group mb-3">
+            <label for="profileBakeryNotice" data-i18n="catalog.profile_notice">Política de Encomendas / Aviso Geral</label>
+            <textarea class="form-control" id="profileBakeryNotice" rows="2" placeholder="Ex: Encomendas com no mínimo 48h de antecedência. Sinal de 50% para reserva."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="btnBakeryProfileModalCancel" data-i18n="common.cancel">Cancelar</button>
+          <button type="submit" class="btn btn-primary" data-i18n="common.save">Salvar Perfil</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- MERCADO PAGO: Modal de Checkout Embebido & Links -->
   <div class="modal-overlay" id="mpCheckoutModal" role="dialog" aria-modal="true" aria-label="Pagamento Mercado Pago">
     <div class="modal-container mp-checkout-modal-container">
@@ -1357,6 +1757,8 @@
   <script defer src="js/trash.js?v=5.2.0"></script>
   <script defer src="js/dashboard.js?v=5.2.0"></script>
   <script defer src="js/orders.js?v=5.2.0"></script>
+  <script defer src="js/quotes.js?v=5.2.0"></script>
+  <script defer src="js/catalog.js?v=5.2.0"></script>
   <script defer src="js/clients.js?v=5.2.0"></script>
   <script defer src="js/settings.js?v=5.2.0"></script>
   <script defer src="js/finances.js?v=5.2.0"></script>
