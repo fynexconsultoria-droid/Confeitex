@@ -14,7 +14,7 @@ if (typeof Promise.allSettled === 'undefined') {
   };
 }
 
-const SW_VERSION = (self.location.search.match(/[?&]v=([^&]+)/) || [null, '1.0.0'])[1];
+const SW_VERSION = (self.location.search.match(/[?&]v=([^&]+)/) || [null, '6.2.1'])[1];
 const CACHE_NAME = 'confeitex-cache-v' + SW_VERSION;
 
 // Arquivos que serão cacheados na instalação do Service Worker
@@ -24,6 +24,8 @@ const ASSETS_TO_CACHE = [
   './index.html',
   './style.css',
   './manifest.json',
+  './termos.html',
+  './privacidade.html',
   './js/state.js',
   './js/auth.js',
   './js/utils.js',
@@ -51,18 +53,26 @@ const ASSETS_TO_CACHE = [
   './icons/icon-512x512.png'
 ];
 
-// INSTALAÇÃO — cacheia todos os arquivos essenciais (tolerante a falhas)
+// INSTALAÇÃO — cacheia todos os arquivos essenciais com bypass forçado do cache HTTP (cache: reload)
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then((cache) => {
-        console.log('[SW] Cacheando arquivos do Confeitex...');
+      .then(async (cache) => {
+        console.log('[SW] Cacheando arquivos limpos do Confeitex v' + SW_VERSION + '...');
         return Promise.allSettled(
-          ASSETS_TO_CACHE.map(url =>
-            cache.add(url).catch(() => {
-              console.warn('[SW] Falha ao cachear: ' + url);
-            })
-          )
+          ASSETS_TO_CACHE.map(async (url) => {
+            try {
+              // cache: reload garante busca direta da rede, nunca do cache HTTP obsoleto
+              const req = new Request(url, { cache: 'reload' });
+              const res = await fetch(req);
+              if (res && res.ok) {
+                await cache.put(url, res);
+              }
+            } catch (err) {
+              // Fallback gracioso
+              try { await cache.add(url); } catch (e) {}
+            }
+          })
         );
       })
       .then(() => {

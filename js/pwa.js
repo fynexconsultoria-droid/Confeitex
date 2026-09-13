@@ -2,9 +2,28 @@
   let deferredInstall = null;
 
   if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      const swVer = safeStorage.get('confeitex_ver') || (typeof Updates !== 'undefined' ? Updates.verAtual : '6.2.1');
-      const swUrl = './sw.js?v=' + encodeURIComponent(swVer);
+    window.addEventListener('load', async () => {
+      const codeVer = (typeof Updates !== 'undefined' && Updates.verAtual) ? Updates.verAtual : '6.2.1';
+      const storedVer = safeStorage.get('confeitex_ver');
+
+      // Se a versão do código mudou, atualiza storage e remove imediatamente caches antigos
+      if (!storedVer || storedVer !== codeVer) {
+        safeStorage.set('confeitex_ver', codeVer);
+        if ('caches' in window) {
+          try {
+            const keys = await caches.keys();
+            const currentCache = 'confeitex-cache-v' + codeVer;
+            await Promise.all(
+              keys.filter(k => k !== currentCache).map(k => {
+                console.log('[PWA] Limpando cache antigo:', k);
+                return caches.delete(k);
+              })
+            );
+          } catch (e) {}
+        }
+      }
+
+      const swUrl = './sw.js?v=' + encodeURIComponent(codeVer);
       navigator.serviceWorker.register(swUrl).catch(() => {});
     });
   }

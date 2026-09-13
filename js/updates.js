@@ -203,8 +203,14 @@ const Updates = {
     safeStorage.remove('confeitex_update_prompt');
     safeStorage.remove('confeitex_pwa_dismissed');
 
-    // Remove Service Worker antigo
+    // Remove Service Worker antigo e limpa CacheStorage
     this._updateProgress(15, I18n.t('updates.progressClearCache'));
+    if ('caches' in window) {
+      try {
+        const keys = await caches.keys();
+        await Promise.all(keys.map(k => caches.delete(k)));
+      } catch (e) { console.warn('[Confeitex] CacheStorage clear error:', e); }
+    }
     let swOk = 'serviceWorker' in navigator;
     if (swOk) {
       try {
