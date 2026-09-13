@@ -90,10 +90,16 @@ const AIChat = {
       window.addEventListener('offline', () => this.handleNetworkChange(false));
     }
 
-    // Botão flutuante FAB
+    // Botão flutuante FAB (desktop)
     const fab = document.getElementById('btnOpenAiChat');
     if (fab) {
       fab.addEventListener('click', () => this.toggle());
+    }
+
+    // Botão do Cabeçalho Mobile
+    const btnAiHeader = document.getElementById('btnAiHeader');
+    if (btnAiHeader) {
+      btnAiHeader.addEventListener('click', () => this.toggle());
     }
 
     // Botão de fechar
@@ -156,9 +162,16 @@ const AIChat = {
     const btnSend = document.getElementById('btnAiChatSend');
     const chipsContainer = document.getElementById('aiChatSuggestions');
 
+    const headerBadge = document.getElementById('aiChatHeaderBadge');
+
     if (fabBadge) {
       fabBadge.className = 'ai-chat-fab-status ' + (online ? 'online' : 'offline');
       fabBadge.title = online ? 'IA Conectada' : 'Modo Offline (Base Local Ativa)';
+    }
+
+    if (headerBadge) {
+      headerBadge.className = 'ai-header-dot ' + (online ? 'online' : 'offline');
+      headerBadge.title = online ? 'IA Conectada' : 'Modo Offline (Base Local Ativa)';
     }
 
     if (statusDot) {

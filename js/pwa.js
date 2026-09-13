@@ -11,7 +11,7 @@
     });
 
     window.addEventListener('load', async () => {
-      const codeVer = (typeof Updates !== 'undefined' && Updates.verAtual) ? Updates.verAtual : '6.2.2';
+      const codeVer = (typeof Updates !== 'undefined' && Updates.verAtual) ? Updates.verAtual : '6.2.3';
       const storedVer = safeStorage.get('confeitex_ver');
 
       // Se a versão do código mudou, atualiza storage e remove imediatamente caches antigos

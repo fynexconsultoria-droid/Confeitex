@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Confeitex - Controle de Encomendas</title>
   <meta name="description" content="Controle de encomendas para confeitaria — gerencie pedidos, clientes e entregas. 100% offline.">
-  <meta name="version" content="6.2.2">
+  <meta name="version" content="6.2.3">
 
   <!-- Google Fonts: Plus Jakarta Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -60,9 +60,9 @@
   <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192x192.png?v=3">
 
   <!-- Performance: Preload critical assets -->
-  <link rel="preload" href="style.css?v=6.2.2" as="style">
+  <link rel="preload" href="style.css?v=6.2.3" as="style">
 
-  <link rel="stylesheet" href="style.css?v=6.2.2">
+  <link rel="stylesheet" href="style.css?v=6.2.3">
 </head>
 <body>
 
@@ -78,9 +78,17 @@
       </div>
       <span class="brand-name">Confeitex</span>
     </div>
-    <button class="menu-toggle" id="menuToggle" aria-label="Abrir Menu">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-    </button>
+    <div class="mobile-header-actions">
+      <button class="btn-ai-header" id="btnAiHeader" aria-label="Assistente IA" title="Assistente Confeitex IA" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2 2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zM4.93 4.93a2 2 0 0 1 2.83 0l1.41 1.41a2 2 0 0 1-2.83 2.83L4.93 7.76a2 2 0 0 1 0-2.83zM2 12a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2 2 2 0 0 1-2 2H4a2 2 0 0 1-2-2zM12 18a6 6 0 1 0 0-12 6 6 0 0 0 0 12z"/>
+        </svg>
+        <span class="ai-header-dot online" id="aiChatHeaderBadge" title="IA Conectada"></span>
+      </button>
+      <button class="menu-toggle" id="menuToggle" aria-label="Abrir Menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+    </div>
   </header>
 
   <div class="app-container">
@@ -1906,28 +1914,28 @@
   </div>
 
   <!-- Core JavaScript Modules (non-blocking defer loading) -->
-  <script defer src="js/state.js?v=6.2.2"></script>
-  <script defer src="js/i18n.js?v=6.2.2"></script>
-  <script defer src="js/auth.js?v=6.2.2"></script>
-  <script defer src="js/plan.js?v=6.2.2"></script>
-  <script defer src="js/utils.js?v=6.2.2"></script>
-  <script defer src="js/ui.js?v=6.2.2"></script>
-  <script defer src="js/chart.js?v=6.2.2"></script>
-  <script defer src="js/notifications.js?v=6.2.2"></script>
-  <script defer src="js/trash.js?v=6.2.2"></script>
-  <script defer src="js/dashboard.js?v=6.2.2"></script>
-  <script defer src="js/orders.js?v=6.2.2"></script>
-  <script defer src="js/quotes.js?v=6.2.2"></script>
-  <script defer src="js/catalog.js?v=6.2.2"></script>
-  <script defer src="js/clients.js?v=6.2.2"></script>
-  <script defer src="js/settings.js?v=6.2.2"></script>
-  <script defer src="js/finances.js?v=6.2.2"></script>
-  <script defer src="js/updates.js?v=6.2.2"></script>
-  <script defer src="js/mercadopago.js?v=6.2.2"></script>
-  <script defer src="js/setup-wizard.js?v=6.2.2"></script>
-  <script defer src="js/ai-chat.js?v=6.2.2"></script>
-  <script defer src="js/onboarding.js?v=6.2.2"></script>
-  <script defer src="js/pwa.js?v=6.2.2"></script>
-  <script defer src="js/app.js?v=6.2.2"></script>
+  <script defer src="js/state.js?v=6.2.3"></script>
+  <script defer src="js/i18n.js?v=6.2.3"></script>
+  <script defer src="js/auth.js?v=6.2.3"></script>
+  <script defer src="js/plan.js?v=6.2.3"></script>
+  <script defer src="js/utils.js?v=6.2.3"></script>
+  <script defer src="js/ui.js?v=6.2.3"></script>
+  <script defer src="js/chart.js?v=6.2.3"></script>
+  <script defer src="js/notifications.js?v=6.2.3"></script>
+  <script defer src="js/trash.js?v=6.2.3"></script>
+  <script defer src="js/dashboard.js?v=6.2.3"></script>
+  <script defer src="js/orders.js?v=6.2.3"></script>
+  <script defer src="js/quotes.js?v=6.2.3"></script>
+  <script defer src="js/catalog.js?v=6.2.3"></script>
+  <script defer src="js/clients.js?v=6.2.3"></script>
+  <script defer src="js/settings.js?v=6.2.3"></script>
+  <script defer src="js/finances.js?v=6.2.3"></script>
+  <script defer src="js/updates.js?v=6.2.3"></script>
+  <script defer src="js/mercadopago.js?v=6.2.3"></script>
+  <script defer src="js/setup-wizard.js?v=6.2.3"></script>
+  <script defer src="js/ai-chat.js?v=6.2.3"></script>
+  <script defer src="js/onboarding.js?v=6.2.3"></script>
+  <script defer src="js/pwa.js?v=6.2.3"></script>
+  <script defer src="js/app.js?v=6.2.3"></script>
 </body>
 </html>
