@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Confeitex - Controle de Encomendas</title>
   <meta name="description" content="Controle de encomendas para confeitaria — gerencie pedidos, clientes e entregas. 100% offline.">
-  <meta name="version" content="6.2.0">
+  <meta name="version" content="6.2.1">
 
   <!-- Google Fonts: Plus Jakarta Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -60,9 +60,9 @@
   <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192x192.png?v=3">
 
   <!-- Performance: Preload critical assets -->
-  <link rel="preload" href="style.css?v=6.2.0" as="style">
+  <link rel="preload" href="style.css?v=6.2.1" as="style">
 
-  <link rel="stylesheet" href="style.css?v=6.2.0">
+  <link rel="stylesheet" href="style.css?v=6.2.1">
 </head>
 <body>
 
@@ -86,6 +86,17 @@
   <div class="app-container">
     <!-- Sidebar Navigation -->
     <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="brand sidebar-brand">
+          <div class="brand-icon">
+            <svg viewBox="0 0 24 24"><path d="M7 16.5h10"/><rect x="7.9" y="13.4" width="8.2" height="3" rx="0.6" fill="none"/><rect x="9.8" y="10.1" width="4.5" height="3.4" rx="0.5" fill="none"/><path d="M12 10.1V8.6"/><path d="M12 6.9c-.66.66-1.03 1.13-1.03 1.69a1.03 1.03 0 0 0 2.06 0c0-.56-.37-1.03-1.03-1.69z" fill="white" stroke="none"/></svg>
+          </div>
+          <span class="brand-name">Confeitex</span>
+        </div>
+        <button class="sidebar-close-btn" id="btnSidebarClose" aria-label="Fechar menu" title="Fechar menu">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
       <nav class="sidebar-nav">
         <ul class="nav-menu">
           <li class="nav-item">
@@ -1109,6 +1120,30 @@
     </main>
   </div>
 
+  <!-- Bottom Navigation Bar (Mobile) -->
+  <nav class="bottom-nav" id="bottomNav" aria-label="Navegação Principal">
+    <button class="bottom-nav-item active" data-tab="dashboard" aria-label="Dashboard">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+      <span data-i18n="nav.dashboard">Início</span>
+    </button>
+    <button class="bottom-nav-item" data-tab="orders" aria-label="Pedidos">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+      <span data-i18n="nav.orders">Pedidos</span>
+    </button>
+    <button class="bottom-nav-item" data-tab="quotes" aria-label="Orçamentos">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><path d="M10 9H8"/></svg>
+      <span data-i18n="nav.quotes">Orçamentos</span>
+    </button>
+    <button class="bottom-nav-item" data-tab="catalog" aria-label="Catálogo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+      <span data-i18n="nav.catalog">Catálogo</span>
+    </button>
+    <button class="bottom-nav-item" id="btnBottomNavMenu" aria-label="Mais Opções">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      <span data-i18n="nav.more">Mais</span>
+    </button>
+  </nav>
+
   <!-- ORDER FORM MODAL -->
   <div class="modal-overlay" id="orderModal" role="dialog" aria-modal="true" aria-labelledby="modalOrderTitleText">
     <div class="modal-container">
@@ -1895,28 +1930,28 @@
   </div>
 
   <!-- Core JavaScript Modules (non-blocking defer loading) -->
-  <script defer src="js/state.js?v=6.2.0"></script>
-  <script defer src="js/i18n.js?v=6.2.0"></script>
-  <script defer src="js/auth.js?v=6.2.0"></script>
-  <script defer src="js/plan.js?v=6.2.0"></script>
-  <script defer src="js/utils.js?v=6.2.0"></script>
-  <script defer src="js/ui.js?v=6.2.0"></script>
-  <script defer src="js/chart.js?v=6.2.0"></script>
-  <script defer src="js/notifications.js?v=6.2.0"></script>
-  <script defer src="js/trash.js?v=6.2.0"></script>
-  <script defer src="js/dashboard.js?v=6.2.0"></script>
-  <script defer src="js/orders.js?v=6.2.0"></script>
-  <script defer src="js/quotes.js?v=6.2.0"></script>
-  <script defer src="js/catalog.js?v=6.2.0"></script>
-  <script defer src="js/clients.js?v=6.2.0"></script>
-  <script defer src="js/settings.js?v=6.2.0"></script>
-  <script defer src="js/finances.js?v=6.2.0"></script>
-  <script defer src="js/updates.js?v=6.2.0"></script>
-  <script defer src="js/mercadopago.js?v=6.2.0"></script>
-  <script defer src="js/setup-wizard.js?v=6.2.0"></script>
-  <script defer src="js/ai-chat.js?v=6.2.0"></script>
-  <script defer src="js/onboarding.js?v=6.2.0"></script>
-  <script defer src="js/pwa.js?v=6.2.0"></script>
-  <script defer src="js/app.js?v=6.2.0"></script>
+  <script defer src="js/state.js?v=6.2.1"></script>
+  <script defer src="js/i18n.js?v=6.2.1"></script>
+  <script defer src="js/auth.js?v=6.2.1"></script>
+  <script defer src="js/plan.js?v=6.2.1"></script>
+  <script defer src="js/utils.js?v=6.2.1"></script>
+  <script defer src="js/ui.js?v=6.2.1"></script>
+  <script defer src="js/chart.js?v=6.2.1"></script>
+  <script defer src="js/notifications.js?v=6.2.1"></script>
+  <script defer src="js/trash.js?v=6.2.1"></script>
+  <script defer src="js/dashboard.js?v=6.2.1"></script>
+  <script defer src="js/orders.js?v=6.2.1"></script>
+  <script defer src="js/quotes.js?v=6.2.1"></script>
+  <script defer src="js/catalog.js?v=6.2.1"></script>
+  <script defer src="js/clients.js?v=6.2.1"></script>
+  <script defer src="js/settings.js?v=6.2.1"></script>
+  <script defer src="js/finances.js?v=6.2.1"></script>
+  <script defer src="js/updates.js?v=6.2.1"></script>
+  <script defer src="js/mercadopago.js?v=6.2.1"></script>
+  <script defer src="js/setup-wizard.js?v=6.2.1"></script>
+  <script defer src="js/ai-chat.js?v=6.2.1"></script>
+  <script defer src="js/onboarding.js?v=6.2.1"></script>
+  <script defer src="js/pwa.js?v=6.2.1"></script>
+  <script defer src="js/app.js?v=6.2.1"></script>
 </body>
 </html>

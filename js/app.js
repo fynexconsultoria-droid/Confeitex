@@ -60,6 +60,7 @@
     document.getElementById('sidebarOverlay').classList.remove('active');
 
     document.querySelectorAll('.nav-link').forEach(l => l.classList.toggle('active', l.dataset.tab === tabId));
+    document.querySelectorAll('.bottom-nav-item[data-tab]').forEach(b => b.classList.toggle('active', b.dataset.tab === tabId));
     document.querySelectorAll('.tab-content').forEach(c => c.classList.toggle('active', c.id === tabId));
     document.getElementById('mainTitle').textContent = I18n.t(tabTitles[tabId].title);
     document.getElementById('mainSubtitle').textContent = I18n.t(tabTitles[tabId].subtitle);
@@ -96,7 +97,14 @@
   }
 
   // Intercepta eventos de Voltar (botão de hardware / gestos no Android/celular)
+  let _ignoreNextPopState = false;
+
   window.addEventListener('popstate', (e) => {
+    if (_ignoreNextPopState) {
+      _ignoreNextPopState = false;
+      return;
+    }
+
     // 1. Fecha diálogos de confirmação se houver algum aberto
     const activeConfirm = document.querySelector('.ui-confirm-overlay.active');
     if (activeConfirm) {
@@ -144,19 +152,37 @@
     UI.toast(I18n.t('dash.backPress'));
   });
 
-  // Observe de abertura de modais para registrar no histórico
-  const pushModalState = () => {
-    try { history.pushState({ modalOpen: true }, ''); } catch (e) {}
+  // Controle seguro de histórico de modais sem disparar loops reentrantes nem travar a tela
+  let activeModalCount = 0;
+
+  const pushModalHistory = () => {
+    if (activeModalCount === 0) {
+      try { history.pushState({ modalOpen: true }, ''); } catch (e) {}
+    }
+    activeModalCount++;
   };
 
+  const popModalHistory = () => {
+    if (activeModalCount > 0) activeModalCount--;
+    if (activeModalCount === 0 && history.state && history.state.modalOpen) {
+      _ignoreNextPopState = true;
+      try { history.back(); } catch (e) { _ignoreNextPopState = false; }
+    }
+  };
+
+  // Observa modais para sincronizar histórico sem sobrecarga
   const modalObserver = new MutationObserver(mutations => {
     mutations.forEach(m => {
       if (m.attributeName === 'class') {
         const target = m.target;
-        if (target.classList.contains('active')) {
-          pushModalState();
-        } else if (history.state && history.state.modalOpen) {
-          try { history.back(); } catch (e) {}
+        const isActive = target.classList.contains('active');
+        const wasActive = target.dataset.wasActive === '1';
+        if (isActive && !wasActive) {
+          target.dataset.wasActive = '1';
+          pushModalHistory();
+        } else if (!isActive && wasActive) {
+          target.dataset.wasActive = '0';
+          popModalHistory();
         }
       }
     });
@@ -166,7 +192,7 @@
     modalObserver.observe(modal, { attributes: true });
   });
 
-  // Observa modais criados dinamicamente (ex: Plan modals)
+  // Observa apenas adições diretas de modal-overlay sem poluir a thread principal
   const bodyObserver = new MutationObserver(mutations => {
     mutations.forEach(m => {
       m.addedNodes.forEach(node => {
@@ -186,17 +212,51 @@
     });
   });
 
-  // Mobile menu
+  // Bottom Navigation (Mobile)
+  document.querySelectorAll('.bottom-nav-item[data-tab]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      switchTab(btn.dataset.tab);
+    });
+  });
+
+  const btnBottomNavMenu = document.getElementById('btnBottomNavMenu');
+  if (btnBottomNavMenu) {
+    btnBottomNavMenu.addEventListener('click', (e) => {
+      e.preventDefault();
+      document.getElementById('sidebar').classList.add('open');
+      document.getElementById('sidebarOverlay').classList.add('active');
+      pushModalHistory();
+    });
+  }
+
+  const btnSidebarClose = document.getElementById('btnSidebarClose');
+  if (btnSidebarClose) {
+    btnSidebarClose.addEventListener('click', () => {
+      document.getElementById('sidebar').classList.remove('open');
+      document.getElementById('sidebarOverlay').classList.remove('active');
+      popModalHistory();
+    });
+  }
+
+  // Mobile menu (Header hamburger button)
   document.getElementById('menuToggle').addEventListener('click', () => {
-    document.getElementById('sidebar').classList.toggle('open');
-    document.getElementById('sidebarOverlay').classList.toggle('active');
-    if (document.getElementById('sidebar').classList.contains('open')) {
-      pushModalState();
+    const sb = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    const willOpen = !sb.classList.contains('open');
+    sb.classList.toggle('open', willOpen);
+    overlay.classList.toggle('active', willOpen);
+    if (willOpen) {
+      pushModalHistory();
+    } else {
+      popModalHistory();
     }
   });
+
   document.getElementById('sidebarOverlay').addEventListener('click', () => {
     document.getElementById('sidebar').classList.remove('open');
     document.getElementById('sidebarOverlay').classList.remove('active');
+    popModalHistory();
   });
 
   // Se veio de uma atualização automática, mostra toast e limpa flag
