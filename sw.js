@@ -14,7 +14,7 @@ if (typeof Promise.allSettled === 'undefined') {
   };
 }
 
-const SW_VERSION = (self.location.search.match(/[?&]v=([^&]+)/) || [null, '6.2.1'])[1];
+const SW_VERSION = (self.location.search.match(/[?&]v=([^&]+)/) || [null, '6.2.2'])[1];
 const CACHE_NAME = 'confeitex-cache-v' + SW_VERSION;
 
 // Arquivos que serão cacheados na instalação do Service Worker

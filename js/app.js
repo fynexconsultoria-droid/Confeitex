@@ -56,11 +56,12 @@
   } catch (e) {}
 
   function switchTab(tabId, pushState = true) {
-    document.getElementById('sidebar').classList.remove('open');
-    document.getElementById('sidebarOverlay').classList.remove('active');
+    closeSidebar(false);
+    window.scrollTo(0, 0);
+    const mainContent = document.querySelector('.main-content');
+    if (mainContent) mainContent.scrollTop = 0;
 
     document.querySelectorAll('.nav-link').forEach(l => l.classList.toggle('active', l.dataset.tab === tabId));
-    document.querySelectorAll('.bottom-nav-item[data-tab]').forEach(b => b.classList.toggle('active', b.dataset.tab === tabId));
     document.querySelectorAll('.tab-content').forEach(c => c.classList.toggle('active', c.id === tabId));
     document.getElementById('mainTitle').textContent = I18n.t(tabTitles[tabId].title);
     document.getElementById('mainSubtitle').textContent = I18n.t(tabTitles[tabId].subtitle);
@@ -89,12 +90,11 @@
   // Expõe switchTab para módulos (ex.: card de pendentes no dashboard)
   window.switchTab = switchTab;
 
-  // Clicar no nome "Confeitex" no header volta para o dashboard
-  const brandEl = document.querySelector('.brand.mobile-brand');
-  if (brandEl) {
+  // Clicar no logo/nome "Confeitex" volta para o dashboard
+  document.querySelectorAll('.brand').forEach(brandEl => {
     brandEl.style.cursor = 'pointer';
     brandEl.addEventListener('click', () => switchTab('dashboard'));
-  }
+  });
 
   // Intercepta eventos de Voltar (botão de hardware / gestos no Android/celular)
   let _ignoreNextPopState = false;
@@ -127,8 +127,7 @@
     // 3. Fecha menu lateral mobile
     const sidebar = document.getElementById('sidebar');
     if (sidebar && sidebar.classList.contains('open')) {
-      sidebar.classList.remove('open');
-      document.getElementById('sidebarOverlay').classList.remove('active');
+      closeSidebar(true);
       return;
     }
 
@@ -169,6 +168,31 @@
       try { history.back(); } catch (e) { _ignoreNextPopState = false; }
     }
   };
+
+  // Funções de controle do Menu Lateral (Sidebar) no celular
+  function openSidebar() {
+    const sb = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    if (sb && !sb.classList.contains('open')) {
+      sb.classList.add('open');
+      if (overlay) overlay.classList.add('active');
+      pushModalHistory();
+    }
+  }
+
+  function closeSidebar(fromPopState = false) {
+    const sb = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    if (sb && sb.classList.contains('open')) {
+      sb.classList.remove('open');
+      if (overlay) overlay.classList.remove('active');
+      if (fromPopState) {
+        if (activeModalCount > 0) activeModalCount--;
+      } else {
+        popModalHistory();
+      }
+    }
+  }
 
   // Observa modais para sincronizar histórico sem sobrecarga
   const modalObserver = new MutationObserver(mutations => {
@@ -212,52 +236,35 @@
     });
   });
 
-  // Bottom Navigation (Mobile)
-  document.querySelectorAll('.bottom-nav-item[data-tab]').forEach(btn => {
-    btn.addEventListener('click', (e) => {
+  // Mobile menu (Header hamburger button, botão fechar e overlay)
+  const menuToggle = document.getElementById('menuToggle');
+  if (menuToggle) {
+    menuToggle.addEventListener('click', (e) => {
       e.preventDefault();
-      switchTab(btn.dataset.tab);
-    });
-  });
-
-  const btnBottomNavMenu = document.getElementById('btnBottomNavMenu');
-  if (btnBottomNavMenu) {
-    btnBottomNavMenu.addEventListener('click', (e) => {
-      e.preventDefault();
-      document.getElementById('sidebar').classList.add('open');
-      document.getElementById('sidebarOverlay').classList.add('active');
-      pushModalHistory();
+      const sb = document.getElementById('sidebar');
+      if (sb && sb.classList.contains('open')) {
+        closeSidebar(false);
+      } else {
+        openSidebar();
+      }
     });
   }
 
   const btnSidebarClose = document.getElementById('btnSidebarClose');
   if (btnSidebarClose) {
-    btnSidebarClose.addEventListener('click', () => {
-      document.getElementById('sidebar').classList.remove('open');
-      document.getElementById('sidebarOverlay').classList.remove('active');
-      popModalHistory();
+    btnSidebarClose.addEventListener('click', (e) => {
+      e.preventDefault();
+      closeSidebar(false);
     });
   }
 
-  // Mobile menu (Header hamburger button)
-  document.getElementById('menuToggle').addEventListener('click', () => {
-    const sb = document.getElementById('sidebar');
-    const overlay = document.getElementById('sidebarOverlay');
-    const willOpen = !sb.classList.contains('open');
-    sb.classList.toggle('open', willOpen);
-    overlay.classList.toggle('active', willOpen);
-    if (willOpen) {
-      pushModalHistory();
-    } else {
-      popModalHistory();
-    }
-  });
-
-  document.getElementById('sidebarOverlay').addEventListener('click', () => {
-    document.getElementById('sidebar').classList.remove('open');
-    document.getElementById('sidebarOverlay').classList.remove('active');
-    popModalHistory();
-  });
+  const sidebarOverlay = document.getElementById('sidebarOverlay');
+  if (sidebarOverlay) {
+    sidebarOverlay.addEventListener('click', (e) => {
+      e.preventDefault();
+      closeSidebar(false);
+    });
+  }
 
   // Se veio de uma atualização automática, mostra toast e limpa flag
   if (safeStorage.get('confeitex_updated')) {

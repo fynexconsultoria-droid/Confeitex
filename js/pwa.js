@@ -2,13 +2,22 @@
   let deferredInstall = null;
 
   if ('serviceWorker' in navigator) {
+    let refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (!refreshing) {
+        refreshing = true;
+        window.location.reload();
+      }
+    });
+
     window.addEventListener('load', async () => {
-      const codeVer = (typeof Updates !== 'undefined' && Updates.verAtual) ? Updates.verAtual : '6.2.1';
+      const codeVer = (typeof Updates !== 'undefined' && Updates.verAtual) ? Updates.verAtual : '6.2.2';
       const storedVer = safeStorage.get('confeitex_ver');
 
       // Se a versão do código mudou, atualiza storage e remove imediatamente caches antigos
       if (!storedVer || storedVer !== codeVer) {
         safeStorage.set('confeitex_ver', codeVer);
+        safeStorage.set('confeitex_updated', 'true');
         if ('caches' in window) {
           try {
             const keys = await caches.keys();
@@ -20,6 +29,10 @@
               })
             );
           } catch (e) {}
+        }
+        if (storedVer && storedVer !== codeVer) {
+          window.location.reload();
+          return;
         }
       }
 
