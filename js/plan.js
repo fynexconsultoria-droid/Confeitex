@@ -1,14 +1,14 @@
 /**
  * Plan.js — Sistema de Planos Confeitex integrado ao Mercado Pago
  * - Teste Grátis de 7 dias com cadastro obrigatório de Cartão de Crédito
- * - Mensalidade de R$7,99/mês
- * - Pagamento automático no Cartão de Crédito cadastrado
+ * - Mensalidade de R$ 16,99/mês
+ * - Pagamento automático no Cartão de Crédito cadastrado (Débito em conta automático)
  */
 
 const Plan = {
   // ─── Configuração do Plano ────────────────────────────────────────────────
   TRIAL_DAYS: 7,
-  PRICE_BRL: 7.99,
+  PRICE_BRL: 16.99,
   PLAN_NAME: 'Confeitex Premium',
   CURRENCY: 'BRL',
   MAX_ORDERS_FREE: 20,
@@ -239,7 +239,7 @@ const Plan = {
         </div>`;
     } else {
       const label = status.hasCard ? 'Mensalidade Vencida' : 'Cadastre seu Cartão';
-      const sub = status.hasCard ? 'Renovar por R$7,99/mês' : 'Ative 7 dias grátis';
+      const sub = status.hasCard ? 'Renovar por R$ 16,99/mês' : 'Ative 7 dias grátis';
       badgeHTML = `
         <div class="plan-badge plan-badge--expired" id="planBadge" onclick="Plan.showUpgradeModal()" title="Ativar Confeitex">
           <div class="plan-badge-icon">
@@ -285,12 +285,33 @@ const Plan = {
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
             ${isForTrial ? '7 Dias Grátis · Sem Cobrança Hoje' : 'Atualização de Cartão'}
           </div>
-          <h2 class="plan-card-modal-title">${isForTrial ? 'Cadastre seu Cartão de Crédito' : 'Alterar Cartão Cadastrado'}</h2>
+          <h2 class="plan-card-modal-title">${isForTrial ? 'Ativar Assinatura Confeitex' : 'Alterar Cartão Cadastrado'}</h2>
           <p class="plan-card-modal-subtitle">
             ${isForTrial 
-              ? 'Para iniciar seu teste gratuito de 7 dias, cadastre seu cartão de crédito. <strong>Nenhum valor será cobrado hoje</strong>.' 
-              : 'Informe os novos dados do cartão para cobrança automática ou renovação da mensalidade.'}
+              ? 'Inicie seus 7 dias gratuitos. O plano é de apenas <strong>R$ 16,99/mês</strong> com débito automático no cartão e você pode cancelar a qualquer momento.' 
+              : 'Informe os novos dados do cartão para o débito automático mensal da sua assinatura.'}
           </p>
+        </div>
+
+        <!-- Resumo do Plano e Débito Automático -->
+        <div class="plan-pricing-summary">
+          <div class="plan-pricing-pill">
+            <span class="plan-pricing-tag">Plano Premium</span>
+            <div class="plan-pricing-cost">
+              <strong>R$ 16,99</strong><span>/mês</span>
+            </div>
+          </div>
+          <div class="plan-pricing-features">
+            <div class="plan-pricing-benefit">
+              <span class="plan-pricing-check">✓</span> 7 dias grátis para testar
+            </div>
+            <div class="plan-pricing-benefit">
+              <span class="plan-pricing-check">✓</span> Débito automático no cartão
+            </div>
+            <div class="plan-pricing-benefit">
+              <span class="plan-pricing-check">✓</span> Cancele quando quiser sem multa
+            </div>
+          </div>
         </div>
 
         <!-- Visual Interativo do Cartão -->
@@ -327,48 +348,50 @@ const Plan = {
             <input type="text" class="form-control" id="planCardHolder" placeholder="Ex: MARIA S SILVA" autocomplete="cc-name" required />
           </div>
 
-          <div class="form-row" style="display:flex;gap:0.75rem;">
-            <div class="form-group" style="flex:1;">
+          <div class="form-row plan-form-row">
+            <div class="form-group plan-form-col">
               <label for="planCardExpiry">Validade</label>
               <input type="text" class="form-control" id="planCardExpiry" placeholder="MM/AA" maxlength="5" inputmode="numeric" autocomplete="cc-exp" required />
             </div>
-            <div class="form-group" style="flex:1;">
+            <div class="form-group plan-form-col">
               <label for="planCardCvv">CVV</label>
               <input type="password" class="form-control" id="planCardCvv" placeholder="123" maxlength="4" inputmode="numeric" autocomplete="cc-csc" required />
             </div>
           </div>
 
-          <div class="form-row" style="display:flex;gap:0.75rem;">
-            <div class="form-group" style="flex:1.2;">
+          <div class="form-row plan-form-row">
+            <div class="form-group plan-form-col-cpf">
               <label for="planCardCpf">CPF do Titular</label>
               <input type="text" class="form-control" id="planCardCpf" placeholder="000.000.000-00" maxlength="14" inputmode="numeric" required />
             </div>
-            <div class="form-group" style="flex:1.8;">
+            <div class="form-group plan-form-col-email">
               <label for="planCardEmail">E-mail para Recibo</label>
               <input type="email" class="form-control" id="planCardEmail" placeholder="seu@email.com" autocomplete="email" required />
             </div>
           </div>
 
           <div class="plan-card-trial-terms">
-            <div class="plan-terms-icon">✓</div>
+            <div class="plan-terms-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
             <div class="plan-terms-text">
               ${isForTrial
-                ? '<strong>Hoje: R$ 0,00</strong>. Após 7 dias de teste grátis, o plano será de apenas <strong>R$ 7,99/mês</strong>. Você poderá cancelar a qualquer momento.'
-                : 'Seu cartão será validado com segurança e usado para cobrança automática da mensalidade.'}
+                ? '<strong>Hoje você paga R$ 0,00</strong>. Experimente 7 dias com acesso ilimitado. A partir do 8º dia, a assinatura de <strong>R$ 16,99/mês</strong> será debitada automaticamente no cartão. Cancele quando quiser com 1 clique.'
+                : 'Seu cartão será validado com segurança e configurado para cobrança automática mensal de <strong>R$ 16,99</strong>.'}
             </div>
           </div>
 
           <div id="planCardError" class="plan-card-error-msg" style="display:none;"></div>
 
           <button type="submit" class="btn btn-primary plan-card-btn-submit" id="btnSubmitPlanCard">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-            ${isForTrial ? 'Cadastrar Cartão & Começar 7 Dias Grátis' : 'Salvar Novo Cartão'}
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+            ${isForTrial ? 'Iniciar 7 Dias Grátis — R$ 16,99/mês após o teste' : 'Salvar Novo Cartão'}
           </button>
         </form>
 
         <div class="plan-card-security-footer">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-          Dados protegidos com criptografia de ponta a ponta via Mercado Pago
+          Cobrança 100% segura via Mercado Pago · Criptografia de ponta a ponta
         </div>
       </div>
     `;
@@ -578,7 +601,7 @@ const Plan = {
         errorEl.textContent = err.message || 'Erro ao validar cartão no Mercado Pago. Verifique os dados e tente novamente.';
         errorEl.style.display = 'block';
         btnSubmit.disabled = false;
-        btnSubmit.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> ${isForTrial ? 'Cadastrar Cartão & Começar 7 Dias Grátis' : 'Salvar Novo Cartão'}`;
+        btnSubmit.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg> ${isForTrial ? 'Iniciar 7 Dias Grátis — R$ 16,99/mês após o teste' : 'Salvar Novo Cartão'}`;
       }
     };
   },
@@ -610,7 +633,7 @@ const Plan = {
           </div>
           <div>
             <div class="plan-status-title">Assinatura Premium Ativa</div>
-            <div class="plan-status-sub">Próximo vencimento: <strong>${expDate}</strong> · R$ 7,99/mês</div>
+            <div class="plan-status-sub">Próximo débito automático: <strong>${expDate}</strong> · R$ 16,99/mês</div>
           </div>
         </div>`;
     } else if (status.type === 'trial') {
@@ -623,7 +646,7 @@ const Plan = {
           </div>
           <div>
             <div class="plan-status-title">Período de Testes: ${d} dia${d !== 1 ? 's' : ''} restante${d !== 1 ? 's' : ''}</div>
-            <div class="plan-status-sub">Vence em: <strong>${expDate}</strong> · Depois R$ 7,99/mês</div>
+            <div class="plan-status-sub">Primeiro débito em: <strong>${expDate}</strong> · Depois R$ 16,99/mês</div>
           </div>
         </div>`;
     } else {
@@ -634,7 +657,7 @@ const Plan = {
           </div>
           <div>
             <div class="plan-status-title">Mensalidade Vencida</div>
-            <div class="plan-status-sub">Regularize o pagamento para continuar usando todas as funções.</div>
+            <div class="plan-status-sub">Regularize sua assinatura (R$ 16,99/mês) para continuar usando todas as funções.</div>
           </div>
         </div>`;
     }
@@ -677,6 +700,17 @@ const Plan = {
         <div class="plan-manage-body">
           ${statusHeaderHTML}
 
+          <!-- Banner Informativo de Débito Automático -->
+          <div class="plan-auto-debit-banner">
+            <div class="plan-auto-debit-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+            <div class="plan-auto-debit-text">
+              <strong>Débito Automático Mensal no Cartão</strong>
+              <p>Sua mensalidade de <strong>R$ 16,99/mês</strong> é debitada automaticamente no cartão cadastrado. Sem necessidade de boletos ou renovação manual.</p>
+            </div>
+          </div>
+
           <!-- Seção de Cartão de Crédito -->
           <div class="plan-section">
             <h3 class="plan-section-title">Cartão de Crédito Cadastrado</h3>
@@ -687,7 +721,7 @@ const Plan = {
           <div class="plan-manage-actions">
             <button class="btn btn-primary w-100" id="btnPayPlanNow">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-              ${status.type === 'active' ? 'Pagar / Antecipar Próxima Mensalidade (R$ 7,99)' : 'Pagar Mensalidade Agora — R$ 7,99'}
+              ${status.type === 'active' ? 'Antecipar Débito / Renovar Mensalidade (R$ 16,99)' : 'Pagar Mensalidade Agora — R$ 16,99'}
             </button>
           </div>
         </div>
@@ -766,7 +800,7 @@ const Plan = {
         <div class="plan-payment-header">
           <div>
             <h2>Mensalidade Confeitex Premium</h2>
-            <p>Valor: <strong style="color:var(--color-success);font-size:1.1rem;">R$ 7,99 / mês</strong></p>
+            <p>Valor: <strong style="color:var(--color-success);font-size:1.15rem;">R$ 16,99 / mês</strong></p>
           </div>
           <button class="plan-payment-close" id="planPaymentClose">&times;</button>
         </div>
@@ -781,10 +815,10 @@ const Plan = {
           <!-- Card Panel -->
           <div class="plan-pay-panel" id="panelPayCard" style="display:none;">
             <div class="plan-card-charge-box">
-              <p>Deseja efetuar a cobrança de <strong>R$ 7,99</strong> no seu cartão de crédito cadastrado?</p>
+              <p>Deseja efetuar o débito de <strong>R$ 16,99</strong> no seu cartão de crédito cadastrado?</p>
               <div id="planCardChargeDetails"></div>
               <button class="btn btn-primary w-100 mt-3" id="btnConfirmCardCharge">
-                Cobrar R$ 7,99 no Cartão
+                Confirmar Débito de R$ 16,99 no Cartão
               </button>
               <button class="btn btn-secondary w-100 mt-2" id="btnUseAnotherCard">
                 Usar Outro Cartão
@@ -887,7 +921,7 @@ const Plan = {
           } catch (err) {
             UI.toast(err.message || 'Erro ao processar cartão.', 'danger');
             btnConfirm.disabled = false;
-            btnConfirm.innerHTML = 'Cobrar R$ 7,99 no Cartão';
+            btnConfirm.innerHTML = 'Confirmar Débito de R$ 16,99 no Cartão';
           }
         };
       }
@@ -975,16 +1009,16 @@ const Plan = {
           <div class="paywall-price">
             <div class="paywall-price-value">
               <span class="paywall-price-currency">R$</span>
-              <span class="paywall-price-amount">7,99</span>
+              <span class="paywall-price-amount">16,99</span>
               <span class="paywall-price-period">/mês</span>
             </div>
-            <p class="paywall-price-note">Sem fidelidade · Pague com Cartão de Crédito</p>
+            <p class="paywall-price-note">Débito automático no Cartão de Crédito · Sem fidelidade</p>
           </div>
           <button class="paywall-btn-upgrade" id="paywallBtnUpgrade">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
             </svg>
-            ${this.hasRegisteredCard() ? 'Assinar / Renovar — R$7,99/mês' : 'Cadastrar Cartão & Começar 7 Dias Grátis'}
+            ${this.hasRegisteredCard() ? 'Assinar / Renovar — R$ 16,99/mês' : 'Cadastrar Cartão & Começar 7 Dias Grátis'}
           </button>
           <button class="paywall-btn-cancel" id="paywallBtnCancel">Agora não</button>
         </div>`;
