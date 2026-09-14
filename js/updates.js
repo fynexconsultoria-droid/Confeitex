@@ -36,6 +36,8 @@ const Updates = {
   setup() {
     const btn = document.getElementById('btnCheckUpdates');
     if (btn) btn.onclick = () => this.checkManual();
+    const btnForce = document.getElementById('btnForceUpdate');
+    if (btnForce) btnForce.onclick = () => this.forceUpdate();
     this._registerUpdateSync();
     this._checkUpdateCompletionOnStartup();
   },
@@ -301,19 +303,8 @@ const Updates = {
       } catch (e) {}
     }
 
-    // Limpeza precisa de caches antigos
-    this._updateProgress(20, I18n.t('updates.progressClearCache'));
-    if ('caches' in window) {
-      try {
-        const keys = await caches.keys();
-        const targetCache = 'confeitex-cache-v' + newVer;
-        await Promise.all(
-          keys.filter(k => k !== targetCache).map(k => caches.delete(k))
-        );
-      } catch (e) {
-        console.warn('[Updates] Erro na limpeza de caches:', e);
-      }
-    }
+    // Prepara ativação sem deletar cache ativo prematuramente (evita quebrar offline)
+    this._updateProgress(20, I18n.t('updates.progressPreparing'));
 
     const swOk = 'serviceWorker' in navigator;
     if (!swOk) {
@@ -515,20 +506,79 @@ const Updates = {
   renderChangelog() {
     const container = document.getElementById('updatesChangelog');
     if (!container) return;
+    const current = this.verAtual;
     container.innerHTML = this.changelog.map(v => {
+      const isCurrent = v.ver === current;
       const items = v.keys.map(k => I18n.t(k));
       return `
-      <div style="border-bottom:1px solid var(--border-color);padding-bottom:0.75rem;">
-        <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.35rem;">
-          <span style="background:var(--gradient-primary);color:#fff;font-size:0.65rem;font-weight:700;padding:0.15rem 0.5rem;border-radius:50px;">v${v.ver}</span>
+      <div style="border-bottom:1px solid var(--border-color);padding-bottom:0.85rem;">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.5rem;margin-bottom:0.4rem;">
+          <div style="display:flex;align-items:center;gap:0.5rem;">
+            <span style="background:var(--gradient-primary);color:#fff;font-size:0.7rem;font-weight:700;padding:0.15rem 0.55rem;border-radius:50px;letter-spacing:0.3px;">v${v.ver}</span>
+            ${isCurrent ? '<span style="background:rgba(16,185,129,0.15);color:var(--color-success);font-size:0.68rem;font-weight:700;padding:0.1rem 0.5rem;border-radius:50px;border:1px solid rgba(16,185,129,0.3);">Instalada</span>' : ''}
+          </div>
           <span style="font-size:0.75rem;color:var(--text-muted);">${v.date}</span>
         </div>
-        <ul style="margin:0;padding-left:1.25rem;font-size:0.8rem;color:var(--text-secondary);display:flex;flex-direction:column;gap:0.2rem;">
-          ${items.map(i => `<li>${i}</li>`).join('')}
+        <ul style="margin:0;padding-left:1.25rem;font-size:0.82rem;color:var(--text-secondary);display:flex;flex-direction:column;gap:0.3rem;line-height:1.45;">
+          ${items.map(i => {
+            const formatted = i.replace(/^(Novo|New|Melhoria|Improvement|Correção|Fix|Segurança|Security|Acessibilidade|Accessibility|Compatibilidade|Compatibility):/i,
+              '<strong style="color:var(--text-primary);">$1:</strong>');
+            return `<li>${formatted}</li>`;
+          }).join('')}
         </ul>
       </div>
     `;
     }).join('');
+  },
+
+  // ─── Forçar Atualização & Limpar Cache ─────────────────────────────────────
+  async forceUpdate() {
+    const ok = await UI.confirm({
+      title: I18n.t('updates.forceConfirmTitle') || 'Forçar Atualização',
+      message: I18n.t('updates.forceConfirm') || 'Deseja limpar os arquivos temporários e buscar a versão mais recente do servidor? Seus pedidos e dados salvos NÃO serão afetados.',
+      confirmText: I18n.t('updates.forceBtn') || 'Limpar e Atualizar',
+      variant: 'primary'
+    });
+
+    if (!ok) return;
+
+    if (typeof UI !== 'undefined' && UI.toast) {
+      UI.toast(I18n.t('updates.forceSuccess') || 'Limpando cache e recarregando...');
+    }
+
+    // Remove travas e cooldowns de atualização
+    safeStorage.remove('confeitex_update_deferred');
+    safeStorage.remove('confeitex_update_retries');
+    safeStorage.remove('confeitex_last_updated_to');
+    safeStorage.remove('confeitex_last_updated_ts');
+    safeStorage.remove('confeitex_updated');
+
+    // Desregistra Service Workers ativos para forçar novo ciclo limpo
+    if ('serviceWorker' in navigator) {
+      try {
+        const regs = await navigator.serviceWorker.getRegistrations();
+        for (const reg of regs) {
+          await reg.unregister();
+        }
+      } catch (e) {
+        console.warn('[Updates] Erro ao desregistrar SW:', e);
+      }
+    }
+
+    // Limpa todos os caches de assets estáticos da Cache API
+    if ('caches' in window) {
+      try {
+        const keys = await caches.keys();
+        await Promise.all(keys.map(k => caches.delete(k)));
+      } catch (e) {
+        console.warn('[Updates] Erro ao limpar caches:', e);
+      }
+    }
+
+    // Recarrega com bypass de cache HTTP
+    setTimeout(() => {
+      window.location.replace(window.location.origin + window.location.pathname + '?force=1&t=' + Date.now());
+    }, 350);
   },
 
   updateStatus(msg, isError = false) {

@@ -66,7 +66,13 @@ self.addEventListener('install', (event) => {
         return swSet('confeitex_current_version', SW_VERSION);
       })
       .then(() => {
-        return self.skipWaiting();
+        // Se for primeira instalação (sem janelas ativas), ativa imediatamente.
+        // Se já houver janelas em execução, aguarda comando SKIP_WAITING do usuário para evitar reload no meio de pedidos.
+        return self.clients.matchAll({ type: 'window' }).then((clients) => {
+          if (!clients || clients.length === 0) {
+            return self.skipWaiting();
+          }
+        });
       })
   );
 });
@@ -351,7 +357,9 @@ async function swCheckForUpdate() {
   try {
     const r = await fetch('./version.txt?t=' + Date.now(), { cache: 'no-store' });
     if (!r.ok) return;
-    const serverVer = (await r.text()).trim();
+    const raw = await r.text();
+    const serverVer = raw.trim();
+    if (!serverVer || serverVer.includes('<') || !/^\d+\.\d+\.\d+/.test(serverVer)) return;
     const currentVer = await swGet('confeitex_current_version');
     if (serverVer && serverVer !== currentVer) {
       // Notifica todos os clientes sobre a atualização disponível
