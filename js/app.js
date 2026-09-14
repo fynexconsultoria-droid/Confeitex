@@ -36,9 +36,11 @@
 
   let lastBackPressTime = 0;
 
-  // Garante estado inicial no histórico para o botão voltar funcionar como SPA
-  const hashTab = new URLSearchParams(location.hash.slice(1)).get('tab');
-  const initialTab = hashTab && tabTitles[hashTab] ? hashTab : 'dashboard';
+  // Garante estado inicial no histórico para o botão voltar funcionar como SPA e suporta atalhos do Android
+  const hashParams = new URLSearchParams(location.hash.slice(1));
+  const hashTab = hashParams.get('tab');
+  const hashAction = hashParams.get('action');
+  const initialTab = hashTab && tabTitles[hashTab] ? hashTab : (hashAction === 'new-order' ? 'orders' : 'dashboard');
   try {
     history.replaceState({ tab: initialTab }, '');
   } catch (e) {}
@@ -282,6 +284,14 @@
   _safe('Clients.setupEditModal', () => Clients.setupEditModal());
   _safe('Trash.setup', () => Trash.setup());
   switchTab(initialTab, false);
+
+  // Se foi aberto via atalho rápido do Android (ex: Novo Pedido), abre o formulário
+  if (hashAction === 'new-order') {
+    setTimeout(() => {
+      const btn = document.getElementById('btnNewOrder');
+      if (btn) btn.click();
+    }, 350);
+  }
 
   // Mercado Pago — inicialização
   if (typeof MercadoPagoCheckout !== 'undefined') {

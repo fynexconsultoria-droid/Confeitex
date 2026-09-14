@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Política de Privacidade - Confeitex</title>
   <meta name="description" content="Política de Privacidade do Confeitex — como seus dados são tratados.">
-  <meta name="robots" content="noindex">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -260,7 +259,7 @@
 
   <main class="legal-container">
     <h1 class="legal-title" data-i18n="title">Política de Privacidade</h1>
-    <div class="legal-meta" data-i18n="meta">Última atualização: 23 de agosto de 2026 · Versão 2.5.6</div>
+    <div class="legal-meta" data-i18n="meta">Última atualização: 14 de setembro de 2026 · Versão 5.2.0</div>
 
     <div class="legal-content">
 
@@ -269,151 +268,98 @@
         <p>A presente Política de Privacidade descreve como o Confeitex trata as informações dos seus usuários. Estamos comprometidos com a proteção da sua privacidade e com a conformidade com a <strong>Lei Geral de Proteção de Dados (LGPD — Lei nº 13.709/2018)</strong> e demais normas aplicáveis.</p>
 
         <h2>2. Dados Coletados</h2>
-        <p>O Confeitex é um aplicativo que funciona <strong>100% offline</strong>. Todos os dados são inseridos e armazenados exclusivamente no seu dispositivo. Os tipos de dados que você pode registrar no aplicativo incluem:</p>
+        <p>O Confeitex é um aplicativo com arquitetura <strong>100% offline para gestão</strong>. Todos os dados operacionais são inseridos e armazenados exclusivamente no seu dispositivo. Os tipos de dados que você pode registrar no aplicativo incluem:</p>
         <ul>
-          <li><strong>Dados de clientes:</strong> nomes e telefones;</li>
-          <li><strong>Dados de pedidos:</strong> descrições, valores, datas, status e observações;</li>
-          <li><strong>Dados financeiros:</strong> formas de pagamento, valores totais e despesas;</li>
-          <li><strong>Configurações:</strong> catálogo de sabores, preferências de idioma e notificações.</li>
+          <li><strong>Dados de clientes da confeitaria:</strong> nomes e telefones;</li>
+          <li><strong>Dados de pedidos e encomendas:</strong> produtos, sabores, valores, datas de entrega e observações;</li>
+          <li><strong>Dados financeiros operacionais:</strong> formas de pagamento, faturamento e custos de matéria-prima;</li>
+          <li><strong>Configurações:</strong> catálogo de produtos, preferências de idioma e notificações.</li>
         </ul>
 
-        <h2>3. Armazenamento dos Dados</h2>
-        <p>Todos os dados são armazenados localmente no seu navegador utilizando a tecnologia <strong>localStorage</strong>. Isso significa que:</p>
+        <h2>3. Armazenamento Local e Privacidade (Offline-First)</h2>
+        <p>Todos os registros operacionais da confeitaria permanecem salvos localmente no navegador ou dispositivo utilizando tecnologias de armazenamento seguro (<strong>localStorage e IndexedDB</strong>). Isso assegura que:</p>
         <ul>
-          <li>Os dados <strong>nunca saem do seu dispositivo</strong>;</li>
-          <li>Não há envio de informações para servidores externos;</li>
-          <li>Não há coleta de dados por terceiros;</li>
-          <li>Os dados permanecem no dispositivo até que você os exclua manualmente.</li>
+          <li>Seus pedidos, clientes e finanças <strong>não são compartilhados nem comercializados</strong> com terceiros;</li>
+          <li>Não utilizamos serviços de analytics invasivos, rastreamento de navegação ou anúncios de terceiros;</li>
+          <li>Os dados permanecem sob controle do usuário no dispositivo até que decida excluí-los ou exportá-los.</li>
         </ul>
 
-        <h2>4. Não Há Coleta em Servidores</h2>
-        <p>O Confeitex <strong>não possui backend ou servidor próprio</strong>. Não coletamos, armazenamos ou processamos dados em servidores remotos. Não utilizamos serviços de analytics, rastreamento ou publicidade que acessem seus dados.</p>
-
-        <h2>5. Service Worker e Cache</h2>
-        <p>O aplicativo utiliza um Service Worker para funcionar offline. O Service Worker faz cache dos arquivos do aplicativo (HTML, CSS, JavaScript, ícones) para permitir o uso sem conexão com a internet. <strong>O Service Worker não coleta nem transmite dados pessoais.</strong></p>
-
-        <h2>6. Backup e Exportação</h2>
-        <p>O Confeitex oferece funcionalidades de backup (PDF e JSON) que geram arquivos para download no seu dispositivo. Esses arquivos são de sua responsabilidade e ficam armazenados localmente. Recomendamos que você proteja esses arquivos e os exclua quando não forem mais necessários.</p>
-
-        <h2>7. Direitos do Titular (LGPD)</h2>
-        <p>De acordo com a LGPD, você tem direito a:</p>
+        <h2>4. Processamento Seguro de Pagamentos (Mercado Pago & PCI-DSS)</h2>
+        <p>Para viabilizar transações financeiras voluntárias — tais como geração de cobranças via Pix/Cartão para encomendas de clientes ou adesão ao Plano Confeitex —, o aplicativo comunica-se exclusivamente com servidores certificados do <strong>Mercado Pago</strong> através de requisições criptografadas (HTTPS/TLS com HMAC-SHA256) via Cloudflare Worker:</p>
         <ul>
-          <li><strong>Confirmar</strong> a existência de tratamento de dados;</li>
-          <li><strong>Acessar</strong> seus dados armazenados no aplicativo;</li>
-          <li><strong>Corrigir</strong> dados incompletos ou desatualizados;</li>
-          <li><strong>Solicitar a exclusão</strong> de dados desnecessários ou excessivos;</li>
-          <li><strong>Solicitar a portabilidade</strong> dos dados (funcionalidade de exportação disponível);</li>
-          <li><strong>Revogar o consentimento</strong> a qualquer momento.</li>
+          <li><strong>Conformidade PCI-DSS:</strong> Dados sensíveis de cartão de crédito são tokenizados de forma segura diretamente pela infraestrutura da processadora (Mercado Pago). O Confeitex <strong>nunca armazena números de cartão ou códigos de segurança (CVV)</strong> no seu dispositivo ou em bancos de dados.</li>
+          <li><strong>Finalidade Estrita:</strong> Apenas os dados estritamente necessários para a conclusão da transação e emissão do comprovante são trafegados no momento da solicitação do usuário.</li>
         </ul>
-        <p>Como todos os dados ficam no seu dispositivo, você tem controle total sobre eles e pode excluí-los a qualquer momento através da funcionalidade "Apagar Todos os Dados" nas configurações.</p>
+
+        <h2>5. Service Worker e Cache Offline</h2>
+        <p>O aplicativo utiliza um Service Worker para assegurar seu funcionamento sem internet. O Service Worker armazena em cache apenas os arquivos estáticos do aplicativo (código, layout, ícones). <strong>O Service Worker não coleta nem monitora seus dados pessoais.</strong></p>
+
+        <h2>6. Backup, Exportação e Portabilidade</h2>
+        <p>O Confeitex disponibiliza recursos para gerar relatórios e cópias de segurança em formatos padrão (PDF e JSON), baixados diretamente no dispositivo do usuário. A gestão e guarda desses arquivos são de responsabilidade do próprio titular.</p>
+
+        <h2>7. Direitos do Titular e Exclusão de Dados (LGPD)</h2>
+        <p>Em conformidade com a LGPD e com as políticas de transparência do Google Play, você tem amplo controle sobre seus dados:</p>
+        <ul>
+          <li><strong>Acesso e Portabilidade:</strong> Visualize e exporte todos os seus pedidos e catálogo a qualquer momento;</li>
+          <li><strong>Exclusão Total Imediata:</strong> Você pode apagar 100% dos dados armazenados no app a qualquer momento através do menu <em>Configurações &gt; Avançado &gt; "Apagar Todos os Dados"</em>;</li>
+          <li><strong>Revogação e Desinstalação:</strong> Ao desinstalar o aplicativo ou limpar os dados do navegador, todos os registros locais são removidos definitivamente.</li>
+        </ul>
 
         <h2>8. Alterações nesta Política</h2>
-        <p>Esta Política de Privacidade pode ser atualizada periodicamente. As alterações serão publicadas nesta página com a data de atualização revisada. Recomendamos que você revise esta política regularmente.</p>
+        <p>Esta Política de Privacidade pode ser atualizada periodicamente. As alterações serão publicadas nesta página com a data de atualização revisada.</p>
 
         <h2>9. Contato</h2>
-        <p>Se você tiver dúvidas sobre esta Política de Privacidade ou sobre o tratamento dos seus dados, entre em contato através do repositório do projeto no GitHub:</p>
+        <p>Para dúvidas, suporte ou solicitações relacionadas a esta política de privacidade, entre em contato pelo repositório oficial do projeto:</p>
         <p><strong>https://github.com/fynexconsultoria-droid/Confeitex</strong></p>
       </div>
 
       <div data-lang="en" class="legal-lang-hidden">
         <h2>1. Introduction</h2>
-        <p>This Privacy Policy describes how Confeitex handles information from its users. We are committed to protecting your privacy and complying with the <strong>Lei Geral de Proteção de Dados (LGPD — Law No. 13,709/2018)</strong> and other applicable regulations.</p>
+        <p>This Privacy Policy describes how Confeitex handles information from its users. We are committed to protecting your privacy and complying with data protection laws, including the <strong>LGPD (Law No. 13,709/2018)</strong> and international privacy standards.</p>
 
         <h2>2. Data Collected</h2>
-        <p>Confeitex is an application that works <strong>100% offline</strong>. All data is entered and stored exclusively on your device. The types of data you may record in the application include:</p>
+        <p>Confeitex is designed with an <strong>offline-first</strong> architecture. All business management data is entered and stored exclusively on your device, including:</p>
         <ul>
           <li><strong>Customer data:</strong> names and phone numbers;</li>
-          <li><strong>Order data:</strong> descriptions, values, dates, status, and notes;</li>
-          <li><strong>Financial data:</strong> payment methods, total values, and expenses;</li>
-          <li><strong>Settings:</strong> flavor catalog, language preferences, and notifications.</li>
+          <li><strong>Order data:</strong> products, flavors, prices, delivery dates, and notes;</li>
+          <li><strong>Financial records:</strong> payment methods, revenue, and supply costs;</li>
+          <li><strong>Settings:</strong> product catalog, language, and notification preferences.</li>
         </ul>
 
-        <h2>3. Data Storage</h2>
-        <p>All data is stored locally on your browser using <strong>localStorage</strong> technology. This means that:</p>
+        <h2>3. Local Storage and Privacy (Offline-First)</h2>
+        <p>All business records remain stored locally on your device (using <strong>localStorage and IndexedDB</strong>). This ensures that:</p>
         <ul>
-          <li>Data <strong>never leaves your device</strong>;</li>
-          <li>There is no sending of information to external servers;</li>
-          <li>There is no data collection by third parties;</li>
-          <li>Data remains on the device until you manually delete it.</li>
+          <li>Your orders, customers, and financials <strong>are never shared or sold</strong> to third parties;</li>
+          <li>We do not use invasive analytics, tracking SDKs, or third-party ads;</li>
+          <li>Your data remains under your exclusive control.</li>
         </ul>
 
-        <h2>4. No Server Collection</h2>
-        <p>Confeitex <strong>does not have a backend or its own server</strong>. We do not collect, store, or process data on remote servers. We do not use analytics, tracking, or advertising services that access your data.</p>
+        <h2>4. Secure Payment Processing (Mercado Pago & PCI-DSS)</h2>
+        <p>When you choose to process payments (such as generating Pix or Credit Card payments for customer orders or subscribing to Confeitex), the app communicates securely with certified <strong>Mercado Pago</strong> services over encrypted HTTPS/TLS connections via Cloudflare Workers:</p>
+        <ul>
+          <li><strong>PCI-DSS Compliance:</strong> Sensitive payment details are securely tokenized directly by the payment processor. Confeitex <strong>never stores full credit card numbers or CVV codes</strong> on your device or databases.</li>
+          <li><strong>Strict Purpose:</strong> Only information strictly required for payment processing and receipt generation is processed upon user request.</li>
+        </ul>
 
-        <h2>5. Service Worker and Cache</h2>
-        <p>The application uses a Service Worker to work offline. The Service Worker caches application files (HTML, CSS, JavaScript, icons) to allow use without an internet connection. <strong>The Service Worker does not collect or transmit personal data.</strong></p>
+        <h2>5. Service Worker and Offline Cache</h2>
+        <p>The application uses a Service Worker to enable offline functionality. The Service Worker caches application assets (HTML, CSS, JavaScript, icons) only and does not track or collect personal data.</p>
 
         <h2>6. Backup and Export</h2>
-        <p>Confeitex offers backup features (PDF and JSON) that generate files for download on your device. These files are your responsibility and are stored locally. We recommend that you protect these files and delete them when no longer needed.</p>
+        <p>Confeitex provides backup tools (PDF and JSON) created locally on your device for data portability.</p>
 
-        <h2>7. Data Subject Rights (LGPD)</h2>
-        <p>Under the LGPD, you have the right to:</p>
+        <h2>7. User Rights and Complete Data Deletion</h2>
+        <p>In accordance with privacy regulations and Google Play data safety policies, you maintain full control over your data:</p>
         <ul>
-          <li><strong>Confirm</strong> the existence of data processing;</li>
-          <li><strong>Access</strong> your data stored in the application;</li>
-          <li><strong>Correct</strong> incomplete or outdated data;</li>
-          <li><strong>Request deletion</strong> of unnecessary or excessive data;</li>
-          <li><strong>Request data portability</strong> (export feature available);</li>
-          <li><strong>Revoke consent</strong> at any time.</li>
+          <li><strong>Export:</strong> Export orders and catalogs at any time;</li>
+          <li><strong>Immediate Deletion:</strong> You can permanently wipe 100% of stored data directly in <em>Settings &gt; Advanced &gt; "Delete All Data"</em>;</li>
+          <li><strong>Uninstall:</strong> Clearing browser/app data or uninstalling removes all local storage immediately.</li>
         </ul>
-        <p>Since all data remains on your device, you have full control over it and can delete it at any time through the "Delete All Data" feature in settings.</p>
 
         <h2>8. Changes to this Policy</h2>
-        <p>This Privacy Policy may be updated periodically. Changes will be published on this page with the revised update date. We recommend that you review this policy regularly.</p>
+        <p>This Privacy Policy may be updated periodically. Revisions will be published on this page with the updated effective date.</p>
 
         <h2>9. Contact</h2>
-        <p>If you have questions about this Privacy Policy or about the treatment of your data, please contact us through the project repository on GitHub:</p>
-        <p><strong>https://github.com/fynexconsultoria-droid/Confeitex</strong></p>
-      </div>
-
-      <div data-lang="es" class="legal-lang-hidden">
-        <h2>1. Introducción</h2>
-        <p>Esta Política de Privacidad describe cómo Confeitex trata la información de sus usuarios. Estamos comprometidos con la protección de su privacidad y con el cumplimiento de la <strong>Lei Geral de Proteção de Dados (LGPD — Ley Nº 13.709/2018)</strong> y demás normas aplicables.</p>
-
-        <h2>2. Datos Recopilados</h2>
-        <p>Confeitex es una aplicación que funciona <strong>100% sin conexión</strong>. Todos los datos se ingresan y almacenan exclusivamente en su dispositivo. Los tipos de datos que puede registrar en la aplicación incluyen:</p>
-        <ul>
-          <li><strong>Datos de clientes:</strong> nombres y teléfonos;</li>
-          <li><strong>Datos de pedidos:</strong> descripciones, valores, fechas, estado y observaciones;</li>
-          <li><strong>Datos financieros:</strong> formas de pago, valores totales y gastos;</li>
-          <li><strong>Configuraciones:</strong> catálogo de sabores, preferencias de idioma y notificaciones.</li>
-        </ul>
-
-        <h2>3. Almacenamiento de Datos</h2>
-        <p>Todos los datos se almacenan localmente en su navegador utilizando la tecnología <strong>localStorage</strong>. Esto significa que:</p>
-        <ul>
-          <li>Los datos <strong>nunca salen de su dispositivo</strong>;</li>
-          <li>No hay envío de información a servidores externos;</li>
-          <li>No hay recopilación de datos por terceros;</li>
-          <li>Los datos permanecen en el dispositivo hasta que usted los elimine manualmente.</li>
-        </ul>
-
-        <h2>4. No Hay Recopilación en Servidores</h2>
-        <p>Confeitex <strong>no tiene backend ni servidor propio</strong>. No recopilamos, almacenamos ni procesamos datos en servidores remotos. No utilizamos servicios de análisis, rastreo o publicidad que accedan a sus datos.</p>
-
-        <h2>5. Service Worker y Caché</h2>
-        <p>La aplicación utiliza un Service Worker para funcionar sin conexión. El Service Worker almacena en caché los archivos de la aplicación (HTML, CSS, JavaScript, iconos) para permitir el uso sin conexión a internet. <strong>El Service Worker no recopila ni transmite datos personales.</strong></p>
-
-        <h2>6. Copia de Seguridad y Exportación</h2>
-        <p>Confeitex ofrece funcionalidades de copia de seguridad (PDF y JSON) que generan archivos para descargar en su dispositivo. Estos archivos son su responsabilidad y se almacenan localmente. Le recomendamos que proteja estos archivos y los elimine cuando ya no sean necesarios.</p>
-
-        <h2>7. Derechos del Titular (LGPD)</h2>
-        <p>De acuerdo con la LGPD, usted tiene derecho a:</p>
-        <ul>
-          <li><strong>Confirmar</strong> la existencia de tratamiento de datos;</li>
-          <li><strong>Acceder</strong> a sus datos almacenados en la aplicación;</li>
-          <li><strong>Corregir</strong> datos incompletos o desactualizados;</li>
-          <li><strong>Solicitar la eliminación</strong> de datos innecesarios o excesivos;</li>
-          <li><strong>Solicitar la portabilidad</strong> de los datos (funcionalidad de exportación disponible);</li>
-          <li><strong>Revocar el consentimiento</strong> en cualquier momento.</li>
-        </ul>
-        <p>Dado que todos los datos permanecen en su dispositivo, usted tiene control total sobre ellos y puede eliminarlos en cualquier momento a través de la funcionalidad "Eliminar Todos los Datos" en la configuración.</p>
-
-        <h2>8. Cambios en esta Política</h2>
-        <p>Esta Política de Privacidad puede actualizarse periódicamente. Los cambios se publicarán en esta página con la fecha de actualización revisada. Le recomendamos que revise esta política regularmente.</p>
-
-        <h2>9. Contacto</h2>
-        <p>Si tiene preguntas sobre esta Política de Privacidad o sobre el tratamiento de sus datos, por favor contáctenos a través del repositorio del proyecto en GitHub:</p>
+        <p>For questions or privacy inquiries, contact us through our official project repository:</p>
         <p><strong>https://github.com/fynexconsultoria-droid/Confeitex</strong></p>
       </div>
 
@@ -431,23 +377,16 @@
         'pt-BR': {
           back: 'Voltar',
           title: 'Política de Privacidade',
-          meta: 'Última atualização: 23 de agosto de 2026 · Versão 2.5.6',
+          meta: 'Última atualização: 14 de setembro de 2026 · Versão 5.2.0',
           footer: 'Confeitex © 2026 — Todos os direitos reservados.',
           termsLink: 'Termos de Uso'
         },
         'en': {
           back: 'Back',
           title: 'Privacy Policy',
-          meta: 'Last updated: August 23, 2026 · Version 2.5.6',
+          meta: 'Last updated: September 14, 2026 · Version 5.2.0',
           footer: 'Confeitex © 2026 — All rights reserved.',
           termsLink: 'Terms of Use'
-        },
-        'es': {
-          back: 'Volver',
-          title: 'Política de Privacidad',
-          meta: 'Última actualización: 23 de agosto de 2026 · Versión 2.5.6',
-          footer: 'Confeitex © 2026 — Todos los derechos reservados.',
-          termsLink: 'Términos de Uso'
         }
       };
 

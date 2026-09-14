@@ -36,5 +36,30 @@
   ],
   "categories": ["business", "productivity"],
   "lang": "pt-BR",
-  "dir": "ltr"
+  "dir": "ltr",
+  "id": "./index.html",
+  "prefer_related_applications": false,
+  "shortcuts": [
+    {
+      "name": "Novo Pedido",
+      "short_name": "Novo Pedido",
+      "description": "Cadastrar uma nova encomenda",
+      "url": "./index.html#action=new-order",
+      "icons": [{ "src": "icons/icon-192x192.png?v=3", "sizes": "192x192" }]
+    },
+    {
+      "name": "Ver Encomendas",
+      "short_name": "Encomendas",
+      "description": "Visualizar pedidos agendados",
+      "url": "./index.html#tab=orders",
+      "icons": [{ "src": "icons/icon-192x192.png?v=3", "sizes": "192x192" }]
+    },
+    {
+      "name": "Financeiro",
+      "short_name": "Financeiro",
+      "description": "Fluxo de caixa e lucratividade",
+      "url": "./index.html#tab=finances",
+      "icons": [{ "src": "icons/icon-192x192.png?v=3", "sizes": "192x192" }]
+    }
+  ]
 }

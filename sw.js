@@ -140,8 +140,8 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
   if (!url.origin.startsWith('http')) return;
 
-  // version.txt sempre vai à rede — essencial para detectar atualizações
-  if (url.pathname.endsWith('/version.txt')) {
+  // version.txt e .well-known sempre vão à rede
+  if (url.pathname.endsWith('/version.txt') || url.pathname.includes('/.well-known/')) {
     event.respondWith(fetch(event.request, { cache: 'no-store' }));
     return;
   }
