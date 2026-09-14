@@ -120,9 +120,7 @@ body {
 /* Sidebar Navigation */
 .sidebar {
   width: 260px;
-  background: rgba(19, 15, 38, 0.8);
-  -webkit-backdrop-filter: blur(20px);
-  backdrop-filter: blur(20px);
+  background: #110e20;
   border-right: 1px solid var(--border-color);
   padding: 1.5rem 1.5rem;
   display: flex;
@@ -3551,69 +3549,15 @@ select.form-control {
 .ob-btn-next:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(236, 72, 153, 0.45); }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   PLAN BADGE — Sidebar
+   PLAN BADGE CONTAINER — Sidebar
    ═══════════════════════════════════════════════════════════════════════════ */
 
-#planBadgeContainer { padding: 12px 8px 4px; }
-
-.plan-badge {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: all 0.2s;
-  border: 1px solid transparent;
-  position: relative;
-  overflow: hidden;
+#planBadgeContainer {
+  padding: 8px 4px 4px;
 }
-.plan-badge::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  transition: opacity 0.2s;
-  background: rgba(255,255,255,0.05);
-}
-.plan-badge:hover::before { opacity: 1; }
-
-.plan-badge--premium { background: linear-gradient(135deg, rgba(251,191,36,0.12), rgba(245,158,11,0.08)); border-color: rgba(251,191,36,0.25); }
-.plan-badge--trial   { background: linear-gradient(135deg, rgba(236,72,153,0.12), rgba(139,92,246,0.08)); border-color: rgba(236,72,153,0.2); }
-.plan-badge--warning { background: linear-gradient(135deg, rgba(245,158,11,0.15), rgba(236,72,153,0.08)); border-color: rgba(245,158,11,0.3); }
-.plan-badge--urgent  { background: linear-gradient(135deg, rgba(239,68,68,0.15), rgba(245,158,11,0.08)); border-color: rgba(239,68,68,0.3); animation: badge-pulse 2s ease-in-out infinite; }
-.plan-badge--expired { background: linear-gradient(135deg, rgba(239,68,68,0.12), rgba(0,0,0,0.05)); border-color: rgba(239,68,68,0.25); }
-
-@keyframes badge-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); }
-  50%       { box-shadow: 0 0 0 4px rgba(239,68,68,0.15); }
-}
-
-.plan-badge-icon {
-  width: 30px; height: 30px;
-  border-radius: 8px;
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-}
-.plan-badge--premium .plan-badge-icon { background: rgba(251,191,36,0.2); color: #fbbf24; }
-.plan-badge--trial   .plan-badge-icon { background: rgba(236,72,153,0.2); color: #ec4899; }
-.plan-badge--warning .plan-badge-icon { background: rgba(245,158,11,0.2); color: #f59e0b; }
-.plan-badge--urgent  .plan-badge-icon { background: rgba(239,68,68,0.2);  color: #ef4444; }
-.plan-badge--expired .plan-badge-icon { background: rgba(239,68,68,0.15); color: #ef4444; }
-.plan-badge-icon svg { width: 16px; height: 16px; }
-
-.plan-badge-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
-.plan-badge-label { font-size: 0.8rem; font-weight: 700; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.plan-badge-sub   { font-size: 0.7rem; color: rgba(255,255,255,0.5); }
-.plan-badge--urgent  .plan-badge-sub { color: #ef4444; }
-.plan-badge--expired .plan-badge-sub { color: #f87171; }
-.plan-badge--premium .plan-badge-sub { color: #fbbf24; }
-.plan-badge-arrow svg { width: 14px; height: 14px; color: rgba(255,255,255,0.3); flex-shrink: 0; }
-.plan-badge-arrow { width: 14px; height: 14px; color: rgba(255,255,255,0.3); flex-shrink: 0; }
 
 @media (max-width: 768px) {
-  #planBadgeContainer { padding: 10px 0 4px; }
-  .plan-badge { padding: 9px 10px; }
+  #planBadgeContainer { padding: 6px 0 4px; }
   .sidebar-footer { padding-bottom: max(0.5rem, env(safe-area-inset-bottom)); }
 }
 
@@ -4407,36 +4351,50 @@ select.form-control {
    SISTEMA DE PLANOS & ASSINATURAS CONFEITEX (MERCADO PAGO)
    ============================================================================ */
 
-/* ─── Badge da Sidebar ─── */
+/* ─── Badge da Sidebar — Design Clean sem Sombreamento ─── */
 .plan-badge {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  margin: 1rem 0.75rem 0.5rem;
-  padding: 0.75rem 1rem;
-  border-radius: 16px;
+  margin: 0.75rem 0.25rem 0.4rem;
+  padding: 0.75rem 0.85rem;
+  border-radius: 12px;
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  background: #161324;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: none !important;
+  transition: background 0.15s ease, border-color 0.15s ease;
   user-select: none;
+  position: relative;
+}
+
+.plan-badge::before,
+.plan-badge::after {
+  display: none !important;
+  content: none !important;
 }
 
 .plan-badge:hover {
-  transform: translateY(-2px);
+  transform: none;
+  background: #1b172d;
+  border-color: rgba(255, 255, 255, 0.16);
+  box-shadow: none !important;
 }
 
 .plan-badge-icon {
   width: 32px;
   height: 32px;
-  border-radius: 10px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  box-shadow: none !important;
 }
 
 .plan-badge-icon svg {
-  width: 18px;
-  height: 18px;
+  width: 17px;
+  height: 17px;
 }
 
 .plan-badge-info {
@@ -4453,6 +4411,7 @@ select.form-control {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  color: #ffffff;
 }
 
 .plan-badge-sub {
@@ -4463,80 +4422,78 @@ select.form-control {
 }
 
 .plan-badge-arrow {
-  width: 16px;
-  height: 16px;
-  opacity: 0.6;
+  width: 14px;
+  height: 14px;
+  opacity: 0.45;
   flex-shrink: 0;
-  transition: transform 0.2s ease;
+  transition: transform 0.15s ease, opacity 0.15s ease;
 }
 
 .plan-badge:hover .plan-badge-arrow {
-  transform: translateX(3px);
-  opacity: 1;
+  transform: translateX(2px);
+  opacity: 0.9;
 }
 
-/* Variantes de Badge */
+/* Variantes de Badge — Sem Sombreamento e Sem Glow */
 .plan-badge--premium {
-  background: linear-gradient(135deg, rgba(236, 72, 153, 0.15) 0%, rgba(139, 92, 246, 0.15) 100%);
-  border: 1px solid rgba(236, 72, 153, 0.35);
-  box-shadow: 0 4px 15px rgba(236, 72, 153, 0.1);
+  background: #161422;
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  box-shadow: none !important;
 }
 .plan-badge--premium .plan-badge-icon {
-  background: linear-gradient(135deg, #ec4899, #8b5cf6);
-  color: white;
+  background: rgba(251, 191, 36, 0.14);
+  color: #fbbf24;
 }
-.plan-badge--premium .plan-badge-label { color: #f472b6; }
-.plan-badge--premium .plan-badge-sub { color: var(--color-success); font-weight: 600; }
+.plan-badge--premium .plan-badge-label { color: #fbbf24; }
+.plan-badge--premium .plan-badge-sub { color: #10b981; font-weight: 600; }
 
 .plan-badge--trial {
-  background: linear-gradient(135deg, rgba(6, 182, 212, 0.12) 0%, rgba(59, 130, 246, 0.12) 100%);
-  border: 1px solid rgba(6, 182, 212, 0.3);
+  background: #131626;
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  box-shadow: none !important;
 }
 .plan-badge--trial .plan-badge-icon {
-  background: linear-gradient(135deg, #06b6d4, #3b82f6);
-  color: white;
+  background: rgba(56, 189, 248, 0.14);
+  color: #38bdf8;
 }
 .plan-badge--trial .plan-badge-label { color: #38bdf8; }
 .plan-badge--trial .plan-badge-sub { color: var(--text-secondary); }
 
 .plan-badge--warning {
-  background: rgba(245, 158, 11, 0.12);
+  background: #1a161f;
   border: 1px solid rgba(245, 158, 11, 0.35);
+  box-shadow: none !important;
 }
 .plan-badge--warning .plan-badge-icon {
-  background: #f59e0b;
-  color: white;
+  background: rgba(245, 158, 11, 0.14);
+  color: #f59e0b;
 }
 .plan-badge--warning .plan-badge-label { color: #fbbf24; }
 .plan-badge--warning .plan-badge-sub { color: #fef08a; }
 
 .plan-badge--urgent {
-  background: rgba(239, 68, 68, 0.15);
+  background: #1b121e;
   border: 1px solid rgba(239, 68, 68, 0.4);
-  animation: urgentPulse 2s infinite ease-in-out;
+  box-shadow: none !important;
 }
 .plan-badge--urgent .plan-badge-icon {
-  background: #ef4444;
-  color: white;
+  background: rgba(239, 68, 68, 0.14);
+  color: #ef4444;
 }
 .plan-badge--urgent .plan-badge-label { color: #f87171; }
 .plan-badge--urgent .plan-badge-sub { color: #fca5a5; }
 
-@keyframes urgentPulse {
-  0%, 100% { box-shadow: 0 0 0 rgba(239, 68, 68, 0); }
-  50% { box-shadow: 0 0 15px rgba(239, 68, 68, 0.3); }
-}
-
 .plan-badge--expired {
-  background: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.25);
+  background: #17121e;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  box-shadow: none !important;
 }
 .plan-badge--expired .plan-badge-icon {
-  background: rgba(239, 68, 68, 0.2);
+  background: rgba(239, 68, 68, 0.14);
   color: #f87171;
 }
 .plan-badge--expired .plan-badge-label { color: #fca5a5; }
-.plan-badge--expired .plan-badge-sub { color: var(--color-accent-pink); font-weight: 600; }
+.plan-badge--expired .plan-badge-sub { color: #f472b6; font-weight: 600; }
 
 /* ─── Modais do Sistema de Planos (Confeitex Premium) ─── */
 .plan-card-modal-overlay,
@@ -4738,12 +4695,12 @@ select.form-control {
 }
 
 .interactive-card-inner {
-  background: linear-gradient(145deg, #1b1928 0%, #13111f 100%);
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: #171524;
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 16px;
   padding: 1.15rem 1.35rem;
   color: white;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+  box-shadow: none;
   display: flex;
   flex-direction: column;
   height: 165px;
@@ -4751,18 +4708,6 @@ select.form-control {
   position: relative;
   overflow: hidden;
   box-sizing: border-box;
-}
-
-.interactive-card-inner::after {
-  content: '';
-  position: absolute;
-  top: -40%;
-  right: -25%;
-  width: 180px;
-  height: 180px;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.06) 0%, transparent 70%);
-  border-radius: 50%;
-  pointer-events: none;
 }
 
 .card-preview-chip {
