@@ -1,8 +1,24 @@
 const Updates = {
-  verAtual: '5.0.0',
+  _CODE_VERSION: '5.1.0',
+
+  // Versão em execução obtida dinamicamente da tag meta ou fallback seguro
+  get verAtual() {
+    if (typeof document !== 'undefined') {
+      const meta = document.querySelector('meta[name="version"]');
+      if (meta && meta.content && this._parseSemver(meta.content)) {
+        return meta.content.trim();
+      }
+    }
+    const stored = safeStorage.get('confeitex_ver');
+    if (stored && this._parseSemver(stored)) return stored.trim();
+    return this._CODE_VERSION;
+  },
+
   _checking: false,
+  _checkPromise: null,
 
   changelog: [
+    { ver: '5.1.0', date: '14/09/2026', keys: ['changelog.5100'] },
     { ver: '5.0.0', date: '10/09/2026', keys: ['changelog.5000'] },
     { ver: '4.1.0', date: '10/09/2026', keys: ['changelog.4100'] },
     { ver: '4.0.1', date: '10/09/2026', keys: ['changelog.4001'] },
@@ -20,94 +36,187 @@ const Updates = {
   setup() {
     const btn = document.getElementById('btnCheckUpdates');
     if (btn) btn.onclick = () => this.checkManual();
-    // Registra sincronização periódica para verificações de atualização
     this._registerUpdateSync();
+    this._checkUpdateCompletionOnStartup();
   },
 
   _delay(ms) {
     return new Promise(r => setTimeout(r, ms));
   },
 
-  // Busca a versão no servidor (version.txt)
-  async _fetchVersion() {
-    try {
-      const r = await fetch('./version.txt?t=' + Date.now(), { cache: 'no-store' });
-      if (!r.ok) return null;
-      return (await r.text()).trim();
-    } catch { return null; }
+  // ─── Validação Semântica de Versão (SemVer) ──────────────────────────────
+  _parseSemver(v) {
+    if (!v || typeof v !== 'string') return null;
+    const clean = v.trim().replace(/^v/i, '');
+    const match = clean.match(/^(\d+)\.(\d+)\.(\d+)/);
+    if (!match) return null;
+    return [parseInt(match[1], 10), parseInt(match[2], 10), parseInt(match[3], 10)];
   },
 
-  // Verificação silenciosa ao abrir o app
-  async checkSilent() {
-    if (this._checking) return null;
-    this._checking = true;
+  // Retorna true SOMENTE se remote for estritamente mais recente que local
+  _isNewer(remote, local) {
+    const r = this._parseSemver(remote);
+    const l = this._parseSemver(local);
+    if (!r || !l) return false;
+    if (r[0] !== l[0]) return r[0] > l[0];
+    if (r[1] !== l[1]) return r[1] > l[1];
+    return r[2] > l[2];
+  },
+
+  // ─── Verificação no Servidor com Validação e Timeout ─────────────────────
+  async _fetchVersion() {
     try {
-      const serverVer = await this._fetchVersion();
-      if (serverVer && serverVer !== this.verAtual) {
-        const deferred = safeStorage.get('confeitex_update_deferred');
-        const oneDay = 86400000;
-        if (deferred && Date.now() - parseInt(deferred, 10) < oneDay) {
-          return serverVer;
-        }
-        await this.promptUpdate(serverVer);
-        return serverVer;
+      const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+      const timeoutId = controller ? setTimeout(() => controller.abort(), 6000) : null;
+      
+      const r = await fetch('./version.txt?t=' + Date.now(), {
+        cache: 'no-store',
+        signal: controller ? controller.signal : undefined
+      });
+      if (timeoutId) clearTimeout(timeoutId);
+      if (!r.ok) return null;
+
+      const raw = await r.text();
+      const text = raw.trim();
+
+      // Blindagem: descarta se o servidor retornar HTML (ex: 404/500 mascarado) ou string inválida
+      if (text.includes('<') || text.includes('<!') || !this._parseSemver(text)) {
+        console.warn('[Updates] version.txt inválido ou corrompido retornado pelo servidor:', text.slice(0, 50));
+        return null;
       }
+      return text;
+    } catch (e) {
       return null;
-    } finally {
-      this._checking = false;
     }
   },
 
-  // Verifica atualização e registra no sino + mostra banner (chamado ao abrir e ao reconectar)
-  async checkAndUpdate() {
-    if (this._checking) return null;
+  // ─── Prevenção de Loop: Verificação Pós-Recarregamento ───────────────────
+  _checkUpdateCompletionOnStartup() {
+    const updatedTo = safeStorage.get('confeitex_last_updated_to');
+    const updatedTs = parseInt(safeStorage.get('confeitex_last_updated_ts') || '0', 10);
+    if (!updatedTo) return;
+
+    const current = this.verAtual;
+    const elapsed = Date.now() - updatedTs;
+
+    if (current === updatedTo) {
+      // Sucesso confirmado: o app abriu com a nova versão ativa
+      safeStorage.remove('confeitex_last_updated_to');
+      safeStorage.remove('confeitex_last_updated_ts');
+      safeStorage.remove('confeitex_update_deferred');
+      safeStorage.remove('confeitex_update_retries');
+      safeStorage.set('confeitex_ver', current);
+      if (typeof UI !== 'undefined' && UI.toast) {
+        UI.toast(I18n.t('updates.toastUpdated', { version: current }) || `✅ App atualizado para v${current}`, 'success');
+      }
+    } else if (elapsed < 60000) {
+      // Recarregou há menos de 1 minuto mas a versão ainda não bateu (cache resistente)
+      const retries = parseInt(safeStorage.get('confeitex_update_retries') || '0', 10) + 1;
+      safeStorage.set('confeitex_update_retries', String(retries));
+      if (retries >= 2) {
+        // Bloqueia loop contínuo de atualizações por 1 hora
+        console.warn('[Updates] Anti-loop ativado: navegador retendo cache antigo. Pausando prompts automáticos.');
+        safeStorage.set('confeitex_update_deferred', String(Date.now()));
+        safeStorage.remove('confeitex_last_updated_to');
+      }
+    } else {
+      // Timeout expirado (>1min), limpa flags pendentes
+      safeStorage.remove('confeitex_last_updated_to');
+      safeStorage.remove('confeitex_last_updated_ts');
+    }
+  },
+
+  _isUpdateCooldownActive() {
+    const updatedTs = parseInt(safeStorage.get('confeitex_last_updated_ts') || '0', 10);
+    // Se houve atualização nos últimos 60 segundos, não abre prompt automático
+    return (Date.now() - updatedTs) < 60000;
+  },
+
+  // ─── Verificação Silenciosa ao Abrir ─────────────────────────────────────
+  async checkSilent() {
+    if (this._checking) return this._checkPromise;
+    if (this._isUpdateCooldownActive()) return null;
+
     this._checking = true;
-    try {
-      const serverVer = await this._fetchVersion();
-      if (serverVer && serverVer !== this.verAtual) {
-        const deferred = safeStorage.get('confeitex_update_deferred');
-        const oneDay = 86400000;
-        if (deferred && Date.now() - parseInt(deferred, 10) < oneDay) {
+    this._checkPromise = (async () => {
+      try {
+        const serverVer = await this._fetchVersion();
+        const currentVer = this.verAtual;
+
+        // Compara semver estrito: apenas se o servidor tiver versão MAIOR
+        if (serverVer && this._isNewer(serverVer, currentVer)) {
+          const deferred = safeStorage.get('confeitex_update_deferred');
+          const oneDay = 86400000;
+          if (deferred && Date.now() - parseInt(deferred, 10) < oneDay) {
+            return serverVer;
+          }
+          await this.promptUpdate(serverVer);
           return serverVer;
         }
+        return null;
+      } finally {
+        this._checking = false;
+        this._checkPromise = null;
+      }
+    })();
 
-        // Verifica se já notificou esta versão (evita duplicatas)
-        const notifId = 'update_' + serverVer;
-        const alreadyNotified = typeof Notifications !== 'undefined'
-          && Notifications.getHistory
-          && Notifications.getHistory().some(n => n.id === notifId);
-        if (alreadyNotified) {
-          // Já notificou mas pode ainda precisar mostrar o banner
+    return this._checkPromise;
+  },
+
+  // ─── Verifica Atualização e Registra no Sino + Banner ────────────────────
+  async checkAndUpdate() {
+    if (this._checking) return this._checkPromise;
+    if (this._isUpdateCooldownActive()) return null;
+
+    this._checking = true;
+    this._checkPromise = (async () => {
+      try {
+        const serverVer = await this._fetchVersion();
+        const currentVer = this.verAtual;
+
+        // Compara semver estrito: apenas se o servidor tiver versão MAIOR
+        if (serverVer && this._isNewer(serverVer, currentVer)) {
+          const deferred = safeStorage.get('confeitex_update_deferred');
+          const oneDay = 86400000;
+          if (deferred && Date.now() - parseInt(deferred, 10) < oneDay) {
+            return serverVer;
+          }
+
+          // Evita notificações duplicadas no histórico do sino
+          const notifId = 'update_' + serverVer;
+          const alreadyNotified = typeof Notifications !== 'undefined'
+            && Notifications.getHistory
+            && Notifications.getHistory().some(n => n.id === notifId);
+
+          if (!alreadyNotified && typeof Notifications !== 'undefined' && Notifications._recordNotification) {
+            Notifications._recordNotification({
+              id: notifId,
+              type: 'update',
+              title: I18n.t('updates.notifTitle'),
+              body: I18n.t('updates.notifBody', { version: serverVer }),
+              orderIds: [],
+              read: false
+            });
+          }
+
+          // Exibe banner se não estiver visível
           const banner = document.getElementById('updateNotification');
           if (banner && !banner.classList.contains('visible')) {
             this._showUpdateBanner(serverVer, false);
           }
           return serverVer;
         }
-
-        // Registra no sino de notificações
-        if (typeof Notifications !== 'undefined' && Notifications._recordNotification) {
-          Notifications._recordNotification({
-            id: notifId,
-            type: 'update',
-            title: I18n.t('updates.notifTitle'),
-            body: I18n.t('updates.notifBody', { version: serverVer }),
-            orderIds: [],
-            read: false
-          });
-        }
-
-        // Mostra banner de atualização
-        this._showUpdateBanner(serverVer, false);
-        return serverVer;
+        return null;
+      } finally {
+        this._checking = false;
+        this._checkPromise = null;
       }
-      return null;
-    } finally {
-      this._checking = false;
-    }
+    })();
+
+    return this._checkPromise;
   },
 
-  // Diálogo de confirmação de atualização
+  // ─── Diálogo de Confirmação ──────────────────────────────────────────────
   async promptUpdate(serverVer) {
     const ok = await UI.confirm({
       title: I18n.t('updates.promptTitle'),
@@ -127,7 +236,7 @@ const Updates = {
     }
   },
 
-  // Verificação manual pela aba de Atualizações
+  // ─── Verificação Manual pelo Usuário ─────────────────────────────────────
   async checkManual() {
     const btn = document.getElementById('btnCheckUpdates');
     const originalText = btn ? btn.innerHTML : '';
@@ -137,13 +246,17 @@ const Updates = {
     }
     this.updateStatus(I18n.t('updates.checking'));
 
+    // Verificação manual limpa bloqueios de adiamento
+    safeStorage.remove('confeitex_update_deferred');
+
     const serverVer = await this._fetchVersion();
+    const currentVer = this.verAtual;
     const lastCheckStr = new Date().toLocaleString((I18n.locales && I18n.locales[I18n.lang]) || 'pt-BR');
     safeStorage.set('confeitex_last_check', lastCheckStr);
     const lastCheckEl = document.getElementById('updatesLastCheck');
     if (lastCheckEl) lastCheckEl.textContent = lastCheckStr;
 
-    if (serverVer && serverVer !== this.verAtual) {
+    if (serverVer && this._isNewer(serverVer, currentVer)) {
       const ok = await UI.confirm({
         title: I18n.t('updates.promptTitle'),
         message: I18n.t('updates.promptFound', { version: serverVer }),
@@ -157,7 +270,8 @@ const Updates = {
       } else {
         this.updateStatus(I18n.t('updates.cancelled'));
       }
-    } else if (serverVer === this.verAtual) {
+    } else if (serverVer) {
+      // Versão é igual ou menor que a atual: app está 100% atualizado!
       this.updateStatus(I18n.t('updates.upToDate'));
     } else {
       this.updateStatus(I18n.t('updates.noConnection'), true);
@@ -169,8 +283,9 @@ const Updates = {
     }
   },
 
+  // ─── Download e Ativação Precisa da Atualização ──────────────────────────
   async downloadUpdate() {
-    const newVer = safeStorage.get('confeitex_ver') || this.verAtual;
+    const newVer = safeStorage.get('confeitex_ver') || this._CODE_VERSION;
     const oldVer = this.verAtual;
     const startedAt = Date.now();
 
@@ -179,19 +294,33 @@ const Updates = {
     safeStorage.remove('confeitex_update_prompt');
     safeStorage.remove('confeitex_pwa_dismissed');
 
-    // Remove Service Worker antigo
-    this._updateProgress(15, I18n.t('updates.progressClearCache'));
-    let swOk = 'serviceWorker' in navigator;
-    if (swOk) {
+    // Avisa o Service Worker ativo para pular espera
+    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
       try {
-        const r = await navigator.serviceWorker.getRegistration();
-        if (r) await r.unregister();
-      } catch (e) { console.warn('[Confeitex] SW unregister error:', e); }
+        navigator.serviceWorker.controller.postMessage({ type: 'SKIP_WAITING' });
+      } catch (e) {}
     }
 
+    // Limpeza precisa de caches antigos
+    this._updateProgress(20, I18n.t('updates.progressClearCache'));
+    if ('caches' in window) {
+      try {
+        const keys = await caches.keys();
+        const targetCache = 'confeitex-cache-v' + newVer;
+        await Promise.all(
+          keys.filter(k => k !== targetCache).map(k => caches.delete(k))
+        );
+      } catch (e) {
+        console.warn('[Updates] Erro na limpeza de caches:', e);
+      }
+    }
+
+    const swOk = 'serviceWorker' in navigator;
     if (!swOk) {
       await this._settleProgress(startedAt, I18n.t('updates.progressRegistering'));
       safeStorage.set('confeitex_updated', 'true');
+      safeStorage.set('confeitex_last_updated_to', newVer);
+      safeStorage.set('confeitex_last_updated_ts', String(Date.now()));
       safeStorage.set('confeitex_ver', newVer);
       this._updateProgress(100, I18n.t('updates.progressDone'));
       await this._delay(600);
@@ -199,47 +328,56 @@ const Updates = {
       return;
     }
 
-    // Registra novo Service Worker
-    this._updateProgress(40, I18n.t('updates.progressRegisteringSw'));
+    // Registra novo Service Worker com a versão explícita
+    this._updateProgress(45, I18n.t('updates.progressRegisteringSw'));
     let reg;
     try {
       safeStorage.set('confeitex_updated', 'true');
-      reg = await navigator.serviceWorker.register('./sw.js?v=' + newVer);
-    } catch {
+      safeStorage.set('confeitex_last_updated_to', newVer);
+      safeStorage.set('confeitex_last_updated_ts', String(Date.now()));
+      reg = await navigator.serviceWorker.register('./sw.js?v=' + encodeURIComponent(newVer));
+      if (reg.update) {
+        await reg.update().catch(() => {});
+      }
+    } catch (e) {
       safeStorage.remove('confeitex_updated');
+      safeStorage.remove('confeitex_last_updated_to');
+      safeStorage.remove('confeitex_last_updated_ts');
       safeStorage.set('confeitex_ver', oldVer);
       this._hideProgress();
       UI.alert(I18n.t('updates.noConnection') + ' ' + I18n.t('updates.retryMsg'));
       return;
     }
 
-    this._updateProgress(60, I18n.t('updates.progressActivating'));
+    this._updateProgress(70, I18n.t('updates.progressActivating'));
     const ativado = await Promise.race([
       new Promise(resolve => {
-        const w = reg.installing;
+        const w = reg.installing || reg.waiting;
         if (w) {
           w.addEventListener('statechange', () => {
             const st = w.state;
             if (st === 'installed' || st === 'activated') resolve(true);
             else if (st === 'redundant') {
-              setTimeout(() => resolve(!!(reg.active && reg.active.state === 'activated')), 1000);
+              setTimeout(() => resolve(!!(reg.active && reg.active.state === 'activated')), 800);
             }
           });
         } else if (reg.active) {
           resolve(reg.active.state === 'activated');
         } else {
-          setTimeout(() => resolve(false), 1500);
+          setTimeout(() => resolve(false), 1200);
         }
       }),
-      this._delay(25000).then(() => false)
+      this._delay(10000).then(() => false)
     ]);
 
     safeStorage.set('confeitex_updated', 'true');
+    safeStorage.set('confeitex_last_updated_to', newVer);
+    safeStorage.set('confeitex_last_updated_ts', String(Date.now()));
     safeStorage.set('confeitex_ver', newVer);
 
     await this._settleProgress(startedAt, I18n.t('updates.progressApplying'));
     this._updateProgress(100, ativado ? I18n.t('updates.progressDone') : I18n.t('updates.progressDoneDeferred'));
-    await this._delay(800);
+    await this._delay(600);
     this._showUpdateBanner(newVer, true);
   },
 
@@ -289,7 +427,7 @@ const Updates = {
   },
 
   _settleProgress(startedAt, msg) {
-    const minMs = 5000;
+    const minMs = 3000;
     const remaining = Math.max(0, minMs - (Date.now() - startedAt));
     return this._animateProgress(99, remaining, msg);
   },
@@ -333,8 +471,13 @@ const Updates = {
     if (installed) {
       btnNow.onclick = () => {
         safeStorage.remove('confeitex_updated');
+        safeStorage.set('confeitex_last_updated_to', ver);
+        safeStorage.set('confeitex_last_updated_ts', String(Date.now()));
         hide();
-        setTimeout(() => window.location.reload(), 300);
+        // Recarregamento seguro com bypass de cache HTTP de disco
+        setTimeout(() => {
+          window.location.replace(window.location.origin + window.location.pathname + '?v=' + encodeURIComponent(ver) + '&ts=' + Date.now());
+        }, 200);
       };
     } else {
       btnNow.onclick = () => {

@@ -93,6 +93,13 @@ self.addEventListener('activate', (event) => {
   );
 });
 
+// Suporte para skipWaiting manual via postMessage
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});
+
 // FETCH — prioriza rede para navegação e assets do app para garantir que a
 // nova versão seja carregada em celulares e para evitar ficar preso em cache antigo.
 // Mantém fallback para offline quando não houver rede.
