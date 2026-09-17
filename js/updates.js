@@ -18,21 +18,11 @@ const Updates = {
   _checkPromise: null,
 
   changelog: [
+    { ver: '5.2.4', date: '17/09/2026', keys: ['changelog.5240'] },
+    { ver: '5.2.3', date: '17/09/2026', keys: ['changelog.5230'] },
     { ver: '5.2.2', date: '17/09/2026', keys: ['changelog.5220'] },
     { ver: '5.2.1', date: '16/09/2026', keys: ['changelog.5210'] },
     { ver: '5.1.0', date: '14/09/2026', keys: ['changelog.5100'] },
-    { ver: '5.0.0', date: '10/09/2026', keys: ['changelog.5000'] },
-    { ver: '4.1.0', date: '10/09/2026', keys: ['changelog.4100'] },
-    { ver: '4.0.1', date: '10/09/2026', keys: ['changelog.4001'] },
-    { ver: '4.0.0', date: '09/09/2026', keys: ['changelog.4000'] },
-    { ver: '3.2.0', date: '09/09/2026', keys: ['changelog.3200'] },
-    { ver: '3.1.1', date: '08/09/2026', keys: ['changelog.3110'] },
-    { ver: '3.1.0', date: '08/09/2026', keys: ['changelog.3100'] },
-    { ver: '3.0.1', date: '06/09/2026', keys: ['changelog.3010'] },
-    { ver: '3.0.0', date: '29/08/2026', keys: ['changelog.3000'] },
-    { ver: '2.6.0', date: '24/08/2026', keys: ['changelog.2600'] },
-    { ver: '2.5.6', date: '23/08/2026', keys: ['changelog.2560'] },
-    { ver: '2.5.5', date: '23/08/2026', keys: ['changelog.2550'] },
   ],
 
   setup() {
