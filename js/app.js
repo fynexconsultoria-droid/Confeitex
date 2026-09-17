@@ -202,8 +202,8 @@
       // Só reage se havia uma atualização em andamento (flag setada por downloadUpdate)
       const newVer = safeStorage.get('confeitex_last_updated_to');
       if (!newVer) return;
-      // O novo SW já está ativo — mostra banner de 'pronto para recarregar'
-      Updates._showUpdateBanner(newVer, true);
+      // O novo SW já está ativo — mostra modal de 'pronto para recarregar'
+      Updates.promptUpdateReady(newVer);
     });
 
     // Escuta mensagem do SW sobre atualização disponível
@@ -217,10 +217,7 @@
             && Notifications.getHistory
             && Notifications.getHistory().some(n => n.id === notifId);
           if (alreadyNotified) {
-            const banner = document.getElementById('updateNotification');
-            if (banner && !banner.classList.contains('visible')) {
-              Updates._showUpdateBanner(serverVer, false);
-            }
+            Updates.promptUpdateReady(serverVer);
             return;
           }
           // Registra no sino de notificações
@@ -234,9 +231,17 @@
               read: false
             });
           }
-          // Mostra banner
-          Updates._showUpdateBanner(serverVer, false);
+          // Mostra modal
+          Updates.promptUpdateReady(serverVer);
         }
+      }
+    });
+
+    // Se o app foi aberto e já havia um SW aguardando para ser ativado
+    navigator.serviceWorker.ready.then(reg => {
+      if (reg.waiting) {
+        const pendingVer = safeStorage.get('confeitex_update_pending') || 'Nova Versão';
+        Updates.promptUpdateReady(pendingVer);
       }
     });
   }

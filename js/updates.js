@@ -193,11 +193,8 @@ const Updates = {
             });
           }
 
-          // Exibe banner se não estiver visível
-          const banner = document.getElementById('updateNotification');
-          if (banner && !banner.classList.contains('visible')) {
-            this._showUpdateBanner(serverVer, false);
-          }
+          // Exibe modal de update se não foi notificado
+          this.promptUpdate(serverVer);
           return serverVer;
         }
         return null;
@@ -227,6 +224,17 @@ const Updates = {
     } else {
       safeStorage.set('confeitex_update_deferred', String(Date.now()));
       UI.toast(I18n.t('updates.toastLater'));
+      
+      if (typeof Notifications !== 'undefined' && Notifications._recordNotification) {
+        Notifications._recordNotification({
+          id: 'update_deferred_' + serverVer,
+          type: 'update',
+          title: I18n.t('updates.notifTitle') || 'Atualização Disponível',
+          body: I18n.t('updates.notifBody', { version: serverVer }) || `A versão ${serverVer} está disponível para download.`,
+          orderIds: [],
+          read: false
+        });
+      }
     }
   },
 
@@ -306,8 +314,7 @@ const Updates = {
       safeStorage.set('confeitex_last_updated_ts', String(Date.now()));
       safeStorage.set('confeitex_ver', newVer);
       this._updateProgress(100, I18n.t('updates.progressDone'));
-      await this._delay(600);
-      this._showUpdateBanner(newVer, true);
+      this.promptUpdateReady(newVer);
       return;
     }
 
@@ -360,8 +367,7 @@ const Updates = {
 
     await this._settleProgress(startedAt, I18n.t('updates.progressApplying'));
     this._updateProgress(100, ativado ? I18n.t('updates.progressDone') : I18n.t('updates.progressDoneDeferred'));
-    await this._delay(600);
-    this._showUpdateBanner(newVer, true);
+    this.promptUpdateReady(newVer);
   },
 
   _showProgress(ver) {
@@ -425,83 +431,42 @@ const Updates = {
     }
   },
 
-  _showUpdateBanner(ver, installed = false) {
-    const banner = document.getElementById('updateNotification');
-    const text = document.getElementById('updateNotifText');
-    const progress = document.getElementById('updateProgress');
-    const actions = document.getElementById('updateActions');
-    const btnNow = document.getElementById('btnUpdateNow');
-    const btnLater = document.getElementById('btnUpdateLater');
-    const btnClose = document.getElementById('btnUpdateCloseApp');
-    if (!banner || !text || !progress || !actions || !btnNow || !btnLater || !btnClose) return;
+  async promptUpdateReady(ver) {
+    const ok = await UI.confirm({
+      title: I18n.t('updates.promptTitle') || '📦 Nova Atualização Disponível',
+      message: I18n.t('updates.installedTitle', { version: ver }) || `✅ Atualização Confeitex v${ver} instalada! Deseja recarregar agora para aplicar as mudanças?`,
+      confirmText: I18n.t('updates.reloadNow') || 'Recarregar',
+      cancelText: I18n.t('updates.laterNextOpen') || 'Na próxima abertura',
+      variant: 'primary'
+    });
 
-    progress.style.display = 'none';
-    actions.style.display = 'flex';
-
-    if (installed) {
-      // Modo: update já baixado e instalado — SW aguarda em 'waiting'
-      text.textContent = I18n.t('updates.installedTitle', { version: ver });
-      btnLater.textContent = I18n.t('updates.laterNextOpen') || 'Na próxima abertura';
-      btnClose.style.display = 'none';
+    if (ok) {
+      setTimeout(() => {
+        window.location.replace(
+          window.location.origin + window.location.pathname +
+          '?v=' + encodeURIComponent(ver) + '&ts=' + Date.now()
+        );
+      }, 200);
     } else {
-      // Modo: update detectado, ainda não baixado
-      text.textContent = I18n.t('updates.promptMsg', { version: ver });
-      btnLater.textContent = I18n.t('updates.later') || 'Mais Tarde';
-      btnClose.style.display = '';
-    }
-
-    if (!banner.classList.contains('visible')) {
-      banner.style.display = 'flex';
-      requestAnimationFrame(() => requestAnimationFrame(() => banner.classList.add('visible')));
-    }
-
-    const hide = () => {
-      banner.classList.remove('visible');
-      setTimeout(() => { banner.style.display = 'none'; }, 300);
-    };
-
-    if (installed) {
-      // ─── Atualização já instalada (SW em waiting) ─────────────────────
-      btnNow.onclick = () => {
-        hide();
-        // Recarrega agora com bypass de cache — o SW em waiting toma controle
-        setTimeout(() => {
-          window.location.replace(
-            window.location.origin + window.location.pathname +
-            '?v=' + encodeURIComponent(ver) + '&ts=' + Date.now()
-          );
-        }, 200);
-      };
-      btnLater.onclick = () => {
-        // SW fica em 'waiting'. Na próxima abertura o app já estará atualizado.
-        safeStorage.set('confeitex_update_pending', ver);
-        safeStorage.set('confeitex_updated', 'true');
-        hide();
-        // Atualiza botão de reload no hero imediatamente
-        const heroReloadBtn = document.getElementById('btnHeroReload');
-        const upToDateBadge = document.getElementById('updatesUpToDateBadge');
-        if (heroReloadBtn) heroReloadBtn.style.display = 'inline-flex';
-        if (upToDateBadge) upToDateBadge.style.display = 'none';
-        UI.toast(I18n.t('updates.toastApplyLater') || '✅ App atualizado na próxima abertura.');
-      };
-    } else {
-      // ─── Update disponível, ainda não baixado ────────────────────────
-      btnNow.onclick = () => {
-        safeStorage.set('confeitex_ver', ver);
-        safeStorage.remove('confeitex_update_deferred');
-        hide();
-        this.downloadUpdate();
-      };
-      btnLater.onclick = () => {
-        safeStorage.set('confeitex_update_deferred', Date.now().toString());
-        hide();
-        UI.toast(I18n.t('updates.toastLater') || '🕐 Lembraremos você amanhã.');
-      };
-      btnClose.onclick = () => {
-        safeStorage.set('confeitex_update_deferred', Date.now().toString());
-        hide();
-        UI.toast(I18n.t('updates.toastApplyLater') || '✅ Atualização adiada.');
-      };
+      safeStorage.set('confeitex_update_pending', ver);
+      safeStorage.set('confeitex_updated', 'true');
+      
+      const heroReloadBtn = document.getElementById('btnHeroReload');
+      const upToDateBadge = document.getElementById('updatesUpToDateBadge');
+      if (heroReloadBtn) heroReloadBtn.style.display = 'inline-flex';
+      if (upToDateBadge) upToDateBadge.style.display = 'none';
+      UI.toast(I18n.t('updates.toastApplyLater') || '✅ App atualizado na próxima abertura.');
+      
+      if (typeof Notifications !== 'undefined' && Notifications._recordNotification) {
+        Notifications._recordNotification({
+          id: 'update_ready_' + ver,
+          type: 'update',
+          title: I18n.t('updates.installedTitle', { version: ver }).split('!')[0] + '!' || 'Atualização Pronta!',
+          body: I18n.t('updates.toastApplyLater') || 'Recarregue o app para aplicar.',
+          orderIds: [],
+          read: false
+        });
+      }
     }
   },
 
