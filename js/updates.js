@@ -1,5 +1,5 @@
 const Updates = {
-  _CODE_VERSION: '5.2.4',
+  _CODE_VERSION: '5.2.5',
 
   // Versão em execução obtida dinamicamente da tag meta ou fallback seguro
   get verAtual() {
@@ -18,6 +18,7 @@ const Updates = {
   _checkPromise: null,
 
   changelog: [
+    { ver: '5.2.5', date: '17/09/2026', keys: ['changelog.5250'] },
     { ver: '5.2.4', date: '17/09/2026', keys: ['changelog.5240'] },
     { ver: '5.2.3', date: '17/09/2026', keys: ['changelog.5230'] },
     { ver: '5.2.2', date: '17/09/2026', keys: ['changelog.5220'] },
