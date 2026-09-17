@@ -336,6 +336,17 @@ body {
   justify-content: center;
   flex-shrink: 0;
   box-shadow: 0 4px 16px rgba(236,72,153,0.35);
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.updates-hero-icon:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 20px rgba(236,72,153,0.45);
+}
+
+.updates-hero-icon:active {
+  transform: scale(0.95);
 }
 
 .updates-hero-icon svg {

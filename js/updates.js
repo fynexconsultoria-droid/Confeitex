@@ -30,6 +30,8 @@ const Updates = {
     if (btn) btn.onclick = () => this.checkManual();
     const btnForce = document.getElementById('btnForceUpdate');
     if (btnForce) btnForce.onclick = () => this.forceUpdate();
+    const btnSmallReload = document.getElementById('btnSmallReloadHero');
+    if (btnSmallReload) btnSmallReload.onclick = () => window.location.reload(true);
     this._registerUpdateSync();
     this._checkUpdateCompletionOnStartup();
   },
