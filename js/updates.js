@@ -1,5 +1,5 @@
 const Updates = {
-  _CODE_VERSION: '5.2.3',
+  _CODE_VERSION: '5.2.4',
 
   // Versão em execução obtida dinamicamente da tag meta ou fallback seguro
   get verAtual() {
@@ -487,6 +487,11 @@ const Updates = {
         safeStorage.set('confeitex_update_pending', ver);
         safeStorage.set('confeitex_updated', 'true');
         hide();
+        // Atualiza botão de reload no hero imediatamente
+        const heroReloadBtn = document.getElementById('btnHeroReload');
+        const upToDateBadge = document.getElementById('updatesUpToDateBadge');
+        if (heroReloadBtn) heroReloadBtn.style.display = 'inline-flex';
+        if (upToDateBadge) upToDateBadge.style.display = 'none';
         UI.toast(I18n.t('updates.toastApplyLater') || '✅ App atualizado na próxima abertura.');
       };
     } else {
@@ -527,11 +532,27 @@ const Updates = {
     const lastCheckEl = document.getElementById('updatesLastCheck');
     if (lastCheckEl) lastCheckEl.textContent = lastCheck || I18n.t('updates.neverChecked');
 
-    // Badge "Atualizado" (mostra se não houve update recente pendente)
+    // Badge "Atualizado" e botão de Recarregar no hero
     const upToDateBadge = document.getElementById('updatesUpToDateBadge');
-    if (upToDateBadge) {
-      const hasPending = !!safeStorage.get('confeitex_update_pending');
-      upToDateBadge.style.display = hasPending ? 'none' : 'inline-flex';
+    const heroReloadBtn = document.getElementById('btnHeroReload');
+    const pendingVer = safeStorage.get('confeitex_update_pending');
+    if (upToDateBadge) upToDateBadge.style.display = pendingVer ? 'none' : 'inline-flex';
+    if (heroReloadBtn) {
+      if (pendingVer) {
+        heroReloadBtn.style.display = 'inline-flex';
+        heroReloadBtn.onclick = () => {
+          heroReloadBtn.disabled = true;
+          heroReloadBtn.innerHTML = '<span class="login-spinner"></span>';
+          setTimeout(() => {
+            window.location.replace(
+              window.location.origin + window.location.pathname +
+              '?v=' + encodeURIComponent(pendingVer) + '&ts=' + Date.now()
+            );
+          }, 300);
+        };
+      } else {
+        heroReloadBtn.style.display = 'none';
+      }
     }
 
     // Info do Sistema
