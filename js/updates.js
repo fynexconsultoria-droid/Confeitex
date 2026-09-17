@@ -1,5 +1,5 @@
 const Updates = {
-  _CODE_VERSION: '5.2.2',
+  _CODE_VERSION: '5.2.3',
 
   // Versão em execução obtida dinamicamente da tag meta ou fallback seguro
   get verAtual() {
@@ -513,42 +513,135 @@ const Updates = {
   render() {
     const displayVer = this.verAtual;
     safeStorage.set('confeitex_ver', displayVer);
+
+    // Hero: versão
     const curVerEl = document.getElementById('updatesCurrentVer');
     if (curVerEl) curVerEl.textContent = `v${displayVer}`;
+
+    // Sidebar version
     const sidebarVersion = document.getElementById('sidebarVersion');
     if (sidebarVersion) sidebarVersion.textContent = `v${displayVer}`;
+
+    // Última verificação
     const lastCheck = safeStorage.get('confeitex_last_check');
     const lastCheckEl = document.getElementById('updatesLastCheck');
     if (lastCheckEl) lastCheckEl.textContent = lastCheck || I18n.t('updates.neverChecked');
+
+    // Badge "Atualizado" (mostra se não houve update recente pendente)
+    const upToDateBadge = document.getElementById('updatesUpToDateBadge');
+    if (upToDateBadge) {
+      const hasPending = !!safeStorage.get('confeitex_update_pending');
+      upToDateBadge.style.display = hasPending ? 'none' : 'inline-flex';
+    }
+
+    // Info do Sistema
+    this._renderSysInfo();
+
     this.renderChangelog();
     this.updateStatus('');
+  },
+
+  _renderSysInfo() {
+    // Plataforma
+    const siPlatform = document.getElementById('siPlatform');
+    if (siPlatform) {
+      const ua = navigator.userAgent;
+      let plat = 'Desktop';
+      if (/Android/i.test(ua)) plat = `Android ${(ua.match(/Android ([\d.]+)/) || ['',''])[1]}`;
+      else if (/iPhone|iPad/i.test(ua)) plat = 'iOS';
+      else if (/Windows/i.test(ua)) plat = 'Windows';
+      else if (/Mac/i.test(ua)) plat = 'macOS';
+      siPlatform.textContent = plat;
+    }
+
+    // Service Worker
+    const siSw = document.getElementById('siSwStatus');
+    if (siSw) {
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistration().then(reg => {
+          if (reg && reg.active) {
+            siSw.innerHTML = '<span style="color:var(--color-success)">✓ Ativo</span>';
+          } else if (reg) {
+            siSw.innerHTML = '<span style="color:var(--color-warning,#f59e0b)">⏳ Instalando</span>';
+          } else {
+            siSw.innerHTML = '<span style="color:var(--color-danger)">✗ Não registrado</span>';
+          }
+        }).catch(() => { siSw.textContent = 'Erro'; });
+      } else {
+        siSw.innerHTML = '<span style="color:var(--color-danger)">✗ Não suportado</span>';
+      }
+    }
+
+    // Cache
+    const siCache = document.getElementById('siCacheStatus');
+    if (siCache) {
+      if ('caches' in window) {
+        caches.keys().then(keys => {
+          const confeitexCaches = keys.filter(k => k.startsWith('confeitex-'));
+          siCache.innerHTML = `<span style="color:var(--color-success)">✓ ${confeitexCaches.length} cache(s)</span>`;
+        }).catch(() => { siCache.textContent = '—'; });
+      } else {
+        siCache.innerHTML = '<span style="color:var(--color-danger)">✗ Não suportado</span>';
+      }
+    }
+
+    // Conexão
+    const siConn = document.getElementById('siConnectionStatus');
+    if (siConn) {
+      const online = navigator.onLine;
+      const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+      let connText = online ? '🟢 Online' : '🔴 Offline';
+      if (online && conn && conn.effectiveType) {
+        connText += ` (${conn.effectiveType.toUpperCase()})`;
+      }
+      siConn.textContent = connText;
+    }
+
+    // PWA instalada
+    const siPwa = document.getElementById('siPwaStatus');
+    if (siPwa) {
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches
+        || window.navigator.standalone === true;
+      siPwa.innerHTML = isStandalone
+        ? '<span style="color:var(--color-success)">✓ Sim</span>'
+        : '<span style="color:var(--text-muted)">Não (navegador)</span>';
+    }
   },
 
   renderChangelog() {
     const container = document.getElementById('updatesChangelog');
     if (!container) return;
     const current = this.verAtual;
+
     container.innerHTML = this.changelog.map(v => {
       const isCurrent = v.ver === current;
       const items = v.keys.map(k => I18n.t(k));
+
+      // Separa itens por ponto-e-vírgula para listar bullet points
+      const bullets = items.flatMap(i => i.split(';').map(s => s.trim()).filter(Boolean));
+
+      const bulletsHtml = bullets.map(b => {
+        // Destaca prefixos conhecidos
+        const formatted = b.replace(
+          /^(Novo|New|Melhoria|Improvement|Corre[çc][aã]o|Fix|Seguran[çc]a|Security|Acessibilidade|Accessibility|Compatibilidade|Compatibility|patch|Confeitex\s[\d.]+\s*[\(\[]?patch[\)\]]?)[:—]?/i,
+          (m) => `<strong style="color:var(--text-primary);">${m}</strong>`
+        );
+        return `<span style="display:block;padding:0.15rem 0;">· ${formatted}</span>`;
+      }).join('');
+
       return `
-      <div style="border-bottom:1px solid var(--border-color);padding-bottom:0.85rem;">
-        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.5rem;margin-bottom:0.4rem;">
-          <div style="display:flex;align-items:center;gap:0.5rem;">
-            <span style="background:var(--gradient-primary);color:#fff;font-size:0.7rem;font-weight:700;padding:0.15rem 0.55rem;border-radius:50px;letter-spacing:0.3px;">v${v.ver}</span>
-            ${isCurrent ? '<span style="background:rgba(16,185,129,0.15);color:var(--color-success);font-size:0.68rem;font-weight:700;padding:0.1rem 0.5rem;border-radius:50px;border:1px solid rgba(16,185,129,0.3);">Instalada</span>' : ''}
+        <div class="cl-item${isCurrent ? ' cl-current' : ''}">
+          <div class="cl-dot">${isCurrent ? '★' : '✓'}</div>
+          <div class="cl-body">
+            <div class="cl-head">
+              <span class="cl-ver">v${v.ver}</span>
+              ${isCurrent ? `<span class="cl-badge-current" data-i18n="updates.installed">Instalada</span>` : ''}
+              <span class="cl-date">${v.date}</span>
+            </div>
+            <div class="cl-text">${bulletsHtml}</div>
           </div>
-          <span style="font-size:0.75rem;color:var(--text-muted);">${v.date}</span>
         </div>
-        <ul style="margin:0;padding-left:1.25rem;font-size:0.82rem;color:var(--text-secondary);display:flex;flex-direction:column;gap:0.3rem;line-height:1.45;">
-          ${items.map(i => {
-            const formatted = i.replace(/^(Novo|New|Melhoria|Improvement|Correção|Fix|Segurança|Security|Acessibilidade|Accessibility|Compatibilidade|Compatibility):/i,
-              '<strong style="color:var(--text-primary);">$1:</strong>');
-            return `<li>${formatted}</li>`;
-          }).join('')}
-        </ul>
-      </div>
-    `;
+      `;
     }).join('');
   },
 

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Confeitex - Controle de Encomendas</title>
   <meta name="description" content="Controle de encomendas para confeitaria — gerencie pedidos, clientes e entregas. 100% offline.">
-  <meta name="version" content="5.2.2">
+  <meta name="version" content="5.2.3">
 
   <!-- Google Fonts: Plus Jakarta Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -432,41 +432,6 @@
         </div>
       </section>
 
-      <!-- TAB 5: UPDATES -->
-      <section id="updates" class="tab-content">
-        <div class="config-grid">
-          <div class="config-card">
-            <div class="config-card-header">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-              <span data-i18n="updates.cardTitle">Atualizações do App</span>
-            </div>
-            <div class="updates-shell">
-              <div class="updates-top-row">
-                <div>
-                  <div class="updates-meta-label" data-i18n="updates.currentVer">Versão atual</div>
-                  <div class="updates-current-ver" id="updatesCurrentVer">—</div>
-                </div>
-                <div>
-                  <div class="updates-meta-label" data-i18n="updates.lastCheck">Última verificação</div>
-                  <div class="updates-meta-value" id="updatesLastCheck">—</div>
-                </div>
-              </div>
-              <button class="btn btn-primary w-100" id="btnCheckUpdates">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-                <span data-i18n="updates.checkNow">Verificar Agora</span>
-              </button>
-              <div id="updatesStatus" class="updates-status"></div>
-            </div>
-          </div>
-          <div class="config-card">
-            <div class="config-card-header config-card-header-no-border">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-              <span data-i18n="updates.historyTitle">Histórico de Versões</span>
-            </div>
-            <div id="updatesChangelog" class="updates-changelog"></div>
-          </div>
-        </div>
-      </section>
 
       <!-- TAB 4: FINANCES -->
       <section id="finances" class="tab-content">
@@ -911,59 +876,99 @@
 
       <!-- TAB 6: UPDATES -->
       <section id="updates" class="tab-content">
-        <div class="config-grid">
+        <div class="updates-page">
 
-          <!-- Card 1: Status da Versão & Ações -->
-          <div class="config-card">
-            <div class="config-card-header">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-              <span data-i18n="updates.cardTitle">Atualizações do App</span>
+          <!-- Hero: Versao Atual -->
+          <div class="updates-hero-card">
+            <div class="updates-hero-left">
+              <div class="updates-hero-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+              </div>
+              <div>
+                <div class="updates-hero-label" data-i18n="updates.currentVer">Versao Instalada</div>
+                <div class="updates-hero-ver" id="updatesCurrentVer">--</div>
+                <div class="updates-hero-badges">
+                  <span class="updates-badge-offline">
+                    <span class="updates-dot"></span>
+                    <span data-i18n="updates.offlineStatus">100% Offline</span>
+                  </span>
+                  <span class="updates-badge-uptodate" id="updatesUpToDateBadge" style="display:none;" data-i18n="updates.upToDate">Atualizado</span>
+                </div>
+              </div>
             </div>
-            <p class="config-desc" data-i18n="updates.offlineReady">
-              Todos os recursos e pedidos estão disponíveis sem internet.
-            </p>
-            <div style="display:flex;flex-direction:column;gap:1.25rem;">
-              <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;background:var(--bg-secondary);padding:1rem 1.25rem;border-radius:var(--radius-md);border:1px solid var(--border-color);">
-                <div>
-                  <div style="font-size:0.8rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;" data-i18n="updates.currentVer">Versão atual</div>
-                  <div style="font-size:1.5rem;font-weight:800;background:var(--gradient-primary);-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1.3;" id="updatesCurrentVer">—</div>
-                  <div style="display:inline-flex;align-items:center;gap:0.4rem;margin-top:0.25rem;font-size:0.75rem;color:var(--color-success);font-weight:600;">
-                    <span style="width:7px;height:7px;border-radius:50%;background:var(--color-success);display:inline-block;"></span>
-                    <span data-i18n="updates.offlineStatus">Modo 100% Offline Ativo</span>
-                  </div>
-                </div>
-                <div>
-                  <div style="font-size:0.8rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;" data-i18n="updates.lastCheck">Última verificação</div>
-                  <div style="font-size:0.95rem;font-weight:600;color:var(--text-primary);line-height:1.4;" id="updatesLastCheck">—</div>
-                </div>
-              </div>
-
-              <!-- Ações de Verificação -->
-              <div style="display:flex;gap:0.75rem;flex-wrap:wrap;">
-                <button class="btn btn-primary" id="btnCheckUpdates" style="flex:1;min-width:180px;">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-                  <span data-i18n="updates.checkNow">Verificar Agora</span>
-                </button>
-                <button class="btn btn-secondary" id="btnForceUpdate" style="flex:1;min-width:210px;border-color:rgba(236,72,153,0.3);color:var(--color-accent-pink);">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                  <span data-i18n="updates.forceBtn">Forçar Atualização & Limpar Cache</span>
-                </button>
-              </div>
-              <div id="updatesStatus" style="font-size:0.85rem;font-weight:600;min-height:1.2rem;"></div>
+            <div class="updates-hero-right">
+              <div class="updates-hero-meta-label" data-i18n="updates.lastCheck">Ultima verificacao</div>
+              <div class="updates-hero-meta-value" id="updatesLastCheck">--</div>
             </div>
           </div>
 
-          <!-- Card 2: Histórico de Versões (Changelog) -->
-          <div class="config-card">
-            <div class="config-card-header">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-              <span data-i18n="updates.historyTitle">Histórico de Versões</span>
+          <!-- Grid: Acoes + Info do Sistema -->
+          <div class="updates-action-grid">
+
+            <!-- Card Verificar / Forcar -->
+            <div class="updates-action-card">
+              <div class="updates-action-card-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <span data-i18n="updates.actionsTitle">Acoes</span>
+              </div>
+              <p class="updates-action-desc" data-i18n="updates.offlineReady">Todos os recursos e pedidos estao disponiveis sem internet.</p>
+              <div class="updates-action-buttons">
+                <button class="btn btn-primary updates-btn-check" id="btnCheckUpdates">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                  <span data-i18n="updates.checkNow">Verificar Agora</span>
+                </button>
+                <button class="btn updates-btn-force" id="btnForceUpdate">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                  <span data-i18n="updates.forceBtn">Forcar Atualizacao &amp; Limpar Cache</span>
+                </button>
+              </div>
+              <div class="updates-status-wrap">
+                <div id="updatesStatus" class="updates-status-msg"></div>
+              </div>
             </div>
-            <p class="config-desc">
-              Consulte as novidades e melhorias implementadas em cada versão do Confeitex.
-            </p>
-            <div id="updatesChangelog" style="display:flex;flex-direction:column;gap:0.85rem;max-height:420px;overflow-y:auto;padding-right:0.35rem;">
-              <!-- Preenchido dinamicamente por Updates.renderChangelog() -->
+
+            <!-- Card Info do Sistema -->
+            <div class="updates-action-card">
+              <div class="updates-action-card-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+                <span data-i18n="updates.sysInfoTitle">Informacoes do Sistema</span>
+              </div>
+              <div class="updates-sysinfo">
+                <div class="updates-sysinfo-row">
+                  <span class="updates-sysinfo-label" data-i18n="updates.siPlatform">Plataforma</span>
+                  <span class="updates-sysinfo-value" id="siPlatform">--</span>
+                </div>
+                <div class="updates-sysinfo-row">
+                  <span class="updates-sysinfo-label" data-i18n="updates.siSW">Service Worker</span>
+                  <span class="updates-sysinfo-value" id="siSwStatus">--</span>
+                </div>
+                <div class="updates-sysinfo-row">
+                  <span class="updates-sysinfo-label" data-i18n="updates.siCache">Cache</span>
+                  <span class="updates-sysinfo-value" id="siCacheStatus">--</span>
+                </div>
+                <div class="updates-sysinfo-row">
+                  <span class="updates-sysinfo-label" data-i18n="updates.siConnection">Conexao</span>
+                  <span class="updates-sysinfo-value" id="siConnectionStatus">--</span>
+                </div>
+                <div class="updates-sysinfo-row">
+                  <span class="updates-sysinfo-label" data-i18n="updates.siInstalled">Instalado como PWA</span>
+                  <span class="updates-sysinfo-value" id="siPwaStatus">--</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Changelog -->
+          <div class="updates-changelog-card">
+            <div class="updates-changelog-header">
+              <div class="updates-action-card-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                <span data-i18n="updates.historyTitle">Historico de Versoes</span>
+              </div>
+              <span class="updates-changelog-hint" data-i18n="updates.historyHint">Novidades de cada versao</span>
+            </div>
+            <div id="updatesChangelog" class="updates-changelog-list">
             </div>
           </div>
 
@@ -1405,24 +1410,24 @@
 
   <!-- Core JavaScript Modules (non-blocking defer loading) -->
   <!-- Ordem respeita dependências: utils → i18n → state → auth → ui → plan → restantes -->
-  <script defer src="js/utils.js?v=5.2.2"></script>
-  <script defer src="js/i18n.js?v=5.2.2"></script>
-  <script defer src="js/state.js?v=5.2.2"></script>
-  <script defer src="js/auth.js?v=5.2.2"></script>
-  <script defer src="js/ui.js?v=5.2.2"></script>
-  <script defer src="js/plan.js?v=5.2.2"></script>
-  <script defer src="js/chart.js?v=5.2.2"></script>
-  <script defer src="js/notifications.js?v=5.2.2"></script>
-  <script defer src="js/trash.js?v=5.2.2"></script>
-  <script defer src="js/dashboard.js?v=5.2.2"></script>
-  <script defer src="js/orders.js?v=5.2.2"></script>
-  <script defer src="js/clients.js?v=5.2.2"></script>
-  <script defer src="js/settings.js?v=5.2.2"></script>
-  <script defer src="js/finances.js?v=5.2.2"></script>
-  <script defer src="js/updates.js?v=5.2.2"></script>
-  <script defer src="js/mercadopago.js?v=5.2.2"></script>
-  <script defer src="js/onboarding.js?v=5.2.2"></script>
-  <script defer src="js/pwa.js?v=5.2.2"></script>
-  <script defer src="js/app.js?v=5.2.2"></script>
+  <script defer src="js/utils.js?v=5.2.3"></script>
+  <script defer src="js/i18n.js?v=5.2.3"></script>
+  <script defer src="js/state.js?v=5.2.3"></script>
+  <script defer src="js/auth.js?v=5.2.3"></script>
+  <script defer src="js/ui.js?v=5.2.3"></script>
+  <script defer src="js/plan.js?v=5.2.3"></script>
+  <script defer src="js/chart.js?v=5.2.3"></script>
+  <script defer src="js/notifications.js?v=5.2.3"></script>
+  <script defer src="js/trash.js?v=5.2.3"></script>
+  <script defer src="js/dashboard.js?v=5.2.3"></script>
+  <script defer src="js/orders.js?v=5.2.3"></script>
+  <script defer src="js/clients.js?v=5.2.3"></script>
+  <script defer src="js/settings.js?v=5.2.3"></script>
+  <script defer src="js/finances.js?v=5.2.3"></script>
+  <script defer src="js/updates.js?v=5.2.3"></script>
+  <script defer src="js/mercadopago.js?v=5.2.3"></script>
+  <script defer src="js/onboarding.js?v=5.2.3"></script>
+  <script defer src="js/pwa.js?v=5.2.3"></script>
+  <script defer src="js/app.js?v=5.2.3"></script>
 </body>
 </html>
