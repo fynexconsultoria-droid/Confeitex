@@ -66,12 +66,17 @@ self.addEventListener('install', (event) => {
         return swSet('confeitex_current_version', SW_VERSION);
       })
       .then(() => {
-        // Se for primeira instalação (sem janelas ativas), ativa imediatamente.
-        // Se já houver janelas em execução, aguarda comando SKIP_WAITING do usuário para evitar reload no meio de pedidos.
+        // Primeira instalação sem janelas abertas: ativa imediatamente (app sendo aberto pela 1ª vez).
+        // Se já houver janelas, NUNCA faz skipWaiting automático — aguarda o usuário aceitar
+        // a atualização clicando em "Atualizar Agora" no banner.
         return self.clients.matchAll({ type: 'window' }).then((clients) => {
           if (!clients || clients.length === 0) {
             return self.skipWaiting();
           }
+          // Notifica os clientes que há uma nova versão aguardando
+          clients.forEach(client => {
+            client.postMessage({ type: 'UPDATE_AVAILABLE', version: SW_VERSION });
+          });
         });
       })
   );

@@ -1,5 +1,5 @@
 const Updates = {
-  _CODE_VERSION: '5.2.1',
+  _CODE_VERSION: '5.2.2',
 
   // Versão em execução obtida dinamicamente da tag meta ou fallback seguro
   get verAtual() {
@@ -18,8 +18,8 @@ const Updates = {
   _checkPromise: null,
 
   changelog: [
+    { ver: '5.2.2', date: '17/09/2026', keys: ['changelog.5220'] },
     { ver: '5.2.1', date: '16/09/2026', keys: ['changelog.5210'] },
-    { ver: '5.2.0', date: '14/09/2026', keys: ['changelog.5200'] },
     { ver: '5.1.0', date: '14/09/2026', keys: ['changelog.5100'] },
     { ver: '5.0.0', date: '10/09/2026', keys: ['changelog.5000'] },
     { ver: '4.1.0', date: '10/09/2026', keys: ['changelog.4100'] },
@@ -447,9 +447,18 @@ const Updates = {
 
     progress.style.display = 'none';
     actions.style.display = 'flex';
-    text.textContent = installed
-      ? I18n.t('updates.installedTitle', { version: ver })
-      : I18n.t('updates.promptMsg', { version: ver });
+
+    if (installed) {
+      // Modo: update já baixado e instalado — SW aguarda em 'waiting'
+      text.textContent = I18n.t('updates.installedTitle', { version: ver });
+      btnLater.textContent = I18n.t('updates.laterNextOpen') || 'Na próxima abertura';
+      btnClose.style.display = 'none';
+    } else {
+      // Modo: update detectado, ainda não baixado
+      text.textContent = I18n.t('updates.promptMsg', { version: ver });
+      btnLater.textContent = I18n.t('updates.later') || 'Mais Tarde';
+      btnClose.style.display = '';
+    }
 
     if (!banner.classList.contains('visible')) {
       banner.style.display = 'flex';
@@ -462,33 +471,43 @@ const Updates = {
     };
 
     if (installed) {
+      // ─── Atualização já instalada (SW em waiting) ─────────────────────
       btnNow.onclick = () => {
-        safeStorage.remove('confeitex_updated');
-        safeStorage.set('confeitex_last_updated_to', ver);
-        safeStorage.set('confeitex_last_updated_ts', String(Date.now()));
         hide();
-        // Recarregamento seguro com bypass de cache HTTP de disco
+        // Recarrega agora com bypass de cache — o SW em waiting toma controle
         setTimeout(() => {
-          window.location.replace(window.location.origin + window.location.pathname + '?v=' + encodeURIComponent(ver) + '&ts=' + Date.now());
+          window.location.replace(
+            window.location.origin + window.location.pathname +
+            '?v=' + encodeURIComponent(ver) + '&ts=' + Date.now()
+          );
         }, 200);
       };
+      btnLater.onclick = () => {
+        // SW fica em 'waiting'. Na próxima abertura o app já estará atualizado.
+        safeStorage.set('confeitex_update_pending', ver);
+        safeStorage.set('confeitex_updated', 'true');
+        hide();
+        UI.toast(I18n.t('updates.toastApplyLater') || '✅ App atualizado na próxima abertura.');
+      };
     } else {
+      // ─── Update disponível, ainda não baixado ────────────────────────
       btnNow.onclick = () => {
         safeStorage.set('confeitex_ver', ver);
+        safeStorage.remove('confeitex_update_deferred');
         hide();
         this.downloadUpdate();
       };
+      btnLater.onclick = () => {
+        safeStorage.set('confeitex_update_deferred', Date.now().toString());
+        hide();
+        UI.toast(I18n.t('updates.toastLater') || '🕐 Lembraremos você amanhã.');
+      };
+      btnClose.onclick = () => {
+        safeStorage.set('confeitex_update_deferred', Date.now().toString());
+        hide();
+        UI.toast(I18n.t('updates.toastApplyLater') || '✅ Atualização adiada.');
+      };
     }
-
-    btnLater.onclick = () => {
-      safeStorage.set('confeitex_update_deferred', Date.now().toString());
-      hide();
-    };
-
-    btnClose.onclick = () => {
-      hide();
-      UI.toast(I18n.t('updates.toastApplyLater'));
-    };
   },
 
   render() {

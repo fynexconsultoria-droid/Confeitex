@@ -195,19 +195,15 @@
     safeStorage.remove('confeitex_updated');
   }
 
-  // Recarrega automaticamente quando um novo Service Worker assumir o controle,
-  // mas somente se a atualização foi aceita e não há download em andamento
+  // Quando o novo Service Worker assume o controle (após SKIP_WAITING),
+  // exibe banner pedindo ao usuário para recarregar — NUNCA recarrega automaticamente.
   if ('serviceWorker' in navigator) {
-    let reloading = false;
     navigator.serviceWorker.addEventListener('controllerchange', () => {
-      if (reloading) return;
-      const progress = document.getElementById('updateProgress');
-      const downloading = progress && window.getComputedStyle(progress).display !== 'none';
-      const updated = safeStorage.get('confeitex_updated');
-      if (downloading || !updated) return;
-      reloading = true;
-      UI.toast(I18n.t('updates.toastReload'));
-      setTimeout(() => window.location.reload(), 1500);
+      // Só reage se havia uma atualização em andamento (flag setada por downloadUpdate)
+      const newVer = safeStorage.get('confeitex_last_updated_to');
+      if (!newVer) return;
+      // O novo SW já está ativo — mostra banner de 'pronto para recarregar'
+      Updates._showUpdateBanner(newVer, true);
     });
 
     // Escuta mensagem do SW sobre atualização disponível
