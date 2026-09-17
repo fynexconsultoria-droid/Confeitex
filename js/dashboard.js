@@ -2,15 +2,10 @@ const Dashboard = {
   _debouncedUpdate: null,
 
   update() {
-    // Debounce para evitar múltiplas chamadas simultâneas
-    if (this._debouncedUpdate) {
-      this._debouncedUpdate();
-      return;
+    // Lazy init: cria o debounce uma única vez e reutiliza
+    if (!this._debouncedUpdate) {
+      this._debouncedUpdate = debounce(() => this._performUpdate(), 100);
     }
-    this._debouncedUpdate = debounce(() => {
-      this._debouncedUpdate = null;
-      this._performUpdate();
-    }, 100);
     this._debouncedUpdate();
   },
 

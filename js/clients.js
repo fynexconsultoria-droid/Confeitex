@@ -2,15 +2,10 @@ const Clients = {
   _debouncedRender: null,
 
   render() {
-    // Debounce para evitar múltiplas chamadas simultâneas
-    if (this._debouncedRender) {
-      this._debouncedRender();
-      return;
+    // Lazy init: cria o debounce uma única vez e reutiliza
+    if (!this._debouncedRender) {
+      this._debouncedRender = debounce(() => this._performRender(), 100);
     }
-    this._debouncedRender = debounce(() => {
-      this._debouncedRender = null;
-      this._performRender();
-    }, 100);
     this._debouncedRender();
   },
 

@@ -79,19 +79,25 @@
   }
 
   // Intercepta eventos de Voltar (botão de hardware / gestos no Android/celular)
+  let _closingFromHistory = false;
+
   window.addEventListener('popstate', (e) => {
     // 1. Fecha diálogos de confirmação se houver algum aberto
     const activeConfirm = document.querySelector('.ui-confirm-overlay.active');
     if (activeConfirm) {
+      _closingFromHistory = true;
       activeConfirm.classList.remove('active');
-      setTimeout(() => activeConfirm.remove(), 250);
+      setTimeout(() => { activeConfirm.remove(); _closingFromHistory = false; }, 250);
       return;
     }
 
     // 2. Fecha modais padrão se houver algum aberto
     const activeModals = document.querySelectorAll('.modal-overlay.active');
     if (activeModals.length > 0) {
+      _closingFromHistory = true;
       activeModals.forEach(m => m.classList.remove('active'));
+      // O MutationObserver disparará; o flag garante que não chame back() novamente
+      setTimeout(() => { _closingFromHistory = false; }, 0);
       return;
     }
 
@@ -123,7 +129,7 @@
     UI.toast(I18n.t('dash.backPress'));
   });
 
-  // Observe de abertura de modais para registrar no histórico
+  // Observa abertura de modais para registrar no histórico
   const pushModalState = () => {
     try { history.pushState({ modalOpen: true }, ''); } catch (e) {}
   };
@@ -134,8 +140,12 @@
         const target = m.target;
         if (target.classList.contains('active')) {
           pushModalState();
-        } else if (history.state && history.state.modalOpen) {
-          try { history.back(); } catch (e) {}
+        } else if (!_closingFromHistory && history.state && history.state.modalOpen) {
+          // Modal fechou programaticamente (ex.: botão X): limpa o estado sem disparar popstate
+          try {
+            const currentTab = document.querySelector('.nav-link.active')?.dataset?.tab || 'dashboard';
+            history.replaceState({ tab: currentTab }, '');
+          } catch (e) {}
         }
       }
     });

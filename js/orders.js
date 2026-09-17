@@ -303,7 +303,7 @@ const Orders = {
       State.saveOrders();
       this.render();
       var activeLink = document.querySelector('.nav-link.active');
-    var tab = activeLink ? activeLink.dataset.tab : null;
+      var tab = activeLink ? activeLink.dataset.tab : null;
       if (tab === 'dashboard') Dashboard.update();
       UI.toast(I18n.t('orders.toastStatus', { status: I18n.value('status', cycle[ci + 1]) }));
     } else if (cur === 'Cancelado') {

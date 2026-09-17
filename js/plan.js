@@ -89,6 +89,8 @@ const Plan = {
   // Período de Testes (Trial de 7 dias com Cartão Cadastrado)
   // ─────────────────────────────────────────────────────────────────────────
   startTrial(cardData) {
+    // Não reinicia se o trial já está ativo
+    if (this.isTrialActive()) return;
     if (cardData) {
       this.saveCardData(cardData);
     }
