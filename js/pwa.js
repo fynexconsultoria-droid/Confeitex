@@ -3,9 +3,8 @@
 
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      const swVer = safeStorage.get('confeitex_ver') || (typeof Updates !== 'undefined' ? Updates.verAtual : '1.10.2');
-      const swUrl = './sw.js?v=' + encodeURIComponent(swVer);
-      navigator.serviceWorker.register(swUrl).catch(() => {});
+      // Registra SW com URL fixa — o browser detecta mudanças por diff do conteúdo
+      navigator.serviceWorker.register('./sw.js').catch(() => {});
     });
   }
 

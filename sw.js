@@ -1,6 +1,6 @@
 // Confeitex - Service Worker (PWA Offline Support)
 // Estratégia: Stale-While-Revalidate — version.txt sempre vai à rede
-// O nome do cache usa a versão da URL (?v=X) para invalidar automaticamente
+// O nome do cache usa a versão hardcoded para invalidar automaticamente
 
 // Polyfill: Promise.allSettled para navegadores antigos (Android 10 / Chrome 74-75)
 if (typeof Promise.allSettled === 'undefined') {
@@ -14,7 +14,7 @@ if (typeof Promise.allSettled === 'undefined') {
   };
 }
 
-const SW_VERSION = (self.location.search.match(/[?&]v=([^&]+)/) || [null, '1.0.0'])[1];
+const SW_VERSION = '5.2.7';
 const CACHE_NAME = 'confeitex-cache-v' + SW_VERSION;
 
 // Arquivos que serão cacheados na instalação do Service Worker
@@ -91,10 +91,8 @@ self.addEventListener('activate', (event) => {
           })
       );
     }).then(() => {
-      // Toma controle imediato de todas as páginas abertas
-      return self.clients.claim();
-    }).then(() => {
-      // Verifica notificações pendentes ao iniciar (após takeover)
+      // NÃO chama clients.claim() — o SW novo só assume na próxima abertura
+      // ou quando o usuário aceitar a atualização via modal
       return swRunCheck();
     })
   );

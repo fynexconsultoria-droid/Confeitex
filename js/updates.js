@@ -1,5 +1,5 @@
 const Updates = {
-  _CODE_VERSION: '5.2.6',
+  _CODE_VERSION: '5.2.7',
 
   // Versão em execução obtida dinamicamente da tag meta ou fallback seguro
   get verAtual() {
@@ -19,6 +19,7 @@ const Updates = {
   _promptShowing: false,
 
   changelog: [
+    { ver: '5.2.7', date: '17/09/2026', keys: ['changelog.5270'] },
     { ver: '5.2.6', date: '17/09/2026', keys: ['changelog.5260'] },
     { ver: '5.2.5', date: '17/09/2026', keys: ['changelog.5250'] },
     { ver: '5.2.4', date: '17/09/2026', keys: ['changelog.5240'] },
@@ -307,13 +308,6 @@ const Updates = {
     safeStorage.remove('confeitex_update_prompt');
     safeStorage.remove('confeitex_pwa_dismissed');
 
-    // Avisa o Service Worker ativo para pular espera
-    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-      try {
-        navigator.serviceWorker.controller.postMessage({ type: 'SKIP_WAITING' });
-      } catch (e) {}
-    }
-
     // Prepara ativação sem deletar cache ativo prematuramente (evita quebrar offline)
     this._updateProgress(20, I18n.t('updates.progressPreparing'));
 
@@ -329,14 +323,14 @@ const Updates = {
       return;
     }
 
-    // Registra novo Service Worker com a versão explícita
+    // Registra/atualiza Service Worker com URL fixa
     this._updateProgress(45, I18n.t('updates.progressRegisteringSw'));
     let reg;
     try {
       safeStorage.set('confeitex_updated', 'true');
       safeStorage.set('confeitex_last_updated_to', newVer);
       safeStorage.set('confeitex_last_updated_ts', String(Date.now()));
-      reg = await navigator.serviceWorker.register('./sw.js?v=' + encodeURIComponent(newVer));
+      reg = await navigator.serviceWorker.register('./sw.js');
       if (reg.update) {
         await reg.update().catch(() => {});
       }
@@ -351,19 +345,16 @@ const Updates = {
     }
 
     this._updateProgress(70, I18n.t('updates.progressActivating'));
-    const ativado = await Promise.race([
+    const instalado = await Promise.race([
       new Promise(resolve => {
         const w = reg.installing || reg.waiting;
         if (w) {
           w.addEventListener('statechange', () => {
-            const st = w.state;
-            if (st === 'installed' || st === 'activated') resolve(true);
-            else if (st === 'redundant') {
-              setTimeout(() => resolve(!!(reg.active && reg.active.state === 'activated')), 800);
-            }
+            if (w.state === 'installed') resolve(true);
+            else if (w.state === 'redundant') resolve(false);
           });
         } else if (reg.active) {
-          resolve(reg.active.state === 'activated');
+          resolve(true);
         } else {
           setTimeout(() => resolve(false), 1200);
         }
@@ -377,7 +368,7 @@ const Updates = {
     safeStorage.set('confeitex_ver', newVer);
 
     await this._settleProgress(startedAt, I18n.t('updates.progressApplying'));
-    this._updateProgress(100, ativado ? I18n.t('updates.progressDone') : I18n.t('updates.progressDoneDeferred'));
+    this._updateProgress(100, instalado ? I18n.t('updates.progressDone') : I18n.t('updates.progressDoneDeferred'));
     this.promptUpdateReady(newVer);
   },
 
