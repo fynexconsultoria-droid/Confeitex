@@ -798,42 +798,31 @@ const Plan = {
     overlay.setAttribute('aria-label', 'Pagamento da Mensalidade Confeitex');
 
     overlay.innerHTML = `
-      <div class="plan-payment-modal plan-modal-premium">
-        <button class="plan-payment-close" id="planPaymentClose" aria-label="Fechar">&times;</button>
-
-        <div class="plan-payment-header-premium">
-          <div class="plan-premium-badge">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            Premium
+      <div class="plan-payment-modal">
+        <div class="plan-payment-header">
+          <div>
+            <h2 style="margin-bottom: 0.5rem; line-height: 1.2;">Mensalidade Confeitex Premium</h2>
+            <p style="margin-bottom: 1.5rem;">Valor: <strong style="color:var(--color-success);font-size:1.15rem;">R$ 16,99 / mês</strong></p>
           </div>
-          <h2>Renovação Confeitex</h2>
-          <p>Garanta acesso contínuo a todas as ferramentas.</p>
+          <button class="plan-payment-close" id="planPaymentClose">&times;</button>
         </div>
 
         <div class="plan-pay-body" id="planPayBody">
           <!-- Loading View -->
           <div class="plan-pay-loading" id="planPayLoading">
             <div class="plan-spinner"></div>
-            <span id="planPayLoadingText">Preparando...</span>
+            <span id="planPayLoadingText">Processando pagamento no Mercado Pago...</span>
           </div>
 
           <!-- Card Panel -->
           <div class="plan-pay-panel" id="panelPayCard" style="display:none;">
-            <div class="plan-premium-price-box">
-              <div class="plan-price-currency">R$</div>
-              <div class="plan-price-amount">16,99</div>
-              <div class="plan-price-period">/mês</div>
-            </div>
-            
-            <p class="plan-charge-question">Confirmar débito automático no cartão cadastrado?</p>
-            
-            <div id="planCardChargeDetails"></div>
-            
-            <div class="plan-payment-actions">
-              <button class="btn btn-premium-gradient w-100" id="btnConfirmCardCharge">
-                Confirmar Débito de R$ 16,99
+            <div class="plan-card-charge-box">
+              <p style="margin-bottom: 1.5rem;">Deseja efetuar o débito de <strong>R$ 16,99</strong> no seu cartão de crédito cadastrado?</p>
+              <div id="planCardChargeDetails"></div>
+              <button class="btn btn-primary w-100 mt-3" id="btnConfirmCardCharge">
+                Confirmar Débito de R$ 16,99 no Cartão
               </button>
-              <button class="btn btn-ghost w-100" id="btnUseAnotherCard">
+              <button class="btn btn-secondary w-100 mt-2" id="btnUseAnotherCard">
                 Usar Outro Cartão
               </button>
             </div>
@@ -841,20 +830,18 @@ const Plan = {
 
           <!-- Success Panel -->
           <div class="plan-pay-panel" id="panelPaySuccess" style="display:none;">
-            <div class="plan-success-box-premium">
-              <div class="plan-success-icon-animated">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-              </div>
-              <h3>Mensalidade Confirmada!</h3>
-              <p>Sua assinatura Premium está ativa por mais 30 dias.</p>
-              <button class="btn btn-premium-gradient w-100 mt-3" id="btnPlanSuccessDone">Continuar</button>
+            <div class="plan-success-box">
+              <div class="plan-success-icon">🎉</div>
+              <h3>Mensalidade Confirmada com Sucesso!</h3>
+              <p>Sua assinatura do <strong>Confeitex Premium</strong> foi ativada/renovada por mais 30 dias.</p>
+              <button class="btn btn-primary w-100 mt-3" id="btnPlanSuccessDone">Continuar</button>
             </div>
           </div>
         </div>
 
-        <div class="plan-payment-footer-secure">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-          Processado com segurança pelo Mercado Pago
+        <div class="plan-payment-footer">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Pagamento 100% seguro via Mercado Pago
         </div>
       </div>
     `;
@@ -890,15 +877,17 @@ const Plan = {
       if (details) {
         if (card) {
           details.innerHTML = `
-            <div class="plan-saved-card-minimal">
-              <div class="plan-saved-card-icon">💳</div>
-              <div class="plan-saved-card-info">
-                <strong>${(card.brand || 'Cartão').toUpperCase()} •••• ${card.lastFourDigits || '4242'}</strong>
-                <span>${card.cardholderName || 'Titular'}</span>
+            <div class="plan-saved-card-box" style="margin-top:0.75rem;">
+              <div class="plan-saved-card-left">
+                <div class="plan-saved-card-icon">💳</div>
+                <div>
+                  <strong>${(card.brand || 'Cartão').toUpperCase()} •••• ${card.lastFourDigits || '4242'}</strong>
+                  <div class="plan-saved-card-holder">${card.cardholderName || 'Titular'}</div>
+                </div>
               </div>
             </div>`;
         } else {
-          details.innerHTML = `<div class="plan-no-card-minimal">Nenhum cartão cadastrado ainda.</div>`;
+          details.innerHTML = `<p style="color:var(--color-warning);">Nenhum cartão cadastrado ainda.</p>`;
         }
       }
 
