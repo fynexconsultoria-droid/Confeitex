@@ -801,8 +801,8 @@ const Plan = {
       <div class="plan-payment-modal">
         <div class="plan-payment-header">
           <div>
-            <h2>Mensalidade Confeitex Premium</h2>
-            <p>Valor: <strong style="color:var(--color-success);font-size:1.15rem;">R$ 16,99 / mês</strong></p>
+            <h2 style="margin-bottom: 0.5rem; line-height: 1.2;">Mensalidade Confeitex Premium</h2>
+            <p style="margin-bottom: 1.5rem;">Valor: <strong style="color:var(--color-success);font-size:1.15rem;">R$ 16,99 / mês</strong></p>
           </div>
           <button class="plan-payment-close" id="planPaymentClose">&times;</button>
         </div>
@@ -817,7 +817,7 @@ const Plan = {
           <!-- Card Panel -->
           <div class="plan-pay-panel" id="panelPayCard" style="display:none;">
             <div class="plan-card-charge-box">
-              <p>Deseja efetuar o débito de <strong>R$ 16,99</strong> no seu cartão de crédito cadastrado?</p>
+              <p style="margin-bottom: 1.5rem;">Deseja efetuar o débito de <strong>R$ 16,99</strong> no seu cartão de crédito cadastrado?</p>
               <div id="planCardChargeDetails"></div>
               <button class="btn btn-primary w-100 mt-3" id="btnConfirmCardCharge">
                 Confirmar Débito de R$ 16,99 no Cartão

@@ -728,3 +728,6 @@ const Updates = {
     } catch (e) {}
   }
 };
+
+window.addEventListener('online', () => { if (typeof Updates !== 'undefined' && document.getElementById('siConnectionStatus')) Updates.renderInfo(); });
+window.addEventListener('offline', () => { if (typeof Updates !== 'undefined' && document.getElementById('siConnectionStatus')) Updates.renderInfo(); });
