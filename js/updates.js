@@ -1,5 +1,5 @@
 const Updates = {
-  _CODE_VERSION: '5.2.5',
+  _CODE_VERSION: '5.2.6',
 
   // Versão em execução obtida dinamicamente da tag meta ou fallback seguro
   get verAtual() {
@@ -19,6 +19,7 @@ const Updates = {
   _promptShowing: false,
 
   changelog: [
+    { ver: '5.2.6', date: '17/09/2026', keys: ['changelog.5260'] },
     { ver: '5.2.5', date: '17/09/2026', keys: ['changelog.5250'] },
     { ver: '5.2.4', date: '17/09/2026', keys: ['changelog.5240'] },
     { ver: '5.2.3', date: '17/09/2026', keys: ['changelog.5230'] },
@@ -583,11 +584,33 @@ const Updates = {
     if (siConn) {
       const online = navigator.onLine;
       const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-      let connText = online ? '🟢 Online' : '🔴 Offline';
-      if (online && conn && conn.effectiveType) {
-        connText += ` (${conn.effectiveType.toUpperCase()})`;
+      if (!online) {
+        siConn.textContent = '🔴 Offline';
+      } else if (conn) {
+        // Detecta tipo de conexão: WiFi vs Dados Móveis
+        let connType = '';
+        if (conn.type === 'wifi') {
+          connType = 'WiFi';
+        } else if (conn.type === 'cellular') {
+          connType = 'Dados Móveis';
+          if (conn.effectiveType) connType += ` (${conn.effectiveType.toUpperCase()})`;
+        } else if (conn.type === 'ethernet') {
+          connType = 'Ethernet';
+        } else if (conn.effectiveType) {
+          // Fallback: tenta adivinhar pelo effectiveType e downlink
+          const speed = conn.downlink || 0;
+          if (speed >= 10) {
+            connType = `WiFi (${conn.effectiveType.toUpperCase()})`;
+          } else {
+            connType = `Online (${conn.effectiveType.toUpperCase()})`;
+          }
+        } else {
+          connType = 'Online';
+        }
+        siConn.textContent = '🟢 ' + connType;
+      } else {
+        siConn.textContent = '🟢 Online';
       }
-      siConn.textContent = connText;
     }
 
     // PWA instalada
