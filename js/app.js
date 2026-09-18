@@ -196,13 +196,11 @@
   }
 
   // Quando o novo Service Worker assume o controle (após SKIP_WAITING),
-  // exibe banner pedindo ao usuário para recarregar — NUNCA recarrega automaticamente.
+  // exibe modal pedindo ao usuário para recarregar — NUNCA recarrega automaticamente.
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.addEventListener('controllerchange', () => {
-      // Só reage se havia uma atualização em andamento (flag setada por downloadUpdate)
       const newVer = safeStorage.get('confeitex_last_updated_to');
       if (!newVer) return;
-      // O novo SW já está ativo — mostra modal de 'pronto para recarregar'
       Updates.promptUpdateReady(newVer);
     });
 
@@ -211,27 +209,27 @@
       if (event.data && event.data.type === 'UPDATE_AVAILABLE' && event.data.version) {
         const serverVer = event.data.version;
         if (serverVer !== Updates.verAtual) {
-          // Verifica se já notificou esta versão
+          // Se o usuário já adiou, não abre modal novamente (só registra notificação)
+          const deferred = safeStorage.get('confeitex_update_deferred');
+          const oneDay = 86400000;
+          if (deferred && Date.now() - parseInt(deferred, 10) < oneDay) return;
+
+          // Registra no sino de notificações (se ainda não registrou)
           const notifId = 'update_' + serverVer;
-          const alreadyNotified = typeof Notifications !== 'undefined'
-            && Notifications.getHistory
-            && Notifications.getHistory().some(n => n.id === notifId);
-          if (alreadyNotified) {
-            Updates.promptUpdateReady(serverVer);
-            return;
-          }
-          // Registra no sino de notificações
           if (typeof Notifications !== 'undefined' && Notifications._recordNotification) {
-            Notifications._recordNotification({
-              id: notifId,
-              type: 'update',
-              title: I18n.t('updates.notifTitle'),
-              body: I18n.t('updates.notifBody', { version: serverVer }),
-              orderIds: [],
-              read: false
-            });
+            const alreadyNotified = Notifications.getHistory
+              && Notifications.getHistory().some(n => n.id === notifId);
+            if (!alreadyNotified) {
+              Notifications._recordNotification({
+                id: notifId,
+                type: 'update',
+                title: I18n.t('updates.notifTitle'),
+                body: I18n.t('updates.notifBody', { version: serverVer }),
+                orderIds: [],
+                read: false
+              });
+            }
           }
-          // Mostra modal
           Updates.promptUpdateReady(serverVer);
         }
       }
@@ -240,8 +238,13 @@
     // Se o app foi aberto e já havia um SW aguardando para ser ativado
     navigator.serviceWorker.ready.then(reg => {
       if (reg.waiting) {
-        const pendingVer = safeStorage.get('confeitex_update_pending') || 'Nova Versão';
-        Updates.promptUpdateReady(pendingVer);
+        // Se o usuário já adiou recentemente, não mostra o modal
+        const deferred = safeStorage.get('confeitex_update_deferred');
+        const oneDay = 86400000;
+        if (deferred && Date.now() - parseInt(deferred, 10) < oneDay) return;
+
+        const pendingVer = safeStorage.get('confeitex_update_pending') || safeStorage.get('confeitex_last_updated_to') || '';
+        if (pendingVer) Updates.promptUpdateReady(pendingVer);
       }
     });
   }

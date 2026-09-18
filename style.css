@@ -317,7 +317,6 @@ body {
   border-top: 2px solid rgba(236,72,153,0.5);
   border-radius: var(--border-radius-lg, 16px);
   padding: 1.5rem 1.75rem;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.15);
 }
 
 .updates-hero-left {
@@ -335,14 +334,12 @@ body {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  box-shadow: 0 4px 16px rgba(236,72,153,0.35);
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.2s ease;
 }
 
 .updates-hero-icon:hover {
   transform: scale(1.05);
-  box-shadow: 0 6px 20px rgba(236,72,153,0.45);
 }
 
 .updates-hero-icon:active {

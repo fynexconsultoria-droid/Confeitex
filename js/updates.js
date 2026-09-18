@@ -16,6 +16,7 @@ const Updates = {
 
   _checking: false,
   _checkPromise: null,
+  _promptShowing: false,
 
   changelog: [
     { ver: '5.2.5', date: '17/09/2026', keys: ['changelog.5250'] },
@@ -212,32 +213,38 @@ const Updates = {
 
   // ─── Diálogo de Confirmação ──────────────────────────────────────────────
   async promptUpdate(serverVer) {
-    const ok = await UI.confirm({
-      title: I18n.t('updates.promptTitle'),
-      message: I18n.t('updates.promptMsg', { version: serverVer }),
-      confirmText: I18n.t('updates.updateNow'),
-      cancelText: I18n.t('updates.later'),
-      variant: 'primary'
-    });
+    if (this._promptShowing) return;
+    this._promptShowing = true;
+    try {
+      const ok = await UI.confirm({
+        title: I18n.t('updates.promptTitle'),
+        message: I18n.t('updates.promptMsg', { version: serverVer }),
+        confirmText: I18n.t('updates.updateNow'),
+        cancelText: I18n.t('updates.later'),
+        variant: 'primary'
+      });
 
-    if (ok) {
-      safeStorage.remove('confeitex_update_deferred');
-      safeStorage.set('confeitex_ver', serverVer);
-      await this.downloadUpdate();
-    } else {
-      safeStorage.set('confeitex_update_deferred', String(Date.now()));
-      UI.toast(I18n.t('updates.toastLater'));
-      
-      if (typeof Notifications !== 'undefined' && Notifications._recordNotification) {
-        Notifications._recordNotification({
-          id: 'update_deferred_' + serverVer,
-          type: 'update',
-          title: I18n.t('updates.notifTitle') || 'Atualização Disponível',
-          body: I18n.t('updates.notifBody', { version: serverVer }) || `A versão ${serverVer} está disponível para download.`,
-          orderIds: [],
-          read: false
-        });
+      if (ok) {
+        safeStorage.remove('confeitex_update_deferred');
+        safeStorage.set('confeitex_ver', serverVer);
+        await this.downloadUpdate();
+      } else {
+        safeStorage.set('confeitex_update_deferred', String(Date.now()));
+        UI.toast(I18n.t('updates.toastLater'));
+        
+        if (typeof Notifications !== 'undefined' && Notifications._recordNotification) {
+          Notifications._recordNotification({
+            id: 'update_deferred_' + serverVer,
+            type: 'update',
+            title: I18n.t('updates.notifTitle') || 'Atualização Disponível',
+            body: I18n.t('updates.notifBody', { version: serverVer }) || `A versão ${serverVer} está disponível para download.`,
+            orderIds: [],
+            read: false
+          });
+        }
       }
+    } finally {
+      this._promptShowing = false;
     }
   },
 
@@ -435,41 +442,48 @@ const Updates = {
   },
 
   async promptUpdateReady(ver) {
-    const ok = await UI.confirm({
-      title: I18n.t('updates.promptTitle') || '📦 Nova Atualização Disponível',
-      message: I18n.t('updates.installedTitle', { version: ver }) || `✅ Atualização Confeitex v${ver} instalada! Deseja recarregar agora para aplicar as mudanças?`,
-      confirmText: I18n.t('updates.reloadNow') || 'Recarregar',
-      cancelText: I18n.t('updates.laterNextOpen') || 'Na próxima abertura',
-      variant: 'primary'
-    });
+    if (this._promptShowing) return;
+    this._promptShowing = true;
+    try {
+      const ok = await UI.confirm({
+        title: I18n.t('updates.promptTitle') || '📦 Nova Atualização Disponível',
+        message: I18n.t('updates.installedTitle', { version: ver }) || `✅ Atualização Confeitex v${ver} instalada! Deseja recarregar agora para aplicar as mudanças?`,
+        confirmText: I18n.t('updates.reloadNow') || 'Recarregar',
+        cancelText: I18n.t('updates.laterNextOpen') || 'Na próxima abertura',
+        variant: 'primary'
+      });
 
-    if (ok) {
-      setTimeout(() => {
-        window.location.replace(
-          window.location.origin + window.location.pathname +
-          '?v=' + encodeURIComponent(ver) + '&ts=' + Date.now()
-        );
-      }, 200);
-    } else {
-      safeStorage.set('confeitex_update_pending', ver);
-      safeStorage.set('confeitex_updated', 'true');
-      
-      const heroReloadBtn = document.getElementById('btnHeroReload');
-      const upToDateBadge = document.getElementById('updatesUpToDateBadge');
-      if (heroReloadBtn) heroReloadBtn.style.display = 'inline-flex';
-      if (upToDateBadge) upToDateBadge.style.display = 'none';
-      UI.toast(I18n.t('updates.toastApplyLater') || '✅ App atualizado na próxima abertura.');
-      
-      if (typeof Notifications !== 'undefined' && Notifications._recordNotification) {
-        Notifications._recordNotification({
-          id: 'update_ready_' + ver,
-          type: 'update',
-          title: I18n.t('updates.installedTitle', { version: ver }).split('!')[0] + '!' || 'Atualização Pronta!',
-          body: I18n.t('updates.toastApplyLater') || 'Recarregue o app para aplicar.',
-          orderIds: [],
-          read: false
-        });
+      if (ok) {
+        setTimeout(() => {
+          window.location.replace(
+            window.location.origin + window.location.pathname +
+            '?v=' + encodeURIComponent(ver) + '&ts=' + Date.now()
+          );
+        }, 200);
+      } else {
+        safeStorage.set('confeitex_update_pending', ver);
+        safeStorage.set('confeitex_updated', 'true');
+        safeStorage.set('confeitex_update_deferred', String(Date.now()));
+        
+        const heroReloadBtn = document.getElementById('btnHeroReload');
+        const upToDateBadge = document.getElementById('updatesUpToDateBadge');
+        if (heroReloadBtn) heroReloadBtn.style.display = 'inline-flex';
+        if (upToDateBadge) upToDateBadge.style.display = 'none';
+        UI.toast(I18n.t('updates.toastApplyLater') || '✅ App atualizado na próxima abertura.');
+        
+        if (typeof Notifications !== 'undefined' && Notifications._recordNotification) {
+          Notifications._recordNotification({
+            id: 'update_ready_' + ver,
+            type: 'update',
+            title: I18n.t('updates.installedTitle', { version: ver }).split('!')[0] + '!' || 'Atualização Pronta!',
+            body: I18n.t('updates.toastApplyLater') || 'Recarregue o app para aplicar.',
+            orderIds: [],
+            read: false
+          });
+        }
       }
+    } finally {
+      this._promptShowing = false;
     }
   },
 
