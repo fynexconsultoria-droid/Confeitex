@@ -5897,7 +5897,7 @@ html, body {
 }
 
 .plan-clean-header {
-  padding: 2.5rem 2rem 1.5rem;
+  padding: 3rem 2rem 1.5rem;
   text-align: center;
   position: relative;
   background: var(--bg-primary);
@@ -5950,7 +5950,7 @@ html, body {
 .plan-clean-actions {
   display: flex;
   flex-direction: column;
-  gap: 0.85rem;
+  gap: 1.25rem;
 }
 
 .plan-btn-primary-clean {
@@ -6004,8 +6004,8 @@ html, body {
 
 .plan-clean-close {
   position: absolute;
-  top: 0.75rem;
-  right: 0.75rem;
+  top: 1rem;
+  right: 1rem;
   background: transparent;
   border: none;
   color: var(--text-muted);
