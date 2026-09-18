@@ -887,7 +887,7 @@ const Plan = {
               </div>
             </div>`;
         } else {
-          details.innerHTML = `<p style="color:var(--color-warning);">Nenhum cartão cadastrado ainda.</p>`;
+          details.innerHTML = `<div class="plan-clean-no-card">Nenhum cartão cadastrado ainda.</div>`;
         }
       }
 

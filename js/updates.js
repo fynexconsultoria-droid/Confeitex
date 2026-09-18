@@ -1,5 +1,5 @@
 const Updates = {
-  _CODE_VERSION: '5.2.8',
+  _CODE_VERSION: '6.0.0',
 
   // Versão em execução obtida dinamicamente da tag meta ou fallback seguro
   get verAtual() {
@@ -19,6 +19,7 @@ const Updates = {
   _promptShowing: false,
 
   changelog: [
+    { ver: '6.0.0', date: '18/09/2026', keys: ['changelog.6000'] },
     { ver: '5.2.8', date: '17/09/2026', keys: ['changelog.5280'] },
     { ver: '5.2.7', date: '17/09/2026', keys: ['changelog.5270'] },
     { ver: '5.2.6', date: '17/09/2026', keys: ['changelog.5260'] },
@@ -35,8 +36,6 @@ const Updates = {
     if (btn) btn.onclick = () => this.checkManual();
     const btnForce = document.getElementById('btnForceUpdate');
     if (btnForce) btnForce.onclick = () => this.forceUpdate();
-    const btnSmallReload = document.getElementById('btnSmallReloadHero');
-    if (btnSmallReload) btnSmallReload.onclick = () => window.location.reload(true);
     this._registerUpdateSync();
     this._checkUpdateCompletionOnStartup();
   },
