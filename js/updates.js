@@ -446,12 +446,7 @@ const Updates = {
       });
 
       if (ok) {
-        setTimeout(() => {
-          window.location.replace(
-            window.location.origin + window.location.pathname +
-            '?v=' + encodeURIComponent(ver) + '&ts=' + Date.now()
-          );
-        }, 200);
+        this.applyUpdateAndReload(ver);
       } else {
         safeStorage.set('confeitex_update_pending', ver);
         safeStorage.set('confeitex_updated', 'true');
@@ -477,6 +472,23 @@ const Updates = {
     } finally {
       this._promptShowing = false;
     }
+  },
+  applyUpdateAndReload(ver) {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistration().then(reg => {
+        if (reg && reg.waiting) {
+          reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+        }
+      });
+    }
+    
+    // Pequeno atraso para garantir que o SW receba a mensagem e comece a ativar
+    setTimeout(() => {
+      window.location.replace(
+        window.location.origin + window.location.pathname +
+        '?v=' + encodeURIComponent(ver) + '&ts=' + Date.now()
+      );
+    }, 400);
   },
 
   render() {
@@ -507,12 +519,7 @@ const Updates = {
         heroReloadBtn.onclick = () => {
           heroReloadBtn.disabled = true;
           heroReloadBtn.innerHTML = '<span class="login-spinner"></span>';
-          setTimeout(() => {
-            window.location.replace(
-              window.location.origin + window.location.pathname +
-              '?v=' + encodeURIComponent(pendingVer) + '&ts=' + Date.now()
-            );
-          }, 300);
+          this.applyUpdateAndReload(pendingVer);
         };
       } else {
         heroReloadBtn.style.display = 'none';
