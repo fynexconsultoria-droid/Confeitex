@@ -19,6 +19,7 @@ const Updates = {
   _promptShowing: false,
 
   changelog: [
+    { ver: '6.2.1', date: '19/09/2026', keys: ['changelog.6210'] },
     { ver: '6.2.0', date: '19/09/2026', keys: ['changelog.6200'] },
     { ver: '6.1.0', date: '19/09/2026', keys: ['changelog.6100'] },
     { ver: '6.0.0', date: '18/09/2026', keys: ['changelog.6000'] },
