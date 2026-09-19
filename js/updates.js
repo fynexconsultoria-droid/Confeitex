@@ -575,6 +575,17 @@ const Updates = {
         const version = match ? match[1].replace(/_/g, '.') : '';
         plat = `iPad (iOS ${version})`.trim();
       }
+      else if (/Mac/i.test(ua)) {
+        if (navigator.maxTouchPoints > 1) {
+          const match = ua.match(/Version\/([\d.]+)/);
+          const version = match ? match[1] : '13+';
+          plat = `iPad (iOS ${version})`.trim();
+        } else {
+          const match = ua.match(/Mac OS X ([\d_]+)/);
+          const version = match ? match[1].replace(/_/g, '.') : '';
+          plat = `macOS ${version}`.trim();
+        }
+      }
       else if (/Windows/i.test(ua)) {
         const match = ua.match(/Windows NT ([\d.]+)/);
         let version = match ? match[1] : '';
@@ -584,23 +595,24 @@ const Updates = {
         else if (version === '6.1') version = '7';
         plat = `Windows ${version}`.trim();
       }
-      else if (/Mac/i.test(ua)) {
-        const match = ua.match(/Mac OS X ([\d_]+)/);
-        const version = match ? match[1].replace(/_/g, '.') : '';
-        plat = `macOS ${version}`.trim();
-      }
 
       siPlatform.textContent = plat;
 
       if (navigator.userAgentData && navigator.userAgentData.getHighEntropyValues) {
-        navigator.userAgentData.getHighEntropyValues(['model']).then(data => {
-          if (data.model) {
-            if (plat.startsWith('Android')) {
-              const version = (ua.match(/Android ([\d.]+)/) || ['',''])[1];
-              siPlatform.textContent = `Android ${version} - ${data.model}`;
-            } else if (plat !== 'Desktop') {
-              siPlatform.textContent = `${plat.split(' ')[0]} - ${data.model}`;
+        navigator.userAgentData.getHighEntropyValues(['model', 'platformVersion']).then(data => {
+          if (plat.startsWith('Android')) {
+            // No Android 10+, o User-Agent normal trava em "Android 10", 
+            // a verdadeira versão está no platformVersion do Client Hints
+            let realVersion = (ua.match(/Android ([\d.]+)/) || ['',''])[1];
+            if (data.platformVersion) {
+              const major = data.platformVersion.split('.')[0];
+              if (major && parseInt(major) >= 1) {
+                realVersion = major; // Ex: 13.0.0 -> 13
+              }
             }
+            siPlatform.textContent = `Android ${realVersion}${data.model ? ' - ' + data.model : ''}`;
+          } else if (plat !== 'Desktop' && data.model) {
+            siPlatform.textContent = `${plat.split(' - ')[0]} - ${data.model}`;
           }
         }).catch(() => {});
       }
