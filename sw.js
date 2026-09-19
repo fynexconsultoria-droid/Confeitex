@@ -14,7 +14,7 @@ if (typeof Promise.allSettled === 'undefined') {
   };
 }
 
-const SW_VERSION = '6.0.0';
+const SW_VERSION = '6.1.0';
 const CACHE_NAME = 'confeitex-cache-v' + SW_VERSION;
 
 // Arquivos que serão cacheados na instalação do Service Worker
@@ -50,31 +50,43 @@ const ASSETS_TO_CACHE = [
 // INSTALAÇÃO — cacheia todos os arquivos essenciais (tolerante a falhas)
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => {
-        console.log('[SW] Cacheando arquivos do Confeitex...');
-        return Promise.allSettled(
-          ASSETS_TO_CACHE.map(url =>
-            cache.add(url).catch(() => {
-              console.warn('[SW] Falha ao cachear: ' + url);
-            })
-          )
-        );
-      })
-      .then(() => {
-        // Salva a versão atual no IndexedDB para comparação futura
-        return swSet('confeitex_current_version', SW_VERSION);
-      })
-      .then(() => {
-        // Notifica os clientes se houver alguma janela aberta
-        return self.clients.matchAll({ type: 'window' }).then((clients) => {
-          if (clients && clients.length > 0) {
-            clients.forEach(client => {
-              client.postMessage({ type: 'UPDATE_AVAILABLE', version: SW_VERSION });
-            });
-          }
+    Promise.all([
+      swGet('confeitex_auto_update'),
+      swGet('confeitex_allow_update_once')
+    ]).then(([autoUpdate, allowOnce]) => {
+      if (autoUpdate !== 'true' && allowOnce !== 'true') {
+        console.log('[SW] Instalação abortada: Atualizações Automáticas desativadas.');
+        return Promise.reject('Auto update disabled');
+      }
+      if (allowOnce === 'true') {
+        swSet('confeitex_allow_update_once', 'false');
+      }
+      return caches.open(CACHE_NAME)
+        .then((cache) => {
+          console.log('[SW] Cacheando arquivos do Confeitex...');
+          return Promise.allSettled(
+            ASSETS_TO_CACHE.map(url =>
+              cache.add(url).catch(() => {
+                console.warn('[SW] Falha ao cachear: ' + url);
+              })
+            )
+          );
+        })
+        .then(() => {
+          // Salva a versão atual no IndexedDB para comparação futura
+          return swSet('confeitex_current_version', SW_VERSION);
+        })
+        .then(() => {
+          // Notifica os clientes se houver alguma janela aberta
+          return self.clients.matchAll({ type: 'window' }).then((clients) => {
+            if (clients && clients.length > 0) {
+              clients.forEach(client => {
+                client.postMessage({ type: 'UPDATE_AVAILABLE', version: SW_VERSION });
+              });
+            }
+          });
         });
-      })
+    })
   );
 });
 

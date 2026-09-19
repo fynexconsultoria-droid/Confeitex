@@ -840,6 +840,24 @@
             <div class="mp-config-url" id="mpWorkerUrlDisplay" style="display:none;"></div>
           </div>
 
+          <!-- System Settings Card -->
+          <div class="config-card">
+            <div class="config-card-header">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              <span data-i18n="settings.sysTitle">Sistema</span>
+            </div>
+            <div class="form-group config-toggle-row">
+              <div>
+                <label data-i18n="settings.autoUpdate">Atualizações Automáticas</label>
+                <div class="config-hint" data-i18n="settings.autoUpdateDesc">Baixa e aplica as atualizações silenciosamente. Se desativado, você terá que baixar manualmente.</div>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="settingAutoUpdate">
+                <span class="slider round"></span>
+              </label>
+            </div>
+          </div>
+
           <!-- Security Card -->
           <div class="config-card">
             <div class="config-card-header">

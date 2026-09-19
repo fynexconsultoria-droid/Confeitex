@@ -126,8 +126,8 @@ body {
   display: flex;
   flex-direction: column;
   position: fixed;
-  height: 100vh;
-  height: 100dvh;
+  top: 0;
+  bottom: 0;
   z-index: 100;
   transition: var(--transition-normal);
 }
@@ -2198,7 +2198,7 @@ select.form-control {
 
 @media (max-width: 768px) {
   body { flex-direction: column; }
-  .sidebar { transform: translateX(-100%); width: 260px; height: 100vh; height: 100dvh; overflow-y: auto; }
+  .sidebar { transform: translateX(-100%); width: 260px; top: 0; bottom: 0; height: auto; overflow-y: auto; }
   .sidebar.open { transform: translateX(0); }
   .main-content { margin-left: 0; }
   .mobile-header { display: flex; }

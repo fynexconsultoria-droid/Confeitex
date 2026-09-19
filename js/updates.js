@@ -1,5 +1,5 @@
 const Updates = {
-  _CODE_VERSION: '6.0.0',
+  _CODE_VERSION: '6.1.0',
 
   // Versão em execução obtida dinamicamente da tag meta ou fallback seguro
   get verAtual() {
@@ -19,6 +19,7 @@ const Updates = {
   _promptShowing: false,
 
   changelog: [
+    { ver: '6.1.0', date: '19/09/2026', keys: ['changelog.6100'] },
     { ver: '6.0.0', date: '18/09/2026', keys: ['changelog.6000'] },
     { ver: '5.2.8', date: '17/09/2026', keys: ['changelog.5280'] },
     { ver: '5.2.7', date: '17/09/2026', keys: ['changelog.5270'] },
@@ -330,6 +331,11 @@ const Updates = {
       safeStorage.set('confeitex_updated', 'true');
       safeStorage.set('confeitex_last_updated_to', newVer);
       safeStorage.set('confeitex_last_updated_ts', String(Date.now()));
+      
+      if (typeof Notifications !== 'undefined' && Notifications._idbSet) {
+        await Notifications._idbSet('confeitex_allow_update_once', 'true');
+      }
+      
       reg = await navigator.serviceWorker.register('./sw.js');
       if (reg.update) {
         await reg.update().catch(() => {});
@@ -539,11 +545,64 @@ const Updates = {
     if (siPlatform) {
       const ua = navigator.userAgent;
       let plat = 'Desktop';
-      if (/Android/i.test(ua)) plat = `Android ${(ua.match(/Android ([\d.]+)/) || ['',''])[1]}`;
-      else if (/iPhone|iPad/i.test(ua)) plat = 'iOS';
-      else if (/Windows/i.test(ua)) plat = 'Windows';
-      else if (/Mac/i.test(ua)) plat = 'macOS';
+      
+      if (/Android/i.test(ua)) {
+        const version = (ua.match(/Android ([\d.]+)/) || ['',''])[1];
+        let device = '';
+        const uaInfo = ua.match(/\(([^)]+)\)/);
+        if (uaInfo && uaInfo[1]) {
+          const tokens = uaInfo[1].split(';');
+          for (let token of tokens) {
+            token = token.trim();
+            if (token === 'Linux' || token === 'U' || token.startsWith('Android') || 
+                /^[a-z]{2}-[a-z]{2}$/i.test(token) || /^[a-z]{2}_[a-z]{2}$/i.test(token) || token === 'wv') {
+              continue;
+            }
+            device = token.split(' Build/')[0].trim();
+            break;
+          }
+        }
+        plat = `Android ${version}${device ? ' - ' + device : ''}`;
+      }
+      else if (/iPhone/i.test(ua)) {
+        const match = ua.match(/OS ([\d_]+) like Mac OS X/);
+        const version = match ? match[1].replace(/_/g, '.') : '';
+        plat = `iPhone (iOS ${version})`.trim();
+      }
+      else if (/iPad/i.test(ua)) {
+        const match = ua.match(/OS ([\d_]+) like Mac OS X/);
+        const version = match ? match[1].replace(/_/g, '.') : '';
+        plat = `iPad (iOS ${version})`.trim();
+      }
+      else if (/Windows/i.test(ua)) {
+        const match = ua.match(/Windows NT ([\d.]+)/);
+        let version = match ? match[1] : '';
+        if (version === '10.0') version = '10/11';
+        else if (version === '6.3') version = '8.1';
+        else if (version === '6.2') version = '8';
+        else if (version === '6.1') version = '7';
+        plat = `Windows ${version}`.trim();
+      }
+      else if (/Mac/i.test(ua)) {
+        const match = ua.match(/Mac OS X ([\d_]+)/);
+        const version = match ? match[1].replace(/_/g, '.') : '';
+        plat = `macOS ${version}`.trim();
+      }
+
       siPlatform.textContent = plat;
+
+      if (navigator.userAgentData && navigator.userAgentData.getHighEntropyValues) {
+        navigator.userAgentData.getHighEntropyValues(['model']).then(data => {
+          if (data.model) {
+            if (plat.startsWith('Android')) {
+              const version = (ua.match(/Android ([\d.]+)/) || ['',''])[1];
+              siPlatform.textContent = `Android ${version} - ${data.model}`;
+            } else if (plat !== 'Desktop') {
+              siPlatform.textContent = `${plat.split(' ')[0]} - ${data.model}`;
+            }
+          }
+        }).catch(() => {});
+      }
     }
 
     // Service Worker
