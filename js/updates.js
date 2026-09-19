@@ -1,5 +1,5 @@
 const Updates = {
-  _CODE_VERSION: '6.2.0',
+  _CODE_VERSION: '6.2.1',
 
   // Versão em execução obtida dinamicamente da tag meta ou fallback seguro
   get verAtual() {
@@ -610,7 +610,13 @@ const Updates = {
                 realVersion = major; // Ex: 13.0.0 -> 13
               }
             }
-            siPlatform.textContent = `Android ${realVersion}${data.model ? ' - ' + data.model : ''}`;
+            // Previne que aparelhos Xiaomi percam o modelo se o data.model vier vazio
+            let model = data.model;
+            if (!model) {
+              const parts = plat.split(' - ');
+              if (parts.length > 1) model = parts.slice(1).join(' - ');
+            }
+            siPlatform.textContent = `Android ${realVersion}${model ? ' - ' + model : ''}`;
           } else if (plat !== 'Desktop' && data.model) {
             siPlatform.textContent = `${plat.split(' - ')[0]} - ${data.model}`;
           }

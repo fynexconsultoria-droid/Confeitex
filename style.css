@@ -2198,7 +2198,7 @@ select.form-control {
 
 @media (max-width: 768px) {
   body { flex-direction: column; }
-  .sidebar { transform: translateX(-100%); width: 260px; top: 0; bottom: 0; height: auto; overflow-y: auto; }
+  .sidebar { transform: translateX(-100%); width: 260px; top: 0; bottom: 0; height: auto; overflow-y: auto; padding-top: 4.5rem; padding-bottom: 0.5rem; }
   .sidebar.open { transform: translateX(0); }
   .main-content { margin-left: 0; }
   .mobile-header { display: flex; }
@@ -2273,8 +2273,8 @@ select.form-control {
   }
   
   .sidebar {
-    padding-top: calc(2rem + env(safe-area-inset-top));
-    padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+    padding-top: calc(4.5rem + env(safe-area-inset-top));
+    padding-bottom: calc(0.5rem + env(safe-area-inset-bottom));
   }
 }
 
@@ -4025,7 +4025,7 @@ select.form-control {
 
 @media (max-width: 768px) {
   #planBadgeContainer { padding: 6px 0 4px; }
-  .sidebar-footer { padding-bottom: max(1.5rem, env(safe-area-inset-bottom)); }
+  .sidebar-footer { padding-bottom: max(0.5rem, env(safe-area-inset-bottom)); }
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
