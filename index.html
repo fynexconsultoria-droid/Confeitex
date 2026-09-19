@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Confeitex - Controle de Encomendas</title>
   <meta name="description" content="Controle de encomendas para confeitaria — gerencie pedidos, clientes e entregas. 100% offline.">
-  <meta name="version" content="6.0.0">
+  <meta name="version" content="6.2.0">
 
   <!-- Google Fonts: Plus Jakarta Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -65,6 +65,18 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
+  <!-- App Loader -->
+  <style>
+    .app-loader { position: fixed; inset: 0; background: #0a0813; z-index: 99999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.3s ease; }
+    .app-loader-spinner { width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.1); border-top-color: #ec4899; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 1rem; }
+    .app-loader-text { color: #fff; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 600; font-size: 0.9rem; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+  <div id="appLoader" class="app-loader">
+    <div class="app-loader-spinner"></div>
+    <div class="app-loader-text">Carregando dados seguros...</div>
+  </div>
 
   <!-- Sidebar Overlay (Mobile) -->
   <div class="sidebar-overlay" id="sidebarOverlay"></div>

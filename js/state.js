@@ -25,30 +25,101 @@ const State = {
   expenses: [],
   TRASH_RETENTION_DAYS: 7,
   _syncTimer: null,
+  _dbSaveTimer: null,
+  _dbQueue: {}, // { key: data }
 
-  load() {
+  _scheduleSave(key, dataObj) {
+    this._dbQueue[key] = dataObj;
+    if (this._dbSaveTimer) clearTimeout(this._dbSaveTimer);
+    this._dbSaveTimer = setTimeout(() => this._flushDB(), 500);
+  },
+
+  async _flushDB() {
+    const queue = { ...this._dbQueue };
+    this._dbQueue = {};
+    for (const [key, dataObj] of Object.entries(queue)) {
+      try {
+        const str = JSON.stringify(sanitizeForStorage(dataObj));
+        if (typeof Auth !== 'undefined' && Auth.encryptionKey) {
+          const encrypted = await CryptoUtils.encrypt(str, Auth.encryptionKey);
+          await AppDB.set(key, encrypted);
+          await AppDB.set(`${key}_encrypted`, true);
+        } else {
+          await AppDB.set(key, str);
+          await AppDB.set(`${key}_encrypted`, false);
+        }
+        // Remove do localStorage para concluir a migração
+        safeStorage.remove(key);
+      } catch (e) {
+        console.error('[State] Erro ao salvar DB:', e);
+      }
+    }
+  },
+
+  async _loadItem(key, defaultObj) {
+    let raw = await AppDB.get(key);
+    let isEncrypted = await AppDB.get(`${key}_encrypted`);
+    
+    // Fallback/Migração do LocalStorage
+    if (raw === null || raw === undefined) {
+      const lsRaw = safeStorage.get(key);
+      if (lsRaw) {
+        raw = lsRaw;
+        isEncrypted = false;
+        // Agenda salvamento no IndexedDB para concluir a migração
+        try {
+          this._scheduleSave(key, JSON.parse(lsRaw));
+        } catch(e){}
+      }
+    }
+
+    if (raw) {
+      try {
+        if (isEncrypted) {
+          if (typeof Auth !== 'undefined' && Auth.encryptionKey) {
+            const dec = await CryptoUtils.decrypt(raw, Auth.encryptionKey);
+            return JSON.parse(dec);
+          } else {
+            console.warn(`[State] ${key} criptografado mas sem chave!`);
+            return defaultObj;
+          }
+        } else {
+          return typeof raw === 'string' ? JSON.parse(raw) : raw;
+        }
+      } catch (e) {
+        console.error(`[State] Falha ao processar ${key}:`, e);
+        return defaultObj;
+      }
+    }
+    return defaultObj;
+  },
+
+  async load() {
     try {
-      const savedOrders = safeStorage.get('confeitex_orders');
-      const savedCatalog = safeStorage.get('confeitex_catalog');
-      const safeOrders = validateStateDump({ orders: savedOrders ? JSON.parse(savedOrders) : [] });
-      const safeCatalog = validateStateDump({ catalog: savedCatalog ? JSON.parse(savedCatalog) : [...DEFAULT_CATALOG] });
+      const rawOrders = await this._loadItem('confeitex_orders', []);
+      const rawCatalog = await this._loadItem('confeitex_catalog', null);
+      
+      const safeOrders = validateStateDump({ orders: rawOrders });
+      const safeCatalog = validateStateDump({ catalog: rawCatalog || [...DEFAULT_CATALOG] });
+      
       this.orders = safeOrders.orders.map(migrateOrder);
       this.catalog = safeCatalog.catalog;
-      if (!savedCatalog) this.saveCatalog();
+      
+      if (!rawCatalog) this.saveCatalog();
     } catch (e) {
       this.orders = [];
       this.catalog = [...DEFAULT_CATALOG];
-      console.warn('[Confeitex] Erro ao carregar dados:', e);
+      console.warn('[Confeitex] Erro ao carregar orders/catalog:', e);
     }
     try {
-      const savedTrash = safeStorage.get('confeitex_trash');
-      this.trash = validateStateDump({ trash: savedTrash ? JSON.parse(savedTrash) : [] }).trash;
+      const rawTrash = await this._loadItem('confeitex_trash', []);
+      this.trash = validateStateDump({ trash: rawTrash }).trash;
     } catch (e) {
       this.trash = [];
     }
     try {
-      const savedExpenses = safeStorage.get('confeitex_expenses');
-      this.expenses = validateStateDump({ expenses: savedExpenses ? JSON.parse(savedExpenses) : [] }).expenses;
+      const rawExpenses = await this._loadItem('confeitex_expenses', []);
+      this.expenses = validateStateDump({ expenses: rawExpenses }).expenses;
     } catch (e) {
       this.expenses = [];
     }
@@ -57,16 +128,15 @@ const State = {
   },
 
   saveOrders() {
-    safeStorage.set('confeitex_orders', JSON.stringify(sanitizeForStorage(this.orders)));
-    // Debounce para evitar múltiplas chamadas ao Notifications.syncData()
+    this._scheduleSave('confeitex_orders', this.orders);
     if (this._syncTimer) clearTimeout(this._syncTimer);
     this._syncTimer = setTimeout(() => {
       if (typeof Notifications !== 'undefined' && Notifications.syncData) Notifications.syncData();
     }, 500);
   },
-  saveCatalog() { safeStorage.set('confeitex_catalog', JSON.stringify(sanitizeForStorage(this.catalog))); },
-  saveTrash() { safeStorage.set('confeitex_trash', JSON.stringify(sanitizeForStorage(this.trash))); },
-  saveExpenses() { safeStorage.set('confeitex_expenses', JSON.stringify(sanitizeForStorage(this.expenses))); },
+  saveCatalog() { this._scheduleSave('confeitex_catalog', this.catalog); },
+  saveTrash() { this._scheduleSave('confeitex_trash', this.trash); },
+  saveExpenses() { this._scheduleSave('confeitex_expenses', this.expenses); },
 
   addToTrash(orders, type, label) {
     const now = new Date();

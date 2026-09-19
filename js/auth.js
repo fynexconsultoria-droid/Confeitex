@@ -1,6 +1,7 @@
 const Auth = {
   lockEnabled: false,
   lockHash: '',
+  encryptionKey: null, // Mantém a chave AES-GCM na memória
 
   init() {
     this.lockEnabled = safeStorage.get('confeitex_lock_enabled') === 'true';
@@ -30,6 +31,11 @@ const Auth = {
     const saltHex = Array.from(salt).map(b => b.toString(16).padStart(2, '0')).join('');
     this.lockHash = saltHex + ':' + hash;
     safeStorage.set('confeitex_lock_hash', this.lockHash);
+    
+    // Deriva a chave de criptografia real e salva na memória
+    if (typeof CryptoUtils !== 'undefined') {
+      this.encryptionKey = await CryptoUtils.deriveKey(password, saltHex);
+    }
   },
 
   async verify(password) {
@@ -41,7 +47,14 @@ const Auth = {
       const storedHash = parts[1];
       const salt = new Uint8Array(saltHex.match(/.{2}/g).map(b => parseInt(b, 16)));
       const hash = await this._deriveKey(password, salt);
-      return hash === storedHash;
+      if (hash === storedHash) {
+        // Senha correta, deriva e guarda a chave de criptografia em memória
+        if (typeof CryptoUtils !== 'undefined') {
+          this.encryptionKey = await CryptoUtils.deriveKey(password, saltHex);
+        }
+        return true;
+      }
+      return false;
     } catch { return false; }
   },
 
@@ -52,11 +65,12 @@ const Auth = {
 
   disable() {
     this.lockEnabled = false;
+    this.encryptionKey = null;
     safeStorage.set('confeitex_lock_enabled', 'false');
   },
 
   isLocked() {
-    return this.lockEnabled && !!this.lockHash && !safeStorage.sessionGet('confeitex_auth');
+    return this.lockEnabled && !!this.lockHash && !this.encryptionKey;
   },
 
   _loginShown: false,
@@ -309,6 +323,12 @@ const Auth = {
           this.disable();
           this.renderSecuritySettings();
           UI.toast(I18n.t('auth.toastLockDisabled'));
+          if (typeof State !== 'undefined') {
+            State.saveOrders();
+            State.saveExpenses();
+            State.saveCatalog();
+            State.saveTrash();
+          }
         }
       });
       var changePwBtn = document.getElementById('btnChangePassword');
@@ -333,6 +353,12 @@ const Auth = {
           this.enable();
           this.renderSecuritySettings();
           UI.toast(I18n.t('auth.toastLockEnabled'));
+          if (typeof State !== 'undefined') {
+            State.saveOrders();
+            State.saveExpenses();
+            State.saveCatalog();
+            State.saveTrash();
+          }
         }
       });
     }

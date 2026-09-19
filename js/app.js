@@ -23,7 +23,13 @@
     }
   }
   
-  State.load();
+  await State.load();
+  
+  const loader = document.getElementById('appLoader');
+  if (loader) {
+    loader.style.opacity = '0';
+    setTimeout(() => loader.remove(), 300);
+  }
 
   const tabTitles = {
     dashboard: { title: 'tab.dash.title', subtitle: 'tab.dash.sub' },

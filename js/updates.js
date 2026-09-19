@@ -1,5 +1,5 @@
 const Updates = {
-  _CODE_VERSION: '6.1.0',
+  _CODE_VERSION: '6.2.0',
 
   // Versão em execução obtida dinamicamente da tag meta ou fallback seguro
   get verAtual() {
@@ -19,6 +19,7 @@ const Updates = {
   _promptShowing: false,
 
   changelog: [
+    { ver: '6.2.0', date: '19/09/2026', keys: ['changelog.6200'] },
     { ver: '6.1.0', date: '19/09/2026', keys: ['changelog.6100'] },
     { ver: '6.0.0', date: '18/09/2026', keys: ['changelog.6000'] },
     { ver: '5.2.8', date: '17/09/2026', keys: ['changelog.5280'] },

@@ -225,3 +225,140 @@ function formatWeight(o) {
   const isInt = Number.isInteger(w) || w === Math.floor(w);
   return isInt ? `${Math.round(w)} un` : `${w.toFixed(2).replace('.', ',')} un`;
 }
+
+// ============================================================
+// Database & Crypto Utilities
+// ============================================================
+
+const AppDB = {
+  dbName: 'confeitex-db',
+  storeName: 'store',
+  version: 1,
+  _db: null,
+
+  async init() {
+    if (this._db) return this._db;
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open(this.dbName, this.version);
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => {
+        this._db = request.result;
+        resolve(this._db);
+      };
+      request.onupgradeneeded = (e) => {
+        const db = e.target.result;
+        if (!db.objectStoreNames.contains(this.storeName)) {
+          db.createObjectStore(this.storeName);
+        }
+      };
+    });
+  },
+
+  async get(key) {
+    try {
+      const db = await this.init();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(this.storeName, 'readonly');
+        const store = tx.objectStore(this.storeName);
+        const req = store.get(key);
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+    } catch (e) {
+      console.error('[AppDB] get error:', e);
+      return null;
+    }
+  },
+
+  async set(key, value) {
+    try {
+      const db = await this.init();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(this.storeName, 'readwrite');
+        const store = tx.objectStore(this.storeName);
+        const req = store.put(value, key);
+        req.onsuccess = () => resolve(true);
+        req.onerror = () => reject(req.error);
+      });
+    } catch (e) {
+      console.error('[AppDB] set error:', e);
+      return false;
+    }
+  },
+  
+  async remove(key) {
+    try {
+      const db = await this.init();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(this.storeName, 'readwrite');
+        const store = tx.objectStore(this.storeName);
+        const req = store.delete(key);
+        req.onsuccess = () => resolve(true);
+        req.onerror = () => reject(req.error);
+      });
+    } catch (e) {
+      return false;
+    }
+  }
+};
+
+const CryptoUtils = {
+  // Derives an AES-GCM 256-bit key from a password and salt using PBKDF2
+  async deriveKey(password, saltHex) {
+    const enc = new TextEncoder();
+    const keyMaterial = await crypto.subtle.importKey(
+      "raw",
+      enc.encode(password),
+      { name: "PBKDF2" },
+      false,
+      ["deriveBits", "deriveKey"]
+    );
+    
+    // Convert hex salt to Uint8Array
+    const salt = new Uint8Array(saltHex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+    
+    return await crypto.subtle.deriveKey(
+      {
+        name: "PBKDF2",
+        salt: salt,
+        iterations: 100000,
+        hash: "SHA-256"
+      },
+      keyMaterial,
+      { name: "AES-GCM", length: 256 },
+      true, // extractable so we can export it if needed for syncing/backup later
+      ["encrypt", "decrypt"]
+    );
+  },
+
+  async encrypt(dataString, key) {
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const enc = new TextEncoder();
+    const encoded = enc.encode(dataString);
+    
+    const ciphertext = await crypto.subtle.encrypt(
+      { name: "AES-GCM", iv: iv },
+      key,
+      encoded
+    );
+    
+    return {
+      iv: iv,
+      ciphertext: ciphertext
+    };
+  },
+
+  async decrypt(encryptedData, key) {
+    const iv = encryptedData.iv;
+    const ciphertext = encryptedData.ciphertext;
+    
+    const decrypted = await crypto.subtle.decrypt(
+      { name: "AES-GCM", iv: iv },
+      key,
+      ciphertext
+    );
+    
+    const dec = new TextDecoder();
+    return dec.decode(decrypted);
+  }
+};
