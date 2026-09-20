@@ -799,12 +799,12 @@ const Plan = {
 
     overlay.innerHTML = `
       <div class="plan-payment-modal">
-        <div class="plan-payment-header" style="display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 1rem;">
+        <div class="plan-payment-header" style="display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 1rem; gap: 1rem;">
           <div>
             <h2 style="margin-bottom: 0.5rem; line-height: 1.2;">Mensalidade Confeitex Premium</h2>
             <p style="margin-bottom: 0;">Valor: <strong style="color:var(--color-success);font-size:1.15rem;">R$ 16,99 / mês</strong></p>
           </div>
-          <button class="plan-payment-close" id="planPaymentClose" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: inherit; padding: 0;">&times;</button>
+          <button class="plan-payment-close" id="planPaymentClose" style="background: none; border: none; font-size: 1.75rem; cursor: pointer; color: inherit; padding: 0.25rem; margin-top: -0.25rem;">&times;</button>
         </div>
 
         <div class="plan-pay-body" id="planPayBody">
@@ -849,12 +849,20 @@ const Plan = {
     document.body.appendChild(overlay);
     requestAnimationFrame(() => overlay.classList.add('active'));
 
-    const closeModal = () => {
+    history.pushState({ planPaymentModalOpen: true }, '');
+    const handlePopState = () => closeModal(true);
+    window.addEventListener('popstate', handlePopState);
+
+    const closeModal = (fromPopState = false) => {
+      window.removeEventListener('popstate', handlePopState);
+      if (!fromPopState) {
+        history.back();
+      }
       overlay.classList.remove('active');
       setTimeout(() => overlay.remove(), 350);
     };
 
-    document.getElementById('planPaymentClose').onclick = closeModal;
+    document.getElementById('planPaymentClose').onclick = () => closeModal(false);
 
     this._loadPlanCardView(overlay);
   },
