@@ -196,9 +196,9 @@ const Orders = {
       searchInput.addEventListener('input', debounce(() => this.render(), 250));
       searchInput.dataset.hasListener = '1';
     }
-    const btnClear = document.getElementById('btnClearFilters');
-    if (!btnClear.dataset.hasListener) {
-      btnClear.addEventListener('click', () => {
+    const btnClearEl = document.getElementById('btnClearFilters');
+    if (!btnClearEl.dataset.hasListener) {
+      btnClearEl.addEventListener('click', () => {
         document.getElementById('orderSearchInput').value = '';
         document.getElementById('orderFilterStatus').value = 'all';
         const dateEl = document.getElementById('orderFilterDate');
@@ -206,7 +206,7 @@ const Orders = {
         dateEl.type = 'text';
         this.render();
       });
-      btnClear.dataset.hasListener = '1';
+      btnClearEl.dataset.hasListener = '1';
     }
   },
 
