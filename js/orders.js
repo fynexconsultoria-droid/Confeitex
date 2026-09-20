@@ -18,8 +18,8 @@ const Orders = {
           document.getElementById('orderSearchInput').value = '';
           document.getElementById('orderFilterStatus').value = 'all';
           const dateEl = document.getElementById('orderFilterDate');
-          dateEl.value = '';
-          dateEl.type = 'text';
+          dateEl.type = 'date';
+          dateEl.value = typeof fmtISO !== 'undefined' ? fmtISO(new Date()) : new Date().toISOString().split('T')[0];
           this.render();
         });
         btnClear.dataset.hasListener = '1';
