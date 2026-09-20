@@ -272,7 +272,7 @@ const Plan = {
     if (document.getElementById('planCardModalOverlay')) return;
 
     const overlay = document.createElement('div');
-    overlay.className = 'plan-card-modal-overlay';
+    overlay.className = 'plan-card-modal-overlay modal-overlay';
     overlay.id = 'planCardModalOverlay';
     overlay.setAttribute('role', 'dialog');
     overlay.setAttribute('aria-modal', 'true');
@@ -280,8 +280,6 @@ const Plan = {
 
     overlay.innerHTML = `
       <div class="plan-card-modal">
-        <button class="plan-card-modal-close" id="planCardModalClose" aria-label="Fechar">&times;</button>
-        
         <div class="plan-card-modal-header">
           <div class="plan-card-badge-tag">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
@@ -471,8 +469,6 @@ const Plan = {
       setTimeout(() => overlay.remove(), 350);
     };
 
-    document.getElementById('planCardModalClose').onclick = closeModal;
-
     // Submissão do Formulário
     btnSubmit.onclick = async () => {
       errorEl.style.display = 'none';
@@ -619,7 +615,7 @@ const Plan = {
     const renewalPref = this.getRenewalPreference();
 
     const overlay = document.createElement('div');
-    overlay.className = 'plan-manage-modal-overlay';
+    overlay.className = 'plan-manage-modal-overlay modal-overlay';
     overlay.id = 'planManageModalOverlay';
     overlay.setAttribute('role', 'dialog');
     overlay.setAttribute('aria-modal', 'true');
@@ -696,7 +692,6 @@ const Plan = {
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
             Meu Plano Confeitex
           </h2>
-          <button class="plan-manage-close" id="planManageClose">&times;</button>
         </div>
 
         <div class="plan-manage-body">
@@ -744,8 +739,6 @@ const Plan = {
       overlay.classList.remove('active');
       setTimeout(() => overlay.remove(), 350);
     };
-
-    document.getElementById('planManageClose').onclick = closeModal;
 
     // Ações do Cartão
     const btnChangeCard = document.getElementById('btnChangePlanCard');
@@ -976,7 +969,7 @@ const Plan = {
   async showPaywall(featureName) {
     return new Promise(resolve => {
       const overlay = document.createElement('div');
-      overlay.className = 'paywall-overlay';
+      overlay.className = 'paywall-overlay modal-overlay';
       overlay.id = 'paywallOverlay';
       overlay.setAttribute('role', 'dialog');
       overlay.setAttribute('aria-modal', 'true');
