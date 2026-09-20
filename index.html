@@ -342,7 +342,8 @@
         <div class="filter-bar">
           <div class="search-input-wrapper">
             <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            <input type="text" class="form-control" id="orderSearchInput" placeholder="Buscar por cliente, produto, sabor..." data-i18n-ph="orders.searchPh">
+            <input type="text" class="form-control" id="orderSearchInput" placeholder="Buscar por cliente, produto, sabor..." data-i18n-ph="orders.searchPh" style="padding-right: 60px;">
+            <span id="btnClearFilters" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 0.75rem; color: var(--color-accent-pink); font-weight: 600; cursor: pointer; display: none; z-index: 2;">Limpar</span>
           </div>
           
           <select class="form-control filter-status" id="orderFilterStatus" aria-label="Filtrar por status" title="Filtrar por status">
@@ -354,9 +355,6 @@
           </select>
           
           <input type="text" onfocus="(this.type='date')" onblur="(this.value == '' ? this.type='text' : this.type='date')" class="form-control filter-date" id="orderFilterDate" placeholder="Data" title="Filtrar por data" aria-label="Filtrar por data">
-          <button class="btn btn-secondary btn-icon-only d-none" style="display:none;" id="btnClearFilters" title="Limpar Filtros" data-i18n-title="orders.clearFilters">
-            <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-          </button>
           <button class="btn btn-secondary btn-icon-only btn-open-trash btn-trash-inline" title="Lixeira" data-i18n-title="orders.trash">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
             <span class="trash-badge d-none" data-trash-count>0</span>

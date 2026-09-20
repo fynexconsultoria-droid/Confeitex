@@ -6,6 +6,15 @@ const Orders = {
     const filterDate = document.getElementById('orderFilterDate').value;
     const empty = document.getElementById('ordersEmptyState');
 
+    const btnClear = document.getElementById('btnClearFilters');
+    if (btnClear) {
+      if (search || filterStatus !== 'all' || filterDate) {
+        btnClear.style.display = 'block';
+      } else {
+        btnClear.style.display = 'none';
+      }
+    }
+
     let filtered = State.orders.filter(o => {
       const matchSearch = (o.clientName || '').toLowerCase().includes(search)
         || (o.flavor || '').toLowerCase().includes(search)
@@ -192,7 +201,9 @@ const Orders = {
       btnClear.addEventListener('click', () => {
         document.getElementById('orderSearchInput').value = '';
         document.getElementById('orderFilterStatus').value = 'all';
-        document.getElementById('orderFilterDate').value = '';
+        const dateEl = document.getElementById('orderFilterDate');
+        dateEl.value = '';
+        dateEl.type = 'text';
         this.render();
       });
       btnClear.dataset.hasListener = '1';

@@ -10,6 +10,13 @@
   const sidebarVersion = document.getElementById('sidebarVersion');
   if (sidebarVersion && typeof Updates !== 'undefined') sidebarVersion.textContent = `v${Updates.verAtual}`;
 
+  // Inicializa filtro de data de encomendas para hoje
+  const orderDateFilter = document.getElementById('orderFilterDate');
+  if (orderDateFilter && !orderDateFilter.value) {
+    orderDateFilter.type = 'date';
+    orderDateFilter.value = new Date().toISOString().split('T')[0];
+  }
+
   // Onboarding — exibe apenas na primeira abertura
   if (Onboarding.shouldShow()) {
     Onboarding.show();
