@@ -6053,4 +6053,21 @@ html, body {
   color: var(--text-primary);
 }
 
+/* --- REMOVER SOMBREAMENTO DO APP --- */
+* {
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
 
+/* Restaurar o sombreamento interno do autofill para evitar fundo amarelo/branco no navegador */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px rgba(10, 8, 19, 0.9) inset !important;
+  box-shadow: 0 0 0 30px rgba(10, 8, 19, 0.9) inset !important;
+}
+
+.ob-illustration {
+  filter: none !important;
+}
