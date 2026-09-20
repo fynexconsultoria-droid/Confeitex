@@ -791,7 +791,7 @@ const Plan = {
     if (document.getElementById('planPaymentModalOverlay')) return;
 
     const overlay = document.createElement('div');
-    overlay.className = 'plan-payment-modal-overlay';
+    overlay.className = 'plan-payment-modal-overlay modal-overlay';
     overlay.id = 'planPaymentModalOverlay';
     overlay.setAttribute('role', 'dialog');
     overlay.setAttribute('aria-modal', 'true');
@@ -804,7 +804,6 @@ const Plan = {
             <h2 style="margin-bottom: 0.5rem; line-height: 1.2;">Mensalidade Confeitex Premium</h2>
             <p style="margin-bottom: 0;">Valor: <strong style="color:var(--color-success);font-size:1.15rem;">R$ 16,99 / mês</strong></p>
           </div>
-          <button class="plan-payment-close" id="planPaymentClose" style="background: none; border: none; font-size: 1.75rem; cursor: pointer; color: inherit; padding: 0.25rem; margin-top: -0.25rem;">&times;</button>
         </div>
 
         <div class="plan-pay-body" id="planPayBody">
@@ -862,12 +861,10 @@ const Plan = {
       setTimeout(() => overlay.remove(), 350);
     };
 
-    document.getElementById('planPaymentClose').onclick = () => closeModal(false);
-
-    this._loadPlanCardView(overlay);
+    this._loadPlanCardView(overlay, closeModal);
   },
 
-  async _loadPlanCardView(overlay) {
+  async _loadPlanCardView(overlay, closeModal) {
     const loading = overlay.querySelector('#planPayLoading');
     const panelCard = overlay.querySelector('#panelPayCard');
     const panelSuccess = overlay.querySelector('#panelPaySuccess');
@@ -938,8 +935,7 @@ const Plan = {
 
       if (btnOther) {
         btnOther.onclick = () => {
-          const currentModal = document.getElementById('planPaymentModalOverlay');
-          if (currentModal) currentModal.remove();
+          if (typeof closeModal === 'function') closeModal(false);
           this.showCardRegistrationModal({
             forTrial: false,
             onComplete: () => this.showPlanPaymentModal()
