@@ -344,6 +344,32 @@
     });
   }
 
+  // Monitor de Conexão Online/Offline
+  const updateConnectionStatus = () => {
+    const isOnline = navigator.onLine;
+    
+    // Atualiza texto no sidebar
+    const sidebarText = document.querySelector('[data-i18n="nav.offline"]');
+    if (sidebarText) {
+      sidebarText.textContent = isOnline ? 'Conectado (Online)' : 'Modo 100% Offline';
+      sidebarText.style.color = isOnline ? 'var(--color-success)' : '';
+    }
+
+    // Atualiza o badge na aba de Atualizações
+    const updatesStatus = document.querySelector('[data-i18n="updates.offlineStatus"]');
+    if (updatesStatus) {
+      updatesStatus.textContent = isOnline ? 'Conectado (Online)' : '100% Offline';
+    }
+    const updatesDot = document.querySelector('.updates-dot');
+    if (updatesDot) {
+      updatesDot.style.background = isOnline ? 'var(--color-success)' : 'var(--color-danger)';
+    }
+  };
+
+  window.addEventListener('online', updateConnectionStatus);
+  window.addEventListener('offline', updateConnectionStatus);
+  updateConnectionStatus(); // chamada inicial
+
   // Notificações programadas
   Notifications.init();
   Notifications.initReconnectionListeners();
