@@ -799,12 +799,12 @@ const Plan = {
 
     overlay.innerHTML = `
       <div class="plan-payment-modal">
-        <div class="plan-payment-header">
+        <div class="plan-payment-header" style="display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 1rem;">
           <div>
             <h2 style="margin-bottom: 0.5rem; line-height: 1.2;">Mensalidade Confeitex Premium</h2>
-            <p style="margin-bottom: 1.5rem;">Valor: <strong style="color:var(--color-success);font-size:1.15rem;">R$ 16,99 / mês</strong></p>
+            <p style="margin-bottom: 0;">Valor: <strong style="color:var(--color-success);font-size:1.15rem;">R$ 16,99 / mês</strong></p>
           </div>
-          <button class="plan-payment-close" id="planPaymentClose">&times;</button>
+          <button class="plan-payment-close" id="planPaymentClose" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: inherit; padding: 0;">&times;</button>
         </div>
 
         <div class="plan-pay-body" id="planPayBody">
@@ -819,10 +819,10 @@ const Plan = {
             <div class="plan-card-charge-box">
               <p style="margin-bottom: 1.5rem;">Deseja efetuar o débito de <strong>R$ 16,99</strong> no seu cartão de crédito cadastrado?</p>
               <div id="planCardChargeDetails"></div>
-              <button class="btn btn-primary w-100 mt-3" id="btnConfirmCardCharge">
+              <button class="btn btn-primary w-100 mt-3" id="btnConfirmCardCharge" style="margin-top: 1rem; margin-bottom: 0.5rem;">
                 Confirmar Débito de R$ 16,99 no Cartão
               </button>
-              <button class="btn btn-secondary w-100 mt-2" id="btnUseAnotherCard">
+              <button class="btn btn-secondary w-100 mt-2" id="btnUseAnotherCard" style="margin-top: 0.5rem;">
                 Usar Outro Cartão
               </button>
             </div>
@@ -887,7 +887,7 @@ const Plan = {
               </div>
             </div>`;
         } else {
-          details.innerHTML = `<div class="plan-clean-no-card">Nenhum cartão cadastrado ainda.</div>`;
+          details.innerHTML = `<div class="plan-clean-no-card" style="margin-bottom: 1rem;">Nenhum cartão cadastrado ainda.</div>`;
         }
       }
 
