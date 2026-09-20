@@ -3298,7 +3298,7 @@ select.form-control {
 @media (max-width: 580px) {
   .filter-bar { 
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr 1fr auto;
     gap: 0.5rem;
     align-items: stretch;
   }
@@ -3307,9 +3307,16 @@ select.form-control {
     min-width: 0; 
   }
   .filter-bar select, 
-  .filter-bar input[type="date"] { 
+  .filter-bar input.filter-date { 
     width: 100% !important; 
     min-width: 0 !important; 
+  }
+  .filter-bar .btn-trash-inline {
+    width: 44px !important;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }
   .filter-bar .btn {
     width: 100%;

@@ -353,8 +353,8 @@
             <option value="Cancelado" data-i18n-opt="orders.filterCanceled">Cancelados</option>
           </select>
           
-          <input type="date" class="form-control filter-date" id="orderFilterDate" title="Filtrar por data" aria-label="Filtrar por data">
-          <button class="btn btn-secondary btn-icon-only" id="btnClearFilters" title="Limpar Filtros" data-i18n-title="orders.clearFilters">
+          <input type="text" onfocus="(this.type='date')" onblur="(this.value == '' ? this.type='text' : this.type='date')" class="form-control filter-date" id="orderFilterDate" placeholder="Data" title="Filtrar por data" aria-label="Filtrar por data">
+          <button class="btn btn-secondary btn-icon-only d-none" style="display:none;" id="btnClearFilters" title="Limpar Filtros" data-i18n-title="orders.clearFilters">
             <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
           <button class="btn btn-secondary btn-icon-only btn-open-trash btn-trash-inline" title="Lixeira" data-i18n-title="orders.trash">
