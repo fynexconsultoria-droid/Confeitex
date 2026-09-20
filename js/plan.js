@@ -269,7 +269,11 @@ const Plan = {
     const isForTrial = options.forTrial !== false;
     const onComplete = options.onComplete || null;
 
-    if (document.getElementById('planCardModalOverlay')) return;
+    const existing = document.getElementById('planCardModalOverlay');
+    if (existing) {
+      if (existing.classList.contains('active')) return;
+      existing.remove();
+    }
 
     const overlay = document.createElement('div');
     overlay.className = 'plan-card-modal-overlay modal-overlay';
@@ -608,7 +612,11 @@ const Plan = {
   // Modal de Gerenciamento do Plano ("Meu Plano Confeitex")
   // ─────────────────────────────────────────────────────────────────────────
   showManageModal() {
-    if (document.getElementById('planManageModalOverlay')) return;
+    const existing = document.getElementById('planManageModalOverlay');
+    if (existing) {
+      if (existing.classList.contains('active')) return;
+      existing.remove();
+    }
 
     const status = this.getStatus();
     const card = this.getCardData();
@@ -781,7 +789,11 @@ const Plan = {
   // Modal de Pagamento da Mensalidade (Cartão via Mercado Pago)
   // ─────────────────────────────────────────────────────────────────────────
   showPlanPaymentModal() {
-    if (document.getElementById('planPaymentModalOverlay')) return;
+    const existing = document.getElementById('planPaymentModalOverlay');
+    if (existing) {
+      if (existing.classList.contains('active')) return;
+      existing.remove();
+    }
 
     const overlay = document.createElement('div');
     overlay.className = 'plan-payment-modal-overlay modal-overlay';
@@ -968,6 +980,12 @@ const Plan = {
   // ─────────────────────────────────────────────────────────────────────────
   async showPaywall(featureName) {
     return new Promise(resolve => {
+      const existing = document.getElementById('paywallOverlay');
+      if (existing) {
+        if (existing.classList.contains('active')) return resolve(false);
+        existing.remove();
+      }
+
       const overlay = document.createElement('div');
       overlay.className = 'paywall-overlay modal-overlay';
       overlay.id = 'paywallOverlay';

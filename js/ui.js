@@ -116,7 +116,11 @@ const UI = {
 
   // Modal unificado para reduzir código duplicado
   createModal({ id, title, content, onClose, className = 'modal-overlay' }) {
-    if (document.getElementById(id)) return null;
+    const existing = document.getElementById(id);
+    if (existing) {
+      if (existing.classList.contains('active')) return null;
+      existing.remove();
+    }
 
     const overlay = document.createElement('div');
     overlay.className = className;
