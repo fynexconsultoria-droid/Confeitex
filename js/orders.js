@@ -13,6 +13,28 @@ const Orders = {
       } else {
         btnClear.style.display = 'none';
       }
+      if (!btnClear.dataset.hasListener) {
+        btnClear.addEventListener('click', () => {
+          document.getElementById('orderSearchInput').value = '';
+          document.getElementById('orderFilterStatus').value = 'all';
+          const dateEl = document.getElementById('orderFilterDate');
+          dateEl.value = '';
+          dateEl.type = 'text';
+          this.render();
+        });
+        btnClear.dataset.hasListener = '1';
+      }
+    }
+
+    // Filter listeners (once)
+    ['orderFilterStatus', 'orderFilterDate'].forEach(id => {
+      const el = document.getElementById(id);
+      if (!el.dataset.hasListener) { el.addEventListener('change', () => this.render()); el.dataset.hasListener = '1'; }
+    });
+    const searchInput = document.getElementById('orderSearchInput');
+    if (!searchInput.dataset.hasListener) {
+      searchInput.addEventListener('input', debounce(() => this.render(), 250));
+      searchInput.dataset.hasListener = '1';
     }
 
     let filtered = State.orders.filter(o => {
@@ -186,28 +208,6 @@ const Orders = {
       tbody.style.cursor = 'pointer';
     }
 
-    // Filter listeners (once)
-    ['orderFilterStatus', 'orderFilterDate'].forEach(id => {
-      const el = document.getElementById(id);
-      if (!el.dataset.hasListener) { el.addEventListener('change', () => this.render()); el.dataset.hasListener = '1'; }
-    });
-    const searchInput = document.getElementById('orderSearchInput');
-    if (!searchInput.dataset.hasListener) {
-      searchInput.addEventListener('input', debounce(() => this.render(), 250));
-      searchInput.dataset.hasListener = '1';
-    }
-    const btnClearEl = document.getElementById('btnClearFilters');
-    if (!btnClearEl.dataset.hasListener) {
-      btnClearEl.addEventListener('click', () => {
-        document.getElementById('orderSearchInput').value = '';
-        document.getElementById('orderFilterStatus').value = 'all';
-        const dateEl = document.getElementById('orderFilterDate');
-        dateEl.value = '';
-        dateEl.type = 'text';
-        this.render();
-      });
-      btnClearEl.dataset.hasListener = '1';
-    }
   },
 
   openEdit(id) {
