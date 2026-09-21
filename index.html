@@ -205,10 +205,6 @@
               <div class="notif-dropdown-empty" id="notifEmpty" data-i18n="notif.empty">Sem notificações ainda.</div>
             </div>
           </div>
-          <button class="btn btn-primary" id="btnNewOrder">
-            <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            <span data-i18n="orders.actNew">Novo Pedido</span>
-          </button>
         </div>
       </div>
 
@@ -216,6 +212,11 @@
       
       <!-- TAB 1: DASHBOARD -->
       <section id="dashboard" class="tab-content active">
+        <button class="btn btn-primary" id="btnNewOrder" style="width: 100%; margin-bottom: 1.5rem;">
+          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <span data-i18n="orders.actNew">Novo Pedido</span>
+        </button>
+
         <!-- Metrics Grid -->
         <div class="metrics-grid">
           <!-- Metric 1: Vendas Hoje -->
@@ -347,7 +348,7 @@
           </div>
           
           <!-- Row 2: Status and Date -->
-          <div style="display: flex; gap: 0.5rem; width: 100%;">
+          <div style="display: flex; gap: 0.5rem; width: 100%; grid-column: 1 / -1;">
             <select class="form-control filter-status" id="orderFilterStatus" aria-label="Filtrar por status" title="Filtrar por status" style="flex: 1;">
               <option value="all" data-i18n-opt="orders.filterAll">Todos os Status</option>
               <option value="Pendente" data-i18n-opt="orders.filterPending">Pendentes / Produção</option>
@@ -360,7 +361,7 @@
           </div>
 
           <!-- Row 3: Limpar Filtros and Trash -->
-          <div style="display: flex; gap: 0.5rem; width: 100%; justify-content: space-between; align-items: center; margin-top: 1rem;">
+          <div style="display: flex; gap: 0.5rem; width: 100%; justify-content: space-between; align-items: center; grid-column: 1 / -1; margin-top: 0.5rem;">
             <button type="button" id="btnClearFilters" class="btn btn-secondary" style="display: none; padding: 0 1rem; color: var(--color-accent-pink); font-weight: 600;" title="Limpar Filtros" aria-label="Limpar Filtros">Limpar Filtros</button>
             <div style="flex: 1;"></div>
             <button class="btn btn-secondary btn-icon-only btn-open-trash btn-trash-inline" title="Lixeira" data-i18n-title="orders.trash">
@@ -417,14 +418,14 @@
       <section id="clients" class="tab-content">
         <!-- Client Search -->
         <div class="filter-bar">
-          <div class="search-input-wrapper search-input-wrapper-wide">
-            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            <input type="text" class="form-control" id="clientSearchInput" placeholder="Buscar cliente por nome ou telefone..." data-i18n-ph="clients.searchPh">
-          </div>
           <button class="btn btn-secondary btn-icon-only btn-open-trash btn-trash-inline" title="Lixeira" data-i18n-title="orders.trash">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
             <span class="trash-badge d-none" data-trash-count>0</span>
           </button>
+          <div class="search-input-wrapper search-input-wrapper-wide">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" class="form-control" id="clientSearchInput" placeholder="Buscar cliente por nome ou telefone..." data-i18n-ph="clients.searchPh">
+          </div>
         </div>
 
         <!-- Clients Table -->
