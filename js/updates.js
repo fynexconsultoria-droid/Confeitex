@@ -23,16 +23,6 @@ const Updates = {
     { ver: '6.2.1', date: '19/09/2026', keys: ['changelog.6210'] },
     { ver: '6.2.0', date: '19/09/2026', keys: ['changelog.6200'] },
     { ver: '6.1.0', date: '19/09/2026', keys: ['changelog.6100'] },
-    { ver: '6.0.0', date: '18/09/2026', keys: ['changelog.6000'] },
-    { ver: '5.2.8', date: '17/09/2026', keys: ['changelog.5280'] },
-    { ver: '5.2.7', date: '17/09/2026', keys: ['changelog.5270'] },
-    { ver: '5.2.6', date: '17/09/2026', keys: ['changelog.5260'] },
-    { ver: '5.2.5', date: '17/09/2026', keys: ['changelog.5250'] },
-    { ver: '5.2.4', date: '17/09/2026', keys: ['changelog.5240'] },
-    { ver: '5.2.3', date: '17/09/2026', keys: ['changelog.5230'] },
-    { ver: '5.2.2', date: '17/09/2026', keys: ['changelog.5220'] },
-    { ver: '5.2.1', date: '16/09/2026', keys: ['changelog.5210'] },
-    { ver: '5.1.0', date: '14/09/2026', keys: ['changelog.5100'] },
   ],
 
   setup() {
