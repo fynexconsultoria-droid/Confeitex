@@ -14,7 +14,7 @@ if (typeof Promise.allSettled === 'undefined') {
   };
 }
 
-const SW_VERSION = '6.9.0';
+const SW_VERSION = '0.1.0-beta';
 const CACHE_NAME = 'confeitex-cache-v' + SW_VERSION;
 
 // Arquivos que serão cacheados na instalação do Service Worker
@@ -50,17 +50,7 @@ const ASSETS_TO_CACHE = [
 // INSTALAÇÃO — cacheia todos os arquivos essenciais (tolerante a falhas)
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    Promise.all([
-      swGet('confeitex_auto_update'),
-      swGet('confeitex_allow_update_once')
-    ]).then(([autoUpdate, allowOnce]) => {
-      if (autoUpdate !== 'true' && allowOnce !== 'true') {
-        console.log('[SW] Instalação abortada: Atualizações Automáticas desativadas.');
-        return Promise.reject('Auto update disabled');
-      }
-      if (allowOnce === 'true') {
-        swSet('confeitex_allow_update_once', 'false');
-      }
+    Promise.resolve().then(() => {
       return caches.open(CACHE_NAME)
         .then((cache) => {
           console.log('[SW] Cacheando arquivos do Confeitex...');

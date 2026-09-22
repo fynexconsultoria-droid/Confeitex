@@ -64,20 +64,7 @@ const Settings = {
     // 4. Exemplo e Apagar Dados
     const btnDemo = document.getElementById('btnLoadDemo');
 
-    // 5. Atualizações Automáticas (Sistema)
-    const toggleAutoUpdate = document.getElementById('settingAutoUpdate');
-    if (toggleAutoUpdate && typeof Notifications !== 'undefined' && Notifications._idbGet) {
-      Notifications._idbGet('confeitex_auto_update').then(val => {
-        // Padrão é false se não existir
-        toggleAutoUpdate.checked = (val === 'true');
-      });
-      toggleAutoUpdate.addEventListener('change', () => {
-        const val = toggleAutoUpdate.checked ? 'true' : 'false';
-        Notifications._idbSet('confeitex_auto_update', val).then(() => {
-          UI.toast(I18n.t('settings.toastAutoUpdateSaved') || 'Configuração salva!');
-        });
-      });
-    }
+
 
     if (btnDemo) {
       btnDemo.addEventListener('click', async () => {

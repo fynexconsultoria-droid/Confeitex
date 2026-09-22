@@ -21,13 +21,14 @@
   if (Onboarding.shouldShow()) {
     Onboarding.show();
   } else if (navigator.onLine) {
+    // REMOVIDA A OBRIGATORIEDADE DE CARTÃO PARA TESTE (A PEDIDO DO USUÁRIO)
     // Se não tem cartão e não tem assinatura, exige cadastro do cartão para o teste
-    if (!Plan.hasRegisteredCard() && !Plan.isSubscriptionActive()) {
-      setTimeout(() => Plan.showCardRegistrationModal({ forTrial: true }), 1000);
-    } else if (!Plan.isTrialActive() && !Plan.isSubscriptionActive()) {
-      // Se já tinha cartão mas expirou o teste ou mensalidade
-      setTimeout(() => Plan.showUpgradeModal(), 1200);
-    }
+    // if (!Plan.hasRegisteredCard() && !Plan.isSubscriptionActive()) {
+    //   setTimeout(() => Plan.showCardRegistrationModal({ forTrial: true }), 1000);
+    // } else if (!Plan.isTrialActive() && !Plan.isSubscriptionActive()) {
+    //   // Se já tinha cartão mas expirou o teste ou mensalidade
+    //   setTimeout(() => Plan.showUpgradeModal(), 1200);
+    // }
   }
   
   await State.load();
@@ -283,14 +284,32 @@
   // Chart period
   document.getElementById('chartPeriodSelect').addEventListener('change', () => Chart.render());
 
-  // Language selector
-  const langSelect = document.getElementById('langSelect');
-  if (langSelect) {
-    langSelect.value = I18n.lang;
-    langSelect.addEventListener('change', () => {
-      const code = langSelect.value;
-      I18n.setLang(code);
-      UI.toast(I18n.t('settings.toastLang', { lang: I18n.names[code] }));
+  // Language Custom Modal
+  const btnOpenLangModal = document.getElementById('btnOpenLangModal');
+  const langModal = document.getElementById('langModal');
+  const currentLangDisplay = document.getElementById('currentLangDisplay');
+  const langRadios = document.querySelectorAll('input[name="app_lang_radio"]');
+  
+  if (btnOpenLangModal && langModal) {
+    if (currentLangDisplay) currentLangDisplay.textContent = I18n.names[I18n.lang] || 'Português';
+    
+    btnOpenLangModal.addEventListener('click', () => {
+      langRadios.forEach(r => r.checked = (r.value === I18n.lang));
+      langModal.classList.add('active');
+    });
+    
+    document.getElementById('btnLangClose').addEventListener('click', () => langModal.classList.remove('active'));
+    document.getElementById('btnLangCancel').addEventListener('click', () => langModal.classList.remove('active'));
+    
+    document.getElementById('btnLangSave').addEventListener('click', () => {
+      const selected = Array.from(langRadios).find(r => r.checked);
+      if (selected) {
+        const code = selected.value;
+        I18n.setLang(code);
+        if (currentLangDisplay) currentLangDisplay.textContent = I18n.names[code] || code;
+        UI.toast(I18n.t('settings.toastLang', { lang: I18n.names[code] }));
+      }
+      langModal.classList.remove('active');
     });
   }
 

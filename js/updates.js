@@ -1,5 +1,5 @@
 const Updates = {
-  _CODE_VERSION: '6.9.0',
+  _CODE_VERSION: '0.1.0-beta',
 
   // Versão em execução obtida dinamicamente da tag meta ou fallback seguro
   get verAtual() {
@@ -19,11 +19,7 @@ const Updates = {
   _promptShowing: false,
 
   changelog: [
-    { ver: '6.9.0', date: '22/09/2026', keys: ['changelog.6900'] },
-    { ver: '6.8.0', date: '20/09/2026', keys: ['changelog.6800'] },
-    { ver: '6.2.1', date: '19/09/2026', keys: ['changelog.6210'] },
-    { ver: '6.2.0', date: '19/09/2026', keys: ['changelog.6200'] },
-    { ver: '6.1.0', date: '19/09/2026', keys: ['changelog.6100'] },
+    { ver: '0.1.0-beta', date: '22/09/2026', keys: ['changelog.010beta'] }
   ],
 
   setup() {
@@ -326,10 +322,7 @@ const Updates = {
       safeStorage.set('confeitex_last_updated_to', newVer);
       safeStorage.set('confeitex_last_updated_ts', String(Date.now()));
       
-      if (typeof Notifications !== 'undefined' && Notifications._idbSet) {
-        await Notifications._idbSet('confeitex_allow_update_once', 'true');
-      }
-      
+
       reg = await navigator.serviceWorker.register('./sw.js');
       if (reg.update) {
         await reg.update().catch(() => {});

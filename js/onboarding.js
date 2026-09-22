@@ -352,11 +352,12 @@ const Onboarding = {
         // Se ainda não cadastrou o cartão para o trial e não tem assinatura ativa, abre o modal de cadastro de cartão
         if (typeof Plan !== 'undefined') {
           Plan.init();
-          if (!Plan.hasRegisteredCard() && !Plan.isSubscriptionActive()) {
-            setTimeout(() => {
-              Plan.showCardRegistrationModal({ forTrial: true });
-            }, 300);
-          }
+          // REMOVIDA A OBRIGATORIEDADE DE CARTÃO PARA TESTE (A PEDIDO DO USUÁRIO)
+          // if (!Plan.hasRegisteredCard() && !Plan.isSubscriptionActive()) {
+          //   setTimeout(() => {
+          //     Plan.showCardRegistrationModal({ forTrial: true });
+          //   }, 300);
+          // }
         }
       }, 600);
     }

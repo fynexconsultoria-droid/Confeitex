@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Confeitex - Controle de Encomendas</title>
   <meta name="description" content="Controle de encomendas para confeitaria — gerencie pedidos, clientes e entregas. 100% offline.">
-  <meta name="version" content="6.9.0">
+  <meta name="version" content="0.1.0-beta">
 
   <!-- Google Fonts: Plus Jakarta Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -296,10 +296,10 @@
                 <span data-i18n="dash.chartTitle">Evolução de Vendas & Pedidos</span>
               </span>
               <select class="form-control chart-period-select" id="chartPeriodSelect" aria-label="Período do gráfico" title="Período do gráfico">
-                <option value="today" data-i18n-opt="dash.periodToday">Hoje</option>
+                <option value="today" selected data-i18n-opt="dash.periodToday">Hoje</option>
                 <option value="7days" data-i18n-opt="dash.period7">Últimos 7 dias</option>
                 <option value="15days" data-i18n-opt="dash.period15">Últimos 15 dias</option>
-                <option value="30days" selected data-i18n-opt="dash.period30">Últimos 30 dias</option>
+                <option value="30days" data-i18n-opt="dash.period30">Últimos 30 dias</option>
               </select>
             </div>
             <div class="chart-container">
@@ -662,11 +662,10 @@
             <p class="config-desc" data-i18n="settings.languageDesc">
               Escolha o idioma do aplicativo. As configurações são salvas neste dispositivo.
             </p>
-            <div class="settings-lang-wrap">
-              <select class="form-control lang-select" id="langSelect" aria-label="Selecionar idioma" title="Selecionar idioma">
-                <option value="pt-BR">Português</option>
-                <option value="en">English</option>
-              </select>
+              <button class="form-control text-left" id="btnOpenLangModal" style="display:flex;justify-content:space-between;align-items:center;">
+                <span id="currentLangDisplay">Português</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
             </div>
           </div>
 
@@ -860,23 +859,6 @@
             <div class="mp-config-url" id="mpWorkerUrlDisplay" style="display:none;"></div>
           </div>
 
-          <!-- System Settings Card -->
-          <div class="config-card">
-            <div class="config-card-header">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-              <span data-i18n="settings.sysTitle">Sistema</span>
-            </div>
-            <div class="form-group config-toggle-row">
-              <div>
-                <label data-i18n="settings.autoUpdate">Atualizações Automáticas</label>
-                <div class="config-hint" data-i18n="settings.autoUpdateDesc">Baixa e aplica as atualizações silenciosamente. Se desativado, você terá que baixar manualmente.</div>
-              </div>
-              <label class="switch">
-                <input type="checkbox" id="settingAutoUpdate">
-                <span class="slider round"></span>
-              </label>
-            </div>
-          </div>
 
           <!-- Security Card -->
           <div class="config-card">
@@ -1245,6 +1227,35 @@
       </div>
     </div>
   </div>
+  <!-- LANG MODAL -->
+  <div class="modal-overlay" id="langModal" role="dialog" aria-modal="true" aria-label="Idioma">
+    <div class="modal-container modal-small">
+      <div class="modal-header">
+        <h2>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+          <span data-i18n="settings.languageTitle">Idioma / Linguagem</span>
+        </h2>
+        <button class="modal-close" id="btnLangClose" aria-label="Fechar" data-i18n-title="common.close">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 1rem;">
+        <div style="display:flex;flex-direction:column;gap:1rem;">
+          <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;">
+            <input type="radio" name="app_lang_radio" value="pt-BR" style="width:18px;height:18px;accent-color:var(--color-accent-pink);">
+            <span style="font-size:1rem;color:white;">Português</span>
+          </label>
+          <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;">
+            <input type="radio" name="app_lang_radio" value="en" style="width:18px;height:18px;accent-color:var(--color-accent-pink);">
+            <span style="font-size:1rem;color:white;">English</span>
+          </label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="btnLangCancel" data-i18n="common.cancel">Cancelar</button>
+        <button class="btn btn-primary" id="btnLangSave" data-i18n="common.save">Salvar</button>
+      </div>
+    </div>
+  </div>
+
   <!-- TRASH MODAL (LIXEIRA) -->
   <div class="modal-overlay" id="trashModal" role="dialog" aria-modal="true" aria-label="Lixeira">
     <div class="modal-container modal-medium">
