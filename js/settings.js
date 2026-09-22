@@ -51,7 +51,13 @@ const Settings = {
     const btnImport = document.getElementById('btnImportData');
     const inputImport = document.getElementById('importFileInput');
     if (btnImport && inputImport) {
-      btnImport.addEventListener('click', () => inputImport.click());
+      btnImport.addEventListener('click', () => {
+        if (typeof Plan !== 'undefined' && !Plan.canUse('import')) {
+          Plan.showPaywall('Restauração de dados');
+          return;
+        }
+        inputImport.click();
+      });
       inputImport.addEventListener('change', (e) => this.handleImportFile(e));
     }
 

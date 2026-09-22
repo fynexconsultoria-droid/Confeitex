@@ -59,6 +59,11 @@
   } catch (e) {}
 
   function switchTab(tabId, pushState = true) {
+    if (tabId === 'finances' && typeof Plan !== 'undefined' && !Plan.canUse('finances_tab')) {
+      Plan.showPaywall('Acesso ao Financeiro (Premium)');
+      return;
+    }
+
     document.getElementById('sidebar').classList.remove('open');
     document.getElementById('sidebarOverlay').classList.remove('active');
 

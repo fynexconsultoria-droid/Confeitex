@@ -1,5 +1,9 @@
 const Trash = {
   openModal() {
+    if (typeof Plan !== 'undefined' && !Plan.canUse('trash_bin')) {
+      Plan.showPaywall('Acesso à Lixeira (Premium)');
+      return;
+    }
     State.purgeTrash();
     this.render();
     this.updateBadge();

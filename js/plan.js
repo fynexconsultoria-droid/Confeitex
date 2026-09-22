@@ -30,6 +30,9 @@ const Plan = {
   // Inicialização
   // ─────────────────────────────────────────────────────────────────────────
   init() {
+    if (!this.getTrialStart() && !this.isSubscriptionActive()) {
+      this.startTrial();
+    }
     this.renderPlanBadge();
   },
 
@@ -104,7 +107,6 @@ const Plan = {
   },
 
   getTrialDaysLeft() {
-    if (!this.hasRegisteredCard()) return 0;
     const start = this.getTrialStart();
     if (!start) return 0;
     const elapsed = (Date.now() - start.getTime()) / 86400000;
@@ -112,7 +114,7 @@ const Plan = {
   },
 
   isTrialActive() {
-    return this.hasRegisteredCard() && this.getTrialDaysLeft() > 0;
+    return this.getTrialDaysLeft() > 0;
   },
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -189,6 +191,10 @@ const Plan = {
       if (feature === 'unlimited_orders') {
         return (typeof State !== 'undefined' ? State.orders.length : 0) < this.MAX_ORDERS_FREE;
       }
+      // Features blocked during free trial
+      if (['finances_tab', 'backup_restore', 'pdf_export', 'trash_bin', 'export', 'import'].includes(feature)) {
+        return false;
+      }
       return true;
     }
 
@@ -240,8 +246,8 @@ const Plan = {
           </svg>
         </div>`;
     } else {
-      const label = status.hasCard ? 'Mensalidade Vencida' : 'Cadastre seu Cartão';
-      const sub = status.hasCard ? 'Renovar por R$ 16,99/mês' : 'Ative 7 dias grátis';
+      const label = status.hasCard ? 'Mensalidade Vencida' : 'Tempo Esgotado';
+      const sub = 'Assine por R$ 16,99/mês';
       badgeHTML = `
         <div class="plan-badge plan-badge--expired" id="planBadge" onclick="Plan.showUpgradeModal()" title="Ativar Confeitex">
           <div class="plan-badge-icon">
