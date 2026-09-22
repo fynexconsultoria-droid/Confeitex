@@ -532,7 +532,8 @@ ${expenses.length > 0 ? `
 // Utilitários de período
 // ============================================================
 
-const fmtISO = fmtISO;
+
+
 
 function _presetRange(preset) {
   const now = new Date();
