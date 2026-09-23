@@ -480,6 +480,21 @@ const Orders = {
       if (tab === 'orders') this.render();
       else if (tab === 'clients') Clients.render();
       UI.toast(I18n.t(id ? 'orders.toastUpdated' : 'orders.toastCreated'));
+      
+      // Prompt on 10th order
+      if (!id && typeof Plan !== 'undefined' && Plan.getStatus().type === 'trial' && State.orders.length === 10) {
+        setTimeout(async () => {
+          const ans = await UI.confirm({
+            title: 'Metade do Limite Atingido!',
+            message: 'Você acaba de registrar seu 10º pedido! Restam apenas mais 10 pedidos na versão gratuita. Deseja atualizar o aplicativo agora para garantir pedidos ilimitados?',
+            confirmText: 'Atualizar Aplicativo',
+            variant: 'primary'
+          });
+          if (ans) {
+            Plan.showPaywall('Atualização de Limites');
+          }
+        }, 600);
+      }
     });
   }
 };
