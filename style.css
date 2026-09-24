@@ -298,6 +298,8 @@ body {
 
 /* ─── Updates Page Redesign ─────────────────────────────────────── */
 .updates-page {
+  justify-content: flex-start !important;
+  margin-top: 0 !important;
   display: flex;
   flex-direction: column;
   gap: 1.25rem;

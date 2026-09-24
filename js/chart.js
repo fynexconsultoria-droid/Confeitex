@@ -216,11 +216,6 @@ const Chart = {
     });
 
     // Draw data
-    if (this.points.length === 1) {
-      this._drawSingle(this.pointPositions[0]);
-      return;
-    }
-
     const salesData = this.pointPositions.map(p => ({ x: p.x, y: p.sY }));
     const countData = this.pointPositions.map(p => ({ x: p.x, y: p.cY }));
 
