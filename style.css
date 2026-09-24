@@ -297,7 +297,7 @@ body {
 }
 
 /* ─── Updates Page Redesign ─────────────────────────────────────── */
-.updates-page {
+.updates-page { margin-bottom: auto !important;
   justify-content: flex-start !important;
   margin-top: 0 !important;
   display: flex;
@@ -6072,4 +6072,13 @@ input:-webkit-autofill:active {
 
 .ob-illustration {
   filter: none !important;
+}
+@media (max-width: 768px) {
+  .modal-container.modal-small {
+    max-height: 90vh !important;
+    height: auto !important;
+    border-radius: var(--border-radius-lg, 16px) !important;
+    margin: 1rem;
+    width: calc(100% - 2rem) !important;
+  }
 }
