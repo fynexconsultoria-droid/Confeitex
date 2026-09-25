@@ -299,7 +299,7 @@ body {
 /* ─── Updates Page Redesign ─────────────────────────────────────── */
 .updates-page { margin-bottom: auto !important;
   justify-content: flex-start !important;
-  margin-top: -1.5rem !important;
+  margin-top: -3.5rem !important;
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
