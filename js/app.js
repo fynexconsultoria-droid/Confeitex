@@ -21,14 +21,7 @@
   if (Onboarding.shouldShow()) {
     Onboarding.show();
   } else if (navigator.onLine) {
-    // REMOVIDA A OBRIGATORIEDADE DE CARTÃO PARA TESTE (A PEDIDO DO USUÁRIO)
-    // Se não tem cartão e não tem assinatura, exige cadastro do cartão para o teste
-    // if (!Plan.hasRegisteredCard() && !Plan.isSubscriptionActive()) {
-    //   setTimeout(() => Plan.showCardRegistrationModal({ forTrial: true }), 1000);
-    // } else if (!Plan.isTrialActive() && !Plan.isSubscriptionActive()) {
-    //   // Se já tinha cartão mas expirou o teste ou mensalidade
-    //   setTimeout(() => Plan.showUpgradeModal(), 1200);
-    // }
+    // Removed old paywall logic
   }
   
   await State.load();
@@ -314,6 +307,7 @@
 
   // Re-render dinâmico após mudar o idioma
   I18n.onApply = () => {
+    updateConnectionStatus();
     const currentTab = (function() { var el = document.querySelector('.nav-link.active'); return el ? el.dataset.tab : null; })();
     try { switchTab(currentTab || 'dashboard', false); } catch (e) {}
     try { Chart.render(); } catch (e) {}
@@ -379,16 +373,16 @@
     const isOnline = navigator.onLine;
     
     // Atualiza texto no sidebar
-    const sidebarText = document.querySelector('[data-i18n="nav.offline"]');
+    const sidebarText = document.getElementById('navConnectionStatus');
     if (sidebarText) {
-      sidebarText.textContent = isOnline ? 'Conectado (Online)' : 'Modo 100% Offline';
+      sidebarText.textContent = isOnline ? I18n.t('nav.online') : I18n.t('nav.offline');
       sidebarText.style.color = isOnline ? 'var(--color-success)' : '';
     }
 
     // Atualiza o badge na aba de Atualizações
-    const updatesStatus = document.querySelector('[data-i18n="updates.offlineStatus"]');
+    const updatesStatus = document.getElementById('updatesConnectionStatus');
     if (updatesStatus) {
-      updatesStatus.textContent = isOnline ? 'Conectado (Online)' : '100% Offline';
+      updatesStatus.textContent = isOnline ? I18n.t('updates.onlineStatus') : I18n.t('updates.offlineStatus');
     }
     const updatesDot = document.querySelector('.updates-dot');
     if (updatesDot) {
