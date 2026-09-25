@@ -1,4 +1,4 @@
-/* Confeitex - Design System & Custom Styles */
+﻿/* Confeitex - Design System & Custom Styles */
 
 /* ============================================================
    COMPATIBILITY: Fallbacks para Android 10+ / iOS 12+
@@ -299,7 +299,7 @@ body {
 
 /* --- Updates Page Redesign (Glassmorphism & GPU Accelerated) --------------------------------------- */
 .updates-page {
-  margin-top: -3.5rem !important;
+  margin-top: 0;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
