@@ -1235,17 +1235,22 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
           <span data-i18n="settings.languageTitle">Idioma / Linguagem</span>
         </h2>
-        <button class="modal-close" id="btnLangClose" aria-label="Fechar" data-i18n-title="common.close">&times;</button>
       </div>
-      <div class="modal-body" style="padding: 1rem;">
-        <div style="display:flex;flex-direction:column;gap:1rem;">
-          <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;">
-            <input type="radio" name="app_lang_radio" value="pt-BR" style="width:18px;height:18px;accent-color:var(--color-accent-pink);">
-            <span style="font-size:1rem;color:white;">Português</span>
+      <div class="modal-body lang-modal-body">
+        <div class="lang-options-grid">
+          <label class="lang-option-card">
+            <input type="radio" name="app_lang_radio" value="pt-BR">
+            <div class="lang-card-content">
+              <span class="lang-emoji">🇧🇷</span>
+              <span class="lang-name">Português</span>
+            </div>
           </label>
-          <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;">
-            <input type="radio" name="app_lang_radio" value="en" style="width:18px;height:18px;accent-color:var(--color-accent-pink);">
-            <span style="font-size:1rem;color:white;">English</span>
+          <label class="lang-option-card">
+            <input type="radio" name="app_lang_radio" value="en">
+            <div class="lang-card-content">
+              <span class="lang-emoji">🇺🇸</span>
+              <span class="lang-name">English</span>
+            </div>
           </label>
         </div>
       </div>

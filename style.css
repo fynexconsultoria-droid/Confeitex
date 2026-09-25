@@ -6070,6 +6070,65 @@ input:-webkit-autofill:active {
   box-shadow: 0 0 0 30px rgba(10, 8, 19, 0.9) inset !important;
 }
 
+/* Language Modal Styles */
+.lang-modal-body {
+  padding: 1.5rem !important;
+}
+
+.lang-options-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.lang-option-card {
+  position: relative;
+  cursor: pointer;
+  display: block;
+}
+
+.lang-option-card input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.lang-card-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md, 12px);
+  transition: all 0.2s ease;
+}
+
+.lang-option-card:hover .lang-card-content {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.lang-option-card input[type="radio"]:checked + .lang-card-content {
+  background: rgba(236, 72, 153, 0.1);
+  border-color: var(--color-accent-pink);
+}
+
+.lang-emoji {
+  font-size: 1.4rem;
+}
+
+.lang-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.lang-option-card input[type="radio"]:checked + .lang-card-content .lang-name {
+  color: var(--color-accent-pink);
+}
+
 .ob-illustration {
   filter: none !important;
 }

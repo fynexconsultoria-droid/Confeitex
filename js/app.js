@@ -298,7 +298,6 @@
       langModal.classList.add('active');
     });
     
-    document.getElementById('btnLangClose').addEventListener('click', () => langModal.classList.remove('active'));
     document.getElementById('btnLangCancel').addEventListener('click', () => langModal.classList.remove('active'));
     
     document.getElementById('btnLangSave').addEventListener('click', () => {
