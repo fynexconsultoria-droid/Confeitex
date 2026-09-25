@@ -1,5 +1,5 @@
 const Updates = {
-  _CODE_VERSION: '0.1.1-beta',
+  _CODE_VERSION: '0.1.2-beta',
 
   // Versão em execução obtida dinamicamente da tag meta ou fallback seguro
   get verAtual() {
