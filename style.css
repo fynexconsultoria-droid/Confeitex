@@ -1,4 +1,4 @@
-﻿/* Confeitex - Design System & Custom Styles */
+/* Confeitex - Design System & Custom Styles */
 
 /* ============================================================
    COMPATIBILITY: Fallbacks para Android 10+ / iOS 12+
@@ -1557,7 +1557,7 @@ input, textarea, select {
 
 @media (max-width: 580px) {
   .page-title h1 { font-size: 1.2rem; }
-  .main-content { padding: 1rem; }
+  .main-content { padding: 0.5rem; }
   .top-header { gap: 0.75rem; }
   .header-actions { flex-wrap: wrap; gap: 0.5rem; }
   .header-actions .btn { flex: 1; min-width: 0; white-space: nowrap; padding: 0.6rem 1rem; font-size: 0.8rem; }
@@ -1605,7 +1605,7 @@ input, textarea, select {
 }
 
 @media (max-width: 380px) {
-  .main-content { padding: 0.75rem; }
+  .main-content { padding: 0.5rem; }
   .page-title h1 { font-size: 1rem; }
   .metric-value { font-size: 1.1rem; }
   .btn { padding: 0.5rem 0.75rem; font-size: 0.75rem; }
@@ -2242,7 +2242,7 @@ select.form-control {
 /* Safe area for iPhones with notch */
 @supports (padding: env(safe-area-inset-top)) {
   .mobile-header {
-    padding-top: calc(1rem + env(safe-area-inset-top));
+    padding-top: calc(0.5rem + env(safe-area-inset-top));
   }
   
   .main-content {
@@ -2378,7 +2378,7 @@ select.form-control {
 /* Global Safe-Area Insets for Notch and Android Gesture Navigation Bar */
 @supports (padding-top: env(safe-area-inset-top)) {
   .mobile-header {
-    padding-top: max(1rem, calc(0.75rem + env(safe-area-inset-top, 0px)));
+    padding-top: max(0.5rem, calc(0.5rem + env(safe-area-inset-top, 0px)));
     padding-left: max(1.5rem, calc(1rem + env(safe-area-inset-left, 0px)));
     padding-right: max(1.5rem, calc(1rem + env(safe-area-inset-right, 0px)));
   }
@@ -2797,6 +2797,7 @@ select.form-control {
     flex-direction: column;
     align-items: stretch;
     gap: 0.5rem;
+    margin-bottom: 0.5rem;
   }
   .page-title h1 {
     font-size: 1.2rem;
