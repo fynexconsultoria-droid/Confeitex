@@ -130,12 +130,7 @@
               <span data-i18n="nav.settings">Configurações</span>
             </a>
           </li>
-          <li class="nav-item">
-            <a class="nav-link" data-tab="updates">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-              <span data-i18n="nav.updates">Atualizações</span>
-            </a>
-          </li>
+
         </ul>
       </nav>
       
@@ -894,107 +889,6 @@
         </div>
       </section>
 
-      <!-- TAB 6: UPDATES -->
-      <section id="updates" class="tab-content">
-        <div class="updates-page">
-
-      <!-- Hero: Versão Atual -->
-          <div class="updates-hero-card">
-            <div class="updates-hero-left">
-              <div>
-                <div class="updates-hero-label" data-i18n="updates.currentVer">Versão Instalada</div>
-                <div class="updates-hero-ver" id="updatesCurrentVer">—</div>
-                <div class="updates-hero-badges">
-                  <span class="updates-badge-offline">
-                    <span class="updates-dot"></span>
-                    <span id="updatesConnectionStatus">100% Offline</span>
-                  </span>
-                  <span class="updates-badge-uptodate" id="updatesUpToDateBadge" style="display:none;" data-i18n="updates.upToDate">✓ Atualizado</span>
-                </div>
-              </div>
-            </div>
-            <div class="updates-hero-right">
-              <div class="updates-hero-meta-label" data-i18n="updates.lastCheck">Última verificação</div>
-              <div class="updates-hero-meta-value" id="updatesLastCheck">—</div>
-              <button class="updates-hero-reload-btn" id="btnHeroReload" title="Recarregar app" style="display:none;">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-                <span data-i18n="updates.reloadNow">Recarregar</span>
-              </button>
-            </div>
-          </div>
-
-          <!-- Grid: Acoes + Info do Sistema -->
-          <div class="updates-action-grid">
-
-            <!-- Card Verificar / Forcar -->
-            <div class="updates-action-card">
-              <div class="updates-action-card-title">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                <span data-i18n="updates.actionsTitle">Ações</span>
-              </div>
-              <p class="updates-action-desc" data-i18n="updates.offlineReady">Todos os recursos e pedidos estão disponíveis sem internet.</p>
-              <div class="updates-action-buttons">
-                <button class="btn btn-primary updates-btn-check" id="btnCheckUpdates">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-                  <span data-i18n="updates.checkNow">Verificar Agora</span>
-                </button>
-                <button class="btn updates-btn-force" id="btnForceUpdate">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                  <span data-i18n="updates.forceBtn">Forçar Atualização &amp; Limpar Cache</span>
-                </button>
-              </div>
-              <div class="updates-status-wrap">
-                <div id="updatesStatus" class="updates-status-msg"></div>
-              </div>
-            </div>
-
-            <!-- Card Info do Sistema -->
-            <div class="updates-action-card">
-              <div class="updates-action-card-title">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
-                <span data-i18n="updates.sysInfoTitle">Informações do Sistema</span>
-              </div>
-              <div class="updates-sysinfo">
-                <div class="updates-sysinfo-row">
-                  <span class="updates-sysinfo-label" data-i18n="updates.siPlatform">Plataforma</span>
-                  <span class="updates-sysinfo-value" id="siPlatform">--</span>
-                </div>
-                <div class="updates-sysinfo-row">
-                  <span class="updates-sysinfo-label" data-i18n="updates.siSW">Service Worker</span>
-                  <span class="updates-sysinfo-value" id="siSwStatus">--</span>
-                </div>
-                <div class="updates-sysinfo-row">
-                  <span class="updates-sysinfo-label" data-i18n="updates.siCache">Cache</span>
-                  <span class="updates-sysinfo-value" id="siCacheStatus">--</span>
-                </div>
-                <div class="updates-sysinfo-row">
-                  <span class="updates-sysinfo-label" data-i18n="updates.siConnection">Conexão</span>
-                  <span class="updates-sysinfo-value" id="siConnectionStatus">--</span>
-                </div>
-                <div class="updates-sysinfo-row">
-                  <span class="updates-sysinfo-label" data-i18n="updates.siInstalled">Instalado como PWA</span>
-                  <span class="updates-sysinfo-value" id="siPwaStatus">--</span>
-                </div>
-              </div>
-            </div>
-
-          </div>
-
-          <!-- Changelog -->
-          <div class="updates-changelog-card">
-            <div class="updates-changelog-header">
-              <div class="updates-action-card-title">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-                <span data-i18n="updates.historyTitle">Histórico de Versões</span>
-              </div>
-              <span class="updates-changelog-hint" data-i18n="updates.historyHint">Novidades de cada versão</span>
-            </div>
-            <div id="updatesChangelog" class="updates-changelog-list">
-            </div>
-          </div>
-
-        </div>
-      </section>
 
     </main>
   </div>
