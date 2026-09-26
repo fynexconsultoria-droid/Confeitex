@@ -4,7 +4,7 @@ import { UI } from './ui.js';
 import { safeStorage } from './utils.js';
 
 export const Updates = {
-  _CODE_VERSION: '0.1.2-beta',
+  _CODE_VERSION: '0.1.0-beta',
 
   // Versão em execução obtida dinamicamente da tag meta ou fallback seguro
   get verAtual() {
@@ -24,9 +24,7 @@ export const Updates = {
   _promptShowing: false,
 
   changelog: [
-    { ver: '0.1.2-beta', date: '26/09/2026', keys: ['changelog.012beta'] },
-    { ver: '0.1.1-beta', date: '24/09/2026', keys: ['changelog.011beta'] },
-    { ver: '0.1.0-beta', date: '22/09/2026', keys: ['changelog.010beta'] }
+    { ver: '0.1.0-beta', date: '26/09/2026', keys: ['changelog.010beta'] }
   ],
 
   setup() {

@@ -1,0 +1,112 @@
+/* Mobile App Layout (Bottom Navigation) */
+@media (max-width: 768px) {
+  /* Hide the hamburger button since we have bottom nav */
+  #menuToggle {
+    display: none !important;
+  }  /* Improve Touch Targets */\n  input, select, button, .btn { min-height: 44px; }\n  /* Remove rounded corners from inputs on iOS */\n  input, textarea { -webkit-appearance: none; border-radius: var(--border-radius-sm); }\n  /* Optimize modal spacing for mobile */\n  .modal-content { border-radius: 20px 20px 0 0; margin-bottom: 0; min-height: 50vh; }\n  .modal { align-items: flex-end; padding: 0; }\n}
+  
+  /* Keep mobile header for brand only */
+  .mobile-header {
+    justify-content: center;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  /* Transform Sidebar into Bottom Navigation */
+  .sidebar {
+    transform: none !important;
+    width: 100% !important;
+    height: calc(65px + env(safe-area-inset-bottom, 0px)) !important;
+    top: auto !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    flex-direction: row !important;
+    padding: 0 !important;
+    border-right: none !important;
+    border-top: 1px solid var(--border-color);
+    background: rgba(17, 14, 32, 0.95) !important;
+    backdrop-filter: blur(10px);
+    z-index: 1000 !important;
+    box-shadow: 0 -4px 24px rgba(0,0,0,0.4);
+  }
+
+  /* Hide brand, plan badge and footer in bottom nav */
+  .sidebar .brand,
+  .sidebar #planBadgeContainer,
+  .sidebar .sidebar-footer {
+    display: none !important;
+  }
+
+  /* Adjust Nav Menu container */
+  .sidebar-nav {
+    flex: 1 !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+    display: flex;
+  }
+
+  .nav-menu {
+    display: flex !important;
+    flex-direction: row !important;
+    width: 100% !important;
+    height: 100% !important;
+    gap: 0 !important;
+    justify-content: space-around !important;
+    align-items: stretch !important;
+    padding: 0 0.5rem !important;
+  }
+
+  .nav-item {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+  }
+
+  /* Adjust Nav Links for Bottom Bar */
+  .nav-link {
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: center !important;
+    padding: 0.4rem 0 calc(0.4rem + env(safe-area-inset-bottom, 0px)) 0 !important;
+    gap: 0.25rem !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    width: 100%;
+  }
+
+  .nav-link svg {
+    width: 22px !important;
+    height: 22px !important;
+    margin: 0 !important;
+    stroke-width: 1.5 !important;
+  }
+
+  .nav-link span {
+    font-size: 0.65rem !important;
+    font-weight: 600 !important;
+    display: block !important;
+    text-align: center;
+    line-height: 1 !important;
+  }
+
+  /* Active state */
+  .nav-link.active {
+    color: var(--color-accent-pink) !important;
+  }
+
+  .nav-link.active svg {
+    color: var(--color-accent-pink) !important;
+    fill: rgba(236, 72, 153, 0.1) !important;
+  }
+
+  /* Main content spacing to avoid overlap */
+  .main-content {
+    margin-left: 0 !important;
+    padding-bottom: calc(85px + env(safe-area-inset-bottom, 0px)) !important;
+    min-height: 100vh !important;
+  }
+
+  /* Make sure overlay doesn't trigger anymore */
+  .sidebar-overlay {
+    display: none !important;
+  }
+}

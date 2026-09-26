@@ -518,7 +518,7 @@ export const I18n = {
       'updates.offlineReady': 'Todos os recursos e pedidos estão disponíveis sem internet.',
       'changelog.012beta': 'Melhoria: Atualização da versão beta com melhorias de interface e performance.',
       'changelog.011beta': 'Correção: Ajustes menores na visualização de pedidos e fluxo de finanças.',
-      'changelog.010beta': 'Confeitex 0.1.0-beta: Lançamento inicial (versão beta).',
+      'changelog.010beta': 'Novo: Lançamento da Primeira Versão Beta Oficial do Confeitex focada em alta performance no celular e navegação Bottom Bar nativa.',
       // auth
       'auth.loginTagline': 'Confeitaria Digital',
       'auth.passwordPh': 'Digite sua senha',
@@ -1093,7 +1093,7 @@ export const I18n = {
       'updates.offlineReady': 'All features and orders are available without internet.',
       'changelog.012beta': 'Improvement: Beta version update with interface and performance improvements.',
       'changelog.011beta': 'Fix: Minor adjustments to order visualization and finance flow.',
-      'changelog.010beta': 'Confeitex 0.1.0-beta: Initial release (beta version).',
+      'changelog.010beta': 'Novo: Lançamento da Primeira Versão Beta Oficial do Confeitex focada em alta performance no celular e navegação Bottom Bar nativa.',
       'auth.loginTagline': 'Digital Bakery',
       'auth.passwordPh': 'Enter your password',
       'auth.showPw': 'Show password',
