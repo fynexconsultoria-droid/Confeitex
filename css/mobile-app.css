@@ -24,11 +24,11 @@
   /* Transform Sidebar into Nubank-style Floating Bottom Navigation */
   .sidebar {
     transform: none !important;
-    width: calc(100% - 2rem) !important;
-    height: 65px !important;
+    width: calc(100% - 2.5rem) !important;
+    height: 56px !important;
     top: auto !important;
     bottom: calc(1rem + env(safe-area-inset-bottom, 0px)) !important;
-    left: 1rem !important;
+    left: 1.25rem !important;
     flex-direction: row !important;
     padding: 0 0.5rem !important;
     border: 1px solid rgba(255, 255, 255, 0.1) !important;
@@ -37,7 +37,7 @@
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     z-index: 1000 !important;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6) !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25) !important;
   }
 
   /* Hide brand, plan badge and footer in bottom nav */
