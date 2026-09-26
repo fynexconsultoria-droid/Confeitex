@@ -15,9 +15,9 @@
   .modal-content { border-radius: 20px 20px 0 0; margin-bottom: 0; min-height: 50vh; }
   .modal { align-items: flex-end; padding: 0; }
   
-  /* Keep mobile header for brand only */
+  /* Keep mobile header space-between for brand on left and menu on right */
   .mobile-header {
-    justify-content: center;
+    justify-content: space-between !important;
     border-bottom: 1px solid var(--border-color);
   }
 
