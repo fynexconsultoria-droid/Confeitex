@@ -93,7 +93,7 @@ import { fmtDate, fmtISO, safeStorage } from './utils.js';
       else if (tabId === 'orders') Orders.render();
       else if (tabId === 'clients') Clients.render();
       else if (tabId === 'finances') Finance.render();
-      else if (tabId === 'settings') Settings.renderCatalog();
+      else if (tabId === 'settings') { Settings.renderCatalog(); Updates.render(); }
       else if (tabId === 'updates') Updates.render();
     } catch (e) { console.warn('[Confeitex] Erro na aba', tabId, e); }
   }
@@ -206,12 +206,40 @@ import { fmtDate, fmtISO, safeStorage } from './utils.js';
   });
 
   // Mobile menu
+  const rightSidebar = document.getElementById('rightSidebar');
+  const rightOverlay = document.getElementById('rightSidebarOverlay');
+  
   document.getElementById('menuToggle').addEventListener('click', () => {
-    document.getElementById('sidebar').classList.toggle('open');
-    document.getElementById('sidebarOverlay').classList.toggle('active');
-    if (document.getElementById('sidebar').classList.contains('open')) {
-      pushModalState();
-    }
+    if(rightSidebar) rightSidebar.classList.add('open');
+    if(rightOverlay) rightOverlay.classList.add('active');
+  });
+
+  const closeRight = () => {
+    if(rightSidebar) rightSidebar.classList.remove('open');
+    if(rightOverlay) rightOverlay.classList.remove('active');
+  };
+
+  document.getElementById('closeRightSidebar')?.addEventListener('click', closeRight);
+  rightOverlay?.addEventListener('click', closeRight);
+
+  document.querySelectorAll('.right-sidebar-link').forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      closeRight();
+      window.switchTab('settings');
+      const targetId = link.getAttribute('data-target');
+      if (targetId) {
+        setTimeout(() => {
+          const el = document.getElementById(targetId);
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            el.style.transition = 'background 0.5s';
+            el.style.background = 'rgba(236, 72, 153, 0.1)';
+            setTimeout(() => { el.style.background = 'transparent'; }, 1000);
+          }
+        }, 300);
+      }
+    });
   });
   document.getElementById('sidebarOverlay').addEventListener('click', () => {
     document.getElementById('sidebar').classList.remove('open');
@@ -430,3 +458,4 @@ import { fmtDate, fmtISO, safeStorage } from './utils.js';
     safeStorage.set('confeitex_last_auto_check', String(Date.now()));
   })();
 })();
+
