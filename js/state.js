@@ -1,4 +1,8 @@
-const DEFAULT_CATALOG = [
+import { Auth } from './auth.js';
+import { Notifications } from './notifications.js';
+import { fmt, fmtDate, fmtISO, safeStorage, sanitizeForStorage, validateStateDump, getOrderTotal, formatWeight, AppDB, CryptoUtils } from './utils.js';
+
+export const DEFAULT_CATALOG = [
   { id: '1', flavor: 'Bolo Ninho com Morango', pricePerKg: 75.00, type: 'Bolo de Kg' },
   { id: '2', flavor: 'Bolo Chocolate Belga', pricePerKg: 80.00, type: 'Bolo de Kg' },
   { id: '3', flavor: 'Bolo Red Velvet', pricePerKg: 90.00, type: 'Bolo de Kg' },
@@ -7,7 +11,7 @@ const DEFAULT_CATALOG = [
   { id: '6', flavor: 'Cento de Salgados Fritos', pricePerKg: 100.00, type: 'Salgados' }
 ];
 
-function migrateOrder(o) {
+export function migrateOrder(o) {
   const order = { paymentMethod: 'Dinheiro', cost: 0, deliveredAt: null, totalValue: 0, deliveryType: 'Retirada no Local', ...o };
   order.totalValue = getOrderTotal(order);
   if (order.status === 'Entregue' && !order.deliveredAt) {
@@ -18,7 +22,7 @@ function migrateOrder(o) {
   return order;
 }
 
-const State = {
+export const State = {
   orders: [],
   catalog: [],
   trash: [],
@@ -96,15 +100,27 @@ const State = {
 
   async load() {
     try {
-      const rawOrders = await this._loadItem('confeitex_orders', []);
+      const encryptionKey = (typeof Auth !== 'undefined' && Auth.encryptionKey) ? Auth.encryptionKey : null;
+      let ordersV2 = await AppDB.getAllOrders(encryptionKey);
+      
+      if (ordersV2 && ordersV2.length > 0) {
+        this.orders = ordersV2.map(migrateOrder);
+      } else {
+        const rawOrders = await this._loadItem('confeitex_orders', []);
+        const safeOrders = validateStateDump({ orders: rawOrders });
+        this.orders = safeOrders.orders.map(migrateOrder);
+        
+        if (this.orders.length > 0) {
+          console.log('[Migração] Salvando encomendas na V2...');
+          for (const o of this.orders) {
+            await AppDB.putOrder(o, encryptionKey);
+          }
+        }
+      }
+
       const rawCatalog = await this._loadItem('confeitex_catalog', null);
-      
-      const safeOrders = validateStateDump({ orders: rawOrders });
       const safeCatalog = validateStateDump({ catalog: rawCatalog || [...DEFAULT_CATALOG] });
-      
-      this.orders = safeOrders.orders.map(migrateOrder);
       this.catalog = safeCatalog.catalog;
-      
       if (!rawCatalog) this.saveCatalog();
     } catch (e) {
       this.orders = [];
@@ -128,7 +144,9 @@ const State = {
   },
 
   saveOrders() {
-    this._scheduleSave('confeitex_orders', this.orders);
+    const encryptionKey = (typeof Auth !== 'undefined' && Auth.encryptionKey) ? Auth.encryptionKey : null;
+    this.orders.forEach(o => AppDB.putOrder(o, encryptionKey));
+    this._scheduleSave('confeitex_orders', this.orders); // Manter legacy temporariamente
     if (this._syncTimer) clearTimeout(this._syncTimer);
     this._syncTimer = setTimeout(() => {
       if (typeof Notifications !== 'undefined' && Notifications.syncData) Notifications.syncData();

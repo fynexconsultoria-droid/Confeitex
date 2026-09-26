@@ -1,0 +1,425 @@
+// Confeitex - Service Worker (PWA Offline Support)
+// Estratégia: Stale-While-Revalidate — version.txt sempre vai à rede
+// O nome do cache usa a versão hardcoded para invalidar automaticamente
+
+// Polyfill: Promise.allSettled para navegadores antigos (Android 10 / Chrome 74-75)
+if (typeof Promise.allSettled === 'undefined') {
+  Promise.allSettled = function(promises) {
+    return Promise.all(promises.map(function(p) {
+      return Promise.resolve(p).then(
+        function(value) { return { state: 'fulfilled', value: value }; },
+        function(reason) { return { state: 'rejected', reason: reason }; }
+      );
+    }));
+  };
+}
+
+const SW_VERSION = '0.1.0-beta';
+const CACHE_NAME = 'confeitex-cache-v' + SW_VERSION;
+
+// Arquivos que serão cacheados na instalação do Service Worker
+// Nota: pdf.min.js e pdf.worker.min.js (1.4MB) são carregados sob demanda (lazy-load) para otimizar instalação
+const ASSETS_TO_CACHE = [
+  './',
+  './index.html',
+  './style.css',
+  './manifest.json',
+  './js/state.js',
+  './js/auth.js',
+  './js/utils.js',
+  './js/ui.js',
+  './js/pwa.js',
+  './js/chart.js',
+  './js/notifications.js',
+  './js/dashboard.js',
+  './js/orders.js',
+  './js/clients.js',
+  './js/settings.js',
+  './js/finances.js',
+  './js/updates.js',
+  './js/i18n.js',
+  './js/plan.js',
+  './js/mercadopago.js',
+  './js/onboarding.js',
+  './js/app.js',
+  './js/trash.js',
+  './icons/icon-192x192.png',
+  './icons/icon-512x512.png'
+];
+
+// INSTALAÇÃO — cacheia todos os arquivos essenciais (tolerante a falhas)
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    Promise.resolve().then(() => {
+      return caches.open(CACHE_NAME)
+        .then((cache) => {
+          console.log('[SW] Cacheando arquivos do Confeitex...');
+          return Promise.allSettled(
+            ASSETS_TO_CACHE.map(url =>
+              cache.add(url).catch(() => {
+                console.warn('[SW] Falha ao cachear: ' + url);
+              })
+            )
+          );
+        })
+        .then(() => {
+          // Salva a versão atual no IndexedDB para comparação futura
+          return swSet('confeitex_current_version', SW_VERSION);
+        })
+        .then(() => {
+          // Notifica os clientes se houver alguma janela aberta
+          return self.clients.matchAll({ type: 'window' }).then((clients) => {
+            if (clients && clients.length > 0) {
+              clients.forEach(client => {
+                client.postMessage({ type: 'UPDATE_AVAILABLE', version: SW_VERSION });
+              });
+            }
+          });
+        });
+    })
+  );
+});
+
+// ATIVAÇÃO — limpa caches antigos quando uma nova versão do SW é ativada
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames
+          .filter((name) => name !== CACHE_NAME)
+          .map((name) => {
+            console.log('[SW] Removendo cache antigo:', name);
+            return caches.delete(name);
+          })
+      );
+    }).then(() => {
+      // NÃO chama clients.claim() — o SW novo só assume na próxima abertura
+      // ou quando o usuário aceitar a atualização via modal
+      return swRunCheck();
+    })
+  );
+});
+
+// Suporte para skipWaiting manual via postMessage
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});
+
+// FETCH — prioriza rede para navegação e assets do app para garantir que a
+// nova versão seja carregada em celulares e para evitar ficar preso em cache antigo.
+// Mantém fallback para offline quando não houver rede.
+function cachePutIfSafe(cache, request, response) {
+  if (!response || response.status !== 200 || response.type !== 'basic') return;
+  if (request.method !== 'GET') return;
+  if (request.url.includes('google-analytics') || request.url.includes('fonts.googleapis.com') || request.url.includes('fonts.gstatic.com')) return;
+  const clone = response.clone();
+  cache.put(request, clone).catch(() => {});
+}
+
+async function cacheFirstWithNetworkFallback(event) {
+  const request = event.request;
+  const cache = await caches.open(CACHE_NAME);
+
+  // Busca no cache primeiro
+  const cachedResponse = await cache.match(request, { ignoreSearch: true });
+  if (cachedResponse) return cachedResponse;
+
+  // Se não estiver no cache, vai para a rede
+  try {
+    const networkResponse = await fetch(request, { cache: 'no-store' });
+    if (networkResponse && networkResponse.ok) {
+      cachePutIfSafe(cache, request, networkResponse);
+    }
+    return networkResponse;
+  } catch (error) {
+    return new Response('Offline', { status: 504, statusText: 'Offline' });
+  }
+}
+
+self.addEventListener('fetch', (event) => {
+  if (event.request.method !== 'GET') return;
+  const url = new URL(event.request.url);
+  if (!url.origin.startsWith('http')) return;
+
+  // version.txt e .well-known sempre vão à rede
+  if (url.pathname.endsWith('/version.txt') || url.pathname.includes('/.well-known/')) {
+    event.respondWith(fetch(event.request, { cache: 'no-store' }));
+    return;
+  }
+
+  const isAppAsset = [
+    '/index.html', '/style.css', '/manifest.json', '/js/', '/vendor/', '/icons/', '/sw.js', '/termos.html', '/privacidade.html'
+  ].some((fragment) => url.pathname.endsWith(fragment) || url.pathname.includes(fragment));
+
+  if (event.request.mode === 'navigate' || isAppAsset) {
+    event.respondWith(cacheFirstWithNetworkFallback(event));
+    return;
+  }
+
+  // Recursos externos e terceiros continuam usando cache estático quando possível.
+  event.respondWith(
+    caches.match(event.request, { ignoreSearch: true })
+      .then((cachedResponse) => {
+        if (cachedResponse) return cachedResponse;
+        return fetch(event.request, { cache: 'no-store' })
+          .then((networkResponse) => {
+            if (!networkResponse || !networkResponse.ok) return networkResponse;
+            caches.open(CACHE_NAME).then((cache) => cachePutIfSafe(cache, event.request, networkResponse));
+            return networkResponse;
+          })
+          .catch(() => new Response('Offline', { status: 504, statusText: 'Offline' }));
+      })
+  );
+});
+
+// ============================================================================
+// Notificações em segundo plano
+// ============================================================================
+
+// Mini-banco IndexedDB (compartilhado com a página — mesma estrutura que notifications.js)
+function swOpenDB() {
+  return new Promise((resolve) => {
+    const req = indexedDB.open('confeitex-sw-db', 1);
+    req.onupgradeneeded = () => {
+      const db = req.result;
+      if (!db.objectStoreNames.contains('kv')) db.createObjectStore('kv');
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => resolve(null);
+  });
+}
+
+function swGet(key) {
+  return swOpenDB().then((db) => new Promise((resolve) => {
+    if (!db) return resolve(undefined);
+    const tx = db.transaction('kv', 'readonly');
+    const req = tx.objectStore('kv').get(key);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => resolve(undefined);
+  }));
+}
+
+function swSet(key, value) {
+  return swOpenDB().then((db) => new Promise((resolve) => {
+    if (!db) return resolve();
+    const tx = db.transaction('kv', 'readwrite');
+    tx.objectStore('kv').put(value, key);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => resolve();
+  }));
+}
+
+// Mini-dicionário para as notificações em segundo plano (idioma salvo pelo usuário)
+const SW_NOTIF_STRINGS = {
+  'pt-BR': { d0: 'Hoje', d1: 'Amanhã', d2: 'em 2 Dias', d3: 'em 3 Dias', sched: '{count} entrega(s) agendada(s) para {day}:', more: '\ne mais {count} pedido(s)...', total: '\n💰 Valor total: {value}', today: 'Confeitex - Entregas de Hoje! 🎂', reminder: 'Confeitex - Lembrete: Entregas {day} 🎂', overdueBody: '{count} pedido(s) com entrega atrasada:', overdueTitle: 'Confeitex - Pedidos Atrasados ⚠️' },
+  en: { d0: 'Today', d1: 'Tomorrow', d2: 'in 2 Days', d3: 'in 3 Days', sched: '{count} delivery(ies) scheduled for {day}:', more: '\nand {count} more order(s)...', total: '\n💰 Total value: {value}', today: 'Confeitex - Deliveries Today! 🎂', reminder: 'Confeitex - Reminder: Deliveries {day} 🎂', overdueBody: '{count} order(s) with late delivery:', overdueTitle: 'Confeitex - Overdue Orders ⚠️' }
+};
+
+function swInterp(tpl, vars) {
+  return tpl.replace(/\{(\w+)\}/g, (_, k) => (k in vars ? String(vars[k]) : ''));
+}
+
+function swNotif(lang) {
+  return SW_NOTIF_STRINGS[lang] || SW_NOTIF_STRINGS['pt-BR'];
+}
+
+function swFmtMoney(value, currency, lang) {
+  const locale = { 'pt-BR': 'pt-BR', en: 'en-US', es: 'es-ES' }[lang] || 'pt-BR';
+  try {
+    return new Intl.NumberFormat(locale, { style: 'currency', currency: currency || 'BRL' }).format(value).replace(/\u00A0/g, ' ');
+  } catch (e) {
+    const sym = { BRL: 'R$', USD: '$', EUR: '€' }[currency] || 'R$';
+    return sym + ' ' + Number(value).toFixed(2).replace('.', ',');
+  }
+}
+
+// Periodic Background Sync — fallback para navegadores Chromium sem Notification Triggers.
+// O navegador acorda o service worker periodicamente e executamos a checagem.
+self.addEventListener('periodicsync', (event) => {
+  if (event.tag === 'confeitex-notif-sync') {
+    event.waitUntil(swRunCheck());
+  } else if (event.tag === 'confeitex-update-sync') {
+    event.waitUntil(swCheckForUpdate());
+  }
+});
+
+async function swRunCheck() {
+  if (!('Notification' in self) || Notification.permission !== 'granted') return;
+
+  const snapshot = await swGet('confeitex_snapshot');
+  if (!snapshot || !snapshot.enabled) return;
+
+  const settings = snapshot.settings || {};
+  const daysBeforeList = settings.daysBefore || [0, 1];
+  const allowedStatuses = settings.statuses || ['Pendente', 'Em Produção'];
+  const sent = await swGet('confeitex_sent') || {};
+  const now = new Date();
+  const todayStr = swFmtISO(now);
+  const s = swNotif(snapshot.lang);
+  const dayLabels = { 0: s.d0, 1: s.d1, 2: s.d2, 3: s.d3 };
+  const newSent = { ...sent };
+
+  // Horário de silêncio: não notifica dentro do intervalo configurado
+  if (swInQuietHours(settings)) return;
+
+  // Limpa chaves de datas passadas
+  for (const k in newSent) {
+    const m = k.match(/^notif_d(\d+)_(\d{4}-\d{2}-\d{2})$/);
+    if (m && m[2] < todayStr) delete newSent[k];
+    const o = k.match(/^overdue_(\d{4}-\d{2}-\d{2})$/);
+    if (o && o[1] < todayStr) delete newSent[k];
+  }
+
+  for (const dayOffset of daysBeforeList) {
+    const targetDateObj = new Date(now.getTime() + dayOffset * 86400000);
+    const targetDateStr = swFmtISO(targetDateObj);
+
+    const matchingOrders = (snapshot.orders || []).filter(o =>
+      o.deliveryDate === targetDateStr && allowedStatuses.includes(o.status));
+    if (matchingOrders.length === 0) continue;
+
+    const cacheKey = `notif_d${dayOffset}_${targetDateStr}`;
+    if (sent[cacheKey]) continue;
+
+    let bodyMsg = swInterp(s.sched, { count: matchingOrders.length, day: dayLabels[dayOffset] || targetDateStr }) + '\n';
+    bodyMsg += matchingOrders.slice(0, 3).map(o => `• ${o.deliveryTime || ''} ${o.clientName}: ${o.flavor}`).join('\n');
+    if (matchingOrders.length > 3) {
+      bodyMsg += swInterp(s.more, { count: matchingOrders.length - 3 });
+    }
+    if (settings.alertPendingPayment !== false) {
+      const withPendingVal = matchingOrders.filter(o => (o.totalValue || 0) > 0);
+      if (withPendingVal.length > 0) {
+        const totalVal = withPendingVal.reduce((sum, o) => sum + (o.totalValue || 0), 0);
+        bodyMsg += swInterp(s.total, { value: swFmtMoney(totalVal, snapshot.currency, snapshot.lang) });
+      }
+    }
+
+    const title = dayOffset === 0
+      ? s.today
+      : swInterp(s.reminder, { day: dayLabels[dayOffset] || targetDateStr });
+
+    self.registration.showNotification(title, {
+      body: bodyMsg,
+      icon: 'icons/icon-192x192.png',
+      tag: `confeitex-day-${dayOffset}-${targetDateStr}`
+    });
+
+    newSent[cacheKey] = true;
+  }
+
+  // Alertas de pedidos atrasados (data de entrega vencida e ainda pendente)
+  if (settings.overdueAlerts !== false) {
+    const overdueOrders = (snapshot.orders || []).filter(o =>
+      allowedStatuses.includes(o.status) && o.deliveryDate && o.deliveryDate < todayStr);
+    if (overdueOrders.length > 0) {
+      const cacheKey = `overdue_${todayStr}`;
+      if (!sent[cacheKey]) {
+        let bodyMsg = swInterp(s.overdueBody, { count: overdueOrders.length }) + '\n';
+        bodyMsg += overdueOrders.slice(0, 3).map(o =>
+          `• ${o.clientName}: ${o.flavor} (${o.deliveryDate.split('-').reverse().join('/')})`).join('\n');
+        if (overdueOrders.length > 3) {
+          bodyMsg += swInterp(s.more, { count: overdueOrders.length - 3 });
+        }
+        const title = s.overdueTitle;
+        self.registration.showNotification(title, {
+          body: bodyMsg,
+          icon: 'icons/icon-192x192.png',
+          tag: `confeitex-overdue-${todayStr}`
+        });
+        newSent[cacheKey] = true;
+      }
+    }
+  }
+
+  await swSet('confeitex_sent', newSent);
+}
+
+// Data local em formato ISO (YYYY-MM-DD) — evita o bug de UTC (dia errado à noite)
+function swFmtISO(d) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+// Verifica se agora está dentro do horário de silêncio configurado
+function swInQuietHours(settings) {
+  if (!settings.quietHoursEnabled) return false;
+  const now = new Date();
+  const cur = now.getHours() * 60 + now.getMinutes();
+  const [sh, sm] = (settings.quietHoursStart || '22:00').split(':').map(Number);
+  const [eh, em] = (settings.quietHoursEnd || '07:00').split(':').map(Number);
+  const start = (sh || 0) * 60 + (sm || 0);
+  const end = (eh || 0) * 60 + (em || 0);
+  if (start === end) return false;
+  if (start < end) return cur >= start && cur < end;
+  return cur >= start || cur < end;
+}
+
+// Verifica atualização via rede e notifica clientes se houver nova versão
+async function swCheckForUpdate() {
+  try {
+    const r = await fetch('./version.txt?t=' + Date.now(), { cache: 'no-store' });
+    if (!r.ok) return;
+    const raw = await r.text();
+    const serverVer = raw.trim();
+    if (!serverVer || serverVer.includes('<') || !/^\d+\.\d+\.\d+/.test(serverVer)) return;
+    const currentVer = await swGet('confeitex_current_version');
+    if (serverVer && serverVer !== currentVer) {
+      // Notifica todos os clientes sobre a atualização disponível
+      const clients = await self.clients.matchAll({ type: 'window' });
+      for (const client of clients) {
+        client.postMessage({ type: 'UPDATE_AVAILABLE', version: serverVer });
+      }
+      // NÃO salva a versão aqui — só salva quando o SW novo é ativado (install)
+      // Isso garante que a notificação possa ser reenviada se o usuário ignorar
+    }
+  } catch (e) {
+    console.warn('[SW] Erro ao verificar atualização:', e);
+  }
+}
+
+// Ouvinte de mensagens da aplicação (postMessage)
+self.addEventListener('message', (event) => {
+  if (!event.data) return;
+  const { type, payload } = event.data;
+
+  if (type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  } else if (type === 'CHECK_NOTIFICATIONS' || type === 'APP_OPENED') {
+    // Verifica notificações quando o app abre ou recebe mensagem
+    event.waitUntil(swRunCheck());
+  } else if (type === 'CHECK_UPDATES') {
+    // Verifica atualização e notifica clientes se houver nova versão
+    event.waitUntil(swCheckForUpdate());
+  } else if (type === 'TEST_NOTIFICATION') {
+    event.waitUntil(
+      self.registration.showNotification(payload?.title || 'Confeitex - Teste Offline! 🎂', {
+        body: payload?.body || 'Notificações offline funcionando perfeitamente no seu dispositivo!',
+        icon: 'icons/icon-192x192.png',
+        badge: 'icons/icon-192x192.png',
+        tag: 'confeitex-test-notification',
+        data: { tab: 'orders' }
+      })
+    );
+  }
+});
+
+// Ao tocar/clicar na notificação, abre ou foca o app diretamente na aba correta
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const targetTab = event.notification.data?.tab || 'orders';
+
+  event.waitUntil((async () => {
+    const windowClients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    for (const client of windowClients) {
+      if ('focus' in client) {
+        await client.focus();
+        client.postMessage({ type: 'SWITCH_TAB', tab: targetTab });
+        return;
+      }
+    }
+    if (self.clients.openWindow) {
+      return self.clients.openWindow('./#tab=' + targetTab);
+    }
+  })());
+});

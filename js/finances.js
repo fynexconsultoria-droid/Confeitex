@@ -1,4 +1,11 @@
-const Finance = {
+import { Chart } from './chart.js';
+import { I18n } from './i18n.js';
+import { Plan } from './plan.js';
+import { State } from './state.js';
+import { UI } from './ui.js';
+import { fmt, fmtDateStr, fmtISO, escapeHTML, getOrderTotal } from './utils.js';
+
+export const Finance = {
   _range: { from: null, to: null },
 
   render() {
@@ -535,7 +542,7 @@ ${expenses.length > 0 ? `
 
 
 
-function _presetRange(preset) {
+export function _presetRange(preset) {
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };

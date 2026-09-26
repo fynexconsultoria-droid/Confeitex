@@ -1,4 +1,9 @@
-const Auth = {
+import { I18n } from './i18n.js';
+import { State } from './state.js';
+import { UI } from './ui.js';
+import { safeStorage, CryptoUtils } from './utils.js';
+
+export const Auth = {
   lockEnabled: false,
   lockHash: '',
   encryptionKey: null, // Mantém a chave AES-GCM na memória

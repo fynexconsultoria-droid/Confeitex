@@ -1,3 +1,5 @@
+import { safeStorage } from './utils.js';
+
 (() => {
   let deferredInstall = null;
 

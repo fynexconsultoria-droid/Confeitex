@@ -1,14 +1,16 @@
-const fmt = (val) => {
+import { I18n } from './i18n.js';
+
+export const fmt = (val) => {
   const loc = (typeof I18n !== 'undefined' && I18n.locale) ? I18n.locale() : 'pt-BR';
   const cur = (typeof I18n !== 'undefined' && I18n.currency) ? I18n.currency() : 'BRL';
   return new Intl.NumberFormat(loc, { style: 'currency', currency: cur }).format(isNaN(val) || val === null || val === undefined ? 0 : +val).replace(/\u00A0/g, ' ');
 };
-const fmtDate = (d) => `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
-const fmtDateStr = (s) => s ? s.split('-').reverse().join('/') : '';
+export const fmtDate = (d) => `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+export const fmtDateStr = (s) => s ? s.split('-').reverse().join('/') : '';
 // Data local em formato ISO (YYYY-MM-DD) — evita o bug de toISOString() que usa UTC
 // e retorna o dia errado à noite em fusos negativos (ex.: Brasil, UTC-3).
-const fmtISO = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-var safeStorage = {
+export const fmtISO = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+export var safeStorage = {
   get(key) {
     try {
       const target = typeof localStorage !== 'undefined' ? localStorage : null;
@@ -66,15 +68,15 @@ var safeStorage = {
     }
   }
 };
-const debounce = (fn, ms = 250) => {
+export const debounce = (fn, ms = 250) => {
   let t;
   const wrapped = (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
   wrapped.cancel = () => clearTimeout(t);
   return wrapped;
 };
-const escapeHTML = (s) => s ? String(s).replace(/[&<>'"]/g, t => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[t])) : '';
+export const escapeHTML = (s) => s ? String(s).replace(/[&<>'"]/g, t => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[t])) : '';
 
-function sanitizeText(value) {
+export function sanitizeText(value) {
   if (value === null || value === undefined) return '';
   const str = String(value)
     .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, ' ')
@@ -91,7 +93,7 @@ function sanitizeText(value) {
   return str;
 }
 
-function sanitizeForStorage(value) {
+export function sanitizeForStorage(value) {
   if (value === null || value === undefined) return value;
   if (Array.isArray(value)) return value.map(item => sanitizeForStorage(item));
   if (typeof value === 'object') {
@@ -122,13 +124,13 @@ function sanitizeForStorage(value) {
   return String(value);
 }
 
-function parseNumericValue(value, fallback = 0) {
+export function parseNumericValue(value, fallback = 0) {
   if (value === null || value === undefined || value === '') return fallback;
   const parsed = Number.parseFloat(String(value).replace(',', '.'));
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
-function validateStateDump(data) {
+export function validateStateDump(data) {
   const candidate = data && typeof data === 'object' ? sanitizeForStorage(data) : {};
   const safe = { orders: [], catalog: [], expenses: [], trash: [] };
   const normalizeList = (list, mapper) => Array.isArray(list) ? list.map(item => mapper(item)).filter(Boolean) : [];
@@ -190,7 +192,7 @@ function validateStateDump(data) {
   return safe;
 }
 
-function getOrderTotal(o) {
+export function getOrderTotal(o) {
   if (!o) return 0;
   const compute = () => {
     const w = parseNumericValue(typeof o.weight === 'number' ? o.weight : (o.weight || 0), 0);
@@ -207,7 +209,7 @@ function getOrderTotal(o) {
   return Number.isFinite(+val) ? Math.round(+val * 100) / 100 : compute();
 }
 
-function maskPhone(input) {
+export function maskPhone(input) {
   let v = input.value.replace(/\D/g, '').slice(0, 11);
   if (v.length > 6) v = `(${v.slice(0,2)}) ${v.slice(2,7)}-${v.slice(7)}`;
   else if (v.length > 2) v = `(${v.slice(0,2)}) ${v.slice(2)}`;
@@ -215,11 +217,11 @@ function maskPhone(input) {
   input.value = v;
 }
 
-function badgeClass(status) {
+export function badgeClass(status) {
   return { 'Pendente': 'badge-pending', 'Em Produção': 'badge-progress', 'Entregue': 'badge-success', 'Cancelado': 'badge-danger' }[status] || 'badge-pending';
 }
 
-function formatWeight(o) {
+export function formatWeight(o) {
   const w = o.weight || 0;
   if (o.productType === 'Bolo de Kg') return `${w.toFixed(2).replace('.', ',')} Kg`;
   const isInt = Number.isInteger(w) || w === Math.floor(w);
@@ -230,10 +232,10 @@ function formatWeight(o) {
 // Database & Crypto Utilities
 // ============================================================
 
-const AppDB = {
+export const AppDB = {
   dbName: 'confeitex-db',
   storeName: 'store',
-  version: 1,
+  version: 2,
   _db: null,
 
   async init() {
@@ -250,6 +252,14 @@ const AppDB = {
         if (!db.objectStoreNames.contains(this.storeName)) {
           db.createObjectStore(this.storeName);
         }
+        if (!db.objectStoreNames.contains('orders')) {
+          const ordersStore = db.createObjectStore('orders', { keyPath: 'id' });
+          ordersStore.createIndex('deliveryDate', 'deliveryDate', { unique: false });
+          ordersStore.createIndex('status', 'status', { unique: false });
+        }
+        if (!db.objectStoreNames.contains('catalog')) {
+          db.createObjectStore('catalog', { keyPath: 'id' });
+        }
       };
     });
   },
@@ -259,15 +269,11 @@ const AppDB = {
       const db = await this.init();
       return new Promise((resolve, reject) => {
         const tx = db.transaction(this.storeName, 'readonly');
-        const store = tx.objectStore(this.storeName);
-        const req = store.get(key);
+        const req = tx.objectStore(this.storeName).get(key);
         req.onsuccess = () => resolve(req.result);
         req.onerror = () => reject(req.error);
       });
-    } catch (e) {
-      console.error('[AppDB] get error:', e);
-      return null;
-    }
+    } catch (e) { return null; }
   },
 
   async set(key, value) {
@@ -275,15 +281,11 @@ const AppDB = {
       const db = await this.init();
       return new Promise((resolve, reject) => {
         const tx = db.transaction(this.storeName, 'readwrite');
-        const store = tx.objectStore(this.storeName);
-        const req = store.put(value, key);
+        const req = tx.objectStore(this.storeName).put(value, key);
         req.onsuccess = () => resolve(true);
         req.onerror = () => reject(req.error);
       });
-    } catch (e) {
-      console.error('[AppDB] set error:', e);
-      return false;
-    }
+    } catch (e) { return false; }
   },
   
   async remove(key) {
@@ -291,18 +293,76 @@ const AppDB = {
       const db = await this.init();
       return new Promise((resolve, reject) => {
         const tx = db.transaction(this.storeName, 'readwrite');
-        const store = tx.objectStore(this.storeName);
-        const req = store.delete(key);
+        const req = tx.objectStore(this.storeName).delete(key);
         req.onsuccess = () => resolve(true);
         req.onerror = () => reject(req.error);
       });
-    } catch (e) {
-      return false;
-    }
+    } catch (e) { return false; }
+  },
+
+  async putOrder(order, encryptionKey = null) {
+    try {
+      const db = await this.init();
+      let dataToSave = order;
+      if (encryptionKey) {
+        const str = JSON.stringify(order);
+        // We assume CryptoUtils is in scope (it is in utils.js)
+        dataToSave = { 
+          id: order.id, 
+          deliveryDate: order.deliveryDate,
+          status: order.status,
+          _encryptedData: await CryptoUtils.encrypt(str, encryptionKey) 
+        };
+      }
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction('orders', 'readwrite');
+        const req = tx.objectStore('orders').put(dataToSave);
+        req.onsuccess = () => resolve();
+        req.onerror = () => reject(tx.error);
+      });
+    } catch (e) { console.error(e); }
+  },
+
+  async removeOrder(id) {
+    try {
+      const db = await this.init();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction('orders', 'readwrite');
+        const req = tx.objectStore('orders').delete(id);
+        req.onsuccess = () => resolve(true);
+        req.onerror = () => reject(tx.error);
+      });
+    } catch (e) { console.error(e); }
+  },
+
+  async getAllOrders(encryptionKey = null) {
+    try {
+      const db = await this.init();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction('orders', 'readonly');
+        const req = tx.objectStore('orders').getAll();
+        req.onsuccess = async () => {
+          let results = req.result || [];
+          if (encryptionKey) {
+            results = await Promise.all(results.map(async (item) => {
+              if (item._encryptedData) {
+                try {
+                  const dec = await CryptoUtils.decrypt(item._encryptedData, encryptionKey);
+                  return JSON.parse(dec);
+                } catch(e) { return item; }
+              }
+              return item;
+            }));
+          }
+          resolve(results);
+        };
+        req.onerror = () => reject(req.error);
+      });
+    } catch (e) { return []; }
   }
 };
 
-const CryptoUtils = {
+export const CryptoUtils = {
   // Derives an AES-GCM 256-bit key from a password and salt using PBKDF2
   async deriveKey(password, saltHex) {
     const enc = new TextEncoder();

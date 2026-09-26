@@ -1,9 +1,19 @@
+
+import { Dashboard } from './dashboard.js';
+import { Notifications } from './notifications.js';
+import { Orders } from './orders.js';
+import { Plan } from './plan.js';
+import { Settings } from './settings.js';
+import { Trash } from './trash.js';
+import { Updates } from './updates.js';
+import { safeStorage } from './utils.js';
+
 // ============================================================
 // Confeitex - Sistema de Internacionalização (i18n)
 // Idiomas: Português (padrão), Inglês
 // ============================================================
 
-const I18n = {
+export const I18n = {
   defaultLang: 'pt-BR',
   codes: ['pt-BR', 'en'],
   names: {
@@ -506,7 +516,6 @@ const I18n = {
       'updates.onlineStatus': 'Conectado (Online)',
       'updates.offlineStatus': 'Modo 100% Offline Ativo',
       'updates.offlineReady': 'Todos os recursos e pedidos estão disponíveis sem internet.',
-      'updates.installed': 'Instalada',
       'changelog.012beta': 'Melhoria: Atualização da versão beta com melhorias de interface e performance.',
       'changelog.011beta': 'Correção: Ajustes menores na visualização de pedidos e fluxo de finanças.',
       'changelog.010beta': 'Confeitex 0.1.0-beta: Lançamento inicial (versão beta).',
@@ -1082,7 +1091,6 @@ const I18n = {
       'updates.onlineStatus': 'Connected (Online)',
       'updates.offlineStatus': '100% Offline Mode Active',
       'updates.offlineReady': 'All features and orders are available without internet.',
-      'updates.installed': 'Installed',
       'changelog.012beta': 'Improvement: Beta version update with interface and performance improvements.',
       'changelog.011beta': 'Fix: Minor adjustments to order visualization and finance flow.',
       'changelog.010beta': 'Confeitex 0.1.0-beta: Initial release (beta version).',

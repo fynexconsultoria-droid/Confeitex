@@ -1,4 +1,14 @@
-const Trash = {
+import { Clients } from './clients.js';
+import { Dashboard } from './dashboard.js';
+import { Finance } from './finances.js';
+import { I18n } from './i18n.js';
+import { Orders } from './orders.js';
+import { Plan } from './plan.js';
+import { State } from './state.js';
+import { UI } from './ui.js';
+import { fmt, escapeHTML, getOrderTotal } from './utils.js';
+
+export const Trash = {
   openModal() {
     if (typeof Plan !== 'undefined' && !Plan.canUse('trash_bin')) {
       Plan.showPaywall('Acesso à Lixeira (Premium)');

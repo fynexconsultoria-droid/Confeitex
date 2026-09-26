@@ -1,4 +1,6 @@
-const UI = {
+import { escapeHTML } from './utils.js';
+
+export const UI = {
   _toastTimer: null,
 
   toast(message, variant = 'success') {

@@ -1,10 +1,13 @@
+import { Plan } from './plan.js';
+import { safeStorage } from './utils.js';
+
 /**
  * Onboarding.js — Tela de Apresentação Confeitex
  * Exibida apenas na primeira abertura do app.
  * 5 slides animados mostrando as funcionalidades principais.
  */
 
-const Onboarding = {
+export const Onboarding = {
   KEY_SEEN: 'confeitex_onboarding_seen',
   _current: 0,
   _total: 5,

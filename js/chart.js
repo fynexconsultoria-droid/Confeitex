@@ -1,4 +1,8 @@
-const Chart = {
+import { I18n } from './i18n.js';
+import { State } from './state.js';
+import { fmt, fmtISO, escapeHTML, getOrderTotal } from './utils.js';
+
+export const Chart = {
   points: [],
   pointPositions: [],
   _tooltipCleanup: null,

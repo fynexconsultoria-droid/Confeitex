@@ -1,3 +1,9 @@
+import { Dashboard } from './dashboard.js';
+import { MercadoPagoCheckout } from './mercadopago.js';
+import { State } from './state.js';
+import { UI } from './ui.js';
+import { safeStorage } from './utils.js';
+
 /**
  * Plan.js — Sistema de Planos Confeitex integrado ao Mercado Pago
  * - Teste Grátis de 7 dias com cadastro obrigatório de Cartão de Crédito
@@ -5,7 +11,7 @@
  * - Pagamento automático no Cartão de Crédito cadastrado (Débito em conta automático)
  */
 
-const Plan = {
+export const Plan = {
   // ─── Configuração do Plano ────────────────────────────────────────────────
   TRIAL_DAYS: 7,
   PRICE_BRL: 16.99,

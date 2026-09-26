@@ -1,4 +1,12 @@
-const Clients = {
+import { Dashboard } from './dashboard.js';
+import { I18n } from './i18n.js';
+import { Orders } from './orders.js';
+import { State } from './state.js';
+import { Trash } from './trash.js';
+import { UI } from './ui.js';
+import { fmt, fmtDateStr, debounce, escapeHTML, getOrderTotal, maskPhone, badgeClass, formatWeight } from './utils.js';
+
+export const Clients = {
   _debouncedRender: null,
 
   render() {

@@ -1,0 +1,10 @@
+/* Confeitex - Design System & Custom Styles */
+
+/* ============================================================
+   COMPATIBILITY: Fallbacks para Android 10+ / iOS 12+
+   ============================================================ */
+
+/* Smooth scroll para iOS */
+* {
+  -webkit-overflow-scrolling: touch;
+}

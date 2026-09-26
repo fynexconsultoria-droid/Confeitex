@@ -1,4 +1,18 @@
-const Settings = {
+import { Auth } from './auth.js';
+import { Clients } from './clients.js';
+import { Dashboard } from './dashboard.js';
+import { I18n } from './i18n.js';
+import { MercadoPagoCheckout } from './mercadopago.js';
+import { Notifications } from './notifications.js';
+import { Orders } from './orders.js';
+import { Plan } from './plan.js';
+import { DEFAULT_CATALOG, migrateOrder, State } from './state.js';
+import { Trash } from './trash.js';
+import { UI } from './ui.js';
+import { Updates } from './updates.js';
+import { fmt, fmtDateStr, fmtISO, safeStorage, escapeHTML, validateStateDump } from './utils.js';
+
+export const Settings = {
   renderCatalog() {
     const container = document.getElementById('catalogListContainer');
     if (!container) return;

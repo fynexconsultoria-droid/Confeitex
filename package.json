@@ -1,0 +1,24 @@
+{
+  "name": "confeitex",
+  "version": "1.0.0",
+  "description": "",
+  "main": "sw.js",
+  "scripts": {
+    "build": "node build.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fynexconsultoria-droid/Confeitex.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/fynexconsultoria-droid/Confeitex/issues"
+  },
+  "homepage": "https://github.com/fynexconsultoria-droid/Confeitex#readme",
+  "devDependencies": {
+    "esbuild": "^0.28.2"
+  }
+}

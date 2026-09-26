@@ -1,4 +1,14 @@
-const Orders = {
+import { Clients } from './clients.js';
+import { Dashboard } from './dashboard.js';
+import { I18n } from './i18n.js';
+import { MercadoPagoCheckout } from './mercadopago.js';
+import { Plan } from './plan.js';
+import { State } from './state.js';
+import { Trash } from './trash.js';
+import { UI } from './ui.js';
+import { fmt, fmtDateStr, fmtISO, debounce, escapeHTML, getOrderTotal, maskPhone, badgeClass, formatWeight } from './utils.js';
+
+export const Orders = {
   render() {
     const tbody = document.getElementById('ordersTableBody');
     const search = document.getElementById('orderSearchInput').value.toLowerCase();

@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Política de Privacidade - Confeitex</title>
+  <meta name="description" content="Política de Privacidade do Confeitex — como seus dados são tratados.">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cdefs%3E%3ClinearGradient id='bg' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%230a0813'/%3E%3Cstop offset='100%25' style='stop-color:%231e1240'/%3E%3C/linearGradient%3E%3ClinearGradient id='flame' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23ec4899'/%3E%3Cstop offset='100%25' style='stop-color:%238b5cf6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='512' height='512' rx='110' fill='url(%23bg)'/%3E%3Cpath d='M 150 352 h 212' stroke='white' stroke-width='12' stroke-linecap='round'/%3E%3Crect x='168' y='286' width='176' height='64' rx='14' fill='none' stroke='white' stroke-width='12'/%3E%3Crect x='208' y='216' width='96' height='72' rx='12' fill='none' stroke='white' stroke-width='12'/%3E%3Cline x1='256' y1='216' x2='256' y2='184' stroke='white' stroke-width='12' stroke-linecap='round'/%3E%3Cpath d='M 256 148 c -14 14 -22 24 -22 36 a 22 22 0 0 0 44 0 c 0 -12 -8 -22 -22 -36 z' fill='url(%23flame)'/%3E%3C/svg%3E">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192x192.png?v=3">
+
+  <style>
+    :root {
+      --bg-primary: #0a0813;
+      --bg-secondary: #130f26;
+      --bg-card: rgba(30, 24, 53, 0.55);
+      --border-color: rgba(255, 255, 255, 0.08);
+      --text-primary: #f3f4f6;
+      --text-secondary: #cbd5e1;
+      --text-muted: #94a3b8;
+      --color-accent-pink: #ec4899;
+      --color-accent-purple: #8b5cf6;
+      --font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --border-radius-md: 14px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: var(--font-family);
+      background-color: var(--bg-primary);
+      background-image: radial-gradient(at 0% 0%, rgba(139, 92, 246, 0.12) 0px, transparent 50%);
+      background-attachment: fixed;
+      color: var(--text-primary);
+      min-height: 100vh; /* fallback para navegadores antigos */
+      min-height: 100dvh;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .legal-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem 1.5rem;
+      background: rgba(10, 8, 19, 0.85);
+      -webkit-backdrop-filter: blur(20px);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .legal-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      text-decoration: none;
+    }
+
+    .legal-brand-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .legal-brand-icon svg {
+      width: 20px;
+      height: 20px;
+      fill: white;
+    }
+
+    .legal-brand-name {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .legal-header-actions {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.5rem 1rem;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+
+    .btn svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .btn-ghost {
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-secondary);
+      border: 1px solid var(--border-color);
+    }
+
+    .btn-ghost:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-primary);
+    }
+
+    .lang-select {
+      padding: 0.4rem 0.7rem;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-secondary);
+      border: 1px solid var(--border-color);
+      cursor: pointer;
+      font-family: var(--font-family);
+    }
+
+    .lang-select option {
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+    }
+
+    .legal-container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem 4rem;
+    }
+
+    .legal-title {
+      font-size: 2rem;
+      font-weight: 800;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .legal-meta {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 2rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .legal-content h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-top: 2rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .legal-content h3 {
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-top: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .legal-content p {
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+      margin-bottom: 1rem;
+      line-height: 1.7;
+    }
+
+    .legal-content ul, .legal-content ol {
+      margin-bottom: 1rem;
+      padding-left: 1.5rem;
+    }
+
+    .legal-content li {
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+      margin-bottom: 0.5rem;
+      line-height: 1.6;
+    }
+
+    .legal-content strong {
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+
+    .legal-lang-hidden { display: none; }
+
+    .legal-footer {
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border-color);
+      text-align: center;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .legal-footer a {
+      color: var(--color-accent-pink);
+      text-decoration: none;
+    }
+
+    .legal-footer a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 580px) {
+      .legal-container {
+        padding: 1.5rem 1rem 3rem;
+      }
+      .legal-title {
+        font-size: 1.6rem;
+      }
+      .legal-header {
+        padding: 0.75rem 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="legal-header">
+    <a href="index.html" class="legal-brand">
+      <div class="legal-brand-icon">
+        <svg viewBox="0 0 24 24"><path d="M7 16.5h10"/><rect x="7.9" y="13.4" width="8.2" height="3" rx="0.6" fill="none" stroke="white" stroke-width="1.5"/><rect x="9.8" y="10.1" width="4.5" height="3.4" rx="0.5" fill="none" stroke="white" stroke-width="1.5"/><path d="M12 10.1V8.6" stroke="white" stroke-width="1.5" stroke-linecap="round"/><path d="M12 6.9c-.66.66-1.03 1.13-1.03 1.69a1.03 1.03 0 0 0 2.06 0c0-.56-.37-1.03-1.03-1.69z" fill="white"/></svg>
+      </div>
+      <span class="legal-brand-name">Confeitex</span>
+    </a>
+    <div class="legal-header-actions">
+      <select class="lang-select" id="langSelect" aria-label="Idioma">
+        <option value="pt-BR">PT</option>
+        <option value="en">EN</option>
+      </select>
+      <a href="index.html" class="btn btn-ghost">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        <span data-i18n="back">Voltar</span>
+      </a>
+    </div>
+  </header>
+
+  <main class="legal-container">
+    <h1 class="legal-title" data-i18n="title">Política de Privacidade</h1>
+    <div class="legal-meta" data-i18n="meta">Última atualização: 14 de setembro de 2026 · Versão 5.2.0</div>
+
+    <div class="legal-content">
+
+      <div data-lang="pt-BR">
+        <h2>1. Introdução</h2>
+        <p>A presente Política de Privacidade descreve como o Confeitex trata as informações dos seus usuários. Estamos comprometidos com a proteção da sua privacidade e com a conformidade com a <strong>Lei Geral de Proteção de Dados (LGPD — Lei nº 13.709/2018)</strong> e demais normas aplicáveis.</p>
+
+        <h2>2. Dados Coletados</h2>
+        <p>O Confeitex é um aplicativo com arquitetura <strong>100% offline para gestão</strong>. Todos os dados operacionais são inseridos e armazenados exclusivamente no seu dispositivo. Os tipos de dados que você pode registrar no aplicativo incluem:</p>
+        <ul>
+          <li><strong>Dados de clientes da confeitaria:</strong> nomes e telefones;</li>
+          <li><strong>Dados de pedidos e encomendas:</strong> produtos, sabores, valores, datas de entrega e observações;</li>
+          <li><strong>Dados financeiros operacionais:</strong> formas de pagamento, faturamento e custos de matéria-prima;</li>
+          <li><strong>Configurações:</strong> catálogo de produtos, preferências de idioma e notificações.</li>
+        </ul>
+
+        <h2>3. Armazenamento Local e Privacidade (Offline-First)</h2>
+        <p>Todos os registros operacionais da confeitaria permanecem salvos localmente no navegador ou dispositivo utilizando tecnologias de armazenamento seguro (<strong>localStorage e IndexedDB</strong>). Isso assegura que:</p>
+        <ul>
+          <li>Seus pedidos, clientes e finanças <strong>não são compartilhados nem comercializados</strong> com terceiros;</li>
+          <li>Não utilizamos serviços de analytics invasivos, rastreamento de navegação ou anúncios de terceiros;</li>
+          <li>Os dados permanecem sob controle do usuário no dispositivo até que decida excluí-los ou exportá-los.</li>
+        </ul>
+
+        <h2>4. Processamento Seguro de Pagamentos (Mercado Pago & PCI-DSS)</h2>
+        <p>Para viabilizar transações financeiras voluntárias — tais como geração de cobranças via Pix/Cartão para encomendas de clientes ou adesão ao Plano Confeitex —, o aplicativo comunica-se exclusivamente com servidores certificados do <strong>Mercado Pago</strong> através de requisições criptografadas (HTTPS/TLS com HMAC-SHA256) via Cloudflare Worker:</p>
+        <ul>
+          <li><strong>Conformidade PCI-DSS:</strong> Dados sensíveis de cartão de crédito são tokenizados de forma segura diretamente pela infraestrutura da processadora (Mercado Pago). O Confeitex <strong>nunca armazena números de cartão ou códigos de segurança (CVV)</strong> no seu dispositivo ou em bancos de dados.</li>
+          <li><strong>Finalidade Estrita:</strong> Apenas os dados estritamente necessários para a conclusão da transação e emissão do comprovante são trafegados no momento da solicitação do usuário.</li>
+        </ul>
+
+        <h2>5. Service Worker e Cache Offline</h2>
+        <p>O aplicativo utiliza um Service Worker para assegurar seu funcionamento sem internet. O Service Worker armazena em cache apenas os arquivos estáticos do aplicativo (código, layout, ícones). <strong>O Service Worker não coleta nem monitora seus dados pessoais.</strong></p>
+
+        <h2>6. Backup, Exportação e Portabilidade</h2>
+        <p>O Confeitex disponibiliza recursos para gerar relatórios e cópias de segurança em formatos padrão (PDF e JSON), baixados diretamente no dispositivo do usuário. A gestão e guarda desses arquivos são de responsabilidade do próprio titular.</p>
+
+        <h2>7. Direitos do Titular e Exclusão de Dados (LGPD)</h2>
+        <p>Em conformidade com a LGPD e com as políticas de transparência do Google Play, você tem amplo controle sobre seus dados:</p>
+        <ul>
+          <li><strong>Acesso e Portabilidade:</strong> Visualize e exporte todos os seus pedidos e catálogo a qualquer momento;</li>
+          <li><strong>Exclusão Total Imediata:</strong> Você pode apagar 100% dos dados armazenados no app a qualquer momento através do menu <em>Configurações &gt; Avançado &gt; "Apagar Todos os Dados"</em>;</li>
+          <li><strong>Revogação e Desinstalação:</strong> Ao desinstalar o aplicativo ou limpar os dados do navegador, todos os registros locais são removidos definitivamente.</li>
+        </ul>
+
+        <h2>8. Alterações nesta Política</h2>
+        <p>Esta Política de Privacidade pode ser atualizada periodicamente. As alterações serão publicadas nesta página com a data de atualização revisada.</p>
+
+        <h2>9. Contato</h2>
+        <p>Para dúvidas, suporte ou solicitações relacionadas a esta política de privacidade, entre em contato pelo repositório oficial do projeto:</p>
+        <p><strong>https://github.com/fynexconsultoria-droid/Confeitex</strong></p>
+      </div>
+
+      <div data-lang="en" class="legal-lang-hidden">
+        <h2>1. Introduction</h2>
+        <p>This Privacy Policy describes how Confeitex handles information from its users. We are committed to protecting your privacy and complying with data protection laws, including the <strong>LGPD (Law No. 13,709/2018)</strong> and international privacy standards.</p>
+
+        <h2>2. Data Collected</h2>
+        <p>Confeitex is designed with an <strong>offline-first</strong> architecture. All business management data is entered and stored exclusively on your device, including:</p>
+        <ul>
+          <li><strong>Customer data:</strong> names and phone numbers;</li>
+          <li><strong>Order data:</strong> products, flavors, prices, delivery dates, and notes;</li>
+          <li><strong>Financial records:</strong> payment methods, revenue, and supply costs;</li>
+          <li><strong>Settings:</strong> product catalog, language, and notification preferences.</li>
+        </ul>
+
+        <h2>3. Local Storage and Privacy (Offline-First)</h2>
+        <p>All business records remain stored locally on your device (using <strong>localStorage and IndexedDB</strong>). This ensures that:</p>
+        <ul>
+          <li>Your orders, customers, and financials <strong>are never shared or sold</strong> to third parties;</li>
+          <li>We do not use invasive analytics, tracking SDKs, or third-party ads;</li>
+          <li>Your data remains under your exclusive control.</li>
+        </ul>
+
+        <h2>4. Secure Payment Processing (Mercado Pago & PCI-DSS)</h2>
+        <p>When you choose to process payments (such as generating Pix or Credit Card payments for customer orders or subscribing to Confeitex), the app communicates securely with certified <strong>Mercado Pago</strong> services over encrypted HTTPS/TLS connections via Cloudflare Workers:</p>
+        <ul>
+          <li><strong>PCI-DSS Compliance:</strong> Sensitive payment details are securely tokenized directly by the payment processor. Confeitex <strong>never stores full credit card numbers or CVV codes</strong> on your device or databases.</li>
+          <li><strong>Strict Purpose:</strong> Only information strictly required for payment processing and receipt generation is processed upon user request.</li>
+        </ul>
+
+        <h2>5. Service Worker and Offline Cache</h2>
+        <p>The application uses a Service Worker to enable offline functionality. The Service Worker caches application assets (HTML, CSS, JavaScript, icons) only and does not track or collect personal data.</p>
+
+        <h2>6. Backup and Export</h2>
+        <p>Confeitex provides backup tools (PDF and JSON) created locally on your device for data portability.</p>
+
+        <h2>7. User Rights and Complete Data Deletion</h2>
+        <p>In accordance with privacy regulations and Google Play data safety policies, you maintain full control over your data:</p>
+        <ul>
+          <li><strong>Export:</strong> Export orders and catalogs at any time;</li>
+          <li><strong>Immediate Deletion:</strong> You can permanently wipe 100% of stored data directly in <em>Settings &gt; Advanced &gt; "Delete All Data"</em>;</li>
+          <li><strong>Uninstall:</strong> Clearing browser/app data or uninstalling removes all local storage immediately.</li>
+        </ul>
+
+        <h2>8. Changes to this Policy</h2>
+        <p>This Privacy Policy may be updated periodically. Revisions will be published on this page with the updated effective date.</p>
+
+        <h2>9. Contact</h2>
+        <p>For questions or privacy inquiries, contact us through our official project repository:</p>
+        <p><strong>https://github.com/fynexconsultoria-droid/Confeitex</strong></p>
+      </div>
+
+    </div>
+
+    <div class="legal-footer">
+      <p data-i18n="footer">Confeitex © 2026 — Todos os direitos reservados.</p>
+      <p><a href="termos.html" data-i18n="termsLink">Termos de Uso</a></p>
+    </div>
+  </main>
+
+  <script>
+    (function() {
+      var dict = {
+        'pt-BR': {
+          back: 'Voltar',
+          title: 'Política de Privacidade',
+          meta: 'Última atualização: 14 de setembro de 2026 · Versão 5.2.0',
+          footer: 'Confeitex © 2026 — Todos os direitos reservados.',
+          termsLink: 'Termos de Uso'
+        },
+        'en': {
+          back: 'Back',
+          title: 'Privacy Policy',
+          meta: 'Last updated: September 14, 2026 · Version 5.2.0',
+          footer: 'Confeitex © 2026 — All rights reserved.',
+          termsLink: 'Terms of Use'
+        }
+      };
+
+      var storageKey = 'confeitex_lang';
+      var lang = 'pt-BR';
+      try { lang = localStorage.getItem(storageKey) || lang; } catch(e) {}
+      if (dict['pt-BR'] === undefined) lang = 'pt-BR';
+
+      function applyLang(code) {
+        if (!dict[code]) code = 'pt-BR';
+        document.documentElement.lang = code;
+        document.querySelectorAll('[data-i18n]').forEach(function(el) {
+          el.textContent = dict[code][el.dataset.i18n] || el.textContent;
+        });
+        document.querySelectorAll('[data-lang]').forEach(function(el) {
+          el.style.display = el.dataset.lang === code ? '' : 'none';
+        });
+        document.getElementById('langSelect').value = code;
+        document.title = dict[code].title + ' - Confeitex';
+      }
+
+      applyLang(lang);
+
+      document.getElementById('langSelect').addEventListener('change', function() {
+        var newLang = this.value;
+        try { localStorage.setItem(storageKey, newLang); } catch(e) {}
+        location.reload();
+      });
+    })();
+  </script>
+</body>
+</html>

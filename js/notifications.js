@@ -1,4 +1,13 @@
-const Notifications = {
+import { Dashboard } from './dashboard.js';
+import { I18n } from './i18n.js';
+import { Orders } from './orders.js';
+import { Settings } from './settings.js';
+import { State } from './state.js';
+import { UI } from './ui.js';
+import { Updates } from './updates.js';
+import { fmt, fmtDateStr, fmtISO, safeStorage, escapeHTML } from './utils.js';
+
+export const Notifications = {
   _started: false,
   _intervalId: null,
   _enabled: false,

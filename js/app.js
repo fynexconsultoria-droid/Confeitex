@@ -1,3 +1,21 @@
+import { Auth } from './auth.js';
+import { Chart } from './chart.js';
+import { Clients } from './clients.js';
+import { Dashboard } from './dashboard.js';
+import { Finance } from './finances.js';
+import { I18n } from './i18n.js';
+import { MercadoPagoCheckout } from './mercadopago.js';
+import { Notifications } from './notifications.js';
+import { Onboarding } from './onboarding.js';
+import { Orders } from './orders.js';
+import { Plan } from './plan.js';
+import { Settings } from './settings.js';
+import { State } from './state.js';
+import { Trash } from './trash.js';
+import { UI } from './ui.js';
+import { Updates } from './updates.js';
+import { fmtDate, fmtISO, safeStorage } from './utils.js';
+
 (async () => {
   Auth.init();
 

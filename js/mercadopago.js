@@ -1,9 +1,16 @@
+import { Dashboard } from './dashboard.js';
+import { I18n } from './i18n.js';
+import { Orders } from './orders.js';
+import { State } from './state.js';
+import { UI } from './ui.js';
+import { fmt, fmtDateStr, safeStorage, escapeHTML, getOrderTotal } from './utils.js';
+
 // ============================================================================
 // MercadoPagoCheckout — Integração Mercado Pago Checkout Bricks & Pro (Confeitex)
 // Suporta: Payment Brick (Cartão de Crédito/Débito, Pix), Link de Pagamento e WhatsApp
 // ============================================================================
 
-const MercadoPagoCheckout = {
+export const MercadoPagoCheckout = {
   // ─── Configuração Padrão ────────────────────────────────────────────────
   DEFAULT_PUBLIC_KEY: '', // Não usar chave padrão — cada usuário deve configurar a sua
   PUBLIC_KEY: '',

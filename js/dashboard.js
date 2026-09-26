@@ -1,4 +1,10 @@
-const Dashboard = {
+import { Chart } from './chart.js';
+import { I18n } from './i18n.js';
+import { Orders } from './orders.js';
+import { State } from './state.js';
+import { fmt, fmtISO, debounce, escapeHTML, getOrderTotal, badgeClass, formatWeight } from './utils.js';
+
+export const Dashboard = {
   _debouncedUpdate: null,
 
   update() {

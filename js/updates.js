@@ -1,4 +1,9 @@
-const Updates = {
+import { I18n } from './i18n.js';
+import { Notifications } from './notifications.js';
+import { UI } from './ui.js';
+import { safeStorage } from './utils.js';
+
+export const Updates = {
   _CODE_VERSION: '0.1.2-beta',
 
   // Versão em execução obtida dinamicamente da tag meta ou fallback seguro

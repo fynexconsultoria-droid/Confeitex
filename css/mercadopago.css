@@ -1,0 +1,485 @@
+MERCADO PAGO — Checkout Embebido, PIX, Links & WhatsApp
+   ══════════════════════════════════════════════════════════════════════ */
+
+.mp-checkout-modal-container {
+  max-width: 540px;
+  width: 95vw;
+  border: 1px solid rgba(236, 72, 153, 0.2);
+  box-shadow: none;
+  border-radius: var(--border-radius-lg, 16px);
+  overflow: hidden;
+  background: var(--bg-card, #120d24);
+}
+
+.mp-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 1.25rem 1.5rem 1rem !important;
+}
+
+.mp-modal-order-summary {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-top: 0.25rem;
+  line-height: 1.4;
+}
+
+.mp-total-highlight {
+  color: var(--color-accent-pink);
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+/* Abas de Navegação */
+.mp-tabs-nav {
+  display: flex;
+  background: rgba(0, 0, 0, 0.25);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 0.35rem 0.75rem;
+  gap: 0.5rem;
+}
+
+.mp-tab-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.6rem 0.8rem;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.mp-tab-btn svg {
+  width: 15px;
+  height: 15px;
+}
+
+.mp-tab-btn:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.mp-tab-btn.active {
+  color: white;
+  background: linear-gradient(135deg, rgba(236, 72, 153, 0.25), rgba(139, 92, 246, 0.25));
+  border: 1px solid rgba(236, 72, 153, 0.3);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.mp-checkout-body {
+  padding: 1.25rem;
+  min-height: 300px;
+  display: flex;
+  flex-direction: column;
+}
+
+.mp-tab-panel {
+  width: 100%;
+}
+
+.mp-brick-loading, .mp-link-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  min-height: 220px;
+}
+
+.mp-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255, 255, 255, 0.1);
+  border-top-color: var(--color-accent-pink);
+  border-right-color: var(--color-accent-purple);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.mp-brick-container {
+  width: 100%;
+  min-height: 200px;
+}
+
+.mp-brick-container > div {
+  width: 100% !important;
+}
+
+/* ─── PIX View Dedicada ─── */
+.mp-brick-pix {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  padding: 1.25rem;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.mp-pix-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.mp-pix-badge {
+  background: linear-gradient(135deg, #00b4d8, #0077b6);
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.25rem 0.6rem;
+  border-radius: 20px;
+  letter-spacing: 0.5px;
+}
+
+.mp-pix-amount-box {
+  text-align: right;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.mp-pix-amount {
+  display: block;
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--color-success, #10b981);
+}
+
+.mp-pix-qr-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 1rem 0;
+  text-align: center;
+}
+
+.mp-pix-qr-img {
+  width: 180px;
+  height: 180px;
+  border-radius: 12px;
+  background: white;
+  padding: 8px;
+  box-shadow: none;
+  margin-bottom: 0.75rem;
+}
+
+.mp-pix-instructions {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  max-width: 320px;
+  margin: 0;
+}
+
+.mp-pix-code-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 1rem 0;
+}
+
+.mp-pix-input {
+  font-family: monospace;
+  font-size: 0.75rem;
+  background: rgba(0, 0, 0, 0.3) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  color: var(--text-muted);
+}
+
+.mp-pix-status-check {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  border-radius: 8px;
+  font-size: 0.8rem;
+  color: var(--color-success);
+  margin-top: 0.75rem;
+}
+
+.mp-pulse-dot {
+  width: 10px;
+  height: 10px;
+  background: var(--color-success);
+  border-radius: 50%;
+  animation: pulse-dot 1.5s infinite;
+  flex-shrink: 0;
+}
+
+@keyframes pulse-dot {
+  0% { transform: scale(0.95); opacity: 0.8; box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+  70% { transform: scale(1); opacity: 1; box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+  100% { transform: scale(0.95); opacity: 0.8; box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+/* ─── Success & Error Views ─── */
+.mp-brick-success {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  text-align: center;
+  padding: 1.5rem 1rem;
+  width: 100%;
+}
+
+.mp-success-icon-wrap {
+  width: 64px;
+  height: 64px;
+  background: rgba(16, 185, 129, 0.15);
+  border: 2px solid rgba(16, 185, 129, 0.3);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-success);
+  animation: scale-up 0.3s ease;
+}
+
+@keyframes scale-up {
+  0% { transform: scale(0.5); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.mp-success-status {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.mp-success-details {
+  width: 100%;
+  max-width: 380px;
+}
+
+.mp-success-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+}
+
+.mp-detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--text-secondary);
+}
+
+.mp-brick-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  text-align: center;
+  padding: 2rem 1rem;
+  color: var(--color-danger);
+  font-size: 0.9rem;
+}
+
+.mp-error-icon-wrap {
+  width: 56px;
+  height: 56px;
+  background: rgba(239, 68, 68, 0.15);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ─── Aba Link & WhatsApp ─── */
+.mp-link-info-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: 1.25rem;
+}
+
+.mp-link-info-card p {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-bottom: 1rem;
+  line-height: 1.4;
+}
+
+.mp-link-input-wrap {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.mp-link-input-wrap input {
+  font-family: monospace;
+  font-size: 0.8rem;
+}
+
+.mp-link-action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: 1rem;
+}
+
+.btn-whatsapp {
+  background: #25d366 !important;
+  color: white !important;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem !important;
+  border-radius: var(--border-radius, 10px);
+  border: none;
+  cursor: pointer;
+  transition: filter 0.2s, transform 0.2s;
+}
+
+.btn-whatsapp:hover {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+}
+
+.btn-whatsapp svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* ─── Modo Demo ─── */
+.mp-demo-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 1rem 0;
+}
+
+.mp-demo-badge {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  padding: 0.85rem 1rem;
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  border-radius: 10px;
+  font-size: 0.8rem;
+  color: var(--text-primary);
+}
+
+.mp-demo-badge strong {
+  display: block;
+  color: var(--color-warning);
+  margin-bottom: 0.2rem;
+}
+
+.mp-demo-badge p {
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.mp-demo-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.mp-demo-config-link {
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.mp-demo-config-link a {
+  color: var(--color-accent-pink);
+  text-decoration: underline;
+}
+
+/* ─── Footer e Configurações ─── */
+.mp-checkout-footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 0.75rem 1.5rem !important;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.mp-secure-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  justify-content: center;
+}
+
+.mp-secure-badge svg {
+  color: var(--color-success);
+}
+
+.btn-charge {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(59, 130, 246, 0.05) 100%) !important;
+  border-color: rgba(59, 130, 246, 0.3) !important;
+  color: var(--color-accent-blue) !important;
+}
+
+.btn-charge:hover {
+  background: rgba(59, 130, 246, 0.25) !important;
+  border-color: rgba(59, 130, 246, 0.5) !important;
+}
+
+.mp-config-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.mp-config-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.mp-config-status {
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  margin-top: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.mp-config-status.ok {
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--color-success);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.mp-config-status.err {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--color-danger);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.mp-config-url {
+  font-family: monospace;
+  font-size: 0.75rem;
+  color: var(--color-accent-blue);
+  word-break: break-all;
+  margin-top: 0.5rem;
+  padding: 0.4rem 0.6rem;
+  background: rgba(59, 130, 246, 0.08);
+  border-radius: 6px;
+}
+
