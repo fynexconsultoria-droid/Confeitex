@@ -27,6 +27,8 @@ import { fmtDate, fmtISO, safeStorage } from './utils.js';
   Plan.init();
   const sidebarVersion = document.getElementById('sidebarVersion');
   if (sidebarVersion && typeof Updates !== 'undefined') sidebarVersion.textContent = `v${Updates.verAtual}`;
+  const rightSidebarVersion = document.getElementById('rightSidebarVersion');
+  if (rightSidebarVersion && typeof Updates !== 'undefined') rightSidebarVersion.textContent = `v${Updates.verAtual}`;
 
   // Inicializa filtro de data de encomendas para hoje
   const orderDateFilter = document.getElementById('orderFilterDate');

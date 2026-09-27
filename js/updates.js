@@ -298,6 +298,8 @@ export const Updates = {
     // Sidebar version
     const sidebarVersion = document.getElementById('sidebarVersion');
     if (sidebarVersion) sidebarVersion.textContent = `v${displayVer}`;
+    const rightSidebarVersion = document.getElementById('rightSidebarVersion');
+    if (rightSidebarVersion) rightSidebarVersion.textContent = `v${displayVer}`;
 
     // Última verificação
     const lastCheck = safeStorage.get('confeitex_last_check');
