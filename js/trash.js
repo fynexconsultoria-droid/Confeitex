@@ -122,8 +122,7 @@ export const Trash = {
   },
 
   refreshActiveTab() {
-    var activeLink = document.querySelector('.nav-link.active');
-    var tab = activeLink ? activeLink.dataset.tab : null;
+    const tab = document.querySelector('.nav-link.active')?.dataset?.tab || null;
     if (tab === 'orders') Orders.render();
     else if (tab === 'clients') Clients.render();
     else if (tab === 'dashboard') Dashboard.update();

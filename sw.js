@@ -14,7 +14,7 @@ if (typeof Promise.allSettled === 'undefined') {
   };
 }
 
-const SW_VERSION = '0.1.3-beta';
+const SW_VERSION = '0.1.4';
 const CACHE_NAME = 'confeitex-cache-v' + SW_VERSION;
 
 // Arquivos que serão cacheados na instalação do Service Worker
@@ -24,6 +24,16 @@ const ASSETS_TO_CACHE = [
   './index.html',
   './style.css',
   './manifest.json',
+  './css/base.css',
+  './css/components.css',
+  './css/dashboard.css',
+  './css/layout.css',
+  './css/mercadopago.css',
+  './css/mobile-app.css',
+  './css/modals.css',
+  './css/onboarding.css',
+  './css/plans.css',
+  './css/variables.css',
   './js/state.js',
   './js/auth.js',
   './js/utils.js',

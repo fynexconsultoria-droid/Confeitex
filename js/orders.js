@@ -36,7 +36,6 @@ export const Orders = {
       }
     }
 
-    // Filter listeners (once)
     ['orderFilterStatus', 'orderFilterDate'].forEach(id => {
       const el = document.getElementById(id);
       if (!el.dataset.hasListener) { el.addEventListener('change', () => this.render()); el.dataset.hasListener = '1'; }
@@ -242,9 +241,6 @@ export const Orders = {
     });
     const label = document.getElementById('orderProductType').value;
     this.updateLabels(label);
-    // Bug Fix #5: populateFlavorSelect não deve disparar evento change aqui
-    // Populamos sem auto-selecionar catálogo para não sobrescrever preço/sabor carregados
-    this._populateFlavorSelectOnly();
     // Recalcula após todos os campos preenchidos
     this.calcTotal();
 
@@ -263,13 +259,9 @@ export const Orders = {
       weightEl.min = '1';
     }
   },
-
-  // Popula o select de sabores e ao selecionar preenche sabor+preço (usado em novo pedido)
   populateFlavorSelect() {
     this._populateFlavorSelectOnly();
   },
-
-  // Popula apenas as opções sem selecionar nenhuma (usado ao editar pedido existente)
   _populateFlavorSelectOnly() {
     const sel = document.getElementById('orderFlavorSelect');
     const type = document.getElementById('orderProductType').value;
@@ -278,8 +270,6 @@ export const Orders = {
       .forEach(i => options.push(`<option value="${i.id}">${escapeHTML(i.flavor)} (${I18n.currencySymbol()} ${i.pricePerKg.toFixed(2)}${i.type === 'Bolo de Kg' ? '/Kg' : '/un'})</option>`));
     sel.innerHTML = options.join('');
   },
-
-  // Re-popula as opções quando o idioma muda (mantém o valor selecionado)
   refreshFlavorOptions() {
     const sel = document.getElementById('orderFlavorSelect');
     if (!sel) return;
@@ -304,8 +294,7 @@ export const Orders = {
     State.addToTrash([o], 'order', `${o.clientName} — ${o.flavor}`);
     State.saveOrders();
     this.render();
-    var activeLink = document.querySelector('.nav-link.active');
-    var tab = activeLink ? activeLink.dataset.tab : null;
+    const tab = document.querySelector('.nav-link.active')?.dataset?.tab || null;
     if (tab === 'dashboard') Dashboard.update();
     else if (tab === 'clients') Clients.render();
     if (Trash.updateBadge) Trash.updateBadge();
@@ -323,8 +312,7 @@ export const Orders = {
       if (cycle[ci + 1] === 'Entregue') State.orders[idx].deliveredAt = new Date().toISOString();
       State.saveOrders();
       this.render();
-      var activeLink = document.querySelector('.nav-link.active');
-      var tab = activeLink ? activeLink.dataset.tab : null;
+      const tab = document.querySelector('.nav-link.active')?.dataset?.tab || null;
       if (tab === 'dashboard') Dashboard.update();
       UI.toast(I18n.t('orders.toastStatus', { status: I18n.value('status', cycle[ci + 1]) }));
     } else if (cur === 'Cancelado') {
@@ -386,8 +374,16 @@ export const Orders = {
       modal.classList.add('active');
     });
 
-    document.getElementById('btnModalOrderClose').addEventListener('click', () => modal.classList.remove('active'));
-    document.getElementById('btnModalOrderCancel').addEventListener('click', () => modal.classList.remove('active'));
+    const closeOrderModal = () => {
+      modal.classList.remove('active');
+    };
+    document.getElementById('btnModalOrderClose').addEventListener('click', closeOrderModal);
+    document.getElementById('btnModalOrderCancel').addEventListener('click', closeOrderModal);
+
+    // Acessibilidade: fechar modal de pedido com Escape
+    modal.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeOrderModal();
+    });
 
     // Phone mask
     document.getElementById('orderClientPhone').addEventListener('input', (e) => maskPhone(e.target));
@@ -465,7 +461,6 @@ export const Orders = {
       if (id) {
         const idx = State.orders.findIndex(o => o.id === id);
         if (idx !== -1) {
-          // Bug Fix #3: preservar deliveredAt original se status já era Entregue
           const prevDeliveredAt = State.orders[idx].deliveredAt;
           Object.assign(State.orders[idx], data);
           if (data.status === 'Entregue') {
@@ -483,15 +478,13 @@ export const Orders = {
 
       State.saveOrders();
       modal.classList.remove('active');
-      // Bug Fix #2: Dashboard SEMPRE atualiza ao salvar pedido (independente da aba ativa)
       Dashboard.update();
-      var activeLink = document.querySelector('.nav-link.active');
-    var tab = activeLink ? activeLink.dataset.tab : null;
+        const tab = document.querySelector('.nav-link.active')?.dataset?.tab || null;
       if (tab === 'orders') this.render();
       else if (tab === 'clients') Clients.render();
       UI.toast(I18n.t(id ? 'orders.toastUpdated' : 'orders.toastCreated'));
-      
-      // Prompt on 10th order
+
+      // Alerta ao atingir metade do limite do plano free
       if (!id && typeof Plan !== 'undefined' && Plan.getStatus().type === 'trial' && State.orders.length === 10) {
         setTimeout(async () => {
           const ans = await UI.confirm({

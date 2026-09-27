@@ -1,3 +1,8 @@
+/**
+ * Confeitex — state.js
+ * Gerenciamento de estado: carregamento, salvamento, migração e snapshots.
+ */
+
 import { Auth } from './auth.js';
 import { Notifications } from './notifications.js';
 import { fmt, fmtDate, fmtISO, safeStorage, sanitizeForStorage, validateStateDump, getOrderTotal, formatWeight, AppDB, CryptoUtils } from './utils.js';
@@ -63,7 +68,7 @@ export const State = {
   async _loadItem(key, defaultObj) {
     let raw = await AppDB.get(key);
     let isEncrypted = await AppDB.get(`${key}_encrypted`);
-    
+
     // Fallback/Migração do LocalStorage
     if (raw === null || raw === undefined) {
       const lsRaw = safeStorage.get(key);
@@ -102,17 +107,16 @@ export const State = {
     try {
       const encryptionKey = (typeof Auth !== 'undefined' && Auth.encryptionKey) ? Auth.encryptionKey : null;
       let ordersV2 = await AppDB.getAllOrders(encryptionKey);
-      
+
       if (ordersV2 && ordersV2.length > 0) {
         this.orders = ordersV2.map(migrateOrder);
       } else {
         const rawOrders = await this._loadItem('confeitex_orders', []);
         const safeOrders = validateStateDump({ orders: rawOrders });
         this.orders = safeOrders.orders.map(migrateOrder);
-        
+
         if (this.orders.length > 0) {
-          console.log('[Migração] Salvando encomendas na V2...');
-          for (const o of this.orders) {
+            for (const o of this.orders) {
             await AppDB.putOrder(o, encryptionKey);
           }
         }
@@ -145,7 +149,7 @@ export const State = {
 
   saveOrders() {
     const encryptionKey = (typeof Auth !== 'undefined' && Auth.encryptionKey) ? Auth.encryptionKey : null;
-    this.orders.forEach(o => AppDB.putOrder(o, encryptionKey));
+    this.orders.forEach(o => AppDB.putOrder(o, encryptionKey).catch(e => console.warn('[State] Erro ao salvar pedido:', e)));
     this._scheduleSave('confeitex_orders', this.orders); // Manter legacy temporariamente
     if (this._syncTimer) clearTimeout(this._syncTimer);
     this._syncTimer = setTimeout(() => {
@@ -173,7 +177,6 @@ export const State = {
 
   purgeTrash() {
     const now = Date.now();
-    const thirtyDays = 30 * 24 * 60 * 60 * 1000;
     const before = this.trash.length;
     this.trash = this.trash.filter(t => {
       if (!t.expiresAt) return false; // Remove itens legados sem data de expiração

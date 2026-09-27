@@ -321,7 +321,7 @@ export const Auth = {
     `;
 
     if (enabled) {
-      var disableBtn = document.getElementById('btnDisableLock');
+      const disableBtn = document.getElementById('btnDisableLock');
       if (disableBtn) disableBtn.addEventListener('click', async () => {
         const pw = await this.promptCurrentPassword(I18n.t('auth.disableBtn'));
         if (pw) {
@@ -336,7 +336,7 @@ export const Auth = {
           }
         }
       });
-      var changePwBtn = document.getElementById('btnChangePassword');
+      const changePwBtn = document.getElementById('btnChangePassword');
       if (changePwBtn) changePwBtn.addEventListener('click', async () => {
         const pw = await this.promptCurrentPassword(I18n.t('auth.changePwBtn'));
         if (pw) {
@@ -347,7 +347,7 @@ export const Auth = {
         }
       });
     } else {
-      var enableBtn = document.getElementById('btnEnableLock');
+      const enableBtn = document.getElementById('btnEnableLock');
       if (enableBtn) enableBtn.addEventListener('click', async () => {
         if (!this.supported()) {
           UI.alert(I18n.t('auth.alertNoCrypto'));

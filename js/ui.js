@@ -1,3 +1,8 @@
+/**
+ * Confeitex — ui.js
+ * Componentes de UI: toast, confirm dialog e modal genérico.
+ */
+
 import { escapeHTML } from './utils.js';
 
 export const UI = {
@@ -57,27 +62,27 @@ export const UI = {
       overlay.setAttribute('role', 'dialog');
       overlay.setAttribute('aria-modal', 'true');
       overlay.setAttribute('aria-labelledby', 'ui-confirm-title');
-      
+
       const modal = document.createElement('div');
       modal.className = 'ui-confirm-modal';
-      
+
       const iconWrap = document.createElement('div');
       iconWrap.className = 'ui-confirm-icon';
       iconWrap.style.background = gradient;
       iconWrap.innerHTML = icons[variant] || icons.primary;
-      
+
       const titleEl = document.createElement('div');
       titleEl.className = 'ui-confirm-title';
       titleEl.id = 'ui-confirm-title';
       titleEl.textContent = title;
-      
+
       const msgEl = document.createElement('div');
       msgEl.className = 'ui-confirm-message';
       msgEl.textContent = message;
-      
+
       const actions = document.createElement('div');
       actions.className = 'ui-confirm-actions';
-      
+
       if (cancelText) {
         const btnCancel = document.createElement('button');
         btnCancel.className = 'ui-confirm-btn ui-confirm-btn-cancel';
@@ -85,22 +90,26 @@ export const UI = {
         btnCancel.textContent = cancelText;
         actions.appendChild(btnCancel);
       }
-      
+
       const btnConfirm = document.createElement('button');
       btnConfirm.className = 'ui-confirm-btn ui-confirm-btn-confirm';
       btnConfirm.dataset.action = 'confirm';
       btnConfirm.style.background = gradient;
       btnConfirm.textContent = confirmText;
       actions.appendChild(btnConfirm);
-      
+
       modal.appendChild(iconWrap);
       modal.appendChild(titleEl);
       modal.appendChild(msgEl);
       modal.appendChild(actions);
       overlay.appendChild(modal);
-      
+
       document.body.appendChild(overlay);
-      requestAnimationFrame(() => overlay.classList.add('active'));
+      requestAnimationFrame(() => {
+        overlay.classList.add('active');
+        // Acessibilidade: move o foco para o botão de confirmação ao abrir
+        setTimeout(() => { btnConfirm.focus(); }, 50);
+      });
 
       overlay.addEventListener('click', (e) => {
         const btn = e.target.closest('[data-action]');
@@ -109,6 +118,17 @@ export const UI = {
         setTimeout(() => overlay.remove(), 300);
         resolve(btn.dataset.action === 'confirm');
       });
+
+      // Acessibilidade: fechar com Escape
+      const onKeyDown = (e) => {
+        if (e.key === 'Escape') {
+          document.removeEventListener('keydown', onKeyDown);
+          overlay.classList.remove('active');
+          setTimeout(() => overlay.remove(), 300);
+          resolve(false);
+        }
+      };
+      document.addEventListener('keydown', onKeyDown);
     });
   },
 
@@ -141,11 +161,21 @@ export const UI = {
       </div>`;
 
     document.body.appendChild(overlay);
-    requestAnimationFrame(() => overlay.classList.add('active'));
+    const previousFocus = document.activeElement;
+    requestAnimationFrame(() => {
+      overlay.classList.add('active');
+      // Acessibilidade: move o foco para o botão de fechar ao abrir
+      setTimeout(() => {
+        const closeBtn = document.getElementById(`${id}Close`);
+        if (closeBtn) closeBtn.focus();
+      }, 50);
+    });
 
     const closeModal = () => {
       overlay.classList.remove('active');
       setTimeout(() => overlay.remove(), 300);
+      // Acessibilidade: retorna o foco ao elemento que abriu o modal
+      if (previousFocus && typeof previousFocus.focus === 'function') previousFocus.focus();
       if (typeof onClose === 'function') onClose();
     };
 
@@ -153,6 +183,15 @@ export const UI = {
     overlay.addEventListener('click', (e) => {
       if (e.target === overlay) closeModal();
     });
+
+    // Acessibilidade: fechar com Escape
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        document.removeEventListener('keydown', onKeyDown);
+        closeModal();
+      }
+    };
+    document.addEventListener('keydown', onKeyDown);
 
     return { overlay, closeModal };
   }

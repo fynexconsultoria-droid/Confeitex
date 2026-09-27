@@ -332,7 +332,7 @@ export const Chart = {
     const handler = () => {
       if (this._resizeTimer) cancelAnimationFrame(this._resizeTimer);
       this._resizeTimer = requestAnimationFrame(() => {
-        var dashEl = document.getElementById('dashboard');
+        const dashEl = document.getElementById('dashboard');
         if (dashEl && dashEl.classList.contains('active')) {
           this.render();
         }
@@ -396,7 +396,7 @@ export const Chart = {
     if (!tooltip) {
       tooltip = document.createElement('div');
       tooltip.id = 'chartTooltip';
-      var chartContainer = document.querySelector('.chart-container');
+      const chartContainer = document.querySelector('.chart-container');
       if (chartContainer) chartContainer.appendChild(tooltip);
     }
 

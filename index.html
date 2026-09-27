@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Confeitex - Controle de Encomendas</title>
   <meta name="description" content="Controle de encomendas para confeitaria — gerencie pedidos, clientes e entregas. 100% offline.">
-  <meta name="version" content="0.1.3-beta">
+  <meta name="version" content="0.1.4">
 
   <!-- Google Fonts: Plus Jakarta Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -83,37 +83,49 @@
   <aside class="right-sidebar" id="rightSidebar">
     <div class="right-sidebar-header">
       <h3>Menu</h3>
-      <button class="btn btn-icon-only close-right-sidebar" id="closeRightSidebar" style="color: white; background: transparent; border: none; padding: 0.5rem; cursor: pointer;">
+      <button class="btn btn-icon-only close-right-sidebar" id="closeRightSidebar" aria-label="Fechar Menu" title="Fechar" style="color: white; background: transparent; border: none; padding: 0.5rem; cursor: pointer;">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 24px; height: 24px;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
     </div>
     <ul class="nav-menu-vertical">
       <li><a href="#" class="right-sidebar-link nav-link" data-tab="settings">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg> Configurações
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <span>Configurações</span>
       </a></li>
       <li><a href="#" class="right-sidebar-link nav-link" data-tab="updates">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Atualizações
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+        <span>Atualizações</span>
       </a></li>
       <li><a href="#" class="right-sidebar-link nav-link" data-tab="notificacoes">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg> Notificações
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <span>Notificações</span>
       </a></li>
       <li><a href="#" class="right-sidebar-link nav-link" data-tab="mercadopago">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg> Mercado Pago
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+        <span>Mercado Pago</span>
       </a></li>
       <li><a href="#" class="right-sidebar-link nav-link" data-tab="plano">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> Plano Confeitex
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        <span>Plano Confeitex</span>
       </a></li>
     </ul>
 
-    <div class="sidebar-footer" style="margin-top: auto; padding: 1.5rem 1rem;">
-      Confeitex <span id="rightSidebarVersion">v0.1.3-beta</span><br>
-      <div class="sidebar-footer-links" style="margin-top: 0.5rem; justify-content: flex-start;">
-        <a href="termos.html" class="sidebar-footer-link" data-i18n="nav.terms">Termos</a>
+    <div class="right-sidebar-footer">
+      <div class="right-sidebar-status">
+        <span class="status-dot" id="rightSidebarStatusDot"></span>
+        <span id="rightSidebarStatusText">Verificando...</span>
+      </div>
+      <div class="right-sidebar-version">Confeitex <span id="rightSidebarVersion">v0.1.3-beta</span></div>
+      <div class="right-sidebar-footer-links">
+        <a href="termos.html" class="sidebar-footer-link">Termos</a>
         <span>·</span>
-        <a href="privacidade.html" class="sidebar-footer-link" data-i18n="nav.privacy">Privacidade</a>
+        <a href="privacidade.html" class="sidebar-footer-link">Privacidade</a>
       </div>
     </div>
   </aside>
+
+  <!-- Right Sidebar Overlay -->
+  <div class="right-sidebar-overlay" id="rightSidebarOverlay"></div>
 
   <!-- Sidebar Overlay (Mobile) -->
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
@@ -239,7 +251,7 @@
       
       <!-- TAB 1: DASHBOARD -->
       <section id="dashboard" class="tab-content active">
-        <button class="btn btn-primary" id="btnNewOrder" style="width: 100%; margin-bottom: 1.5rem;">
+        <button class="btn btn-primary" id="btnNewOrder" aria-label="Criar Novo Pedido" style="width: 100%; margin-bottom: 1.5rem;">
           <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           <span data-i18n="orders.actNew">Novo Pedido</span>
         </button>
@@ -371,12 +383,12 @@
           <!-- Row 1: Search -->
           <div class="search-input-wrapper" style="width: 100%;">
             <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            <input type="text" class="form-control" id="orderSearchInput" placeholder="Buscar por cliente, produto, sabor..." data-i18n-ph="orders.searchPh">
+            <input type="text" class="form-control" id="orderSearchInput" aria-label="Buscar pedidos" placeholder="Buscar por cliente, produto, sabor..." data-i18n-ph="orders.searchPh">
           </div>
           
           <!-- Row 2: Status and Date -->
           <div style="display: flex; gap: 0.5rem; width: 100%; grid-column: 1 / -1;">
-            <select class="form-control filter-status" id="orderFilterStatus" aria-label="Filtrar por status" title="Filtrar por status" style="flex: 1;">
+            <select class="form-control filter-status" id="orderFilterStatus" aria-label="Filtrar por status" aria-label="Filtrar por status" title="Filtrar por status" style="flex: 1;">
               <option value="all" data-i18n-opt="orders.filterAll">Todos os Status</option>
               <option value="Pendente" data-i18n-opt="orders.filterPending">Pendentes / Produção</option>
               <option value="Em Produção" data-i18n-opt="orders.filterProduction">Em Produção</option>
@@ -384,14 +396,14 @@
               <option value="Cancelado" data-i18n-opt="orders.filterCanceled">Cancelados</option>
             </select>
             
-            <input type="text" onfocus="(this.type='date')" onblur="(this.value == '' ? this.type='text' : this.type='date')" class="form-control filter-date" id="orderFilterDate" placeholder="Data" title="Filtrar por data" aria-label="Filtrar por data" style="flex: 1;">
+            <input type="text" onfocus="(this.type='date')" onblur="(this.value == '' ? this.type='text' : this.type='date')" class="form-control filter-date" id="orderFilterDate" aria-label="Filtrar por data de entrega" placeholder="Data" title="Filtrar por data" aria-label="Filtrar por data" style="flex: 1;">
           </div>
 
           <!-- Row 3: Limpar Filtros and Trash -->
           <div style="display: flex; gap: 0.5rem; width: 100%; justify-content: space-between; align-items: center; grid-column: 1 / -1; margin-top: 0.5rem;">
             <button type="button" id="btnClearFilters" class="btn btn-secondary" style="display: none; padding: 0 1rem; color: var(--color-accent-pink); font-weight: 600;" title="Limpar Filtros" aria-label="Limpar Filtros">Limpar Filtros</button>
             <div style="flex: 1;"></div>
-            <button class="btn btn-secondary btn-icon-only btn-open-trash btn-trash-inline" title="Lixeira" data-i18n-title="orders.trash">
+            <button class="btn btn-secondary btn-icon-only btn-open-trash btn-trash-inline" title="Lixeira" aria-label="Abrir Lixeira" data-i18n-title="orders.trash">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
               <span class="trash-badge d-none" data-trash-count>0</span>
             </button>
@@ -447,9 +459,9 @@
         <div class="filter-bar" style="display: flex !important; flex-wrap: nowrap; align-items: center;">
           <div class="search-input-wrapper search-input-wrapper-wide" style="flex: 1; grid-column: auto;">
             <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            <input type="text" class="form-control" id="clientSearchInput" placeholder="Buscar cliente por nome ou telefone..." data-i18n-ph="clients.searchPh">
+            <input type="text" class="form-control" id="clientSearchInput" aria-label="Buscar clientes" placeholder="Buscar cliente por nome ou telefone..." data-i18n-ph="clients.searchPh">
           </div>
-          <button class="btn btn-secondary btn-icon-only btn-open-trash btn-trash-inline" title="Lixeira" data-i18n-title="orders.trash" style="flex: 0 0 44px !important; width: 44px !important; height: 44px !important; padding: 0 !important; display: flex; align-items: center; justify-content: center;">
+          <button class="btn btn-secondary btn-icon-only btn-open-trash btn-trash-inline" title="Lixeira" aria-label="Abrir Lixeira" data-i18n-title="orders.trash" style="flex: 0 0 44px !important; width: 44px !important; height: 44px !important; padding: 0 !important; display: flex; align-items: center; justify-content: center;">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
             <span class="trash-badge d-none" data-trash-count>0</span>
           </button>
@@ -718,7 +730,7 @@
                 <option value="Salgados" data-i18n-opt="product.Salgados">Salgados</option>
                 <option value="Outros" data-i18n-opt="product.Outros">Outros</option>
               </select>
-              <button class="btn btn-primary btn-icon-only" id="btnAddCatalogItem" title="Adicionar Sabor" data-i18n-title="settings.catalogAddTitle">
+              <button class="btn btn-primary btn-icon-only" id="btnAddCatalogItem" title="Adicionar Sabor" aria-label="Adicionar Sabor ao Catálogo" data-i18n-title="settings.catalogAddTitle">
                 <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
               </button>
             </div>
@@ -1002,7 +1014,7 @@
   </div>
 
   <!-- ORDER FORM MODAL -->
-  <div class="modal-overlay" id="orderModal" role="dialog" aria-modal="true" aria-labelledby="modalOrderTitleText">
+  <div class="modal-overlay" id="orderModal" role="dialog" aria-modal="true" aria-labelledby="modalOrderTitleText" role="dialog" aria-modal="true" aria-labelledby="modalOrderTitleText">
     <div class="modal-container">
       <div class="modal-header">
         <h2 id="modalOrderTitle">
@@ -1159,7 +1171,7 @@
   </div>
 
   <!-- CLIENT DETAIL MODAL -->
-  <div class="modal-overlay" id="clientModal" role="dialog" aria-modal="true" aria-labelledby="clientDetailName">
+  <div class="modal-overlay" id="clientModal" role="dialog" aria-modal="true" aria-labelledby="modalClientTitle" role="dialog" aria-modal="true" aria-labelledby="clientDetailName">
     <div class="modal-container">
       <div class="modal-header">
         <h2>

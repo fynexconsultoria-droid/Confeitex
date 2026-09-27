@@ -1,3 +1,7 @@
+/**
+ * Confeitex — pwa.js
+ * Gerencia instalação do PWA e trava de orientação de tela.
+ */
 import { safeStorage } from './utils.js';
 
 (() => {
@@ -23,7 +27,7 @@ import { safeStorage } from './utils.js';
   });
 
   function showBanner(platform) {
-    var existing = document.querySelector('.pwa-install-banner');
+    const existing = document.querySelector('.pwa-install-banner');
     if (existing) existing.remove();
     const banner = document.createElement('div');
     banner.className = 'pwa-install-banner';
@@ -40,19 +44,19 @@ import { safeStorage } from './utils.js';
     document.body.appendChild(banner);
     requestAnimationFrame(() => requestAnimationFrame(() => banner.classList.add('visible')));
 
-    var installBtn = banner.querySelector('.pwa-btn-install');
+    const installBtn = banner.querySelector('.pwa-btn-install');
     if (installBtn) {
       installBtn.addEventListener('click', async () => {
         if (deferredInstall) deferredInstall.prompt();
-        var result = deferredInstall ? deferredInstall.userChoice : Promise.resolve({ outcome: 'dismissed' });
-        var choice = await result;
+        const result = deferredInstall ? deferredInstall.userChoice : Promise.resolve({ outcome: 'dismissed' });
+        const choice = await result;
         deferredInstall = null;
         banner.classList.remove('visible');
         setTimeout(() => banner.remove(), 500);
       });
     }
 
-    var dismissBtn = banner.querySelector('.pwa-btn-dismiss');
+    const dismissBtn = banner.querySelector('.pwa-btn-dismiss');
     if (dismissBtn) {
       dismissBtn.addEventListener('click', () => {
         safeStorage.set('confeitex_pwa_dismissed', 'true');
@@ -71,7 +75,7 @@ import { safeStorage } from './utils.js';
 
   window.addEventListener('appinstalled', () => {
     deferredInstall = null;
-    var existing = document.querySelector('.pwa-install-banner');
+    const existing = document.querySelector('.pwa-install-banner');
     if (existing) existing.remove();
   });
 

@@ -87,8 +87,7 @@ export const Settings = {
         State.loadDemo(true);
         State.emptyTrash();
         if (Trash.updateBadge) Trash.updateBadge();
-        var activeLink = document.querySelector('.nav-link.active');
-        var tab = activeLink ? activeLink.dataset.tab : null;
+        const tab = document.querySelector('.nav-link.active')?.dataset?.tab || null;
         if (tab === 'dashboard') Dashboard.update();
         else if (tab === 'orders') Orders.render();
         else if (tab === 'clients') Clients.render();
@@ -389,8 +388,7 @@ export const Settings = {
     }
 
     UI.toast(I18n.t('settings.toastImported'));
-    var activeLink = document.querySelector('.nav-link.active');
-    var tab = activeLink ? activeLink.dataset.tab : null;
+    const tab = document.querySelector('.nav-link.active')?.dataset?.tab || null;
     if (tab === 'dashboard') Dashboard.update();
     else if (tab === 'orders') Orders.render();
     else if (tab === 'clients') Clients.render();
@@ -484,8 +482,7 @@ export const Settings = {
     State.orders = orders.map(migrateOrder);
     State.saveOrders();
     UI.toast(I18n.t('settings.toastPdfImported', { count: orders.length }));
-    var activeLink = document.querySelector('.nav-link.active');
-    var tab = activeLink ? activeLink.dataset.tab : null;
+    const tab = document.querySelector('.nav-link.active')?.dataset?.tab || null;
     if (tab === 'dashboard') Dashboard.update();
     else if (tab === 'orders') Orders.render();
     else if (tab === 'clients') Clients.render();
@@ -575,7 +572,7 @@ export const Settings = {
       daysBefore.push(parseInt(cb.dataset.day, 10));
     });
 
-    var intervalEl = document.getElementById('notifIntervalSelect');
+    const intervalEl = document.getElementById('notifIntervalSelect');
     const intervalHours = parseInt(intervalEl ? intervalEl.value : '1', 10);
 
     const statuses = [];
@@ -583,20 +580,20 @@ export const Settings = {
       statuses.push(cb.dataset.status);
     });
 
-    var pendingPayEl = document.getElementById('notifPendingPayCb');
+    const pendingPayEl = document.getElementById('notifPendingPayCb');
     const alertPendingPayment = !!(pendingPayEl && pendingPayEl.checked);
 
-    var reminderEl = document.getElementById('notifReminderTime');
+    const reminderEl = document.getElementById('notifReminderTime');
     const reminderTime = reminderEl ? reminderEl.value : '08:00';
 
-    var overdueEl = document.getElementById('notifOverdueCb');
+    const overdueEl = document.getElementById('notifOverdueCb');
     const overdueAlerts = !!(overdueEl && overdueEl.checked);
 
-    var quietEl = document.getElementById('notifQuietCb');
+    const quietEl = document.getElementById('notifQuietCb');
     const quietHoursEnabled = !!(quietEl && quietEl.checked);
-    var quietStartEl = document.getElementById('notifQuietStart');
+    const quietStartEl = document.getElementById('notifQuietStart');
     const quietHoursStart = quietStartEl ? quietStartEl.value : '22:00';
-    var quietEndEl = document.getElementById('notifQuietEnd');
+    const quietEndEl = document.getElementById('notifQuietEnd');
     const quietHoursEnd = quietEndEl ? quietEndEl.value : '07:00';
 
     Notifications.saveSettings({

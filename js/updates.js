@@ -4,7 +4,7 @@ import { UI } from './ui.js';
 import { safeStorage } from './utils.js';
 
 export const Updates = {
-  _CODE_VERSION: '0.1.3-beta',
+  _CODE_VERSION: '0.1.4',
 
   // Versão em execução obtida dinamicamente da tag meta ou fallback seguro
   get verAtual() {

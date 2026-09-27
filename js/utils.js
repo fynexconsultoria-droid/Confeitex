@@ -1,3 +1,8 @@
+/**
+ * Confeitex — utils.js
+ * Utilitários: formatação, sanitização, storage seguro, IndexedDB (AppDB) e criptografia (CryptoUtils).
+ */
+
 import { I18n } from './i18n.js';
 
 export const fmt = (val) => {
@@ -10,7 +15,7 @@ export const fmtDateStr = (s) => s ? s.split('-').reverse().join('/') : '';
 // Data local em formato ISO (YYYY-MM-DD) — evita o bug de toISOString() que usa UTC
 // e retorna o dia errado à noite em fusos negativos (ex.: Brasil, UTC-3).
 export const fmtISO = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-export var safeStorage = {
+export const safeStorage = {
   get(key) {
     try {
       const target = typeof localStorage !== 'undefined' ? localStorage : null;
@@ -287,7 +292,7 @@ export const AppDB = {
       });
     } catch (e) { return false; }
   },
-  
+
   async remove(key) {
     try {
       const db = await this.init();
@@ -306,12 +311,11 @@ export const AppDB = {
       let dataToSave = order;
       if (encryptionKey) {
         const str = JSON.stringify(order);
-        // We assume CryptoUtils is in scope (it is in utils.js)
-        dataToSave = { 
-          id: order.id, 
+        dataToSave = {
+          id: order.id,
           deliveryDate: order.deliveryDate,
           status: order.status,
-          _encryptedData: await CryptoUtils.encrypt(str, encryptionKey) 
+          _encryptedData: await CryptoUtils.encrypt(str, encryptionKey)
         };
       }
       return new Promise((resolve, reject) => {
@@ -373,10 +377,10 @@ export const CryptoUtils = {
       false,
       ["deriveBits", "deriveKey"]
     );
-    
+
     // Convert hex salt to Uint8Array
     const salt = new Uint8Array(saltHex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
-    
+
     return await crypto.subtle.deriveKey(
       {
         name: "PBKDF2",
@@ -395,30 +399,47 @@ export const CryptoUtils = {
     const iv = crypto.getRandomValues(new Uint8Array(12));
     const enc = new TextEncoder();
     const encoded = enc.encode(dataString);
-    
+
     const ciphertext = await crypto.subtle.encrypt(
       { name: "AES-GCM", iv: iv },
       key,
       encoded
     );
-    
+
+    // Serializa como Base64 para compatibilidade com JSON e backups exportados
+    const toBase64 = (buf) => btoa(String.fromCharCode(...new Uint8Array(buf instanceof ArrayBuffer ? buf : buf.buffer)));
     return {
-      iv: iv,
-      ciphertext: ciphertext
+      iv: toBase64(iv),
+      ciphertext: toBase64(ciphertext),
+      v: 2
     };
   },
 
   async decrypt(encryptedData, key) {
-    const iv = encryptedData.iv;
-    const ciphertext = encryptedData.ciphertext;
-    
+    // Suporta formato legado (Uint8Array/ArrayBuffer) e novo (Base64 string)
+    let iv, ciphertext;
+    if (typeof encryptedData.iv === 'string') {
+      // Formato v2: Base64
+      const fromBase64 = (s) => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+      iv = fromBase64(encryptedData.iv);
+      ciphertext = fromBase64(encryptedData.ciphertext);
+    } else {
+      // Formato legado: binário direto (Uint8Array / ArrayBuffer)
+      iv = encryptedData.iv;
+      ciphertext = encryptedData.ciphertext;
+    }
+
     const decrypted = await crypto.subtle.decrypt(
       { name: "AES-GCM", iv: iv },
       key,
       ciphertext
     );
-    
+
     const dec = new TextDecoder();
     return dec.decode(decrypted);
   }
 };
+
+export function getCurrentTab() {
+  return document.querySelector('.nav-link.active')?.dataset?.tab || null;
+}
