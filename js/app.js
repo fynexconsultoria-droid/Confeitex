@@ -223,22 +223,8 @@ import { fmtDate, fmtISO, safeStorage } from './utils.js';
   rightOverlay?.addEventListener('click', closeRight);
 
   document.querySelectorAll('.right-sidebar-link').forEach(link => {
-    link.addEventListener('click', (e) => {
-      e.preventDefault();
+    link.addEventListener('click', () => {
       closeRight();
-      window.switchTab('settings');
-      const targetId = link.getAttribute('data-target');
-      if (targetId) {
-        setTimeout(() => {
-          const el = document.getElementById(targetId);
-          if (el) {
-            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            el.style.transition = 'background 0.5s';
-            el.style.background = 'rgba(236, 72, 153, 0.1)';
-            setTimeout(() => { el.style.background = 'transparent'; }, 1000);
-          }
-        }, 300);
-      }
     });
   });
   document.getElementById('sidebarOverlay').addEventListener('click', () => {
