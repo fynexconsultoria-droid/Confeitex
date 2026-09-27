@@ -9,7 +9,7 @@
   input, select, button, .btn { min-height: 44px; }
   
   /* Remove rounded corners from inputs on iOS */
-  input, textarea { -webkit-appearance: none; border-radius: var(--border-radius-sm); }
+  input, textarea { -webkit-appearance: none; appearance: none; border-radius: var(--border-radius-sm); }
   
   /* Optimize modal spacing for mobile */
   .modal-content { border-radius: 20px 20px 0 0; margin-bottom: 0; min-height: 50vh; }
