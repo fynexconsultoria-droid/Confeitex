@@ -216,278 +216,74 @@ export const Updates = {
     this._promptShowing = true;
     try {
       const ok = await UI.confirm({
-        title: I18n.t('updates.promptTitle'),
-        message: I18n.t('updates.promptMsg', { version: serverVer }),
-        confirmText: I18n.t('updates.updateNow'),
-        cancelText: I18n.t('updates.later'),
+        title: I18n.t('updates.promptTitle') || 'Atualização Disponível',
+        message: I18n.t('updates.promptMsg', { version: serverVer }) || `Uma nova versão (${serverVer}) foi encontrada. Deseja aplicar a atualização agora?`,
+        confirmText: I18n.t('updates.updateNow') || 'Atualizar Agora',
+        cancelText: I18n.t('updates.later') || 'Mais Tarde',
         variant: 'primary'
       });
 
       if (ok) {
         safeStorage.remove('confeitex_update_deferred');
-        safeStorage.set('confeitex_ver', serverVer);
-        await this.downloadUpdate();
+        await this.applyUpdateDirectly(serverVer);
       } else {
         safeStorage.set('confeitex_update_deferred', String(Date.now()));
-        UI.toast(I18n.t('updates.toastLater'));
-        
-        if (typeof Notifications !== 'undefined' && Notifications._recordNotification) {
-          Notifications._recordNotification({
-            id: 'update_deferred_' + serverVer,
-            type: 'update',
-            title: I18n.t('updates.notifTitle') || 'Atualização Disponível',
-            body: I18n.t('updates.notifBody', { version: serverVer }) || `A versão ${serverVer} está disponível para download.`,
-            orderIds: [],
-            read: false
-          });
-        }
+        UI.toast(I18n.t('updates.toastLater') || 'Atualização adiada.');
       }
     } finally {
       this._promptShowing = false;
     }
   },
 
-  // ─── Verificação Manual pelo Usuário ─────────────────────────────────────
-  async checkManual() {
-    const btn = document.getElementById('btnCheckUpdates');
-    const originalText = btn ? btn.innerHTML : '';
-    if (btn) {
-      btn.disabled = true;
-      btn.innerHTML = '<span class="login-spinner"></span> ' + I18n.t('updates.checking');
-    }
-    this.updateStatus(I18n.t('updates.checking'));
+  async applyUpdateDirectly(ver) {
+    this._showProgress(ver);
+    this._updateProgress(30, 'Limpando cache antigo...');
 
-    // Verificação manual limpa bloqueios de adiamento
-    safeStorage.remove('confeitex_update_deferred');
-
-    const serverVer = await this._fetchVersion();
-    const currentVer = this.verAtual;
-    const lastCheckStr = new Date().toLocaleString((I18n.locales && I18n.locales[I18n.lang]) || 'pt-BR');
-    safeStorage.set('confeitex_last_check', lastCheckStr);
-    const lastCheckEl = document.getElementById('updatesLastCheck');
-    if (lastCheckEl) lastCheckEl.textContent = lastCheckStr;
-
-    if (serverVer && this._isNewer(serverVer, currentVer)) {
-      const ok = await UI.confirm({
-        title: I18n.t('updates.promptTitle'),
-        message: I18n.t('updates.promptFound', { version: serverVer }),
-        confirmText: I18n.t('updates.reloadNow'),
-        variant: 'primary'
-      });
-      if (ok) {
-        this.updateStatus(I18n.t('updates.newFound', { version: serverVer }));
-        safeStorage.set('confeitex_ver', serverVer);
-        await this.downloadUpdate();
-      } else {
-        this.updateStatus(I18n.t('updates.cancelled'));
-      }
-    } else if (serverVer) {
-      // Versão é igual ou menor que a atual: app está 100% atualizado!
-      this.updateStatus(I18n.t('updates.upToDate'));
-    } else {
-      this.updateStatus(I18n.t('updates.noConnection'), true);
-    }
-
-    if (btn) {
-      btn.disabled = false;
-      btn.innerHTML = originalText;
-    }
-  },
-
-  // ─── Download e Ativação Precisa da Atualização ──────────────────────────
-  async downloadUpdate() {
-    const newVer = safeStorage.get('confeitex_ver') || this._CODE_VERSION;
-    const oldVer = this.verAtual;
-    const startedAt = Date.now();
-
-    this._showProgress(newVer);
-    safeStorage.remove('confeitex_notified');
-    safeStorage.remove('confeitex_update_prompt');
-    safeStorage.remove('confeitex_pwa_dismissed');
-
-    // Prepara ativação sem deletar cache ativo prematuramente (evita quebrar offline)
-    this._updateProgress(20, I18n.t('updates.progressPreparing'));
-
-    const swOk = 'serviceWorker' in navigator;
-    if (!swOk) {
-      await this._settleProgress(startedAt, I18n.t('updates.progressRegistering'));
-      safeStorage.set('confeitex_updated', 'true');
-      safeStorage.set('confeitex_last_updated_to', newVer);
-      safeStorage.set('confeitex_last_updated_ts', String(Date.now()));
-      safeStorage.set('confeitex_ver', newVer);
-      this._updateProgress(100, I18n.t('updates.progressDone'));
-      this.promptUpdateReady(newVer);
-      return;
-    }
-
-    // Registra/atualiza Service Worker com URL fixa
-    this._updateProgress(45, I18n.t('updates.progressRegisteringSw'));
-    let reg;
-    try {
-      safeStorage.set('confeitex_updated', 'true');
-      safeStorage.set('confeitex_last_updated_to', newVer);
-      safeStorage.set('confeitex_last_updated_ts', String(Date.now()));
-      
-
-      reg = await navigator.serviceWorker.register('./sw.js');
-      if (reg.update) {
-        await reg.update().catch(() => {});
-      }
-    } catch (e) {
-      safeStorage.remove('confeitex_updated');
-      safeStorage.remove('confeitex_last_updated_to');
-      safeStorage.remove('confeitex_last_updated_ts');
-      safeStorage.set('confeitex_ver', oldVer);
-      this._hideProgress();
-      UI.alert(I18n.t('updates.noConnection') + ' ' + I18n.t('updates.retryMsg'));
-      return;
-    }
-
-    this._updateProgress(70, I18n.t('updates.progressActivating'));
-    const instalado = await Promise.race([
-      new Promise(resolve => {
-        const w = reg.installing || reg.waiting;
-        if (w) {
-          w.addEventListener('statechange', () => {
-            if (w.state === 'installed') resolve(true);
-            else if (w.state === 'redundant') resolve(false);
-          });
-        } else if (reg.active) {
-          resolve(true);
-        } else {
-          setTimeout(() => resolve(false), 1200);
+    if ('serviceWorker' in navigator) {
+      try {
+        const regs = await navigator.serviceWorker.getRegistrations();
+        for (let reg of regs) {
+          await reg.unregister();
         }
-      }),
-      this._delay(10000).then(() => false)
-    ]);
-
-    safeStorage.set('confeitex_updated', 'true');
-    safeStorage.set('confeitex_last_updated_to', newVer);
-    safeStorage.set('confeitex_last_updated_ts', String(Date.now()));
-    safeStorage.set('confeitex_ver', newVer);
-
-    await this._settleProgress(startedAt, I18n.t('updates.progressApplying'));
-    this._updateProgress(100, instalado ? I18n.t('updates.progressDone') : I18n.t('updates.progressDoneDeferred'));
-    this.promptUpdateReady(newVer);
-  },
-
-  _showProgress(ver) {
-    const banner = document.getElementById('updateNotification');
-    const text = document.getElementById('updateNotifText');
-    const progress = document.getElementById('updateProgress');
-    const actions = document.getElementById('updateActions');
-    const fill = document.getElementById('updateProgressFill');
-    const label = document.getElementById('updateProgressLabel');
-    if (!banner || !text || !progress || !actions || !fill || !label) return;
-
-    text.textContent = I18n.t('updates.downloadMsg', { version: ver });
-    progress.style.display = 'flex';
-    actions.style.display = 'none';
-    fill.style.width = '0%';
-    label.textContent = I18n.t('updates.progressPreparing');
-
-    banner.style.display = 'flex';
-    requestAnimationFrame(() => requestAnimationFrame(() => banner.classList.add('visible')));
-  },
-
-  _updateProgress(pct, msg) {
-    const fill = document.getElementById('updateProgressFill');
-    const label = document.getElementById('updateProgressLabel');
-    if (fill) fill.style.width = Math.min(pct, 100) + '%';
-    if (label) label.textContent = msg;
-  },
-
-  _animateProgress(targetPct, duration, msg) {
-    return new Promise(resolve => {
-      const fill = document.getElementById('updateProgressFill');
-      const label = document.getElementById('updateProgressLabel');
-      if (label && msg) label.textContent = msg;
-      if (!fill || duration <= 0) { resolve(); return; }
-      const startPct = parseFloat(fill.style.width) || 0;
-      const startTime = performance.now();
-      const step = (now) => {
-        const t = Math.min((now - startTime) / duration, 1);
-        const eased = 1 - Math.pow(1 - t, 3);
-        fill.style.width = (startPct + (targetPct - startPct) * eased) + '%';
-        if (t < 1) requestAnimationFrame(step);
-        else resolve();
-      };
-      requestAnimationFrame(step);
-    });
-  },
-
-  _settleProgress(startedAt, msg) {
-    const minMs = 3000;
-    const remaining = Math.max(0, minMs - (Date.now() - startedAt));
-    return this._animateProgress(99, remaining, msg);
-  },
-
-  _hideProgress() {
-    const banner = document.getElementById('updateNotification');
-    if (banner) {
-      banner.classList.remove('visible');
-      banner.addEventListener('transitionend', () => {
-        banner.style.display = 'none';
-      }, { once: true });
+      } catch(e){}
     }
+    
+    try {
+      if ('caches' in window) {
+        const keys = await caches.keys();
+        for (let key of keys) {
+          if (key.includes('confeitex-cache')) {
+            await caches.delete(key);
+          }
+        }
+      }
+    } catch(e){}
+
+    this._updateProgress(80, 'Aplicando nova versão...');
+    safeStorage.set('confeitex_ver', ver);
+    safeStorage.set('confeitex_updated', 'true');
+    safeStorage.set('confeitex_last_updated_to', ver);
+    safeStorage.set('confeitex_last_updated_ts', String(Date.now()));
+
+    this._updateProgress(100, 'Reiniciando...');
+    setTimeout(() => {
+      window.location.href = window.location.origin + window.location.pathname + '?v=' + encodeURIComponent(ver) + '&ts=' + Date.now();
+    }, 1000);
+  },
+
+  async downloadUpdate() {
+    // Wrapper para compatibilidade caso outro lugar chame
+    const ver = safeStorage.get('confeitex_ver') || this.verAtual;
+    await this.applyUpdateDirectly(ver);
   },
 
   async promptUpdateReady(ver) {
-    if (this._promptShowing) return;
-    this._promptShowing = true;
-    try {
-      const ok = await UI.confirm({
-        title: I18n.t('updates.promptTitle') || '📦 Nova Atualização Disponível',
-        message: I18n.t('updates.installedTitle', { version: ver }) || `✅ Atualização Confeitex v${ver} instalada! Deseja recarregar agora para aplicar as mudanças?`,
-        confirmText: I18n.t('updates.reloadNow') || 'Recarregar',
-        cancelText: I18n.t('updates.laterNextOpen') || 'Na próxima abertura',
-        variant: 'primary'
-      });
-
-      if (ok) {
-        this.applyUpdateAndReload(ver);
-      } else {
-        safeStorage.set('confeitex_update_pending', ver);
-        safeStorage.set('confeitex_updated', 'true');
-        safeStorage.set('confeitex_update_deferred', String(Date.now()));
-        
-        const heroReloadBtn = document.getElementById('btnHeroReload');
-        const upToDateBadge = document.getElementById('updatesUpToDateBadge');
-        if (heroReloadBtn) heroReloadBtn.style.display = 'inline-flex';
-        if (upToDateBadge) upToDateBadge.style.display = 'none';
-        UI.toast(I18n.t('updates.toastApplyLater') || '✅ App atualizado na próxima abertura.');
-        
-        if (typeof Notifications !== 'undefined' && Notifications._recordNotification) {
-          Notifications._recordNotification({
-            id: 'update_ready_' + ver,
-            type: 'update',
-            title: I18n.t('updates.installedTitle', { version: ver }).split('!')[0] + '!' || 'Atualização Pronta!',
-            body: I18n.t('updates.toastApplyLater') || 'Recarregue o app para aplicar.',
-            orderIds: [],
-            read: false
-          });
-        }
-      }
-    } finally {
-      this._promptShowing = false;
-    }
+    // Compatibilidade
+    this.applyUpdateDirectly(ver);
   },
+
   applyUpdateAndReload(ver) {
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistration().then(reg => {
-        if (reg && reg.waiting) {
-          reg.waiting.postMessage({ type: 'SKIP_WAITING' });
-        }
-      });
-    }
-    
-    // Pequeno atraso para garantir que o SW receba a mensagem e comece a ativar
-    setTimeout(() => {
-      window.location.replace(
-        window.location.origin + window.location.pathname +
-        '?v=' + encodeURIComponent(ver) + '&ts=' + Date.now()
-      );
-    }, 400);
+    this.applyUpdateDirectly(ver);
   },
 
   render() {
