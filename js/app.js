@@ -227,7 +227,12 @@ import { fmtDate, fmtISO, safeStorage } from './utils.js';
     const sidebarText = document.getElementById('navConnectionStatus');
     if (sidebarText) {
       sidebarText.textContent = isOnline ? I18n.t('nav.online') : I18n.t('nav.offline');
-      sidebarText.style.color = isOnline ? 'var(--color-success)' : '';
+      sidebarText.style.color = '';
+    }
+
+    const navDot = document.getElementById('navConnectionDot');
+    if (navDot) {
+      navDot.style.background = isOnline ? 'var(--color-success)' : 'var(--color-danger)';
     }
 
     const updatesStatus = document.getElementById('updatesConnectionStatus');
