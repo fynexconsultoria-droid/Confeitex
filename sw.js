@@ -46,11 +46,12 @@ const ASSETS_TO_CACHE = [
   './js/clients.js',
   './js/settings.js',
   './js/finances.js',
-  './js/updates.js',
+
   './js/i18n.js',
   './js/plan.js',
   './js/mercadopago.js',
   './js/onboarding.js',
+  './js/updates.js',
   './js/app.js',
   './js/trash.js',
   './icons/icon-192x192.png',
@@ -104,7 +105,6 @@ self.addEventListener('activate', (event) => {
       );
     }).then(() => {
       // NÃO chama clients.claim() — o SW novo só assume na próxima abertura
-      // ou quando o usuário aceitar a atualização via modal
       return swRunCheck();
     })
   );
@@ -365,28 +365,7 @@ function swInQuietHours(settings) {
   return cur >= start || cur < end;
 }
 
-// Verifica atualização via rede e notifica clientes se houver nova versão
-async function swCheckForUpdate() {
-  try {
-    const r = await fetch('./version.txt?t=' + Date.now(), { cache: 'no-store' });
-    if (!r.ok) return;
-    const raw = await r.text();
-    const serverVer = raw.trim();
-    if (!serverVer || serverVer.includes('<') || !/^\d+\.\d+\.\d+/.test(serverVer)) return;
-    const currentVer = await swGet('confeitex_current_version');
-    if (serverVer && serverVer !== currentVer) {
-      // Notifica todos os clientes sobre a atualização disponível
-      const clients = await self.clients.matchAll({ type: 'window' });
-      for (const client of clients) {
-        client.postMessage({ type: 'UPDATE_AVAILABLE', version: serverVer });
-      }
-      // NÃO salva a versão aqui — só salva quando o SW novo é ativado (install)
-      // Isso garante que a notificação possa ser reenviada se o usuário ignorar
-    }
-  } catch (e) {
-    console.warn('[SW] Erro ao verificar atualização:', e);
-  }
-}
+
 
 // Ouvinte de mensagens da aplicação (postMessage)
 self.addEventListener('message', (event) => {
@@ -398,9 +377,6 @@ self.addEventListener('message', (event) => {
   } else if (type === 'CHECK_NOTIFICATIONS' || type === 'APP_OPENED') {
     // Verifica notificações quando o app abre ou recebe mensagem
     event.waitUntil(swRunCheck());
-  } else if (type === 'CHECK_UPDATES') {
-    // Verifica atualização e notifica clientes se houver nova versão
-    event.waitUntil(swCheckForUpdate());
   } else if (type === 'TEST_NOTIFICATION') {
     event.waitUntil(
       self.registration.showNotification(payload?.title || 'Confeitex - Teste Offline! 🎂', {

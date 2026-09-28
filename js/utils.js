@@ -4,6 +4,7 @@
  */
 
 import { I18n } from './i18n.js';
+import { error, warn } from './logger.js';
 
 export const fmt = (val) => {
   const loc = (typeof I18n !== 'undefined' && I18n.locale) ? I18n.locale() : 'pt-BR';
@@ -278,7 +279,7 @@ export const AppDB = {
         req.onsuccess = () => resolve(req.result);
         req.onerror = () => reject(req.error);
       });
-    } catch (e) { return null; }
+    } catch (e) { error('[AppDB] Erro em get:', e); return null; }
   },
 
   async set(key, value) {
@@ -290,7 +291,7 @@ export const AppDB = {
         req.onsuccess = () => resolve(true);
         req.onerror = () => reject(req.error);
       });
-    } catch (e) { return false; }
+    } catch (e) { error('[AppDB] Erro em set:', e); return false; }
   },
 
   async remove(key) {
@@ -302,7 +303,7 @@ export const AppDB = {
         req.onsuccess = () => resolve(true);
         req.onerror = () => reject(req.error);
       });
-    } catch (e) { return false; }
+    } catch (e) { error('[AppDB] Erro em remove:', e); return false; }
   },
 
   async putOrder(order, encryptionKey = null) {
@@ -324,7 +325,7 @@ export const AppDB = {
         req.onsuccess = () => resolve();
         req.onerror = () => reject(tx.error);
       });
-    } catch (e) { console.error(e); }
+    } catch (e) { error('[AppDB] Erro em putOrder:', e); }
   },
 
   async removeOrder(id) {
@@ -336,7 +337,7 @@ export const AppDB = {
         req.onsuccess = () => resolve(true);
         req.onerror = () => reject(tx.error);
       });
-    } catch (e) { console.error(e); }
+    } catch (e) { error('[AppDB] Erro em removeOrder:', e); }
   },
 
   async getAllOrders(encryptionKey = null) {
@@ -353,7 +354,7 @@ export const AppDB = {
                 try {
                   const dec = await CryptoUtils.decrypt(item._encryptedData, encryptionKey);
                   return JSON.parse(dec);
-                } catch(e) { return item; }
+                } catch(e) { error('[AppDB] Falha ao descriptografar item:', e); return item; }
               }
               return item;
             }));
@@ -362,7 +363,7 @@ export const AppDB = {
         };
         req.onerror = () => reject(req.error);
       });
-    } catch (e) { return []; }
+    } catch (e) { error('[AppDB] Erro em getAllOrders:', e); return []; }
   }
 };
 
@@ -390,7 +391,7 @@ export const CryptoUtils = {
       },
       keyMaterial,
       { name: "AES-GCM", length: 256 },
-      true, // extractable so we can export it if needed for syncing/backup later
+      false, // não-exportável — chaves criptográficas não devem ser expostas
       ["encrypt", "decrypt"]
     );
   },

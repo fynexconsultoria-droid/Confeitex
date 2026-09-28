@@ -87,8 +87,12 @@ import { fmtDate, fmtISO, safeStorage } from './utils.js';
     document.getElementById('sidebar').classList.remove('open');
     document.getElementById('sidebarOverlay').classList.remove('active');
 
-    // Atualiza links e conteúdos
-    document.querySelectorAll('.nav-link').forEach(l => l.classList.toggle('active', l.dataset.tab === tabId));
+    // Atualiza links, conteúdos e estado ARIA
+    document.querySelectorAll('.nav-link').forEach(l => {
+      const isActive = l.dataset.tab === tabId;
+      l.classList.toggle('active', isActive);
+      l.setAttribute('aria-selected', String(isActive));
+    });
     document.querySelectorAll('.tab-content').forEach(c => c.classList.toggle('active', c.id === tabId));
 
     // Atualiza título do header
@@ -353,6 +357,8 @@ import { fmtDate, fmtISO, safeStorage } from './utils.js';
       const selected = Array.from(langRadios).find(r => r.checked);
       if (selected) {
         I18n.setLang(selected.value);
+        // Atualiza atributo lang para leitores de tela usarem pronúncia correta
+        document.documentElement.lang = I18n.locales[selected.value] || selected.value;
         if (currentLangDisplay) currentLangDisplay.textContent = I18n.names[selected.value] || selected.value;
         UI.toast(I18n.t('settings.toastLang', { lang: I18n.names[selected.value] }));
       }
@@ -415,3 +421,4 @@ import { fmtDate, fmtISO, safeStorage } from './utils.js';
   })();
 
 })();
+

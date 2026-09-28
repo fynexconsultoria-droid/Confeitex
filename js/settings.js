@@ -9,7 +9,7 @@ import { Plan } from './plan.js';
 import { DEFAULT_CATALOG, migrateOrder, State } from './state.js';
 import { Trash } from './trash.js';
 import { UI } from './ui.js';
-import { Updates } from './updates.js';
+
 import { fmt, fmtDateStr, fmtISO, safeStorage, escapeHTML, validateStateDump } from './utils.js';
 
 export const Settings = {
@@ -307,7 +307,7 @@ export const Settings = {
   exportJSON() {
     const backupData = {
       app: 'Confeitex',
-      version: Updates.verAtual,
+      version: document.querySelector('meta[name="version"]')?.content || '0.1.4',
       exportDate: new Date().toISOString(),
       orders: State.orders,
       catalog: State.catalog,

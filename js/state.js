@@ -6,6 +6,8 @@
 import { Auth } from './auth.js';
 import { Notifications } from './notifications.js';
 import { fmt, fmtDate, fmtISO, safeStorage, sanitizeForStorage, validateStateDump, getOrderTotal, formatWeight, AppDB, CryptoUtils } from './utils.js';
+import { error, warn, log } from './logger.js';
+
 
 export const DEFAULT_CATALOG = [
   { id: '1', flavor: 'Bolo Ninho com Morango', pricePerKg: 75.00, type: 'Bolo de Kg' },
@@ -36,6 +38,7 @@ export const State = {
   _syncTimer: null,
   _dbSaveTimer: null,
   _dbQueue: {}, // { key: data }
+  _isFlushing: false,
 
   _scheduleSave(key, dataObj) {
     this._dbQueue[key] = dataObj;
@@ -44,24 +47,39 @@ export const State = {
   },
 
   async _flushDB() {
+    if (this._isFlushing) {
+      if (this._dbSaveTimer) clearTimeout(this._dbSaveTimer);
+      this._dbSaveTimer = setTimeout(() => this._flushDB(), 500);
+      return;
+    }
+
+    const queueKeys = Object.keys(this._dbQueue);
+    if (queueKeys.length === 0) return;
+
+    this._isFlushing = true;
     const queue = { ...this._dbQueue };
     this._dbQueue = {};
-    for (const [key, dataObj] of Object.entries(queue)) {
-      try {
-        const str = JSON.stringify(sanitizeForStorage(dataObj));
-        if (typeof Auth !== 'undefined' && Auth.encryptionKey) {
-          const encrypted = await CryptoUtils.encrypt(str, Auth.encryptionKey);
-          await AppDB.set(key, encrypted);
-          await AppDB.set(`${key}_encrypted`, true);
-        } else {
-          await AppDB.set(key, str);
-          await AppDB.set(`${key}_encrypted`, false);
+    
+    try {
+      for (const [key, dataObj] of Object.entries(queue)) {
+        try {
+          const str = JSON.stringify(sanitizeForStorage(dataObj));
+          if (typeof Auth !== 'undefined' && Auth.encryptionKey) {
+            const encrypted = await CryptoUtils.encrypt(str, Auth.encryptionKey);
+            await AppDB.set(key, encrypted);
+            await AppDB.set(`${key}_encrypted`, true);
+          } else {
+            await AppDB.set(key, str);
+            await AppDB.set(`${key}_encrypted`, false);
+          }
+          // Remove do localStorage para concluir a migração
+          safeStorage.remove(key);
+        } catch (e) {
+          error(`[State] Erro ao salvar ${key} no AppDB:`, e);
         }
-        // Remove do localStorage para concluir a migração
-        safeStorage.remove(key);
-      } catch (e) {
-        console.error('[State] Erro ao salvar DB:', e);
       }
+    } finally {
+      this._isFlushing = false;
     }
   },
 
@@ -78,7 +96,7 @@ export const State = {
         // Agenda salvamento no IndexedDB para concluir a migração
         try {
           this._scheduleSave(key, JSON.parse(lsRaw));
-        } catch(e){}
+        } catch(e){ warn('[State] Falha ao agendar salvamento na migração:', e); }
       }
     }
 
@@ -247,10 +265,18 @@ export const State = {
     this.saveOrders();
   },
 
-  createSnapshot(reason = 'manual') {
+  async createSnapshot(reason = 'manual') {
     try {
       const existingStr = safeStorage.get('confeitex_snapshots');
-      const existing = existingStr ? JSON.parse(existingStr) : [];
+      // Lê lista anterior — suporta formato criptografado e texto puro
+      let existing = [];
+      if (existingStr) {
+        try {
+          const parsed = JSON.parse(existingStr);
+          // Formato legado (array em texto puro)
+          if (Array.isArray(parsed)) existing = parsed;
+        } catch (_) { warn('[State] Falha ao parsear snapshot legado existente.'); }
+      }
       const newSnapshot = {
         id: 'snap_' + Date.now(),
         timestamp: new Date().toISOString(),
@@ -262,7 +288,15 @@ export const State = {
         }
       };
       const updated = [newSnapshot, ...existing].slice(0, 3);
-      safeStorage.set('confeitex_snapshots', JSON.stringify(updated));
+      const dataStr = JSON.stringify(updated);
+
+      // Criptografa se a chave de criptografia estiver disponível (lock ativo)
+      if (typeof Auth !== 'undefined' && Auth.encryptionKey) {
+        const encrypted = await CryptoUtils.encrypt(dataStr, Auth.encryptionKey);
+        safeStorage.set('confeitex_snapshots', JSON.stringify({ _enc: true, data: encrypted }));
+      } else {
+        safeStorage.set('confeitex_snapshots', dataStr);
+      }
       return true;
     } catch (e) {
       console.warn('[State] Erro ao criar snapshot:', e);
@@ -275,18 +309,35 @@ export const State = {
       const lastAuto = safeStorage.get('confeitex_last_auto_snapshot');
       const now = Date.now();
       if (!lastAuto || (now - parseInt(lastAuto, 10)) > 86400000) {
-        this.createSnapshot('auto_daily');
+        this.createSnapshot('auto_daily').catch(e => console.warn('[State] Erro no snapshot automático:', e));
         safeStorage.set('confeitex_last_auto_snapshot', String(now));
       }
-    } catch (e) {}
+    } catch (e) {
+      console.warn('[State] Erro em autoSnapshotCheck:', e);
+    }
   },
 
-  restoreSnapshot(index = 0) {
+  async restoreSnapshot(index = 0) {
     try {
       const existingStr = safeStorage.get('confeitex_snapshots');
       if (!existingStr) return false;
-      const list = JSON.parse(existingStr);
-      if (!list[index] || !list[index].data) return false;
+      const rawParsed = JSON.parse(existingStr);
+
+      let list;
+      // Verifica se está no formato criptografado
+      if (rawParsed && !Array.isArray(rawParsed) && rawParsed._enc && rawParsed.data) {
+        if (typeof Auth === 'undefined' || !Auth.encryptionKey) {
+          console.warn('[State] Snapshot criptografado mas sem chave de descriptografia.');
+          return false;
+        }
+        const dec = await CryptoUtils.decrypt(rawParsed.data, Auth.encryptionKey);
+        list = JSON.parse(dec);
+      } else {
+        // Formato legado (texto puro)
+        list = rawParsed;
+      }
+
+      if (!Array.isArray(list) || !list[index] || !list[index].data) return false;
       const snapData = list[index].data;
       if (snapData.orders) this.orders = snapData.orders.map(migrateOrder);
       if (snapData.catalog) this.catalog = snapData.catalog;
@@ -296,6 +347,7 @@ export const State = {
       this.saveExpenses();
       return true;
     } catch (e) {
+      console.warn('[State] Erro ao restaurar snapshot:', e);
       return false;
     }
   },

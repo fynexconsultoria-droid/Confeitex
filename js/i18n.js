@@ -5,7 +5,6 @@ import { Orders } from './orders.js';
 import { Plan } from './plan.js';
 import { Settings } from './settings.js';
 import { Trash } from './trash.js';
-import { Updates } from './updates.js';
 import { safeStorage } from './utils.js';
 
 // ============================================================
@@ -1279,3 +1278,4 @@ export const I18n = {
     document.title = this.t('meta.title');
   }
 };
+

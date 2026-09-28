@@ -9,41 +9,37 @@ import { UI } from './ui.js';
 import { fmt, fmtDateStr, fmtISO, debounce, escapeHTML, getOrderTotal, maskPhone, badgeClass, formatWeight } from './utils.js';
 
 export const Orders = {
+  // ─── Configura listeners dos filtros (chamado uma única vez no setup) ─────
+  setupFilters() {
+    const search = document.getElementById('orderSearchInput');
+    const filterStatus = document.getElementById('orderFilterStatus');
+    const filterDate = document.getElementById('orderFilterDate');
+    const btnClear = document.getElementById('btnClearFilters');
+
+    if (search) search.addEventListener('input', debounce(() => this.render(), 250));
+    if (filterStatus) filterStatus.addEventListener('change', () => this.render());
+    if (filterDate) filterDate.addEventListener('change', () => this.render());
+    if (btnClear) {
+      btnClear.addEventListener('click', () => {
+        if (search) search.value = '';
+        if (filterStatus) filterStatus.value = 'all';
+        if (filterDate) { filterDate.type = 'date'; filterDate.value = fmtISO(new Date()); }
+        this.render();
+      });
+    }
+  },
+
   render() {
     const tbody = document.getElementById('ordersTableBody');
-    const search = document.getElementById('orderSearchInput').value.toLowerCase();
-    const filterStatus = document.getElementById('orderFilterStatus').value;
-    const filterDate = document.getElementById('orderFilterDate').value;
+    const search = (document.getElementById('orderSearchInput')?.value || '').toLowerCase();
+    const filterStatus = document.getElementById('orderFilterStatus')?.value || 'all';
+    const filterDate = document.getElementById('orderFilterDate')?.value || '';
     const empty = document.getElementById('ordersEmptyState');
 
+    // Mostra/esconde botão "Limpar filtros" conforme estado dos filtros
     const btnClear = document.getElementById('btnClearFilters');
     if (btnClear) {
-      if (search || filterStatus !== 'all' || filterDate) {
-        btnClear.style.display = 'block';
-      } else {
-        btnClear.style.display = 'none';
-      }
-      if (!btnClear.dataset.hasListener) {
-        btnClear.addEventListener('click', () => {
-          document.getElementById('orderSearchInput').value = '';
-          document.getElementById('orderFilterStatus').value = 'all';
-          const dateEl = document.getElementById('orderFilterDate');
-          dateEl.type = 'date';
-          dateEl.value = typeof fmtISO !== 'undefined' ? fmtISO(new Date()) : new Date().toISOString().split('T')[0];
-          this.render();
-        });
-        btnClear.dataset.hasListener = '1';
-      }
-    }
-
-    ['orderFilterStatus', 'orderFilterDate'].forEach(id => {
-      const el = document.getElementById(id);
-      if (!el.dataset.hasListener) { el.addEventListener('change', () => this.render()); el.dataset.hasListener = '1'; }
-    });
-    const searchInput = document.getElementById('orderSearchInput');
-    if (!searchInput.dataset.hasListener) {
-      searchInput.addEventListener('input', debounce(() => this.render(), 250));
-      searchInput.dataset.hasListener = '1';
+      btnClear.style.display = (search || filterStatus !== 'all' || filterDate) ? 'block' : 'none';
     }
 
     let filtered = State.orders.filter(o => {
@@ -142,12 +138,12 @@ export const Orders = {
               </div>` : ''}
             </div>
             <div class="order-detail-actions">
-              <button class="btn btn-secondary btn-sm btn-edit" data-id="${o.id}">
+              <button class="btn btn-secondary btn-sm btn-edit" data-id="${o.id}" aria-label="${I18n.t('orders.actEdit')}: ${escapeHTML(o.clientName)}">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                 ${I18n.t('orders.actEdit')}
               </button>
               ${!o.mpPaymentId && o.status !== 'Cancelado' && o.totalValue > 0 ? `
-              <button class="btn btn-secondary btn-sm btn-charge" data-id="${o.id}" style="color:var(--color-accent-blue);border-color:rgba(59,130,246,0.2);">
+              <button class="btn btn-secondary btn-sm btn-charge" data-id="${o.id}" style="color:var(--color-accent-blue);border-color:rgba(59,130,246,0.2);" aria-label="${I18n.t('orders.actCharge')}: ${escapeHTML(o.clientName)}">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
                 ${I18n.t('orders.actCharge')}
               </button>` : o.mpPaymentId ? `
@@ -156,7 +152,7 @@ export const Orders = {
                 ${I18n.t('orders.actPaid')}
               </span>` : ''}
               ${currentStatusIdx >= 0 && currentStatusIdx < 2 ? `
-              <button class="btn btn-secondary btn-sm btn-status-next" data-id="${o.id}" style="color:var(--color-success);border-color:rgba(16,185,129,0.2);">
+              <button class="btn btn-secondary btn-sm btn-status-next" data-id="${o.id}" style="color:var(--color-success);border-color:rgba(16,185,129,0.2);" aria-label="${I18n.t('orders.actAdvance')}: ${escapeHTML(o.clientName)}">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
                 ${I18n.t('orders.actAdvance')}
               </button>` : o.status === 'Entregue' ? `
@@ -164,11 +160,11 @@ export const Orders = {
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
                 ${I18n.t('orders.actDelivered')}
               </span>` : `
-              <button class="btn btn-secondary btn-sm btn-status-next" data-id="${o.id}" style="color:var(--color-warning);border-color:rgba(245,158,11,0.2);">
+              <button class="btn btn-secondary btn-sm btn-status-next" data-id="${o.id}" style="color:var(--color-warning);border-color:rgba(245,158,11,0.2);" aria-label="${I18n.t('orders.actReopen')}: ${escapeHTML(o.clientName)}">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
                 ${I18n.t('orders.actReopen')}
               </button>`}
-              <button class="btn btn-secondary btn-sm btn-delete" data-id="${o.id}" style="color:var(--color-danger);border-color:rgba(239,68,68,0.2);">
+              <button class="btn btn-secondary btn-sm btn-delete" data-id="${o.id}" style="color:var(--color-danger);border-color:rgba(239,68,68,0.2);" aria-label="${I18n.t('orders.actDelete')}: ${escapeHTML(o.clientName)}">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                 ${I18n.t('orders.actDelete')}
               </button>
@@ -326,6 +322,9 @@ export const Orders = {
   },
 
   setupForm() {
+    // Inicializa listeners de filtro de busca uma única vez
+    this.setupFilters();
+
     const modal = document.getElementById('orderModal');
     const form = document.getElementById('orderForm');
 

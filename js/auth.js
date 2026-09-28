@@ -1,7 +1,7 @@
 import { I18n } from './i18n.js';
 import { State } from './state.js';
 import { UI } from './ui.js';
-import { safeStorage, CryptoUtils } from './utils.js';
+import { safeStorage, CryptoUtils, escapeHTML as esc } from './utils.js';
 
 export const Auth = {
   lockEnabled: false,
@@ -101,12 +101,12 @@ export const Auth = {
           <div class="login-divider"></div>
           <div class="login-input-group">
             <div class="login-password-wrapper">
-              <input type="password" class="form-control login-input" id="loginPasswordInput" placeholder="${I18n.t('auth.passwordPh')}" autocomplete="off">
+              <input type="password" class="form-control login-input" id="loginPasswordInput" placeholder="${I18n.t('auth.passwordPh')}" autocomplete="current-password">
               <button class="login-toggle-visibility" id="loginToggleVisibility" type="button" aria-label="${I18n.t('auth.showPw')}">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
               </button>
             </div>
-            <div class="login-error" id="loginError">${I18n.t('auth.loginError')}</div>
+            <div class="login-error" id="loginError" role="alert" aria-live="assertive">${I18n.t('auth.loginError')}</div>
           </div>
           <button class="btn btn-primary login-submit" id="loginSubmit">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M13 12H3"/></svg>
@@ -194,13 +194,13 @@ export const Auth = {
             <p style="color:var(--text-secondary);">${esc(message || I18n.t('auth.pwSetMsg'))}</p>
             <div class="form-group">
               <label>${I18n.t('auth.pwNew')}</label>
-              <input type="password" class="form-control" id="pwSetNew" placeholder="${I18n.t('auth.pwPhNew')}">
+              <input type="password" class="form-control" id="pwSetNew" placeholder="${I18n.t('auth.pwPhNew')}" autocomplete="new-password">
             </div>
             <div class="form-group">
               <label>${I18n.t('auth.pwConfirm')}</label>
-              <input type="password" class="form-control" id="pwSetConfirm" placeholder="${I18n.t('auth.pwPhConfirm')}">
+              <input type="password" class="form-control" id="pwSetConfirm" placeholder="${I18n.t('auth.pwPhConfirm')}" autocomplete="new-password">
             </div>
-            <div id="pwSetError" style="color:var(--color-danger);font-size:0.85rem;display:none;"></div>
+            <div id="pwSetError" role="alert" aria-live="assertive" style="color:var(--color-danger);font-size:0.85rem;display:none;"></div>
           </div>
           <div class="modal-footer">
             <button class="btn btn-secondary" id="pwSetCancel">${I18n.t('common.cancel')}</button>
@@ -252,9 +252,9 @@ export const Auth = {
             <p style="color:var(--text-secondary);">${I18n.t('auth.currentPwMsg')}</p>
             <div class="form-group">
               <label>${I18n.t('auth.currentPwLabel')}</label>
-              <input type="password" class="form-control" id="pwCurrentInput" placeholder="${I18n.t('auth.currentPwPh')}">
+              <input type="password" class="form-control" id="pwCurrentInput" placeholder="${I18n.t('auth.currentPwPh')}" autocomplete="current-password">
             </div>
-            <div id="pwCurrentError" style="color:var(--color-danger);font-size:0.85rem;display:none;"></div>
+            <div id="pwCurrentError" role="alert" aria-live="assertive" style="color:var(--color-danger);font-size:0.85rem;display:none;"></div>
           </div>
           <div class="modal-footer">
             <button class="btn btn-secondary" id="pwCurrentCancel">${I18n.t('common.cancel')}</button>

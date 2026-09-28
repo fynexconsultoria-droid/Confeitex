@@ -4,7 +4,7 @@ import { Orders } from './orders.js';
 import { Settings } from './settings.js';
 import { State } from './state.js';
 import { UI } from './ui.js';
-import { Updates } from './updates.js';
+
 import { fmt, fmtDateStr, fmtISO, safeStorage, escapeHTML } from './utils.js';
 
 export const Notifications = {
@@ -285,13 +285,7 @@ export const Notifications = {
         this.markRead(id);
         const dd = document.getElementById('notifDropdown');
         if (dd) dd.classList.remove('open');
-        if (entry && entry.type === 'update') {
-          // Clique em notificação de atualização: mostra o banner
-          const ver = id.replace('update_', '');
-          if (typeof Updates !== 'undefined' && Updates._showUpdateBanner) {
-            Updates._showUpdateBanner(ver);
-          }
-        } else if (entry && entry.orderIds && entry.orderIds.length > 0) {
+        if (entry && entry.orderIds && entry.orderIds.length > 0) {
           this.openOrder(entry.orderIds[0]);
         }
       });
@@ -825,3 +819,6 @@ if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
     }
   });
 }
+
+
+

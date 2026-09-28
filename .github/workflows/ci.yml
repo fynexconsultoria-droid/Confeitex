@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Use Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: 18.x
+
+    - name: Syntax Check
+      run: |
+        echo "Fazendo check de sintaxe básica nos módulos JS (ESM)..."
+        for file in js/*.js; do
+          if [ -f "$file" ]; then
+            node --input-type=module --check < "$file" || exit 1
+          fi
+        done
+        node --check sw.js || exit 1
+        echo "Sintaxe OK."
