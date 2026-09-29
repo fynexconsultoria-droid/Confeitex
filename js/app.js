@@ -20,6 +20,7 @@ import { Trash } from './trash.js';
 import { UI } from './ui.js';
 import { Updates } from './updates.js';
 import { fmtDate, fmtISO, safeStorage } from './utils.js';
+import { PullToRefresh } from './pull-to-refresh.js';
 
 (async () => {
 
@@ -53,6 +54,8 @@ import { fmtDate, fmtISO, safeStorage } from './utils.js';
   if (loader) {
     loader.style.opacity = '0';
     setTimeout(() => loader.remove(), 300);
+    // Inicializa pull-to-refresh (apenas mobile/touch)
+    PullToRefresh.init();
   }
 
   // ─── Navegação entre abas ───────────────────────────────────────────────────
