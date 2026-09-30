@@ -143,7 +143,7 @@ export const PullToRefresh = {
     });
   },
 
-  _doRefresh() {
+  async _doRefresh() {
     // Fixo na posição ativa com rotação limpa em torno do próprio centro
     this._spinner.classList.remove('ptr-dragging');
     this._spinner.classList.add('ptr-show', 'ptr-spinning');
@@ -155,11 +155,47 @@ export const PullToRefresh = {
       if ('vibrate' in navigator) navigator.vibrate(15);
     } catch (_) {}
 
-    setTimeout(() => {
-      if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-        navigator.serviceWorker.controller.postMessage({ type: 'SKIP_WAITING' });
+    let shouldHardReload = false;
+    try {
+      // 1. Atualiza Service Worker se disponível
+      if ('serviceWorker' in navigator) {
+        const reg = await navigator.serviceWorker.getRegistration();
+        if (reg) {
+          if (reg.waiting) {
+            reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+            shouldHardReload = true;
+          } else {
+            reg.update().catch(() => {});
+          }
+        }
       }
-      window.location.reload(true);
+
+      // 2. Recarrega dados do Estado na memória local
+      if (typeof window.State !== 'undefined' && window.State.load) {
+        await window.State.load();
+      }
+
+      // 3. Atualiza interface da aba ativa
+      const activeTab = document.querySelector('.tab-content.active')?.id || 'dashboard';
+      if (typeof window.switchTab === 'function') {
+        window.switchTab(activeTab, false);
+      }
+    } catch (err) {
+      console.warn('[PullToRefresh] Erro ao sincronizar:', err);
+    }
+
+    setTimeout(() => {
+      if (shouldHardReload) {
+        window.location.reload();
+        return;
+      }
+
+      // Conclui atualização: recolhe suavemente o indicador do topo
+      this._spinner.classList.remove('ptr-spinning', 'ptr-show');
+      this._spinner.style.transform = 'translateX(-50%) translateY(0) scale(0.3)';
+      this._spinner.style.opacity = '0';
+      this._triggered = false;
+      if (this._icon) this._icon.style.transform = 'rotate(0deg)';
     }, 850);
   },
 };

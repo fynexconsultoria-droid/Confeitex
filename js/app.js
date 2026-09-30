@@ -49,14 +49,10 @@ import { PullToRefresh } from './pull-to-refresh.js';
   // ─── Carrega dados do estado ─────────────────────────────────────────────
   await State.load();
 
-  // ─── Remove tela de loading ────────────────────────────────────────────────
-  const loader = document.getElementById('appLoader');
-  if (loader) {
-    loader.style.opacity = '0';
-    setTimeout(() => loader.remove(), 300);
-    // Inicializa pull-to-refresh (apenas mobile/touch)
-    PullToRefresh.init();
-  }
+  window.State = State;
+
+  // ─── Inicializa pull-to-refresh (apenas mobile/touch) ──────────────────────
+  PullToRefresh.init();
 
   // ─── Navegação entre abas ───────────────────────────────────────────────────
 
