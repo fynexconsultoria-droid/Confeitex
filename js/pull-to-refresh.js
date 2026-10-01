@@ -1,28 +1,23 @@
 /**
  * Confeitex — pull-to-refresh.js
- * Indicador de reload elegante no topo:
- * - Badge flutuante centralizado com ícone de reload vetorial (gradiente da marca)
- * - Eixo 100% fixo com rotação limpa (sem oscilação ou desvio excêntrico)
- * - Suporta inicialização visual no topo, gesto de puxar (touch e mouse) e botões de reload no cabeçalho
+ * Indicador de reload discreto no topo:
+ * - Badge flutuante centralizado que aparece apenas quando o usuário puxa a tela (pull-to-refresh)
+ * - Rotação fixa, perfeitamente alinhada em torno do próprio centro
+ * - Suporta toque em dispositivos móveis e arrasto com mouse para testes no desktop
  */
 
 export const PullToRefresh = {
   _startY:    0,
+  _startX:    0,
   _pulling:   false,
   _triggered: false,
   _spinner:   null,
   _icon:      null,
   _THRESHOLD: 70,
 
-  init(options = {}) {
+  init() {
     this._createSpinner();
     this._bindEvents();
-    this._bindHeaderButtons();
-
-    // Feedback visual suave no carregamento inicial da página
-    if (options.showOnStart !== false) {
-      this.showInitial();
-    }
   },
 
   _createSpinner() {
@@ -37,13 +32,13 @@ export const PullToRefresh = {
     style.textContent = `
       #ptrSpinner {
         position: fixed;
-        top: calc(58px + env(safe-area-inset-top, 0px));
+        top: 56px;
         left: 50%;
-        transform: translateX(-50%) translateY(-24px) scale(0);
-        width: 40px;
-        height: 40px;
+        transform: translateX(-50%) translateY(-50px) scale(0);
+        width: 38px;
+        height: 38px;
         border-radius: 50%;
-        background: rgba(18, 14, 34, 0.95);
+        background: rgba(18, 14, 34, 0.96);
         backdrop-filter: blur(14px);
         -webkit-backdrop-filter: blur(14px);
         border: 1.5px solid rgba(236, 72, 153, 0.38);
@@ -54,7 +49,7 @@ export const PullToRefresh = {
         z-index: 99999;
         pointer-events: none;
         opacity: 0;
-        transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        transition: opacity 0.22s ease, transform 0.22s cubic-bezier(0.175, 0.885, 0.32, 1.275);
       }
 
       #ptrSpinner.ptr-dragging {
@@ -63,12 +58,11 @@ export const PullToRefresh = {
 
       #ptrSpinner.ptr-show {
         opacity: 1;
-        transform: translateX(-50%) translateY(16px) scale(1);
       }
 
       #ptrSpinner .ptr-icon {
-        width: 22px;
-        height: 22px;
+        width: 20px;
+        height: 20px;
         display: block;
         transform-origin: center center;
         will-change: transform;
@@ -85,10 +79,6 @@ export const PullToRefresh = {
         100% {
           transform: rotate(360deg);
         }
-      }
-
-      .btn-reload-spinning svg {
-        animation: ptrSpin 0.75s linear infinite !important;
       }
     `;
     document.head.appendChild(style);
@@ -112,41 +102,13 @@ export const PullToRefresh = {
     this._icon    = el.querySelector('.ptr-icon');
   },
 
-  showInitial() {
+  _resetIndicator() {
     if (!this._spinner) return;
-    this._spinner.classList.remove('ptr-dragging');
-    this._spinner.classList.add('ptr-show', 'ptr-spinning');
-    this._spinner.style.transform = 'translateX(-50%) translateY(16px) scale(1)';
-    this._spinner.style.opacity = '1';
-
-    setTimeout(() => {
-      this._spinner.classList.remove('ptr-spinning', 'ptr-show');
-      this._spinner.style.transform = 'translateX(-50%) translateY(-24px) scale(0)';
-      this._spinner.style.opacity = '0';
-      if (this._icon) this._icon.style.transform = 'rotate(0deg)';
-    }, 700);
-  },
-
-  trigger() {
-    if (this._triggered) return;
-    this._triggered = true;
-    this._doRefresh();
-  },
-
-  _bindHeaderButtons() {
-    const attach = (id) => {
-      const btn = document.getElementById(id);
-      if (btn && !btn.dataset.hasPtr) {
-        btn.dataset.hasPtr = '1';
-        btn.addEventListener('click', () => {
-          btn.classList.add('btn-reload-spinning');
-          this.trigger();
-          setTimeout(() => btn.classList.remove('btn-reload-spinning'), 850);
-        });
-      }
-    };
-    attach('btnHeaderReload');
-    attach('btnMobileReload');
+    this._spinner.classList.remove('ptr-dragging', 'ptr-show', 'ptr-spinning');
+    this._spinner.style.transform = 'translateX(-50%) translateY(-50px) scale(0)';
+    this._spinner.style.opacity = '0';
+    if (this._icon) this._icon.style.transform = 'rotate(0deg)';
+    this._pulling = false;
   },
 
   _bindEvents() {
@@ -154,21 +116,37 @@ export const PullToRefresh = {
 
     // --- Touch (Mobile) ---
     document.addEventListener('touchstart', (e) => {
-      if (getScrollY() > 5) return;
+      if (getScrollY() > 2) return;
       this._startY    = e.touches[0].clientY;
+      this._startX    = e.touches[0].clientX;
       this._pulling   = false;
       this._triggered = false;
     }, { passive: true });
 
     document.addEventListener('touchmove', (e) => {
       if (this._triggered) return;
-      const delta = e.touches[0].clientY - this._startY;
-      if (getScrollY() > 4 || delta <= 0) return;
+      if (getScrollY() > 2) {
+        if (this._pulling) this._resetIndicator();
+        return;
+      }
+
+      const deltaY = e.touches[0].clientY - this._startY;
+      const deltaX = Math.abs(e.touches[0].clientX - this._startX);
+
+      // Movimento predominantemente horizontal não ativa o pull
+      if (deltaX > deltaY) return;
+      if (deltaY <= 0) {
+        if (this._pulling) this._resetIndicator();
+        return;
+      }
+
+      // Previne scroll nativo durante o gesto de puxar para baixo
+      if (e.cancelable) e.preventDefault();
 
       this._pulling = true;
-      const progress = Math.min(Math.max(delta / this._THRESHOLD, 0), 1);
-      const moveY = Math.min(delta * 0.4, 26);
-      const scale = 0.4 + 0.6 * progress;
+      const progress = Math.min(deltaY / this._THRESHOLD, 1);
+      const moveY = Math.min(deltaY * 0.45, 34);
+      const scale = Math.min(0.4 + 0.6 * progress, 1);
 
       this._spinner.classList.add('ptr-show', 'ptr-dragging');
       this._spinner.style.transform = `translateX(-50%) translateY(${moveY}px) scale(${scale})`;
@@ -178,18 +156,15 @@ export const PullToRefresh = {
         this._icon.style.transform = `rotate(${progress * 280}deg)`;
       }
 
-      if (delta >= this._THRESHOLD) {
+      if (deltaY >= this._THRESHOLD) {
         this._triggered = true;
         this._doRefresh();
       }
-    }, { passive: true });
+    }, { passive: false });
 
     document.addEventListener('touchend', () => {
       if (this._pulling && !this._triggered) {
-        this._spinner.classList.remove('ptr-dragging', 'ptr-show');
-        this._spinner.style.transform = 'translateX(-50%) translateY(-24px) scale(0)';
-        this._spinner.style.opacity = '0';
-        if (this._icon) this._icon.style.transform = 'rotate(0deg)';
+        this._resetIndicator();
       }
       this._pulling = false;
     });
@@ -197,7 +172,7 @@ export const PullToRefresh = {
     // --- Mouse Drag (Desktop) ---
     let isMouseDown = false;
     document.addEventListener('mousedown', (e) => {
-      if (getScrollY() > 5 || e.clientY > 120) return;
+      if (getScrollY() > 2 || e.clientY > 120) return;
       if (e.target.closest('button, input, select, a, [role="button"]')) return;
       isMouseDown = true;
       this._startY = e.clientY;
@@ -211,9 +186,9 @@ export const PullToRefresh = {
       if (delta <= 0) return;
 
       this._pulling = true;
-      const progress = Math.min(Math.max(delta / this._THRESHOLD, 0), 1);
-      const moveY = Math.min(delta * 0.4, 26);
-      const scale = 0.4 + 0.6 * progress;
+      const progress = Math.min(delta / this._THRESHOLD, 1);
+      const moveY = Math.min(delta * 0.45, 34);
+      const scale = Math.min(0.4 + 0.6 * progress, 1);
 
       this._spinner.classList.add('ptr-show', 'ptr-dragging');
       this._spinner.style.transform = `translateX(-50%) translateY(${moveY}px) scale(${scale})`;
@@ -232,10 +207,7 @@ export const PullToRefresh = {
 
     document.addEventListener('mouseup', () => {
       if (isMouseDown && this._pulling && !this._triggered) {
-        this._spinner.classList.remove('ptr-dragging', 'ptr-show');
-        this._spinner.style.transform = 'translateX(-50%) translateY(-24px) scale(0)';
-        this._spinner.style.opacity = '0';
-        if (this._icon) this._icon.style.transform = 'rotate(0deg)';
+        this._resetIndicator();
       }
       isMouseDown = false;
       this._pulling = false;
@@ -245,7 +217,7 @@ export const PullToRefresh = {
   async _doRefresh() {
     this._spinner.classList.remove('ptr-dragging');
     this._spinner.classList.add('ptr-show', 'ptr-spinning');
-    this._spinner.style.transform = 'translateX(-50%) translateY(16px) scale(1)';
+    this._spinner.style.transform = 'translateX(-50%) translateY(30px) scale(1)';
     this._spinner.style.opacity = '1';
     if (this._icon) this._icon.style.transform = '';
 
@@ -285,11 +257,8 @@ export const PullToRefresh = {
         return;
       }
 
-      this._spinner.classList.remove('ptr-spinning', 'ptr-show');
-      this._spinner.style.transform = 'translateX(-50%) translateY(-24px) scale(0)';
-      this._spinner.style.opacity = '0';
+      this._resetIndicator();
       this._triggered = false;
-      if (this._icon) this._icon.style.transform = 'rotate(0deg)';
     }, 850);
   },
 };
