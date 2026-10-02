@@ -116,6 +116,8 @@ export const PullToRefresh = {
 
     // --- Touch (Mobile) ---
     document.addEventListener('touchstart', (e) => {
+      const activeTab = document.querySelector('.tab-content.active')?.id;
+      if (activeTab !== 'dashboard') return;
       if (getScrollY() > 2 || e.touches[0].clientY > 150) return;
       if (e.target.closest('.right-sidebar-overlay, .sidebar-overlay, .modal-overlay, .ob-overlay, .modal-container')) return;
       this._startY    = e.touches[0].clientY;
@@ -175,6 +177,8 @@ export const PullToRefresh = {
     // --- Mouse Drag (Desktop) ---
     let isMouseDown = false;
     document.addEventListener('mousedown', (e) => {
+      const activeTab = document.querySelector('.tab-content.active')?.id;
+      if (activeTab !== 'dashboard') return;
       if (getScrollY() > 2 || e.clientY > 120) return;
       if (e.target.closest('button, input, select, a, [role="button"], .right-sidebar-overlay, .sidebar-overlay, .modal-overlay, .ob-overlay')) return;
       isMouseDown = true;
