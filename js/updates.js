@@ -15,9 +15,9 @@ const _getVerAtual = () => {
 };
 
 export const Updates = {
-  // ─── Versão atual do app (lida do meta tag) ─────────────────────────────
+  // ─── Versão atual do app (lida do meta tag ou localStorage) ─────────────
   get verAtual() {
-    return _getVerAtual();
+    return safeStorage.get('confeitex_ver') || _getVerAtual();
   },
 
   // ─── Estado interno ──────────────────────────────────────────────────────
