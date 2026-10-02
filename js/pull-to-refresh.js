@@ -117,15 +117,16 @@ export const PullToRefresh = {
     // --- Touch (Mobile) ---
     document.addEventListener('touchstart', (e) => {
       if (getScrollY() > 2 || e.touches[0].clientY > 150) return;
-      if (e.target.closest('.right-sidebar-overlay, .sidebar-overlay, .modal-overlay, .ob-overlay')) return;
+      if (e.target.closest('.right-sidebar-overlay, .sidebar-overlay, .modal-overlay, .ob-overlay, .modal-container')) return;
       this._startY    = e.touches[0].clientY;
       this._startX    = e.touches[0].clientX;
       this._pulling   = false;
       this._triggered = false;
+      this._canPull   = true;
     }, { passive: true });
 
     document.addEventListener('touchmove', (e) => {
-      if (this._triggered) return;
+      if (!this._canPull || this._triggered) return;
       if (getScrollY() > 2) {
         if (this._pulling) this._resetIndicator();
         return;
@@ -168,6 +169,7 @@ export const PullToRefresh = {
         this._resetIndicator();
       }
       this._pulling = false;
+      this._canPull = false;
     });
 
     // --- Mouse Drag (Desktop) ---

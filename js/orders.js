@@ -335,7 +335,7 @@ export const Orders = {
         el.addEventListener('input', () => {
           const pos = el.selectionStart;
           const old = el.value;
-          el.value = old.replaceAll(',', '.');
+          el.value = old.replace(/,/g, '.');
           if (el.value !== old) el.setSelectionRange(pos, pos);
         });
       }
