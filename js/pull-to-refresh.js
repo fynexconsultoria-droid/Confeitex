@@ -116,7 +116,8 @@ export const PullToRefresh = {
 
     // --- Touch (Mobile) ---
     document.addEventListener('touchstart', (e) => {
-      if (getScrollY() > 2) return;
+      if (getScrollY() > 2 || e.touches[0].clientY > 150) return;
+      if (e.target.closest('.right-sidebar-overlay, .sidebar-overlay, .modal-overlay, .ob-overlay')) return;
       this._startY    = e.touches[0].clientY;
       this._startX    = e.touches[0].clientX;
       this._pulling   = false;
@@ -173,7 +174,7 @@ export const PullToRefresh = {
     let isMouseDown = false;
     document.addEventListener('mousedown', (e) => {
       if (getScrollY() > 2 || e.clientY > 120) return;
-      if (e.target.closest('button, input, select, a, [role="button"]')) return;
+      if (e.target.closest('button, input, select, a, [role="button"], .right-sidebar-overlay, .sidebar-overlay, .modal-overlay, .ob-overlay')) return;
       isMouseDown = true;
       this._startY = e.clientY;
       this._pulling = false;
