@@ -215,7 +215,13 @@ import { PullToRefresh } from './pull-to-refresh.js';
 
   document.getElementById('menuToggle').addEventListener('click', openRight);
   document.getElementById('closeRightSidebar')?.addEventListener('click', closeRight);
-  rightOverlay?.addEventListener('click', closeRight);
+  const handleOverlayClose = (e) => {
+    if (e && e.cancelable) e.preventDefault();
+    if (e) e.stopPropagation();
+    closeRight();
+  };
+  rightOverlay?.addEventListener('click', handleOverlayClose);
+  rightOverlay?.addEventListener('touchstart', handleOverlayClose, { passive: false });
   document.querySelectorAll('.right-sidebar-link').forEach(l => l.addEventListener('click', closeRight));
 
   // ─── Status Online/Offline ───────────────────────────────────────────────────────────

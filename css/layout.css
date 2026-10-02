@@ -247,6 +247,8 @@
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   z-index: 9999;
+  touch-action: none;
+  overscroll-behavior: contain;
 }
 .right-sidebar-overlay.active { display: block; }
 
