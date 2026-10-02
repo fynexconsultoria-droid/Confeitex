@@ -75,7 +75,7 @@
   }
 
   /* Adjust Nav Links for Bottom Bar */
-  .nav-link {
+  .sidebar .nav-link {
     flex-direction: column !important;
     justify-content: center !important;
     align-items: center !important;
@@ -87,7 +87,7 @@
     height: 100%;
   }
 
-  .nav-link svg {
+  .sidebar .nav-link svg {
     width: 20px !important;
     height: 20px !important;
     margin: 0 !important;
@@ -95,7 +95,7 @@
     transition: transform 0.2s ease, stroke-width 0.2s ease !important;
   }
 
-  .nav-link span {
+  .sidebar .nav-link span {
     font-size: 0.6rem !important;
     font-weight: 600 !important;
     display: block !important;
@@ -105,11 +105,11 @@
   }
 
   /* Active state with Nubank-like floating dot or just color change */
-  .nav-link.active {
+  .sidebar .nav-link.active {
     color: var(--color-accent-pink) !important;
   }
 
-  .nav-link.active svg {
+  .sidebar .nav-link.active svg {
     color: var(--color-accent-pink) !important;
     fill: rgba(236, 72, 153, 0.15) !important;
     stroke-width: 2 !important;
