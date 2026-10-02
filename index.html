@@ -469,23 +469,11 @@
           </div>
         </div>
 
-        <!-- Orders Table -->
-        <div class="table-wrapper">
-          <table class="custom-table" id="ordersTable" aria-label="Lista de pedidos">
-            <caption class="sr-only">Lista de pedidos — clique em uma linha para ver detalhes e ações</caption>
-            <thead>
-              <tr>
-                <th data-i18n="orders.thClient">Cliente</th>
-                <th data-i18n="orders.thProduct">Produto</th>
-                <th data-i18n="orders.thDelivery">Entrega</th>
-                <th class="text-right" data-i18n="orders.thValue">Valor</th>
-                <th class="text-center" data-i18n="orders.thStatus">Status</th>
-              </tr>
-            </thead>
-            <tbody id="ordersTableBody">
-              <!-- Dynamically populated -->
-            </tbody>
-          </table>
+        <!-- Orders List (Minimalist Cards) -->
+        <div class="orders-list" id="ordersTable" aria-label="Lista de pedidos">
+          <div id="ordersTableBody">
+            <!-- Dynamically populated -->
+          </div>
         </div>
         
         <div id="ordersEmptyState" class="empty-state">

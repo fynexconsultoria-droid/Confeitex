@@ -83,31 +83,31 @@ export const Orders = {
       const val = getOrderTotal(o);
       const profit = val - (o.cost || 0);
       const currentStatusIdx = ['Pendente', 'Em Produção', 'Entregue'].indexOf(o.status);
-      html += `<tr class="order-row" data-id="${o.id}">
-        <td>
-          <span class="customer-name">${escapeHTML(o.clientName)}</span>
-          ${o.clientPhone ? `<br><span style="font-size:0.7rem;color:var(--text-secondary);">${escapeHTML(o.clientPhone)}</span>` : ''}
-        </td>
-        <td>
-          <span style="font-weight:600;color:white;">${escapeHTML(o.flavor)}</span>
-          <br><span style="font-size:0.7rem;color:var(--text-muted);">${escapeHTML(I18n.value('product', o.productType))} · ${formatWeight(o)}</span>
-        </td>
-        <td><span style="font-weight:500;font-size:0.85rem;">${fmtDateStr(o.deliveryDate)}</span><br><span style="font-size:0.7rem;color:var(--text-secondary);">${o.deliveryTime}</span></td>
-        <td class="text-right" style="font-weight:700;color:var(--color-accent-pink);font-size:0.9rem;">${fmt(val)}</td>
-        <td class="text-center"><span class="badge ${badge}" style="font-size:0.65rem;padding:0.15rem 0.4rem;">${escapeHTML(I18n.value('status', o.status))}</span></td>
-      </tr>
-      <tr class="order-detail-row" id="detail-${o.id.replace(/[^a-zA-Z0-9_-]/g, '')}" style="display:none;">
-        <td colspan="5">
+      html += `<div class="order-card" data-id="${o.id}">
+        <div class="order-card-header">
+          <div class="order-card-title">
+            <span class="customer-name">${escapeHTML(o.clientName)}</span>
+            <span class="badge ${badge}" style="font-size:0.65rem;padding:0.15rem 0.4rem;">${escapeHTML(I18n.value('status', o.status))}</span>
+          </div>
+          <div class="order-card-subtitle">
+            <span style="font-weight:600;color:white;">${escapeHTML(o.flavor)}</span>
+            <span style="font-size:0.75rem;color:var(--text-muted);">(${escapeHTML(I18n.value('product', o.productType))} · ${formatWeight(o)})</span>
+          </div>
+        </div>
+        
+        <div class="order-card-meta">
+          <div style="display:flex; justify-content:space-between; align-items:center; width:100%; margin-top:0.2rem;">
+            <div style="display:flex; gap:0.75rem; flex-wrap:wrap; align-items:center;">
+              <span class="meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> ${fmtDateStr(o.deliveryDate)} ${o.deliveryTime}</span>
+              ${o.clientPhone ? `<span class="meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px;"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg> ${escapeHTML(o.clientPhone)}</span>` : ''}
+            </div>
+            <span style="font-weight:700;color:var(--color-accent-pink);font-size:1rem;">${fmt(val)}</span>
+          </div>
+        </div>
+
+        <div class="order-detail-panel" id="detail-${o.id.replace(/[^a-zA-Z0-9_-]/g, '')}" style="display:none;">
           <div class="order-detail-content">
             <div class="order-detail-grid">
-              <div class="order-detail-item">
-                <span class="order-detail-label">${I18n.t('orders.detailPhone')}</span>
-                <span>${escapeHTML(o.clientPhone || '—')}</span>
-              </div>
-              <div class="order-detail-item">
-                <span class="order-detail-label">${I18n.t('orders.detailWeight')}</span>
-                <span>${formatWeight(o)}</span>
-              </div>
               <div class="order-detail-item">
                 <span class="order-detail-label">${I18n.t('orders.detailPayment')}</span>
                 <span>${escapeHTML(I18n.value('payment', o.paymentMethod || 'Dinheiro'))}</span>
@@ -123,10 +123,6 @@ export const Orders = {
               <div class="order-detail-item">
                 <span class="order-detail-label">${I18n.t('orders.detailCost')}</span>
                 <span>${o.cost ? fmt(o.cost) : '—'}</span>
-              </div>
-              <div class="order-detail-item">
-                <span class="order-detail-label">${I18n.t('orders.detailType')}</span>
-                <span>${escapeHTML(I18n.value('product', o.productType))}</span>
               </div>
               ${o.details ? `<div class="order-detail-item" style="grid-column:1/-1;">
                 <span class="order-detail-label">${I18n.t('orders.detailFill')}</span>
@@ -170,8 +166,8 @@ export const Orders = {
               </button>
             </div>
           </div>
-        </td>
-      </tr>`;
+        </div>
+      </div>`;
     });
     tbody.innerHTML = html;
 
@@ -179,7 +175,7 @@ export const Orders = {
     if (!tbody.dataset.hasDelegate) {
       tbody.dataset.hasDelegate = '1';
       tbody.addEventListener('click', (e) => {
-        const row = e.target.closest('.order-row');
+        const card = e.target.closest('.order-card');
         const btnEdit = e.target.closest('.btn-edit');
         const btnDelete = e.target.closest('.btn-delete');
         const btnStatus = e.target.closest('.btn-status-next');
@@ -200,13 +196,13 @@ export const Orders = {
           if (order && typeof MercadoPagoCheckout !== 'undefined') {
             MercadoPagoCheckout.openCheckout(order);
           }
-        } else if (row && !e.target.closest('button')) {
-          const id = row.dataset.id;
+        } else if (card && !e.target.closest('button')) {
+          const id = card.dataset.id;
           const detail = document.getElementById('detail-' + id.replace(/[^a-zA-Z0-9_-]/g, ''));
           if (detail) {
             const isVisible = detail.style.display !== 'none';
-            detail.style.display = isVisible ? 'none' : 'table-row';
-            row.classList.toggle('expanded', !isVisible);
+            detail.style.display = isVisible ? 'none' : 'block';
+            card.classList.toggle('expanded', !isVisible);
           }
         }
       });
