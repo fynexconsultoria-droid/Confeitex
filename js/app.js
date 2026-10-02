@@ -57,12 +57,15 @@ import { PullToRefresh } from './pull-to-refresh.js';
   // ─── Navegação entre abas ───────────────────────────────────────────────────
 
   const tabTitles = {
-    dashboard: { title: 'tab.dash.title',     subtitle: 'tab.dash.sub' },
-    orders:    { title: 'tab.orders.title',   subtitle: 'tab.orders.sub' },
-    clients:   { title: 'tab.clients.title',  subtitle: 'tab.clients.sub' },
-    finances:  { title: 'tab.finances.title', subtitle: 'tab.finances.sub' },
-    settings:  { title: 'tab.settings.title', subtitle: 'tab.settings.sub' },
-    updates:   { title: 'tab.updates.title',  subtitle: 'tab.updates.sub' },
+    dashboard:    { title: 'tab.dash.title',     subtitle: 'tab.dash.sub' },
+    orders:       { title: 'tab.orders.title',   subtitle: 'tab.orders.sub' },
+    clients:      { title: 'tab.clients.title',  subtitle: 'tab.clients.sub' },
+    finances:     { title: 'tab.finances.title', subtitle: 'tab.finances.sub' },
+    settings:     { title: 'tab.settings.title', subtitle: 'tab.settings.sub' },
+    updates:      { title: 'tab.updates.title',  subtitle: 'tab.updates.sub' },
+    notificacoes: { title: 'settings.notifTitle', subtitle: 'settings.notifDesc' },
+    mercadopago:  { title: 'mp.settingsTitle',    subtitle: 'mp.settingsDesc' },
+    plano:        { title: 'plan.settingsTitle',  subtitle: 'plan.settingsDesc' },
   };
 
   const hashParams = new URLSearchParams(location.hash.slice(1));
