@@ -203,6 +203,25 @@
   gap: 1.25rem;
 }
 
+/* Adjustments for standalone settings tabs to prevent content from being pushed down */
+#notificacoes .config-grid,
+#mercadopago .config-grid,
+#plano .config-grid {
+  margin-top: -0.5rem;
+}
+
+#notificacoes .config-card-header,
+#mercadopago .config-card-header,
+#plano .config-card-header {
+  display: none;
+}
+
+#notificacoes .config-card,
+#mercadopago .config-card,
+#plano .config-card {
+  padding-top: 1rem;
+}
+
 .config-card-header {
   font-weight: 700;
   font-size: 1.1rem;
