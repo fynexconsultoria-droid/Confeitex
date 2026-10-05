@@ -146,4 +146,16 @@
     overflow-x: hidden !important;
     max-width: 100% !important;
   }
+
+  /* Efeito Visual de Recarregamento Suave (Pull-to-Refresh) */
+  .content-reloading {
+    animation: content-pulse 0.8s infinite alternate !important;
+    pointer-events: none !important;
+    transition: all 0.3s ease !important;
+  }
+
+  @keyframes content-pulse {
+    0% { opacity: 1; filter: grayscale(0) blur(0px); }
+    100% { opacity: 0.6; filter: grayscale(30%) blur(2px); }
+  }
 }

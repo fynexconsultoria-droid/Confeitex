@@ -232,40 +232,70 @@ export const PullToRefresh = {
       if ('vibrate' in navigator) navigator.vibrate(15);
     } catch (_) {}
 
-    let shouldHardReload = false;
-    try {
-      if ('serviceWorker' in navigator) {
-        const reg = await navigator.serviceWorker.getRegistration();
-        if (reg) {
-          if (reg.waiting) {
-            reg.waiting.postMessage({ type: 'SKIP_WAITING' });
-            shouldHardReload = true;
-          } else {
-            reg.update().catch(() => {});
-          }
-        }
-      }
-
-      if (typeof window.State !== 'undefined' && window.State.load) {
-        await window.State.load();
-      }
-
-      const activeTab = document.querySelector('.tab-content.active')?.id || 'dashboard';
-      if (typeof window.switchTab === 'function') {
-        window.switchTab(activeTab, false);
-      }
-    } catch (err) {
-      console.warn('[PullToRefresh] Erro ao sincronizar:', err);
+    const activeTabId = document.querySelector('.tab-content.active')?.id || 'dashboard';
+    const activeTabEl = document.getElementById(activeTabId);
+    
+    // Melhoria de Feedback Visual: Inicia a animação de recarregamento suave
+    if (activeTabEl) {
+      activeTabEl.classList.add('content-reloading');
     }
 
-    setTimeout(() => {
-      if (shouldHardReload) {
-        window.location.reload();
-        return;
-      }
+    let shouldHardReload = false;
+    
+    // Melhoria de Tempo de Carregamento: Garantir um tempo mínimo de animação (ex: 600ms) mas aguardar a conclusão real da API
+    const minWait = new Promise(resolve => setTimeout(resolve, 600));
 
-      this._resetIndicator();
-      this._triggered = false;
-    }, 850);
+    const syncTask = async () => {
+      try {
+        if ('serviceWorker' in navigator) {
+          const reg = await navigator.serviceWorker.getRegistration();
+          if (reg) {
+            if (reg.waiting) {
+              reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+              // Atualização silenciosa: tentamos não dar hard reload se não for crítico, mas marcamos para caso precise
+              shouldHardReload = true;
+            } else {
+              reg.update().catch(() => {});
+            }
+          }
+        }
+
+        // Sincronização com Nuvem / API: Checa se há alguma função global de sync
+        if (typeof window.API !== 'undefined' && typeof window.API.sync === 'function') {
+          await window.API.sync();
+        } else if (typeof window.syncCloud === 'function') {
+          await window.syncCloud();
+        }
+
+        // Recarrega o estado local
+        if (typeof window.State !== 'undefined' && window.State.load) {
+          await window.State.load();
+        }
+
+        // Atualização Parcial Silenciosa: Redesenha apenas a aba atual, sem piscar a tela toda
+        if (typeof window.switchTab === 'function') {
+          window.switchTab(activeTabId, false);
+        }
+      } catch (err) {
+        console.warn('[PullToRefresh] Erro ao sincronizar:', err);
+      }
+    };
+
+    // Aguarda o fim de ambas as tarefas (Sincronização real + Tempo mínimo da UI)
+    await Promise.all([syncTask(), minWait]);
+
+    // Remove o efeito visual
+    if (activeTabEl) {
+      activeTabEl.classList.remove('content-reloading');
+    }
+
+    // Só faz hard reload se realmente for uma atualização vital do Service Worker
+    if (shouldHardReload) {
+      window.location.reload();
+      return;
+    }
+
+    this._resetIndicator();
+    this._triggered = false;
   },
 };
