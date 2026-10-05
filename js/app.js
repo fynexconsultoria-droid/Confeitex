@@ -36,11 +36,11 @@ import { PullToRefresh } from './pull-to-refresh.js';
     if (el) el.textContent = verText;
   });
 
-  // ─── Filtro de data inicial (hoje) ─────────────────────────────────────
+  // ─── Filtro de data inicial (alterado para iniciar vazio) ────────────────────────────
   const orderDateFilter = document.getElementById('orderFilterDate');
   if (orderDateFilter && !orderDateFilter.value) {
-    orderDateFilter.type  = 'date';
-    orderDateFilter.value = fmtISO(new Date());
+    orderDateFilter.type  = 'text';
+    orderDateFilter.value = '';
   }
 
   // ─── Onboarding (apenas na primeira abertura) ────────────────────────────
@@ -100,6 +100,11 @@ import { PullToRefresh } from './pull-to-refresh.js';
     // Atualiza título do header
     document.getElementById('mainTitle').textContent    = I18n.t(tabTitles[tabId].title);
     document.getElementById('mainSubtitle').textContent = I18n.t(tabTitles[tabId].subtitle);
+
+    // Ajusta o scroll para o topo ao trocar de aba
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    const mainContent = document.querySelector('.main-content');
+    if (mainContent) mainContent.scrollTop = 0;
 
     if (pushState && history.state?.tab !== tabId) {
       try { history.pushState({ tab: tabId }, ''); } catch (_) {}

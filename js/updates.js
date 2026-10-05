@@ -220,19 +220,21 @@ export const Updates = {
   // _forceUpdate — limpa o cache e força recarregamento total
   // ─────────────────────────────────────────────────────────────────────────
   async _forceUpdate() {
-    const confirmed = await UI.confirm(
-      I18n.t('updates.forceConfirmTitle'),
-      I18n.t('updates.forceConfirm')
-    );
+    const confirmed = await UI.confirm({
+      title: I18n.t('updates.forceConfirmTitle'),
+      message: I18n.t('updates.forceConfirm'),
+      confirmText: I18n.t('common.confirm') || 'Confirmar',
+      variant: 'danger'
+    });
     if (!confirmed) return;
-
-    UI.toast(I18n.t('updates.forceSuccess'));
 
     try {
       const keys = await caches.keys();
       await Promise.all(keys.map(k => caches.delete(k)));
       const reg = await navigator.serviceWorker.getRegistration();
       if (reg && reg.waiting) reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+      
+      UI.toast(I18n.t('updates.forceSuccess'));
     } catch (_) {}
 
     setTimeout(() => location.reload(true), 1000);

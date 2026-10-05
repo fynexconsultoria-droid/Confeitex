@@ -129,12 +129,6 @@ export const Clients = {
         }
       });
     }
-
-    const searchInput = document.getElementById('clientSearchInput');
-    if (!searchInput.dataset.hasListener) {
-      searchInput.addEventListener('input', debounce(() => this.render(), 250));
-      searchInput.dataset.hasListener = '1';
-    }
   },
 
   openEdit(client) {
@@ -252,6 +246,11 @@ export const Clients = {
     document.getElementById('btnClientEditCancel').addEventListener('click', () => document.getElementById('clientEditModal').classList.remove('active'));
     document.getElementById('btnClientEditSave').addEventListener('click', () => this.saveEdit());
     document.getElementById('editClientPhone').addEventListener('input', (e) => maskPhone(e.target));
+    
+    const searchInput = document.getElementById('clientSearchInput');
+    if (searchInput) {
+      searchInput.addEventListener('input', debounce(() => this.render(), 250));
+    }
   },
 
   // Re-renderiza a lista quando o idioma muda

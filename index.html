@@ -7,7 +7,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Confeitex - Controle de Encomendas</title>
   <meta name="description" content="Controle de encomendas para confeitaria — gerencie pedidos, clientes e entregas. 100% offline.">
-  <meta name="version" content="0.1.4">
+  <meta name="version" content="0.1.10">
 
   <!-- Google Fonts: Plus Jakarta Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -429,7 +429,7 @@
           
           <!-- Row 2: Status and Date -->
           <div style="display: flex; gap: 0.5rem; width: 100%; grid-column: 1 / -1;">
-            <select class="form-control filter-status" id="orderFilterStatus" aria-label="Filtrar por status" aria-label="Filtrar por status" title="Filtrar por status" style="flex: 1;">
+            <select class="form-control filter-status" id="orderFilterStatus" aria-label="Filtrar por status" title="Filtrar por status" style="flex: 1;">
               <option value="all" data-i18n-opt="orders.filterAll">Todos os Status</option>
               <option value="Pendente" data-i18n-opt="orders.filterPending">Pendentes / Produção</option>
               <option value="Em Produção" data-i18n-opt="orders.filterProduction">Em Produção</option>
@@ -437,7 +437,7 @@
               <option value="Cancelado" data-i18n-opt="orders.filterCanceled">Cancelados</option>
             </select>
             
-            <input type="text" onfocus="(this.type='date')" onblur="(this.value == '' ? this.type='text' : this.type='date')" class="form-control filter-date" id="orderFilterDate" aria-label="Filtrar por data de entrega" placeholder="Data" title="Filtrar por data" aria-label="Filtrar por data" style="flex: 1;">
+            <input type="text" onfocus="(this.type='date')" onblur="(this.value == '' ? this.type='text' : this.type='date')" class="form-control filter-date" id="orderFilterDate" aria-label="Filtrar por data de entrega" placeholder="Data" title="Filtrar por data" style="flex: 1;">
           </div>
 
           <!-- Row 3: Limpar Filtros and Trash -->

@@ -168,7 +168,6 @@ export const State = {
   saveOrders() {
     const encryptionKey = (typeof Auth !== 'undefined' && Auth.encryptionKey) ? Auth.encryptionKey : null;
     this.orders.forEach(o => AppDB.putOrder(o, encryptionKey).catch(e => console.warn('[State] Erro ao salvar pedido:', e)));
-    this._scheduleSave('confeitex_orders', this.orders); // Manter legacy temporariamente
     if (this._syncTimer) clearTimeout(this._syncTimer);
     this._syncTimer = setTimeout(() => {
       if (typeof Notifications !== 'undefined' && Notifications.syncData) Notifications.syncData();

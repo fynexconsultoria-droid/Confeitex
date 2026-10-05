@@ -76,7 +76,7 @@ export const Orders = {
     }
 
     empty.style.display = 'none';
-    document.getElementById('ordersTable').style.display = 'table';
+    document.getElementById('ordersTable').style.display = 'block';
     let html = '';
     filtered.forEach(o => {
       const badge = badgeClass(o.status);
@@ -483,9 +483,9 @@ export const Orders = {
       if (!id && typeof Plan !== 'undefined' && Plan.getStatus().type === 'trial' && State.orders.length === 10) {
         setTimeout(async () => {
           const ans = await UI.confirm({
-            title: 'Metade do Limite Atingido!',
-            message: 'Você acaba de registrar seu 10º pedido! Restam apenas mais 10 pedidos na versão gratuita. Deseja atualizar o aplicativo agora para garantir pedidos ilimitados?',
-            confirmText: 'Atualizar Aplicativo',
+            title: I18n.t('orders.limitTitle') || 'Metade do Limite Atingido!',
+            message: I18n.t('orders.limitMessage') || 'Você acaba de registrar seu 10º pedido! Restam apenas mais 10 pedidos na versão gratuita. Deseja atualizar o aplicativo agora para garantir pedidos ilimitados?',
+            confirmText: I18n.t('orders.limitConfirm') || 'Atualizar Aplicativo',
             variant: 'primary'
           });
           if (ans) {

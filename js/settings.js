@@ -692,7 +692,8 @@ export const Settings = {
       inputKey.value = savedKey;
     }
     if (inputSecret && savedSecret) {
-      inputSecret.value = savedSecret;
+      inputSecret.value = '';
+      inputSecret.placeholder = '•••••••• (Configurado)';
     }
 
     // Salvar

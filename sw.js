@@ -48,10 +48,13 @@ const ASSETS_TO_CACHE = [
   './js/finances.js',
 
   './js/i18n.js',
+  './js/logger.js',
+  './js/constants.js',
   './js/plan.js',
   './js/mercadopago.js',
   './js/onboarding.js',
   './js/updates.js',
+  './js/pull-to-refresh.js',
   './js/app.js',
   './js/trash.js',
   './icons/icon-192x192.png',
