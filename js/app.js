@@ -438,5 +438,24 @@ import { PullToRefresh } from './pull-to-refresh.js';
     safeStorage.set('confeitex_last_auto_check', String(Date.now()));
   })();
 
+  // ─── Retração da barra inferior no mobile ao rolar ─────────────────────────────
+  let scrollTimeout;
+  const handleScroll = () => {
+    if (window.innerWidth <= 768) {
+      const sidebar = document.getElementById('sidebar');
+      if (sidebar && !sidebar.classList.contains('sidebar-retracted')) {
+        sidebar.classList.add('sidebar-retracted');
+      }
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(() => {
+        if (sidebar) sidebar.classList.remove('sidebar-retracted');
+      }, 500);
+    }
+  };
+
+  window.addEventListener('scroll', handleScroll, { passive: true });
+  const mainContent = document.querySelector('.main-content');
+  if (mainContent) mainContent.addEventListener('scroll', handleScroll, { passive: true });
+
 })();
 
