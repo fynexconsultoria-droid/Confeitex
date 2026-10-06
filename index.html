@@ -1006,9 +1006,9 @@
         <div class="modal-body">
           <input type="hidden" id="orderIdInput">
           
-          <!-- Seção 1: Cliente -->
+          <!-- Seção 1: Essenciais -->
           <div class="modal-section">
-            <h3 class="modal-section-title modal-section-pink" data-i18n="orders.sectionClient">Informações do Cliente</h3>
+            <h3 class="modal-section-title modal-section-pink" data-i18n="orders.sectionClient">Informações Essenciais</h3>
             <div class="form-grid-2">
               <div class="form-group">
                 <label for="orderClientName" data-i18n="orders.lblName">Nome do Cliente *</label>
@@ -1018,14 +1018,7 @@
                 <label for="orderClientPhone" data-i18n="orders.lblPhone">Telefone de Contato</label>
                 <input type="text" class="form-control" id="orderClientPhone" placeholder="Ex: (11) 99999-9999" data-i18n-ph="orders.phPhone">
               </div>
-            </div>
-          </div>
 
-          <!-- Seção 2: Detalhes do Produto -->
-          <div class="modal-section">
-            <h3 class="modal-section-title modal-section-purple" data-i18n="orders.sectionSpec">Especificações do Pedido</h3>
-            
-            <div class="form-grid-2">
               <div class="form-group">
                 <label for="orderProductType" data-i18n="orders.lblProductType">Tipo de Produto *</label>
                 <select class="form-control" id="orderProductType" required>
@@ -1036,7 +1029,6 @@
                   <option value="Outros" data-i18n-opt="product.Outros">Outros / Adicionais</option>
                 </select>
               </div>
-              
               <div class="form-group">
                 <label for="orderFlavorSelect" data-i18n="orders.lblFlavorSuggest">Sabor / Sugestão Rápida</label>
                 <select class="form-control" id="orderFlavorSelect">
@@ -1044,47 +1036,25 @@
                   <!-- Populated from Catalog via Javascript -->
                 </select>
               </div>
-            </div>
 
-            <div class="form-grid-2">
               <div class="form-group">
                 <label for="orderFlavor" data-i18n="orders.lblFlavor">Sabor Informado *</label>
                 <input type="text" class="form-control" id="orderFlavor" required placeholder="Ex: Brigadeiro Tradicional" data-i18n-ph="orders.phFlavor">
               </div>
               <div class="form-group">
-                <label for="orderDetails" data-i18n="orders.lblDetails">Recheio / Cobertura / Decoração</label>
-                <input type="text" class="form-control" id="orderDetails" placeholder="Ex: Recheio de coco, raspas de chocolate no topo" data-i18n-ph="orders.phDetails">
-              </div>
-            </div>
-          </div>
-
-          <!-- Seção 3: Valores, Peso e Entrega -->
-          <div class="modal-section-vertical">
-            <h3 class="modal-section-title modal-section-green" data-i18n="orders.sectionPrice">Peso, Preço & Entrega</h3>
-            
-            <div class="form-grid-2">
-              <div class="form-group">
                 <label id="labelWeight" for="orderWeight" data-i18n="orders.lblWeight">Peso (Kg) / Qtd *</label>
                 <input type="text" inputmode="decimal" class="form-control" id="orderWeight" required min="0.01" value="1.00" placeholder="0,00">
               </div>
+
               <div class="form-group">
                 <label id="labelUnitPrice" for="orderUnitPrice" data-i18n="orders.lblUnitPrice">Valor por Kg (R$) / Unitário *</label>
                 <input type="text" inputmode="decimal" class="form-control" id="orderUnitPrice" required step="0.01" min="0" value="60.00">
-              </div>
-            </div>
-
-            <div class="form-grid-2">
-              <div class="form-group">
-                <label for="orderExtraCharges" data-i18n="orders.lblExtra">Adicionais / Taxa de Entrega (R$)</label>
-                <input type="text" inputmode="decimal" class="form-control" id="orderExtraCharges" step="0.01" min="0" value="0.00">
               </div>
               <div class="form-group">
                 <label data-i18n="orders.lblTotal">Valor Total do Pedido (Calculado)</label>
                 <input type="text" class="form-control metric-readonly-pink" id="orderTotalValDisplay" readonly value="R$ 60,00" title="Valor total do pedido" aria-label="Valor total do pedido">
               </div>
-            </div>
 
-            <div class="form-grid-2">
               <div class="form-group">
                 <label for="orderDeliveryDate" data-i18n="orders.lblDeliveryDate">Data de Entrega *</label>
                 <input type="date" class="form-control" id="orderDeliveryDate" required>
@@ -1094,34 +1064,51 @@
                 <input type="time" class="form-control" id="orderDeliveryTime" required>
               </div>
             </div>
+          </div>
 
-            <div class="form-grid-2">
-              <div class="form-group">
-                <label for="orderDeliveryType" data-i18n="orders.lblPickupType">Tipo de Retirada</label>
-                <select class="form-control" id="orderDeliveryType">
-                  <option value="Retirada no Local" data-i18n-opt="delivery.Retirada no Local">Retirada no Local</option>
-                  <option value="Entrega" data-i18n-opt="delivery.Entrega">Entrega</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label for="orderStatus" data-i18n="orders.lblStatus">Status do Pedido *</label>
-                <select class="form-control" id="orderStatus" required>
-                  <option value="Pendente" data-i18n-opt="status.Pendente">Pendente</option>
-                  <option value="Em Produção" data-i18n-opt="status.Em Produção">Em Produção</option>
-                  <option value="Entregue" data-i18n-opt="status.Entregue">Entregue</option>
-                  <option value="Cancelado" data-i18n-opt="status.Cancelado">Cancelado</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label for="orderNotes" data-i18n="orders.lblNotes">Observações Internas</label>
-                <input type="text" class="form-control" id="orderNotes" placeholder="Ex: Cliente vai retirar no local" data-i18n-ph="orders.phNotes">
-              </div>
-            </div>
-
-            <!-- Seção 4: Financeiro -->
-            <div class="modal-section-finance">
-              <h3 class="modal-section-title modal-section-blue" data-i18n="orders.sectionFinance">Financeiro</h3>
+          <!-- Seção 2: Avançados (Retraído) -->
+          <details class="modal-section-advanced">
+            <summary class="modal-section-summary">
+              <span class="modal-summary-title">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                Mais Opções e Detalhes
+              </span>
+              <svg class="chevron-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </summary>
+            
+            <div class="modal-section-content">
               <div class="form-grid-2">
+                <div class="form-group" style="grid-column: 1 / -1;">
+                  <label for="orderDetails" data-i18n="orders.lblDetails">Recheio / Cobertura / Decoração</label>
+                  <input type="text" class="form-control" id="orderDetails" placeholder="Ex: Recheio de coco, raspas de chocolate no topo" data-i18n-ph="orders.phDetails">
+                </div>
+                
+                <div class="form-group">
+                  <label for="orderExtraCharges" data-i18n="orders.lblExtra">Adicionais / Taxa de Entrega (R$)</label>
+                  <input type="text" inputmode="decimal" class="form-control" id="orderExtraCharges" step="0.01" min="0" value="0.00">
+                </div>
+                <div class="form-group">
+                  <label for="orderCost" data-i18n="orders.lblCost">Custo de Produção (R$)</label>
+                  <input type="text" inputmode="decimal" class="form-control" id="orderCost" step="0.01" min="0" value="0.00" placeholder="0,00">
+                </div>
+
+                <div class="form-group">
+                  <label for="orderDeliveryType" data-i18n="orders.lblPickupType">Tipo de Retirada</label>
+                  <select class="form-control" id="orderDeliveryType">
+                    <option value="Retirada no Local" data-i18n-opt="delivery.Retirada no Local">Retirada no Local</option>
+                    <option value="Entrega" data-i18n-opt="delivery.Entrega">Entrega</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="orderStatus" data-i18n="orders.lblStatus">Status do Pedido *</label>
+                  <select class="form-control" id="orderStatus" required>
+                    <option value="Pendente" data-i18n-opt="status.Pendente">Pendente</option>
+                    <option value="Em Produção" data-i18n-opt="status.Em Produção">Em Produção</option>
+                    <option value="Entregue" data-i18n-opt="status.Entregue">Entregue</option>
+                    <option value="Cancelado" data-i18n-opt="status.Cancelado">Cancelado</option>
+                  </select>
+                </div>
+
                 <div class="form-group">
                   <label for="orderPaymentMethod" data-i18n="orders.lblPayment">Forma de Pagamento</label>
                   <select class="form-control" id="orderPaymentMethod">
@@ -1133,12 +1120,12 @@
                   </select>
                 </div>
                 <div class="form-group">
-                  <label for="orderCost" data-i18n="orders.lblCost">Custo do Pedido (R$)</label>
-                  <input type="text" inputmode="decimal" class="form-control" id="orderCost" step="0.01" min="0" value="0.00" placeholder="0,00">
+                  <label for="orderNotes" data-i18n="orders.lblNotes">Observações Internas</label>
+                  <input type="text" class="form-control" id="orderNotes" placeholder="Ex: Cliente vai retirar no local" data-i18n-ph="orders.phNotes">
                 </div>
               </div>
             </div>
-          </div>
+          </details>
 
         </div>
         <div class="modal-footer">
