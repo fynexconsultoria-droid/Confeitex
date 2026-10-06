@@ -260,16 +260,52 @@ export const PullToRefresh = {
           }
         }
 
+        const isOffline = !navigator.onLine;
+        if (isOffline && typeof window.UI !== 'undefined' && window.UI.toast) {
+          window.UI.toast('Sem conexão. Exibindo dados locais.', 'warning');
+        }
+
+        // Tira 'foto' de quantos pedidos existiam antes de sincronizar
+        const ordersBefore = (window.State && window.State.data && window.State.data.orders) ? window.State.data.orders.length : 0;
+
         // Sincronização com Nuvem / API: Checa se há alguma função global de sync
-        if (typeof window.API !== 'undefined' && typeof window.API.sync === 'function') {
+        if (!isOffline && typeof window.API !== 'undefined' && typeof window.API.sync === 'function') {
           await window.API.sync();
-        } else if (typeof window.syncCloud === 'function') {
+        } else if (!isOffline && typeof window.syncCloud === 'function') {
           await window.syncCloud();
         }
 
         // Recarrega o estado local
         if (typeof window.State !== 'undefined' && window.State.load) {
           await window.State.load();
+        }
+
+        // Sincronização com Mercado Pago
+        let mpSyncCount = 0;
+        if (!isOffline && typeof window.MercadoPagoCheckout !== 'undefined' && typeof window.MercadoPagoCheckout.syncPendingPayments === 'function') {
+          mpSyncCount = await window.MercadoPagoCheckout.syncPendingPayments();
+        }
+
+        // Calcula a diferença e exibe o Toast correspondente
+        const ordersAfter = (window.State && window.State.data && window.State.data.orders) ? window.State.data.orders.length : 0;
+        const diff = ordersAfter - ordersBefore;
+
+        if (diff > 0 || mpSyncCount > 0) {
+          if (typeof window.UI !== 'undefined' && window.UI.toast) {
+            let msgs = [];
+            if (diff > 0) msgs.push(`${diff} novo(s) pedido(s)`);
+            if (mpSyncCount > 0) msgs.push(`${mpSyncCount} pgto(s) aprovado(s)`);
+            const timeStr = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+            window.UI.toast(`🎉 ${msgs.join(' e ')} às ${timeStr}!`, 'success');
+          }
+        } else if (!isOffline && typeof window.UI !== 'undefined' && window.UI.toast) {
+          const timeStr = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+          window.UI.toast(`Tudo atualizado às ${timeStr}!`, 'primary');
+        }
+
+        // Checagem silenciosa por novas atualizações do App
+        if (!isOffline && typeof window.Updates !== 'undefined' && window.Updates.checkSilent) {
+          await window.Updates.checkSilent();
         }
 
         // Atualização Parcial Silenciosa: Redesenha apenas a aba atual, sem piscar a tela toda

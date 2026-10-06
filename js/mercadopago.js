@@ -465,6 +465,35 @@ export const MercadoPagoCheckout = {
     }
   },
 
+  // ─── Sincronização em Lote de Pagamentos Pendentes ───────────────────────
+  async syncPendingPayments() {
+    if (!this.isConfigured() || typeof State === 'undefined' || !State.data || !State.data.orders) return 0;
+    
+    let updatedCount = 0;
+    const orders = State.data.orders;
+    
+    // Filtra pedidos que tem ID de pagamento no Mercado Pago e que o status local não é 'approved'
+    const pendingOrders = orders.filter(o => o.mpPaymentId && o.mpPaymentStatus !== 'approved');
+    
+    if (pendingOrders.length === 0) return 0;
+    
+    // Fazemos as chamadas em paralelo
+    const checks = pendingOrders.map(async (order) => {
+      try {
+        const status = await this.checkPaymentStatus(order.mpPaymentId, false);
+        if (status === 'approved') {
+          this._markOrderAsPaid(order.id, order.mpPaymentId, null);
+          updatedCount++;
+        }
+      } catch (e) {
+        console.warn(`[MP Sync] Erro ao checar pedido ${order.id}`, e);
+      }
+    });
+    
+    await Promise.allSettled(checks);
+    return updatedCount;
+  },
+
   // ─── Copia o Código Pix Copia e Cola ─────────────────────────────────────
   async copyPixCode() {
     const input = document.getElementById('mpPixCodeInput');

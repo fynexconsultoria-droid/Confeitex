@@ -155,6 +155,32 @@ export const Updates = {
   },
 
   // ─────────────────────────────────────────────────────────────────────────
+  // checkSilent — verifica atualizações silenciosamente (ideal para pull-to-refresh)
+  // ─────────────────────────────────────────────────────────────────────────
+  async checkSilent() {
+    if (this._checking || !navigator.onLine) return;
+    this._checking = true;
+    try {
+      const res = await fetch('./version.txt', { cache: 'no-store', headers: { 'Cache-Control': 'no-cache' } });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const serverVer = (await res.text()).trim();
+      safeStorage.set('confeitex_last_auto_check', String(Date.now()));
+      this.render();
+      if (serverVer && serverVer !== this.verAtual) {
+        safeStorage.set('confeitex_update_pending', serverVer);
+        if (typeof UI !== 'undefined' && UI.toast) {
+          UI.toast('🚀 Nova atualização do app encontrada!', 'primary');
+        }
+        this._triggerSWUpdate(serverVer);
+      }
+    } catch (e) {
+      console.warn('[Updates] Erro ao checar versão silenciosa:', e.message);
+    } finally {
+      this._checking = false;
+    }
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────
   // _triggerSWUpdate — instrui o SW a buscar e instalar a nova versão
   // ─────────────────────────────────────────────────────────────────────────
   async _triggerSWUpdate(newVer) {
