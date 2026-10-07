@@ -39,6 +39,8 @@ export const State = {
   _dbSaveTimer: null,
   _dbQueue: {}, // { key: data }
   _isFlushing: false,
+  _persistedOrderIds: new Set(), // IDs que sabemos existir no IndexedDB
+  _ordersSaveChain: Promise.resolve(), // serializa gravações de pedidos
 
   _scheduleSave(key, dataObj) {
     this._dbQueue[key] = dataObj;
@@ -125,20 +127,29 @@ export const State = {
     try {
       const encryptionKey = (typeof Auth !== 'undefined' && Auth.encryptionKey) ? Auth.encryptionKey : null;
       let ordersV2 = await AppDB.getAllOrders(encryptionKey);
+      const migratedV2 = await AppDB.get('confeitex_orders_migrated_v2');
 
-      if (ordersV2 && ordersV2.length > 0) {
-        this.orders = ordersV2.map(migrateOrder);
+      if ((ordersV2 && ordersV2.length > 0) || migratedV2) {
+        // Já usa a store 'orders' — nunca voltar ao formato legado,
+        // senão pedidos apagados "ressuscitam" quando a lista fica vazia.
+        this.orders = (ordersV2 || []).map(migrateOrder);
+        if (!migratedV2) await AppDB.set('confeitex_orders_migrated_v2', true);
       } else {
         const rawOrders = await this._loadItem('confeitex_orders', []);
         const safeOrders = validateStateDump({ orders: rawOrders });
         this.orders = safeOrders.orders.map(migrateOrder);
 
         if (this.orders.length > 0) {
-            for (const o of this.orders) {
-            await AppDB.putOrder(o, encryptionKey);
-          }
+          await AppDB.syncOrders(this.orders, [], encryptionKey);
+          // Migração concluída: descarta o formato legado
+          delete this._dbQueue['confeitex_orders'];
+          await AppDB.remove('confeitex_orders');
+          await AppDB.remove('confeitex_orders_encrypted');
+          safeStorage.remove('confeitex_orders');
+          await AppDB.set('confeitex_orders_migrated_v2', true);
         }
       }
+      this._persistedOrderIds = new Set(this.orders.map(o => o.id));
 
       const rawCatalog = await this._loadItem('confeitex_catalog', null);
       const safeCatalog = validateStateDump({ catalog: rawCatalog || [...DEFAULT_CATALOG] });
@@ -163,11 +174,29 @@ export const State = {
     }
     this.purgeTrash();
     this.autoSnapshotCheck();
+
+    // Grava imediatamente o que estiver pendente quando o app sai de foco/fecha
+    if (!this._flushListenersBound) {
+      this._flushListenersBound = true;
+      const flushNow = () => {
+        if (this._dbSaveTimer) { clearTimeout(this._dbSaveTimer); this._dbSaveTimer = null; }
+        this._flushDB();
+      };
+      document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flushNow(); });
+      window.addEventListener('pagehide', flushNow);
+    }
   },
 
   saveOrders() {
     const encryptionKey = (typeof Auth !== 'undefined' && Auth.encryptionKey) ? Auth.encryptionKey : null;
-    this.orders.forEach(o => AppDB.putOrder(o, encryptionKey).catch(e => console.warn('[State] Erro ao salvar pedido:', e)));
+    const snapshot = [...this.orders];
+    const currentIds = new Set(snapshot.map(o => o.id));
+    // Apaga do banco os pedidos que saíram da lista (excluídos, movidos p/ lixeira etc.)
+    const idsToDelete = [...this._persistedOrderIds].filter(id => !currentIds.has(id));
+    this._persistedOrderIds = currentIds;
+    this._ordersSaveChain = this._ordersSaveChain
+      .then(() => AppDB.syncOrders(snapshot, idsToDelete, encryptionKey))
+      .catch(e => console.warn('[State] Erro ao salvar pedidos:', e));
     if (this._syncTimer) clearTimeout(this._syncTimer);
     this._syncTimer = setTimeout(() => {
       if (typeof Notifications !== 'undefined' && Notifications.syncData) Notifications.syncData();

@@ -340,6 +340,35 @@ export const AppDB = {
     } catch (e) { error('[AppDB] Erro em removeOrder:', e); }
   },
 
+  /**
+   * Sincroniza a store 'orders' com a lista em memória numa única transação:
+   * grava/atualiza todos os pedidos atuais e apaga os IDs removidos.
+   * A criptografia é feita ANTES de abrir a transação (IndexedDB faz auto-commit
+   * se houver await no meio dela).
+   */
+  async syncOrders(orders, idsToDelete = [], encryptionKey = null) {
+    try {
+      const records = encryptionKey
+        ? await Promise.all(orders.map(async (o) => ({
+            id: o.id,
+            deliveryDate: o.deliveryDate,
+            status: o.status,
+            _encryptedData: await CryptoUtils.encrypt(JSON.stringify(o), encryptionKey)
+          })))
+        : orders;
+      const db = await this.init();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction('orders', 'readwrite');
+        const store = tx.objectStore('orders');
+        idsToDelete.forEach(id => store.delete(id));
+        records.forEach(r => store.put(r));
+        tx.oncomplete = () => resolve(true);
+        tx.onerror = () => reject(tx.error);
+        tx.onabort = () => reject(tx.error);
+      });
+    } catch (e) { error('[AppDB] Erro em syncOrders:', e); return false; }
+  },
+
   async getAllOrders(encryptionKey = null) {
     try {
       const db = await this.init();
