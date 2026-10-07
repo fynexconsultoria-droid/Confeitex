@@ -203,13 +203,7 @@
   gap: 1.25rem;
 }
 
-/* Adjustments for standalone settings tabs to prevent content from being pushed down */
-#notificacoes .config-grid,
-#mercadopago .config-grid,
-#plano .config-grid {
-  margin-top: -0.5rem;
-}
-
+/* Standalone settings tabs: card header hidden because the page title already shows it */
 #notificacoes .config-card-header,
 #mercadopago .config-card-header,
 #plano .config-card-header {
