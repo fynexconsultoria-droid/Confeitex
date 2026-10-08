@@ -84,19 +84,9 @@ export const escapeHTML = (s) => s ? String(s).replace(/[&<>'"]/g, t => ({ '&': 
 
 export function sanitizeText(value) {
   if (value === null || value === undefined) return '';
-  const str = String(value)
-    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, ' ')
-    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, ' ')
-    .replace(/<[^>]+>/g, ' ')
-    .replace(/\b(?:on\w+|src|href|action)\s*=\s*(?:['\"])?[^\s>]+/gi, ' ')
-    .replace(/javascript\s*:/gi, ' ')
-    .replace(/data\s*:\s*(?:image|text|application)/gi, ' ')
-    .replace(/alert\s*\(/gi, ' ')
-    .replace(/[<>]/g, ' ')
-    .replace(/[\u0000-\u001F\u007F]+/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
-  return str;
+  // Fase 3.1: Armazenar dados puros para não destruir formatação (quebras de linha, símbolos).
+  // A proteção contra XSS é feita no momento da renderização usando escapeHTML.
+  return String(value).trim();
 }
 
 export function sanitizeForStorage(value) {
@@ -397,7 +387,30 @@ export const AppDB = {
 };
 
 export const CryptoUtils = {
-  // Derives an AES-GCM 256-bit key from a password and salt using PBKDF2
+  // Deriva 512 bits: 256 bits para o hash de verificação e 256 bits para a chave AES-GCM (V2)
+  async deriveKeys(password, saltHex) {
+    const enc = new TextEncoder();
+    const keyMaterial = await crypto.subtle.importKey(
+      "raw", enc.encode(password), { name: "PBKDF2" }, false, ["deriveBits"]
+    );
+    const salt = new Uint8Array(saltHex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+    
+    const keyBuffer = await crypto.subtle.deriveBits(
+      { name: "PBKDF2", salt: salt, iterations: 100000, hash: "SHA-256" },
+      keyMaterial, 512
+    );
+    
+    const hashHex = Array.from(new Uint8Array(keyBuffer.slice(0, 32)))
+      .map(b => b.toString(16).padStart(2, '0')).join('');
+    
+    const aesKey = await crypto.subtle.importKey(
+      "raw", keyBuffer.slice(32, 64), { name: "AES-GCM" }, false, ["encrypt", "decrypt"]
+    );
+    
+    return { hashHex, aesKey };
+  },
+
+  // (LEGACY V1) Derives an AES-GCM 256-bit key from a password and salt using PBKDF2
   async deriveKey(password, saltHex) {
     const enc = new TextEncoder();
     const keyMaterial = await crypto.subtle.importKey(

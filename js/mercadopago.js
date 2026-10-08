@@ -752,89 +752,9 @@ export const MercadoPagoCheckout = {
   },
 
   // ─── Helpers de Plano & Assinatura ───────────────────────────────────────
-  async createCardToken(cardData) {
-    await this._ensureReady();
-    if (!this._mp || typeof this._mp.createCardToken !== 'function') {
-      throw new Error('SDK do Mercado Pago não suporta tokenização no momento.');
-    }
-
-    try {
-      const token = await this._mp.createCardToken({
-        cardNumber: (cardData.cardNumber || '').replace(/\D/g, ''),
-        cardholderName: (cardData.cardholderName || '').trim(),
-        cardExpirationMonth: String(cardData.cardExpirationMonth || '').padStart(2, '0'),
-        cardExpirationYear: String(cardData.cardExpirationYear || '').length === 2 ? `20${cardData.cardExpirationYear}` : String(cardData.cardExpirationYear),
-        securityCode: String(cardData.securityCode || '').trim(),
-        identification: cardData.identification ? {
-          type: cardData.identification.type || 'CPF',
-          number: (cardData.identification.number || '').replace(/\D/g, ''),
-        } : undefined,
-      });
-
-      return token;
-    } catch (err) {
-      console.error('[MP createCardToken Error]', err);
-      throw err;
-    }
-  },
-
-  async validateCardForTrial(cardData) {
-    if (!this.isConfigured()) {
-      // Modo Demonstração quando worker não configurado
-      return {
-        valid: true,
-        demo: true,
-        token: 'DEMO_CARD_TOKEN_' + Date.now(),
-        lastFourDigits: (cardData.cardNumber || '').replace(/\D/g, '').slice(-4) || '4242',
-        cardholderName: cardData.cardholderName || 'Cliente Confeitex',
-        expirationMonth: cardData.cardExpirationMonth,
-        expirationYear: cardData.cardExpirationYear,
-        brand: this.detectCardBrand(cardData.cardNumber),
-      };
-    }
-
-    try {
-      const tokenObj = await this.createCardToken(cardData);
-      const token = tokenObj.id;
-
-      const res = await fetch(`${this.WORKER_URL}/validate-card`, {
-        method: 'POST',
-        headers: this._getHeaders(),
-        body: JSON.stringify({
-          token: token,
-          email: cardData.email || 'assinante@confeitex.app',
-        }),
-      });
-
-      const data = await res.json();
-      if (!res.ok || data.error) {
-        throw new Error(data.error || 'Não foi possível validar o cartão no Mercado Pago.');
-      }
-
-      return {
-        valid: true,
-        token: token,
-        lastFourDigits: tokenObj.last_four_digits || (cardData.cardNumber || '').replace(/\D/g, '').slice(-4),
-        cardholderName: cardData.cardholderName,
-        expirationMonth: cardData.cardExpirationMonth,
-        expirationYear: cardData.cardExpirationYear,
-        brand: tokenObj.payment_method_id || this.detectCardBrand(cardData.cardNumber),
-      };
-    } catch (err) {
-      console.error('[MP validateCardForTrial Error]', err);
-      throw err;
-    }
-  },
-
   async processPlanPayment(payload) {
     if (!this.isConfigured()) {
-      // Modo demonstração - apenas cartão
-      return {
-        id: 'DEMO_PLAN_CARD_' + Date.now(),
-        status: 'approved',
-        transaction_amount: payload.amount || 16.99,
-        date_approved: new Date().toISOString(),
-      };
+      throw new Error('Worker do Mercado Pago não configurado.');
     }
 
     const res = await fetch(`${this.WORKER_URL}/plan-payment`, {

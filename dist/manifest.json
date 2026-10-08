@@ -1,0 +1,65 @@
+{
+  "name": "Confeitex",
+  "short_name": "Confeitex",
+  "description": "Controle de encomendas para confeitaria — 100% offline",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0a0813",
+  "theme_color": "#0a0813",
+  "orientation": "portrait",
+  "scope": "./",
+  "icons": [
+    {
+      "src": "icons/icon-192x192.png?v=3",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192x192.png?v=3",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-512x512.png?v=3",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512x512.png?v=3",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "categories": ["business", "productivity"],
+  "lang": "pt-BR",
+  "dir": "ltr",
+  "id": "./index.html",
+  "prefer_related_applications": false,
+  "shortcuts": [
+    {
+      "name": "Novo Pedido",
+      "short_name": "Novo Pedido",
+      "description": "Cadastrar uma nova encomenda",
+      "url": "./index.html#action=new-order",
+      "icons": [{ "src": "icons/icon-192x192.png?v=3", "sizes": "192x192" }]
+    },
+    {
+      "name": "Ver Encomendas",
+      "short_name": "Encomendas",
+      "description": "Visualizar pedidos agendados",
+      "url": "./index.html#tab=orders",
+      "icons": [{ "src": "icons/icon-192x192.png?v=3", "sizes": "192x192" }]
+    },
+    {
+      "name": "Financeiro",
+      "short_name": "Financeiro",
+      "description": "Fluxo de caixa e lucratividade",
+      "url": "./index.html#tab=finances",
+      "icons": [{ "src": "icons/icon-192x192.png?v=3", "sizes": "192x192" }]
+    }
+  ]
+}

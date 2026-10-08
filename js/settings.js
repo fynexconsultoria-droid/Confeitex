@@ -307,7 +307,7 @@ export const Settings = {
   exportJSON() {
     const backupData = {
       app: 'Confeitex',
-      version: document.querySelector('meta[name="version"]')?.content || '0.1.4',
+      version: document.querySelector('meta[name="version"]')?.content || '1.0 beta',
       exportDate: new Date().toISOString(),
       orders: State.orders,
       catalog: State.catalog,

@@ -338,17 +338,10 @@ export const Orders = {
     });
 
     document.getElementById('btnNewOrder').addEventListener('click', () => {
-      // Verificação de plano: trial expirado ou limite de pedidos atingido
-      if (typeof Plan !== 'undefined') {
-        const status = Plan.getStatus();
-        if (status.type === 'expired') {
-          Plan.showPaywall('Criação de novos pedidos');
-          return;
-        }
-        if (status.type === 'trial' && !Plan.canUse('unlimited_orders')) {
-          Plan.showPaywall(`Mais de ${Plan.MAX_ORDERS_FREE} pedidos (limite do período gratuito)`);
-          return;
-        }
+      // Verificação de limite de pedidos
+      if (typeof Plan !== 'undefined' && !Plan.canUse('unlimited_orders')) {
+        Plan.showPaywall(`Mais de ${Plan.MAX_ORDERS_FREE} pedidos (limite do plano gratuito atingido)`);
+        return;
       }
 
       form.reset();
@@ -422,16 +415,9 @@ export const Orders = {
       if (!deliveryTime) { UI.alert(I18n.t('orders.alertTime')); return; }
 
       const id = document.getElementById('orderIdInput').value;
-      if (!id && typeof Plan !== 'undefined') {
-        const status = Plan.getStatus();
-        if (status.type === 'expired') {
-          Plan.showPaywall('Criação de novos pedidos');
-          return;
-        }
-        if (status.type === 'trial' && !Plan.canUse('unlimited_orders')) {
-          Plan.showPaywall(`Mais de ${Plan.MAX_ORDERS_FREE} pedidos (limite do período gratuito)`);
-          return;
-        }
+      if (!id && typeof Plan !== 'undefined' && !Plan.canUse('unlimited_orders')) {
+        Plan.showPaywall(`Mais de ${Plan.MAX_ORDERS_FREE} pedidos (limite do plano gratuito atingido)`);
+        return;
       }
 
       const data = {

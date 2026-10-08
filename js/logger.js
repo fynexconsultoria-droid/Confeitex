@@ -3,7 +3,7 @@
  * Gerenciador de logs para desativar logs de debug em produção.
  */
 
-export const DEBUG = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+export const DEBUG = typeof location !== 'undefined' && (location.hostname === 'localhost' || location.hostname === '127.0.0.1');
 
 export const log = (...args) => {
   if (DEBUG) console.log(...args);

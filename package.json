@@ -1,10 +1,11 @@
 {
   "name": "confeitex",
-  "version": "1.0.0",
+  "version": "1.0.0-beta",
   "description": "",
   "main": "sw.js",
   "scripts": {
-    "build": "node build.js"
+    "build": "node build.js",
+    "test": "vitest run"
   },
   "repository": {
     "type": "git",
@@ -19,6 +20,7 @@
   },
   "homepage": "https://github.com/fynexconsultoria-droid/Confeitex#readme",
   "devDependencies": {
-    "esbuild": "^0.28.2"
+    "esbuild": "^0.28.2",
+    "vitest": "^5.0.3"
   }
 }

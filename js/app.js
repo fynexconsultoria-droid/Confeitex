@@ -21,6 +21,7 @@ import { UI } from './ui.js';
 import { Updates } from './updates.js';
 import { fmtDate, fmtISO, safeStorage } from './utils.js';
 import { PullToRefresh } from './pull-to-refresh.js';
+import './pwa.js';
 
 (async () => {
 
@@ -48,6 +49,18 @@ import { PullToRefresh } from './pull-to-refresh.js';
 
   // ─── Carrega dados do estado ─────────────────────────────────────────────
   await State.load();
+
+  if (Auth.needsMigrationToV2) {
+    console.log('[App] Migrando criptografia para V2...');
+    await Auth.setPassword(Auth.needsMigrationToV2);
+    delete Auth.needsMigrationToV2;
+    State.saveOrders();
+    State.saveCatalog();
+    State.saveExpenses();
+    State.saveTrash();
+    State.createSnapshot('migration_v2');
+    console.log('[App] Migração concluída.');
+  }
 
   window.State = State;
 

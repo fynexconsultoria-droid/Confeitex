@@ -32,34 +32,42 @@ export const Auth = {
 
   async setPassword(password) {
     const salt = crypto.getRandomValues(new Uint8Array(16));
-    const hash = await this._deriveKey(password, salt);
     const saltHex = Array.from(salt).map(b => b.toString(16).padStart(2, '0')).join('');
-    this.lockHash = saltHex + ':' + hash;
-    safeStorage.set('confeitex_lock_hash', this.lockHash);
     
-    // Deriva a chave de criptografia real e salva na memória
-    if (typeof CryptoUtils !== 'undefined') {
-      this.encryptionKey = await CryptoUtils.deriveKey(password, saltHex);
-    }
+    const { hashHex, aesKey } = await CryptoUtils.deriveKeys(password, saltHex);
+    
+    this.lockHash = 'v2:' + saltHex + ':' + hashHex;
+    safeStorage.set('confeitex_lock_hash', this.lockHash);
+    this.encryptionKey = aesKey;
   },
 
   async verify(password) {
     if (!this.supported() || !this.lockHash) return false;
     try {
       const parts = this.lockHash.split(':');
-      if (parts.length !== 2) return false;
-      const saltHex = parts[0];
-      const storedHash = parts[1];
-      const salt = new Uint8Array(saltHex.match(/.{2}/g).map(b => parseInt(b, 16)));
-      const hash = await this._deriveKey(password, salt);
-      if (hash === storedHash) {
-        // Senha correta, deriva e guarda a chave de criptografia em memória
-        if (typeof CryptoUtils !== 'undefined') {
-          this.encryptionKey = await CryptoUtils.deriveKey(password, saltHex);
+      if (parts[0] === 'v2') {
+        const saltHex = parts[1];
+        const storedHash = parts[2];
+        const { hashHex, aesKey } = await CryptoUtils.deriveKeys(password, saltHex);
+        
+        if (hashHex === storedHash) {
+          this.encryptionKey = aesKey;
+          return true;
         }
-        return true;
+        return false;
+      } else {
+        if (parts.length !== 2) return false;
+        const saltHex = parts[0];
+        const storedHash = parts[1];
+        const salt = new Uint8Array(saltHex.match(/.{2}/g).map(b => parseInt(b, 16)));
+        const hash = await this._deriveKey(password, salt);
+        if (hash === storedHash) {
+          this.encryptionKey = await CryptoUtils.deriveKey(password, saltHex);
+          this.needsMigrationToV2 = password; // Sinaliza para o app.js fazer a migração
+          return true;
+        }
+        return false;
       }
-      return false;
     } catch { return false; }
   },
 
@@ -343,6 +351,13 @@ export const Auth = {
           const newPw = await this.promptSetPassword(I18n.t('auth.changePwBtn'), I18n.t('auth.pwChangeMsg'));
           if (newPw) {
             UI.toast(I18n.t('auth.toastPwChanged'));
+            if (typeof State !== 'undefined') {
+              State.saveOrders();
+              State.saveExpenses();
+              State.saveCatalog();
+              State.saveTrash();
+              State.createSnapshot('password_change');
+            }
           }
         }
       });

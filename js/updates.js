@@ -11,7 +11,7 @@ import { safeStorage } from './utils.js';
 // Lê a versão do meta tag do HTML (definida em index.html)
 const _getVerAtual = () => {
   const el = document.querySelector('meta[name="version"]');
-  return el ? el.getAttribute('content') : '0.1.4';
+  return el ? el.getAttribute('content') : '1.0 beta';
 };
 
 export const Updates = {
