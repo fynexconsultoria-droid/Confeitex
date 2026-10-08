@@ -55,12 +55,11 @@ export const Clients = {
         .reduce((s, o) => s + (o.weight || 0), 0);
       html += `<tr class="client-row" data-idx="${idx}">
         <td><span class="customer-name" style="font-weight:600;color:white;font-size:0.85rem;">${escapeHTML(c.name)}</span></td>
-        <td style="font-size:0.8rem;color:var(--text-secondary);">${escapeHTML(c.phone)}</td>
         <td class="text-center" style="font-weight:600;font-size:0.85rem;">${c.totalOrders}</td>
         <td class="text-right" style="font-weight:700;color:var(--color-accent-pink);font-size:0.85rem;">${fmt(c.totalSpent)}</td>
       </tr>
       <tr class="client-detail-row" id="client-detail-${idx}" style="display:none;">
-        <td colspan="4">
+        <td colspan="3">
           <div class="client-detail-content">
             <div class="client-detail-info">
               <div class="client-detail-item">

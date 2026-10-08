@@ -135,12 +135,12 @@ export const Dashboard = {
       const val = getOrderTotal(o);
       const profit = val - (o.cost || 0);
       return `<div class="client-history-item" style="cursor:pointer;background:rgba(255,255,255,0.02);border:1px solid var(--border-color);padding:0.75rem;border-radius:var(--border-radius-md);display:flex;justify-content:space-between;align-items:center;gap:0.5rem;transition:all 0.2s ease;" data-id="${o.id}">
-        <div style="flex:1;min-width:0;">
-          <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.25rem;">
+        <div style="flex:1;min-width:0;text-align:left;">
+          <div style="display:flex;align-items:center;justify-content:flex-start;gap:0.5rem;margin-bottom:0.25rem;">
             <span style="font-weight:700;font-size:0.85rem;color:var(--color-accent-pink);background:rgba(236,72,153,0.1);padding:0.1rem 0.4rem;border-radius:4px;">${o.deliveryTime}</span>
-            <span class="customer-name" style="font-size:0.9rem;font-weight:600;">${escapeHTML(o.clientName)}</span>
+            <span class="customer-name" style="font-size:0.9rem;font-weight:600;text-align:left;">${escapeHTML(o.clientName)}</span>
           </div>
-          <div style="font-size:0.75rem;color:var(--text-secondary);">${escapeHTML(o.flavor)} (${formatWeight(o)})${o.cost ? ` · ${I18n.t('dash.profitLabel')}: <span style="color:var(--color-success);font-weight:600;">${fmt(profit)}</span>` : ''}</div>
+          <div style="font-size:0.75rem;color:var(--text-secondary);text-align:left;">${escapeHTML(o.flavor)} (${formatWeight(o)})${o.cost ? ` · ${I18n.t('dash.profitLabel')}: <span style="color:var(--color-success);font-weight:600;">${fmt(profit)}</span>` : ''}</div>
         </div>
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:0.35rem;">
           <span class="badge ${badge}" style="font-size:0.65rem;padding:0.15rem 0.5rem;">${escapeHTML(I18n.value('status', o.status))}</span>
