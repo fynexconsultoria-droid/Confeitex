@@ -28,6 +28,17 @@ export const Updates = {
   // setup — inicializa botões da aba de atualizações
   // ─────────────────────────────────────────────────────────────────────────
   setup() {
+    if ('serviceWorker' in navigator && !navigator.serviceWorker._hasControllerListener) {
+      navigator.serviceWorker._hasControllerListener = true;
+      let refreshing = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (!refreshing) {
+          refreshing = true;
+          window.location.reload();
+        }
+      });
+    }
+
     // Botão "Verificar Agora"
     const btnCheck = document.getElementById('btnCheckUpdate');
     if (btnCheck && !btnCheck.dataset.hasListener) {
@@ -192,9 +203,26 @@ export const Updates = {
     try {
       const reg = await navigator.serviceWorker.getRegistration();
       if (reg) {
+        // Se já tem um update esperando
+        if (reg.waiting) {
+          safeStorage.set('confeitex_last_updated_to', newVer);
+          this.promptUpdateReady(newVer);
+        }
+
+        // Aguarda a instalação da nova versão
+        reg.addEventListener('updatefound', () => {
+          const newWorker = reg.installing;
+          if (newWorker) {
+            newWorker.addEventListener('statechange', () => {
+              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                safeStorage.set('confeitex_last_updated_to', newVer);
+                this.promptUpdateReady(newVer);
+              }
+            });
+          }
+        });
+
         await reg.update();
-        safeStorage.set('confeitex_last_updated_to', newVer);
-        this.promptUpdateReady(newVer);
       }
     } catch (e) {
       console.warn('[Updates] Erro ao acionar SW update:', e.message);
@@ -231,10 +259,12 @@ export const Updates = {
       const reg = await navigator.serviceWorker.getRegistration();
       if (reg && reg.waiting) {
         reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+      } else {
+        setTimeout(() => location.reload(), 800);
       }
-    } catch (_) {}
-
-    setTimeout(() => location.reload(), 800);
+    } catch (_) {
+      setTimeout(() => location.reload(), 800);
+    }
   },
 
   _hideUpdateBar() {
