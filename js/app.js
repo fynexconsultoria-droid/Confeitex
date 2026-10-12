@@ -31,7 +31,8 @@ import './pwa.js';
 
   // ─── Planos e versão ──────────────────────────────────────────────
   Plan.init();
-  const verText = `v${Updates.verAtual}`;
+  const rawVer = Updates.verAtual;
+  const verText = rawVer.startsWith('v') ? rawVer : `v${rawVer}`;
   ['sidebarVersion', 'rightSidebarVersion'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.textContent = verText;

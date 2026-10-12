@@ -11,13 +11,13 @@ import { safeStorage } from './utils.js';
 // Lê a versão do meta tag do HTML (definida em index.html)
 const _getVerAtual = () => {
   const el = document.querySelector('meta[name="version"]');
-  return el ? el.getAttribute('content') : '1.0 beta';
+  return el ? el.getAttribute('content') : '1.2 Beta';
 };
 
 export const Updates = {
-  // ─── Versão atual do app (lida do meta tag ou localStorage) ─────────────
+  // ─── Versão atual do app (sempre alinhada com o código ativo) ───────────
   get verAtual() {
-    return safeStorage.get('confeitex_ver') || _getVerAtual();
+    return _getVerAtual();
   },
 
   // ─── Estado interno ──────────────────────────────────────────────────────
