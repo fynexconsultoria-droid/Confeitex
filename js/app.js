@@ -458,12 +458,33 @@ import './pwa.js';
 
   (async () => {
     const lastCheck = safeStorage.get('confeitex_last_auto_check');
-    if (lastCheck && Date.now() - parseInt(lastCheck, 10) < 3_600_000) return;
-    try { await Updates.checkAndUpdate(); } catch (e) {
-      console.warn('[Confeitex] Erro na verificação automática:', e);
+    if (!lastCheck || Date.now() - parseInt(lastCheck, 10) >= 60_000) {
+      try {
+        if ('serviceWorker' in navigator) {
+          const reg = await navigator.serviceWorker.getRegistration();
+          reg?.update().catch(() => {});
+        }
+        await Updates.checkSilent();
+      } catch (e) {
+        console.warn('[Confeitex] Erro na verificação automática:', e);
+      }
+      safeStorage.set('confeitex_last_auto_check', String(Date.now()));
     }
-    safeStorage.set('confeitex_last_auto_check', String(Date.now()));
   })();
+
+  // Verifica atualizações automaticamente sempre que o usuário reabrir ou voltar para o app no celular
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && navigator.onLine) {
+      const lastCheck = safeStorage.get('confeitex_last_auto_check');
+      if (!lastCheck || Date.now() - parseInt(lastCheck, 10) >= 60_000) {
+        safeStorage.set('confeitex_last_auto_check', String(Date.now()));
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.getRegistration().then(reg => reg?.update().catch(() => {}));
+        }
+        Updates.checkSilent().catch(() => {});
+      }
+    }
+  });
 
 
 

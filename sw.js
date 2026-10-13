@@ -14,7 +14,7 @@ if (typeof Promise.allSettled === 'undefined') {
   };
 }
 
-const SW_VERSION = '1.2-beta';
+const SW_VERSION = '1.2.1';
 const CACHE_NAME = 'confeitex-cache-v' + SW_VERSION;
 
 // Arquivos que serão cacheados na instalação do Service Worker
@@ -61,13 +61,14 @@ const ASSETS_TO_CACHE = [
   './icons/icon-512x512.png'
 ];
 
-// INSTALAÇÃO — cacheia todos os arquivos essenciais (tolerante a falhas)
+// INSTALAÇÃO — cacheia todos os arquivos essenciais e ativa imediatamente sem esperar fechar abas
 self.addEventListener('install', (event) => {
+  self.skipWaiting();
   event.waitUntil(
     Promise.resolve().then(() => {
       return caches.open(CACHE_NAME)
         .then((cache) => {
-          console.log('[SW] Cacheando arquivos do Confeitex...');
+          console.log('[SW] Cacheando arquivos do Confeitex v' + SW_VERSION + '...');
           return Promise.allSettled(
             ASSETS_TO_CACHE.map(url =>
               cache.add(url).catch(() => {
@@ -94,7 +95,7 @@ self.addEventListener('install', (event) => {
   );
 });
 
-// ATIVAÇÃO — limpa caches antigos quando uma nova versão do SW é ativada
+// ATIVAÇÃO — limpa caches antigos e assume controle imediato de todas as páginas
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
@@ -107,7 +108,8 @@ self.addEventListener('activate', (event) => {
           })
       );
     }).then(() => {
-      // NÃO chama clients.claim() — o SW novo só assume na próxima abertura
+      return self.clients.claim();
+    }).then(() => {
       return swRunCheck();
     })
   );
@@ -129,6 +131,29 @@ function cachePutIfSafe(cache, request, response) {
   if (request.url.includes('google-analytics') || request.url.includes('fonts.googleapis.com') || request.url.includes('fonts.gstatic.com')) return;
   const clone = response.clone();
   cache.put(request, clone).catch(() => {});
+}
+
+async function networkFirstWithCacheFallback(event) {
+  const request = event.request;
+  const cache = await caches.open(CACHE_NAME);
+
+  try {
+    const fetchPromise = fetch(request, { cache: 'no-store' });
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Network timeout')), 2500)
+    );
+    const networkResponse = await Promise.race([fetchPromise, timeoutPromise]);
+    if (networkResponse && networkResponse.ok) {
+      cachePutIfSafe(cache, request, networkResponse);
+      return networkResponse;
+    }
+  } catch (_) {
+    // Falha de rede ou timeout — usa cache
+  }
+
+  const cachedResponse = await cache.match(request, { ignoreSearch: true });
+  if (cachedResponse) return cachedResponse;
+  return new Response('Offline', { status: 504, statusText: 'Offline' });
 }
 
 async function cacheFirstWithNetworkFallback(event) {
@@ -162,11 +187,17 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Navegações de documento (abertura de página) usam Rede Primeiro com Fallback Rápido para Offline
+  if (event.request.mode === 'navigate') {
+    event.respondWith(networkFirstWithCacheFallback(event));
+    return;
+  }
+
   const isAppAsset = [
     '/index.html', '/style.css', '/manifest.json', '/js/', '/vendor/', '/icons/', '/sw.js', '/termos.html', '/privacidade.html'
   ].some((fragment) => url.pathname.endsWith(fragment) || url.pathname.includes(fragment));
 
-  if (event.request.mode === 'navigate' || isAppAsset) {
+  if (isAppAsset) {
     event.respondWith(cacheFirstWithNetworkFallback(event));
     return;
   }
