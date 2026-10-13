@@ -82,12 +82,23 @@ import './pwa.js';
     plano:        { title: 'plan.settingsTitle',  subtitle: 'plan.settingsDesc' },
   };
 
-  const hashParams = new URLSearchParams(location.hash.slice(1));
-  const hashTab    = hashParams.get('tab');
-  const hashAction = hashParams.get('action');
-  const initialTab = (hashTab && tabTitles[hashTab]) ? hashTab
-                   : (hashAction === 'new-order')     ? 'orders'
-                   : 'dashboard';
+  const hashParams   = new URLSearchParams(location.hash.slice(1));
+  const hashTab      = hashParams.get('tab');
+  const hashAction   = hashParams.get('action');
+  const historyTab   = history.state?.tab;
+  const sessionTab   = safeStorage.sessionGet('confeitex_active_tab');
+  const candidateTab = (historyTab && tabTitles[historyTab]) ? historyTab
+                     : (sessionTab && tabTitles[sessionTab]) ? sessionTab
+                     : null;
+
+  let initialTab = (hashTab && tabTitles[hashTab]) ? hashTab
+                 : (hashAction === 'new-order')     ? 'orders'
+                 : (candidateTab && ['dashboard', 'orders', 'clients', 'finances'].includes(candidateTab)) ? candidateTab
+                 : 'dashboard';
+
+  if (initialTab === 'finances' && typeof Plan !== 'undefined' && !Plan.canUse('finances_tab')) {
+    initialTab = 'dashboard';
+  }
 
   try { history.replaceState({ tab: initialTab }, ''); } catch (_) {}
 
@@ -98,6 +109,8 @@ import './pwa.js';
       Plan.showPaywall('Acesso ao Financeiro (Premium)');
       return;
     }
+
+    safeStorage.sessionSet('confeitex_active_tab', tabId);
 
     // Fecha sidebar lateral mobile
     document.getElementById('sidebar').classList.remove('open');

@@ -7,6 +7,7 @@
  */
 
 export const PullToRefresh = {
+  _ALLOWED_TABS: ['dashboard', 'orders', 'clients', 'finances'],
   _startY:    0,
   _startX:    0,
   _pulling:   false,
@@ -14,6 +15,11 @@ export const PullToRefresh = {
   _spinner:   null,
   _icon:      null,
   _THRESHOLD: 70,
+
+  _isTabAllowed() {
+    const activeTab = document.querySelector('.tab-content.active')?.id;
+    return Boolean(activeTab && this._ALLOWED_TABS.includes(activeTab));
+  },
 
   init() {
     this._createSpinner();
@@ -116,8 +122,7 @@ export const PullToRefresh = {
 
     // --- Touch (Mobile) ---
     document.addEventListener('touchstart', (e) => {
-      const activeTab = document.querySelector('.tab-content.active')?.id;
-      if (activeTab !== 'dashboard') return;
+      if (!this._isTabAllowed()) return;
       if (getScrollY() > 2) return;
       if (e.target.closest('.right-sidebar-overlay, .sidebar-overlay, .modal-overlay, .ob-overlay, .modal-container')) return;
       this._startY    = e.touches[0].clientY;
@@ -177,10 +182,9 @@ export const PullToRefresh = {
     // --- Mouse Drag (Desktop) ---
     let isMouseDown = false;
     document.addEventListener('mousedown', (e) => {
-      const activeTab = document.querySelector('.tab-content.active')?.id;
-      if (activeTab !== 'dashboard') return;
+      if (!this._isTabAllowed()) return;
       if (getScrollY() > 2) return;
-      if (e.target.closest('button, input, select, a, [role="button"], .right-sidebar-overlay, .sidebar-overlay, .modal-overlay, .ob-overlay')) return;
+      if (e.target.closest('button, input, select, a, [role="button"], .right-sidebar-overlay, .sidebar-overlay, .modal-overlay, .ob-overlay, .modal-container')) return;
       isMouseDown = true;
       this._startY = e.clientY;
       this._pulling = false;
@@ -266,7 +270,13 @@ export const PullToRefresh = {
         }
 
         // Tira 'foto' de quantos pedidos existiam antes de sincronizar
-        const ordersBefore = (window.State && window.State.data && window.State.data.orders) ? window.State.data.orders.length : 0;
+        const getOrdersCount = () => {
+          if (!window.State) return 0;
+          if (Array.isArray(window.State.orders)) return window.State.orders.length;
+          if (window.State.data && Array.isArray(window.State.data.orders)) return window.State.data.orders.length;
+          return 0;
+        };
+        const ordersBefore = getOrdersCount();
 
         // Sincronização com Nuvem / API: Checa se há alguma função global de sync
         if (!isOffline && typeof window.API !== 'undefined' && typeof window.API.sync === 'function') {
@@ -287,7 +297,7 @@ export const PullToRefresh = {
         }
 
         // Calcula a diferença e exibe o Toast correspondente
-        const ordersAfter = (window.State && window.State.data && window.State.data.orders) ? window.State.data.orders.length : 0;
+        const ordersAfter = getOrdersCount();
         const diff = ordersAfter - ordersBefore;
 
         if (diff > 0 || mpSyncCount > 0) {

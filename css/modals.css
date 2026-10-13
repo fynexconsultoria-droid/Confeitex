@@ -44,11 +44,11 @@
 
 .modal-header {
   position: relative;
-  padding: 1.15rem 1.15rem 1.15rem 1.5rem;
+  padding: 1.15rem 1.25rem 1.15rem 1.5rem;
   border-bottom: 1px solid var(--border-color);
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   gap: 0.75rem;
 }
 
@@ -68,26 +68,39 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
-  min-width: 40px;
-  min-height: 40px;
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  min-height: 32px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.09);
   color: var(--text-secondary);
-  font-size: 1.5rem;
+  font-size: 1rem;
   line-height: 1;
-  font-weight: 300;
+  font-weight: 400;
   cursor: pointer;
   padding: 0;
-  margin-top: -0.25rem;
-  margin-right: -0.25rem;
+  margin: 0;
   flex-shrink: 0;
+  position: relative;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
   user-select: none;
+}
+
+/* Área de toque expandida para mobile mantendo tamanho visual compacto e moderno */
+.modal-close::before,
+.modal-close-btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  min-width: 44px;
+  min-height: 44px;
+  pointer-events: auto;
 }
 
 .modal-close:hover,
@@ -114,10 +127,10 @@
 
 .modal-close svg,
 .modal-close-btn svg {
-  width: 20px;
-  height: 20px;
+  width: 14px;
+  height: 14px;
   stroke: currentColor;
-  stroke-width: 2.2;
+  stroke-width: 2;
   stroke-linecap: round;
   stroke-linejoin: round;
   display: block;
@@ -1586,12 +1599,11 @@
   .nav-link { min-height: 44px; }
   .modal-close,
   .modal-close-btn {
-    width: 44px;
-    height: 44px;
-    min-width: 44px;
-    min-height: 44px;
-    margin-top: -0.35rem;
-    margin-right: -0.35rem;
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    min-height: 32px;
+    margin: 0;
   }
 }
 

@@ -134,18 +134,18 @@ export const Dashboard = {
       const badge = badgeClass(o.status);
       const val = getOrderTotal(o);
       const profit = val - (o.cost || 0);
-      return `<div class="client-history-item" style="cursor:pointer;background:rgba(255,255,255,0.02);border:1px solid var(--border-color);padding:0.75rem;border-radius:var(--border-radius-md);display:flex;justify-content:space-between;align-items:center;gap:0.5rem;transition:all 0.2s ease;" data-id="${o.id}">
-        <div style="flex:1;min-width:0;text-align:left;">
-          <div style="display:flex;align-items:center;justify-content:flex-start;gap:0.5rem;margin-bottom:0.25rem;">
-            <span style="font-weight:700;font-size:0.85rem;color:var(--color-accent-pink);background:rgba(236,72,153,0.1);padding:0.1rem 0.4rem;border-radius:4px;">${o.deliveryTime}</span>
-            <span class="customer-name" style="font-size:0.9rem;font-weight:600;text-align:left;">${escapeHTML(o.clientName)}</span>
+      return `<div class="today-delivery-item client-history-item" style="cursor:pointer;background:rgba(255,255,255,0.02);border:1px solid var(--border-color);padding:0.75rem 0.85rem;border-radius:var(--border-radius-md);display:flex;flex-direction:row;justify-content:space-between;align-items:center;gap:0.75rem;width:100%;transition:all 0.2s ease;text-align:left;" data-id="${o.id}">
+        <div class="today-delivery-info" style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;text-align:left;width:auto;">
+          <div class="today-delivery-header" style="display:flex;align-items:center;justify-content:flex-start;gap:0.5rem;margin-bottom:0.25rem;width:100%;text-align:left;">
+            <span class="today-delivery-time" style="font-weight:700;font-size:0.85rem;color:var(--color-accent-pink);background:rgba(236,72,153,0.1);padding:0.15rem 0.45rem;border-radius:4px;flex-shrink:0;">${o.deliveryTime}</span>
+            <span class="customer-name" style="font-size:0.9rem;font-weight:600;text-align:left;color:white;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHTML(o.clientName)}</span>
           </div>
-          <div style="font-size:0.75rem;color:var(--text-secondary);text-align:left;">${escapeHTML(o.flavor)} (${formatWeight(o)})${o.cost ? ` · ${I18n.t('dash.profitLabel')}: <span style="color:var(--color-success);font-weight:600;">${fmt(profit)}</span>` : ''}</div>
+          <div class="today-delivery-sub" style="font-size:0.75rem;color:var(--text-secondary);text-align:left;line-height:1.35;word-break:break-word;width:100%;">${escapeHTML(o.flavor)} (${formatWeight(o)})${o.cost ? ` · ${I18n.t('dash.profitLabel')}: <span class="today-delivery-profit" style="color:var(--color-success);font-weight:600;">${fmt(profit)}</span>` : ''}</div>
         </div>
-        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:0.35rem;">
+        <div class="today-delivery-meta" style="display:flex;flex-direction:column;align-items:flex-end;justify-content:center;text-align:right;gap:0.3rem;flex-shrink:0;">
           <span class="badge ${badge}" style="font-size:0.65rem;padding:0.15rem 0.5rem;">${escapeHTML(I18n.value('status', o.status))}</span>
-          <span style="font-weight:700;font-size:0.9rem;color:white;">${fmt(val)}</span>
-          <span style="font-size:0.65rem;color:var(--text-muted);">${escapeHTML(I18n.value('payment', o.paymentMethod) || I18n.value('payment', 'Dinheiro'))}</span>
+          <span class="today-delivery-val" style="font-weight:700;font-size:0.9rem;color:white;">${fmt(val)}</span>
+          <span class="today-delivery-pay" style="font-size:0.65rem;color:var(--text-muted);">${escapeHTML(I18n.value('payment', o.paymentMethod) || I18n.value('payment', 'Dinheiro'))}</span>
         </div>
       </div>`;
     }).join('');

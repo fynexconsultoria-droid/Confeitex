@@ -47,8 +47,10 @@
   .modal-header h2 { font-size: 1.1rem; }
   .modal-body { padding: 1rem; gap: 1rem; }
   .modal-footer { padding: 1rem; }
-  .client-history-item { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
-  .client-history-item > div:last-child { flex-direction: row; width: 100%; justify-content: space-between; }
+  #clientOrdersHistoryList .client-history-item { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+  #clientOrdersHistoryList .client-history-item > div:last-child { flex-direction: row; width: 100%; justify-content: space-between; }
+  #todayDeliveriesList .client-history-item,
+  #todayDeliveriesList .today-delivery-item { flex-direction: row; align-items: center; justify-content: space-between; gap: 0.5rem; text-align: left; }
   .config-card { padding: 1rem; }
   .table-wrapper { margin: 0; border-radius: var(--border-radius-md); border: 1px solid var(--border-color); }
   .custom-table th, .custom-table td { padding: 0.65rem 0.4rem; font-size: 0.78rem; }
@@ -118,6 +120,104 @@
   width: 18px;
   height: 18px;
   stroke: var(--color-accent-pink);
+}
+
+/* Today Scheduled Deliveries Cards */
+.today-delivery-item {
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-color);
+  padding: 0.75rem 0.85rem;
+  border-radius: var(--border-radius-md);
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  transition: all 0.2s ease;
+  width: 100%;
+  text-align: left;
+}
+
+.today-delivery-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.15);
+  transform: translateY(-1px);
+}
+
+.today-delivery-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  text-align: left;
+  gap: 0.25rem;
+}
+
+.today-delivery-header {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.5rem;
+  width: 100%;
+  text-align: left;
+}
+
+.today-delivery-time {
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--color-accent-pink);
+  background: rgba(236, 72, 153, 0.1);
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.today-delivery-info .customer-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: white;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.today-delivery-sub {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  text-align: left;
+  line-height: 1.35;
+  word-break: break-word;
+  width: 100%;
+}
+
+.today-delivery-profit {
+  color: var(--color-success);
+  font-weight: 600;
+}
+
+.today-delivery-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  text-align: right;
+  gap: 0.3rem;
+  flex-shrink: 0;
+}
+
+.today-delivery-val {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: white;
+}
+
+.today-delivery-pay {
+  font-size: 0.65rem;
+  color: var(--text-muted);
 }
 
 /* Native Canvas Chart Styling */
