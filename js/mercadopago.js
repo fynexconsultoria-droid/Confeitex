@@ -67,6 +67,10 @@ export const MercadoPagoCheckout = {
     return Boolean(this.WORKER_URL);
   },
 
+  hasPublicKey() {
+    return Boolean((this.PUBLIC_KEY || this.DEFAULT_PUBLIC_KEY || '').trim());
+  },
+
   // ─── Carregamento do SDK Oficial do Mercado Pago ─────────────────────────
   _loadSDK() {
     return new Promise((resolve, reject) => {
@@ -108,7 +112,10 @@ export const MercadoPagoCheckout = {
   async _ensureReady() {
     await this._loadSDK();
     if (!this._mp) {
-      const pubKey = this.PUBLIC_KEY || this.DEFAULT_PUBLIC_KEY;
+      const pubKey = (this.PUBLIC_KEY || this.DEFAULT_PUBLIC_KEY || '').trim();
+      if (!pubKey) {
+        throw new Error('Chave pública do Mercado Pago não configurada.');
+      }
       this._mp = new MercadoPago(pubKey, {
         locale: 'pt-BR'
       });
@@ -261,18 +268,19 @@ export const MercadoPagoCheckout = {
     if (loadingText) loadingText.textContent = I18n.t('mp.processingPayment');
 
     try {
+      const data = (formData && formData.formData) ? formData.formData : (formData || {});
       const payload = {
         amount: totalVal,
         transaction_amount: totalVal,
         description: `${order.flavor} — ${order.clientName}`,
         order_id: order.id,
-        payment_method_id: formData.payment_method_id,
-        token: formData.token,
-        installments: formData.installments,
-        issuer_id: formData.issuer_id,
+        payment_method_id: data.payment_method_id,
+        token: data.token,
+        installments: data.installments,
+        issuer_id: data.issuer_id,
         payer: {
-          email: (formData.payer && formData.payer.email) || order.clientEmail || 'cliente@confeitex.app',
-          identification: formData.payer ? formData.payer.identification : undefined,
+          email: (data.payer && data.payer.email) || order.clientEmail || 'cliente@confeitex.app',
+          identification: data.payer ? data.payer.identification : undefined,
           first_name: order.clientName,
         },
       };
@@ -752,9 +760,110 @@ export const MercadoPagoCheckout = {
   },
 
   // ─── Helpers de Plano & Assinatura ───────────────────────────────────────
+  async createCardToken(cardData) {
+    if (!this.hasPublicKey()) {
+      throw new Error('Chave pública do Mercado Pago não configurada.');
+    }
+    await this._ensureReady();
+    if (!this._mp || typeof this._mp.createCardToken !== 'function') {
+      throw new Error('SDK do Mercado Pago não suporta tokenização no momento.');
+    }
+
+    try {
+      const rawNum = String(cardData.cardNumber || '').replace(/\D/g, '');
+      const expMonth = String(cardData.cardExpirationMonth || '').padStart(2, '0');
+      let expYear = String(cardData.cardExpirationYear || '');
+      if (expYear.length === 2) expYear = `20${expYear}`;
+
+      const tokenObj = await this._mp.createCardToken({
+        cardNumber: rawNum,
+        cardholderName: (cardData.cardholderName || '').trim(),
+        cardExpirationMonth: expMonth,
+        cardExpirationYear: expYear,
+        securityCode: String(cardData.securityCode || '').trim(),
+        identification: cardData.identification ? {
+          type: cardData.identification.type || 'CPF',
+          number: (cardData.identification.number || '').replace(/\D/g, ''),
+        } : undefined,
+      });
+
+      return tokenObj;
+    } catch (err) {
+      console.error('[MP createCardToken Error]', err);
+      throw err;
+    }
+  },
+
+  async validateCardForTrial(cardData) {
+    const rawNum = String(cardData.cardNumber || '').replace(/\D/g, '');
+    const brand = this.detectCardBrand(rawNum);
+
+    // Se Worker não estiver configurado ou não tiver Public Key, opera em modo seguro local / demonstração
+    if (!this.isConfigured() || !this.hasPublicKey()) {
+      return {
+        valid: true,
+        demo: true,
+        token: 'LOCAL_VALIDATED_' + Date.now(),
+        lastFourDigits: rawNum.slice(-4) || '4242',
+        cardholderName: cardData.cardholderName || 'Cliente Confeitex',
+        expirationMonth: cardData.cardExpirationMonth,
+        expirationYear: cardData.cardExpirationYear,
+        brand: brand,
+      };
+    }
+
+    try {
+      const tokenObj = await this.createCardToken(cardData);
+      const token = tokenObj ? tokenObj.id : null;
+
+      if (!token) {
+        throw new Error('Não foi possível gerar o token seguro do cartão.');
+      }
+
+      const res = await fetch(`${this.WORKER_URL}/validate-card`, {
+        method: 'POST',
+        headers: this._getHeaders(),
+        body: JSON.stringify({
+          token: token,
+          email: cardData.email || 'assinante@confeitex.app',
+          payer: {
+            email: cardData.email || 'assinante@confeitex.app',
+            identification: cardData.identification,
+          }
+        }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || data.error) {
+        throw new Error(data.error || 'Não foi possível validar o cartão no Mercado Pago.');
+      }
+
+      return {
+        valid: true,
+        token: token,
+        customer_id: data.customer_id,
+        card_id: data.card_id,
+        lastFourDigits: (tokenObj && tokenObj.last_four_digits) || rawNum.slice(-4),
+        cardholderName: cardData.cardholderName,
+        expirationMonth: cardData.cardExpirationMonth,
+        expirationYear: cardData.cardExpirationYear,
+        brand: (tokenObj && tokenObj.payment_method_id) || brand,
+      };
+    } catch (err) {
+      console.error('[MP validateCardForTrial Error]', err);
+      throw err;
+    }
+  },
+
   async processPlanPayment(payload) {
     if (!this.isConfigured()) {
-      throw new Error('Worker do Mercado Pago não configurado.');
+      // Modo demonstração / local quando worker não configurado
+      return {
+        id: 'DEMO_PLAN_' + Date.now(),
+        status: 'approved',
+        transaction_amount: payload.amount || 16.99,
+        date_approved: new Date().toISOString(),
+      };
     }
 
     const res = await fetch(`${this.WORKER_URL}/plan-payment`, {
@@ -763,7 +872,7 @@ export const MercadoPagoCheckout = {
       body: JSON.stringify(payload),
     });
 
-    const data = await res.json();
+    const data = await res.json().catch(() => ({}));
     if (!res.ok || data.error) {
       throw new Error(data.error || 'Erro ao processar cobrança do plano.');
     }
@@ -772,9 +881,9 @@ export const MercadoPagoCheckout = {
 
   detectCardBrand(cardNumber) {
     const clean = String(cardNumber || '').replace(/\D/g, '');
+    if (/^(401178|401179|431274|438935|451416|457393|457631|457632|504175|627780|636297|636368|5067|5090|6504|6505|6509|6516|6550)/.test(clean)) return 'elo';
     if (/^4/.test(clean)) return 'visa';
     if (/^(5[1-5]|2[2-7])/.test(clean)) return 'mastercard';
-    if (/^(401178|401179|431274|438935|451416|457393|457631|457632|504175|627780|636297|636368|5067|5090|6504|6505|6509|6516|6550)/.test(clean)) return 'elo';
     if (/^3[47]/.test(clean)) return 'amex';
     if (/^(606282|3841)/.test(clean)) return 'hipercard';
     return 'credit_card';

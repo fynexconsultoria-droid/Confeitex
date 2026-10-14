@@ -54,6 +54,38 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  // Rota Validar Cartão Mockada
+  if (req.url === '/validate-card' && req.method === 'POST') {
+    let body = '';
+    req.on('data', chunk => body += chunk.toString());
+    req.on('end', () => {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({
+        valid: true,
+        customer_id: 'mock_cust_' + Date.now(),
+        card_id: 'mock_card_' + Date.now(),
+        lastFourDigits: '4242',
+        status: 'validated'
+      }));
+    });
+    return;
+  }
+
+  // Rota Pagamento de Plano Mockada
+  if (req.url === '/plan-payment' && req.method === 'POST') {
+    let body = '';
+    req.on('data', chunk => body += chunk.toString());
+    req.on('end', () => {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({
+        id: 'mock_plan_pay_' + Date.now(),
+        status: 'approved',
+        status_detail: 'accredited'
+      }));
+    });
+    return;
+  }
+
   res.writeHead(404);
   res.end('Not Found');
 });

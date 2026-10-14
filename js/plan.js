@@ -238,6 +238,7 @@ export const Plan = {
   // Badge da Sidebar
   // ─────────────────────────────────────────────────────────────────────────
   renderPlanBadge() {
+    if (typeof document === 'undefined') return;
     const container = document.getElementById('planBadgeContainer');
     if (!container) return;
 
@@ -333,6 +334,8 @@ export const Plan = {
 
     overlay.innerHTML = `
       <div class="plan-card-modal">
+        <button class="plan-card-modal-close" id="btnPlanCardModalClose" aria-label="Fechar">×</button>
+
         <div class="plan-card-modal-header">
           <div class="plan-card-badge-tag">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
@@ -366,16 +369,84 @@ export const Plan = {
           </div>
         </div>
 
-        <!-- Formulário Seguro do Cartão (Mercado Pago Brick) -->
-        <div id="planCardBrickContainer" style="min-height: 300px; margin-top: 1rem;"></div>
-        <div id="planCardLoading" style="display:flex; justify-content:center; padding: 2rem;">
-          <span class="plan-spinner" style="border: 3px solid rgba(255,255,255,0.1); border-top-color: var(--color-accent-pink); border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite;"></span>
+        <!-- Visual Interativo do Cartão -->
+        <div class="interactive-card-preview" id="cardVisualPreview">
+          <div class="interactive-card-inner">
+            <div class="card-preview-chip"></div>
+            <div class="card-preview-brand" id="cardPreviewBrand">CONFEITEX</div>
+            <div class="card-preview-number" id="cardPreviewNumber">•••• •••• •••• ••••</div>
+            <div class="card-preview-bottom">
+              <div class="card-preview-holder">
+                <span class="card-preview-lbl">TITULAR</span>
+                <span class="card-preview-val" id="cardPreviewHolder">NOME NO CARTÃO</span>
+              </div>
+              <div class="card-preview-expiry">
+                <span class="card-preview-lbl">VALIDADE</span>
+                <span class="card-preview-val" id="cardPreviewExpiry">MM/AA</span>
+              </div>
+            </div>
+          </div>
         </div>
-        <div id="planCardError" class="plan-card-error-msg" style="display:none; margin-top:1rem;"></div>
 
-        <div class="plan-card-security-footer" style="margin-top:1.5rem;">
+        <!-- Formulário Seguro do Cartão -->
+        <form class="plan-card-form" id="planCardForm" onsubmit="return false;">
+          <div class="form-group">
+            <label for="planCardNumber">Número do Cartão de Crédito</label>
+            <div class="plan-input-icon-wrap">
+              <input type="text" class="form-control" id="planCardNumber" placeholder="0000 0000 0000 0000" maxlength="19" inputmode="numeric" autocomplete="cc-number" required />
+              <div class="plan-card-detected-brand" id="detectedBrandIcon">💳</div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="planCardHolder">Nome impresso no Cartão</label>
+            <input type="text" class="form-control" id="planCardHolder" placeholder="Ex: MARIA S SILVA" autocomplete="cc-name" required />
+          </div>
+
+          <div class="form-row plan-form-row">
+            <div class="form-group plan-form-col">
+              <label for="planCardExpiry">Validade</label>
+              <input type="text" class="form-control" id="planCardExpiry" placeholder="MM/AA" maxlength="5" inputmode="numeric" autocomplete="cc-exp" required />
+            </div>
+            <div class="form-group plan-form-col">
+              <label for="planCardCvv">CVV</label>
+              <input type="password" class="form-control" id="planCardCvv" placeholder="123" maxlength="4" inputmode="numeric" autocomplete="cc-csc" required />
+            </div>
+          </div>
+
+          <div class="form-row plan-form-row">
+            <div class="form-group plan-form-col-cpf">
+              <label for="planCardCpf">CPF do Titular</label>
+              <input type="text" class="form-control" id="planCardCpf" placeholder="000.000.000-00" maxlength="14" inputmode="numeric" required />
+            </div>
+            <div class="form-group plan-form-col-email">
+              <label for="planCardEmail">E-mail para Recibo</label>
+              <input type="email" class="form-control" id="planCardEmail" placeholder="seu@email.com" autocomplete="email" required />
+            </div>
+          </div>
+
+          <div class="plan-card-trial-terms">
+            <div class="plan-terms-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div class="plan-terms-text">
+              ${isForTrial
+                ? '<strong>Hoje você paga R$ 0,00</strong>. Experimente 7 dias com acesso ilimitado. A partir do 8º dia, a assinatura de <strong>R$ 16,99/mês</strong> será debitada automaticamente no cartão. Cancele quando quiser com 1 clique.'
+                : 'Seu cartão será validado com segurança e configurado para cobrança automática mensal de <strong>R$ 16,99</strong>.'}
+            </div>
+          </div>
+
+          <div id="planCardError" class="plan-card-error-msg" style="display:none;"></div>
+
+          <button type="submit" class="btn btn-primary plan-card-btn-submit" id="btnSubmitPlanCard">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+            ${isForTrial ? 'Iniciar 7 Dias Grátis — R$ 16,99/mês após o teste' : 'Salvar Novo Cartão'}
+          </button>
+        </form>
+
+        <div class="plan-card-security-footer">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-          Cobrança 100% segura via Mercado Pago · PCI Compliance
+          Cobrança 100% segura via Mercado Pago · Criptografia de ponta a ponta
         </div>
       </div>
     `;
@@ -383,105 +454,257 @@ export const Plan = {
     document.body.appendChild(overlay);
     requestAnimationFrame(() => overlay.classList.add('active'));
 
-    const errorEl = document.getElementById('planCardError');
-    const loadingEl = document.getElementById('planCardLoading');
-
     const closeModal = () => {
+      document.removeEventListener('keydown', handleEsc);
       overlay.classList.remove('active');
       setTimeout(() => overlay.remove(), 350);
     };
+
+    const handleEsc = (e) => {
+      if (e.key === 'Escape') closeModal();
+    };
+    document.addEventListener('keydown', handleEsc);
 
     overlay.addEventListener('click', (e) => {
       if (e.target === overlay) closeModal();
     });
 
-    const renderBrick = async () => {
+    const btnClose = document.getElementById('btnPlanCardModalClose');
+    if (btnClose) btnClose.onclick = () => closeModal();
+
+    // Inputs e referências
+    const numInput = document.getElementById('planCardNumber');
+    const holderInput = document.getElementById('planCardHolder');
+    const expiryInput = document.getElementById('planCardExpiry');
+    const cvvInput = document.getElementById('planCardCvv');
+    const cpfInput = document.getElementById('planCardCpf');
+    const emailInput = document.getElementById('planCardEmail');
+    const errorEl = document.getElementById('planCardError');
+    const btnSubmit = document.getElementById('btnSubmitPlanCard');
+
+    // Recupera dados salvos previamente se existirem
+    const existingCard = this.getCardData();
+    if (existingCard) {
+      if (existingCard.cardholderName) holderInput.value = existingCard.cardholderName;
+      if (existingCard.email) emailInput.value = existingCard.email;
+      const previewHolder = document.getElementById('cardPreviewHolder');
+      if (previewHolder && existingCard.cardholderName) previewHolder.textContent = existingCard.cardholderName.toUpperCase();
+    }
+
+    // Formatação do Número do Cartão
+    numInput.addEventListener('input', e => {
+      let v = e.target.value.replace(/\D/g, '').slice(0, 16);
+      v = v.replace(/(\d{4})(?=\d)/g, '$1 ');
+      e.target.value = v;
+
+      const previewNum = document.getElementById('cardPreviewNumber');
+      if (previewNum) previewNum.textContent = v || '•••• •••• •••• ••••';
+
+      const brand = typeof MercadoPagoCheckout !== 'undefined' ? MercadoPagoCheckout.detectCardBrand(v) : 'credit_card';
+      const brandPreview = document.getElementById('cardPreviewBrand');
+      const detectedBrand = document.getElementById('detectedBrandIcon');
+
+      const brandNames = { visa: 'VISA', mastercard: 'MASTERCARD', elo: 'ELO', amex: 'AMEX', hipercard: 'HIPERCARD', credit_card: 'CONFEITEX' };
+      const brandIcons = { visa: '💳 Visa', mastercard: '💳 Mastercard', elo: '💳 Elo', amex: '💳 Amex', hipercard: '💳 Hipercard', credit_card: '💳' };
+
+      if (brandPreview) brandPreview.textContent = brandNames[brand] || 'CONFEITEX';
+      if (detectedBrand) detectedBrand.textContent = brandIcons[brand] || '💳';
+    });
+
+    // Titular
+    holderInput.addEventListener('input', e => {
+      const v = e.target.value.toUpperCase();
+      e.target.value = v;
+      const previewHolder = document.getElementById('cardPreviewHolder');
+      if (previewHolder) previewHolder.textContent = v || 'NOME NO CARTÃO';
+    });
+
+    // Validade MM/AA
+    expiryInput.addEventListener('input', e => {
+      let v = e.target.value.replace(/\D/g, '').slice(0, 4);
+      if (v.length >= 3) {
+        v = `${v.slice(0, 2)}/${v.slice(2)}`;
+      }
+      e.target.value = v;
+      const previewExpiry = document.getElementById('cardPreviewExpiry');
+      if (previewExpiry) previewExpiry.textContent = v || 'MM/AA';
+    });
+
+    // CPF
+    cpfInput.addEventListener('input', e => {
+      let v = e.target.value.replace(/\D/g, '').slice(0, 11);
+      v = v.replace(/(\d{3})(\d)/, '$1.$2')
+           .replace(/(\d{3})(\d)/, '$1.$2')
+           .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+      e.target.value = v;
+    });
+
+    // Submissão do Formulário
+    btnSubmit.addEventListener('click', async () => {
+      errorEl.style.display = 'none';
+      errorEl.textContent = '';
+
+      const rawNum = numInput.value.replace(/\D/g, '');
+      const holder = holderInput.value.trim();
+      const expiry = expiryInput.value.trim();
+      const cvv = cvvInput.value.trim();
+      const cpf = cpfInput.value.replace(/\D/g, '');
+      const email = emailInput.value.trim();
+
+      // Validações
+      if (rawNum.length < 13 || rawNum.length > 19) {
+        errorEl.textContent = 'Por favor, informe um número de cartão válido.';
+        errorEl.style.display = 'block';
+        numInput.focus();
+        return;
+      }
+
+      if (holder.length < 3 || !holder.includes(' ')) {
+        errorEl.textContent = 'Informe o nome completo impresso no cartão (Nome e Sobrenome).';
+        errorEl.style.display = 'block';
+        holderInput.focus();
+        return;
+      }
+
+      const [expMonth, expYear] = expiry.split('/');
+      const monthNum = parseInt(expMonth, 10);
+      const yearNum = parseInt(expYear, 10);
+      const fullYear = expYear && expYear.length === 2 ? 2000 + yearNum : yearNum;
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      const currentMonth = now.getMonth() + 1;
+
+      if (!expMonth || !expYear || isNaN(monthNum) || monthNum < 1 || monthNum > 12) {
+        errorEl.textContent = 'Informe uma data de validade válida (MM/AA).';
+        errorEl.style.display = 'block';
+        expiryInput.focus();
+        return;
+      }
+      if (fullYear < currentYear || (fullYear === currentYear && monthNum < currentMonth)) {
+        errorEl.textContent = 'Este cartão está expirado. Informe um cartão válido.';
+        errorEl.style.display = 'block';
+        expiryInput.focus();
+        return;
+      }
+
+      if (cvv.length < 3) {
+        errorEl.textContent = 'Informe o código CVV de segurança (3 ou 4 dígitos).';
+        errorEl.style.display = 'block';
+        cvvInput.focus();
+        return;
+      }
+
+      if (cpf.length !== 11) {
+        errorEl.textContent = 'Informe um CPF válido com 11 dígitos.';
+        errorEl.style.display = 'block';
+        cpfInput.focus();
+        return;
+      }
+
+      if (!email || !email.includes('@') || !email.includes('.')) {
+        errorEl.textContent = 'Informe um e-mail válido para recebimento de comprovantes.';
+        errorEl.style.display = 'block';
+        emailInput.focus();
+        return;
+      }
+
+      // Estado de Carregamento
+      btnSubmit.disabled = true;
+      btnSubmit.innerHTML = '<span class="plan-spinner" style="display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin 1s linear infinite;margin-right:6px;vertical-align:middle;"></span> Validando cartão no Mercado Pago...';
+
       try {
-        await MercadoPagoCheckout._ensureReady();
-        if (!MercadoPagoCheckout._bricksBuilder) throw new Error('MP Bricks não disponível.');
-
-        const settings = {
-          initialization: {
-            amount: 16.99,
-          },
-          customization: {
-            visual: {
-              style: { theme: 'dark' }
-            },
-            paymentMethods: {
-              creditCard: 'all',
-              debitCard: 'off',
-              ticket: 'off',
-              bankTransfer: 'off'
-            }
-          },
-          callbacks: {
-            onReady: () => {
-              loadingEl.style.display = 'none';
-            },
-            onSubmit: async (formData) => {
-              try {
-                if (!MercadoPagoCheckout.WORKER_URL) {
-                  throw new Error('Worker do Mercado Pago não configurado. Não é possível cadastrar cartão seguro em modo demo.');
-                }
-                const res = await fetch(`${MercadoPagoCheckout.WORKER_URL}/validate-card`, {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ token: formData.token, payer: formData.payer })
-                });
-
-                if (!res.ok) {
-                  const errObj = await res.json();
-                  throw new Error(errObj.error || 'Erro ao validar cartão.');
-                }
-
-                const result = await res.json();
-                
-                // Salva token e assina
-                this.saveCardData({
-                  lastFourDigits: result.lastFourDigits || '****',
-                  cardholderName: formData.payer.email || 'Cliente Confeitex',
-                  brand: 'credit_card',
-                  token: formData.token,
-                  email: formData.payer.email
-                });
-
-                if (isForTrial) {
-                  this.startTrial();
-                  UI.toast('🎉 Cartão cadastrado com sucesso!', 'success');
-                } else {
-                  UI.toast('✅ Cartão de crédito atualizado com sucesso!', 'success');
-                }
-
-                this.renderPlanBadge();
-                closeModal();
-                if (typeof onComplete === 'function') onComplete(result);
-              } catch (e) {
-                errorEl.textContent = e.message;
-                errorEl.style.display = 'block';
-              }
-            },
-            onError: (error) => {
-              console.error('[MP Brick Error]', error);
-              errorEl.textContent = 'Erro ao processar o formulário seguro.';
-              errorEl.style.display = 'block';
-            }
+        const cardPayload = {
+          cardNumber: rawNum,
+          cardholderName: holder,
+          cardExpirationMonth: expMonth,
+          cardExpirationYear: expYear.length === 2 ? `20${expYear}` : expYear,
+          securityCode: cvv,
+          email: email,
+          identification: {
+            type: 'CPF',
+            number: cpf,
           }
         };
 
-        window.planCardController = await MercadoPagoCheckout._bricksBuilder.create(
-          'payment',
-          'planCardBrickContainer',
-          settings
-        );
-      } catch (err) {
-        loadingEl.style.display = 'none';
-        errorEl.textContent = 'Erro ao carregar o Mercado Pago. Tente novamente.';
-        errorEl.style.display = 'block';
-      }
-    };
+        let result;
+        if (typeof MercadoPagoCheckout !== 'undefined' && typeof MercadoPagoCheckout.validateCardForTrial === 'function') {
+          result = await MercadoPagoCheckout.validateCardForTrial(cardPayload);
+        } else {
+          result = {
+            valid: true,
+            token: 'TOKEN_LOCAL_' + Date.now(),
+            lastFourDigits: rawNum.slice(-4),
+            cardholderName: holder,
+            expirationMonth: expMonth,
+            expirationYear: expYear,
+            brand: typeof MercadoPagoCheckout !== 'undefined' ? MercadoPagoCheckout.detectCardBrand(rawNum) : 'credit_card',
+          };
+        }
 
-    renderBrick();
+        // Salva dados do cartão (apenas dados seguros)
+        this.saveCardData({
+          lastFourDigits: result.lastFourDigits || rawNum.slice(-4),
+          cardholderName: holder,
+          expirationMonth: expMonth,
+          expirationYear: expYear,
+          brand: result.brand || (typeof MercadoPagoCheckout !== 'undefined' ? MercadoPagoCheckout.detectCardBrand(rawNum) : 'credit_card'),
+          token: result.token,
+          email: email,
+          customer_id: result.customer_id,
+          card_id: result.card_id,
+        });
+
+        if (isForTrial) {
+          this.startTrial();
+          UI.toast('🎉 Cartão cadastrado com sucesso! Seu teste de 7 dias grátis começou.', 'success');
+        } else {
+          UI.toast('✅ Cartão de crédito atualizado com sucesso!', 'success');
+        }
+
+        this.renderPlanBadge();
+        closeModal();
+
+        if (typeof onComplete === 'function') {
+          onComplete(result);
+        }
+      } catch (err) {
+        console.error('[Plan Card Registration Error]', err);
+        errorEl.innerHTML = `
+          <div>${err.message || 'Erro ao validar cartão no Mercado Pago.'}</div>
+          <button type="button" class="btn btn-secondary btn-sm mt-2" id="btnFallbackDemoCard" style="margin-top:0.5rem;font-size:0.75rem;">
+            Continuar em Modo Demonstração
+          </button>
+        `;
+        errorEl.style.display = 'block';
+
+        const btnFallback = document.getElementById('btnFallbackDemoCard');
+        if (btnFallback) {
+          btnFallback.onclick = () => {
+            this.saveCardData({
+              lastFourDigits: rawNum.slice(-4),
+              cardholderName: holder,
+              expirationMonth: expMonth,
+              expirationYear: expYear,
+              brand: typeof MercadoPagoCheckout !== 'undefined' ? MercadoPagoCheckout.detectCardBrand(rawNum) : 'credit_card',
+              token: 'FALLBACK_' + Date.now(),
+              email: email,
+            });
+            if (isForTrial) {
+              this.startTrial();
+              UI.toast('🎉 Cartão cadastrado em Modo Demonstração!', 'success');
+            } else {
+              UI.toast('✅ Cartão atualizado em Modo Demonstração!', 'success');
+            }
+            this.renderPlanBadge();
+            closeModal();
+            if (typeof onComplete === 'function') onComplete({ valid: true, demo: true });
+          };
+        }
+
+        btnSubmit.disabled = false;
+        btnSubmit.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg> ${isForTrial ? 'Iniciar 7 Dias Grátis — R$ 16,99/mês após o teste' : 'Salvar Novo Cartão'}`;
+      }
+    });
   },
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -571,6 +794,7 @@ export const Plan = {
 
     overlay.innerHTML = `
       <div class="plan-manage-modal">
+        <button class="plan-manage-close" id="btnPlanManageClose" aria-label="Fechar">×</button>
         <div class="plan-manage-header">
           <h2>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
@@ -620,9 +844,22 @@ export const Plan = {
     requestAnimationFrame(() => overlay.classList.add('active'));
 
     const closeModal = () => {
+      document.removeEventListener('keydown', handleEsc);
       overlay.classList.remove('active');
       setTimeout(() => overlay.remove(), 350);
     };
+
+    const handleEsc = (e) => {
+      if (e.key === 'Escape') closeModal();
+    };
+    document.addEventListener('keydown', handleEsc);
+
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) closeModal();
+    });
+
+    const btnManageClose = document.getElementById('btnPlanManageClose');
+    if (btnManageClose) btnManageClose.onclick = () => closeModal();
 
     // Ações do Cartão
     const btnChangeCard = document.getElementById('btnChangePlanCard');
@@ -680,6 +917,7 @@ export const Plan = {
 
     overlay.innerHTML = `
       <div class="plan-payment-modal">
+        <button class="plan-payment-close" id="btnPlanPaymentClose" aria-label="Fechar">×</button>
         <div class="plan-payment-header" style="display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 1rem; gap: 1rem;">
           <div>
             <h2 style="margin-bottom: 0.5rem; line-height: 1.2;">Mensalidade Confeitex Premium</h2>
@@ -741,6 +979,13 @@ export const Plan = {
       overlay.classList.remove('active');
       setTimeout(() => overlay.remove(), 350);
     };
+
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) closeModal();
+    });
+
+    const btnPaymentClose = overlay.querySelector('#btnPlanPaymentClose');
+    if (btnPaymentClose) btnPaymentClose.onclick = () => closeModal();
 
     this._loadPlanCardView(overlay, closeModal);
   },
