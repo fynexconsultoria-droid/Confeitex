@@ -334,7 +334,12 @@ export const Plan = {
 
     overlay.innerHTML = `
       <div class="plan-card-modal">
-        <button class="plan-card-modal-close" id="btnPlanCardModalClose" aria-label="Fechar">×</button>
+        <button class="plan-card-modal-close" id="btnPlanCardModalClose" aria-label="Fechar">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
 
         <div class="plan-card-modal-header">
           <div class="plan-card-badge-tag">
@@ -469,8 +474,14 @@ export const Plan = {
       if (e.target === overlay) closeModal();
     });
 
-    const btnClose = document.getElementById('btnPlanCardModalClose');
-    if (btnClose) btnClose.onclick = () => closeModal();
+    const btnClose = overlay.querySelector('#btnPlanCardModalClose') || document.getElementById('btnPlanCardModalClose');
+    if (btnClose) {
+      btnClose.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        closeModal();
+      });
+    }
 
     // Inputs e referências
     const numInput = document.getElementById('planCardNumber');
@@ -794,7 +805,12 @@ export const Plan = {
 
     overlay.innerHTML = `
       <div class="plan-manage-modal">
-        <button class="plan-manage-close" id="btnPlanManageClose" aria-label="Fechar">×</button>
+        <button class="plan-manage-close" id="btnPlanManageClose" aria-label="Fechar">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
         <div class="plan-manage-header">
           <h2>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
@@ -858,8 +874,14 @@ export const Plan = {
       if (e.target === overlay) closeModal();
     });
 
-    const btnManageClose = document.getElementById('btnPlanManageClose');
-    if (btnManageClose) btnManageClose.onclick = () => closeModal();
+    const btnManageClose = overlay.querySelector('#btnPlanManageClose') || document.getElementById('btnPlanManageClose');
+    if (btnManageClose) {
+      btnManageClose.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        closeModal();
+      });
+    }
 
     // Ações do Cartão
     const btnChangeCard = document.getElementById('btnChangePlanCard');
@@ -917,7 +939,12 @@ export const Plan = {
 
     overlay.innerHTML = `
       <div class="plan-payment-modal">
-        <button class="plan-payment-close" id="btnPlanPaymentClose" aria-label="Fechar">×</button>
+        <button class="plan-payment-close" id="btnPlanPaymentClose" aria-label="Fechar">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
         <div class="plan-payment-header" style="display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 1rem; gap: 1rem;">
           <div>
             <h2 style="margin-bottom: 0.5rem; line-height: 1.2;">Mensalidade Confeitex Premium</h2>
@@ -984,8 +1011,14 @@ export const Plan = {
       if (e.target === overlay) closeModal();
     });
 
-    const btnPaymentClose = overlay.querySelector('#btnPlanPaymentClose');
-    if (btnPaymentClose) btnPaymentClose.onclick = () => closeModal();
+    const btnPaymentClose = overlay.querySelector('#btnPlanPaymentClose') || document.getElementById('btnPlanPaymentClose');
+    if (btnPaymentClose) {
+      btnPaymentClose.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        closeModal();
+      });
+    }
 
     this._loadPlanCardView(overlay, closeModal);
   },
@@ -1116,6 +1149,12 @@ export const Plan = {
 
       overlay.innerHTML = `
         <div class="paywall-modal">
+          <button class="paywall-close" id="paywallBtnClose" aria-label="Fechar">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
           <div class="paywall-header">
             <div class="paywall-lock-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1169,6 +1208,24 @@ export const Plan = {
         setTimeout(() => overlay.remove(), 350);
         resolve(result);
       };
+
+      const handlePaywallEsc = (e) => {
+        if (e.key === 'Escape') close(false);
+      };
+      document.addEventListener('keydown', handlePaywallEsc);
+
+      overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) close(false);
+      });
+
+      const btnPaywallClose = overlay.querySelector('#paywallBtnClose');
+      if (btnPaywallClose) {
+        btnPaywallClose.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          close(false);
+        });
+      }
 
       document.getElementById('paywallBtnCancel').onclick = () => close(false);
       document.getElementById('paywallBtnUpgrade').onclick = () => {

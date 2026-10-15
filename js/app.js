@@ -396,7 +396,23 @@ import './pwa.js';
       langModal.classList.add('active');
     });
 
-    document.getElementById('btnLangCancel').addEventListener('click', () => langModal.classList.remove('active'));
+    const closeLangModal = () => langModal.classList.remove('active');
+    document.getElementById('btnLangClose')?.addEventListener('click', (e) => {
+      e.preventDefault();
+      closeLangModal();
+    });
+    document.getElementById('btnLangCancel')?.addEventListener('click', (e) => {
+      e.preventDefault();
+      closeLangModal();
+    });
+
+    langModal.addEventListener('click', (e) => {
+      if (e.target === langModal) closeLangModal();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && langModal.classList.contains('active')) closeLangModal();
+    });
 
     document.getElementById('btnLangSave').addEventListener('click', () => {
       const selected = Array.from(langRadios).find(r => r.checked);
@@ -407,7 +423,7 @@ import './pwa.js';
         if (currentLangDisplay) currentLangDisplay.textContent = I18n.names[selected.value] || selected.value;
         UI.toast(I18n.t('settings.toastLang', { lang: I18n.names[selected.value] }));
       }
-      langModal.classList.remove('active');
+      closeLangModal();
     });
   }
 
@@ -434,7 +450,22 @@ import './pwa.js';
   if (typeof MercadoPagoCheckout !== 'undefined') {
     MercadoPagoCheckout.init();
 
-    document.getElementById('btnMpCheckoutClose')?.addEventListener('click', () => MercadoPagoCheckout.closeCheckout());
+    const mpCheckoutModal = document.getElementById('mpCheckoutModal');
+    document.getElementById('btnMpCheckoutClose')?.addEventListener('click', (e) => {
+      e.preventDefault();
+      MercadoPagoCheckout.closeCheckout();
+    });
+    if (mpCheckoutModal) {
+      mpCheckoutModal.addEventListener('click', (e) => {
+        if (e.target === mpCheckoutModal) MercadoPagoCheckout.closeCheckout();
+      });
+    }
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && mpCheckoutModal && mpCheckoutModal.classList.contains('active')) {
+        MercadoPagoCheckout.closeCheckout();
+      }
+    });
+
     document.getElementById('btnMpCheckoutDone')?.addEventListener('click', () => {
       MercadoPagoCheckout.closeCheckout();
       Orders.render();

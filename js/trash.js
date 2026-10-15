@@ -130,9 +130,36 @@ export const Trash = {
   },
 
   setup() {
+    const trashModal = document.getElementById('trashModal');
     document.querySelectorAll('.btn-open-trash').forEach(btn => btn.addEventListener('click', () => this.openModal()));
-    document.getElementById('btnTrashClose').addEventListener('click', () => this.closeModal());
-    document.getElementById('btnTrashCloseBtn').addEventListener('click', () => this.closeModal());
+    
+    const btnClose = document.getElementById('btnTrashClose');
+    if (btnClose) {
+      btnClose.addEventListener('click', (e) => {
+        e.preventDefault();
+        this.closeModal();
+      });
+    }
+    const btnCloseBtn = document.getElementById('btnTrashCloseBtn');
+    if (btnCloseBtn) {
+      btnCloseBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        this.closeModal();
+      });
+    }
+
+    if (trashModal) {
+      trashModal.addEventListener('click', (e) => {
+        if (e.target === trashModal) this.closeModal();
+      });
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && trashModal && trashModal.classList.contains('active')) {
+        this.closeModal();
+      }
+    });
+
     document.getElementById('btnEmptyTrash').addEventListener('click', () => this.empty());
     this.updateBadge();
   }

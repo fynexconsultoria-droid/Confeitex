@@ -201,11 +201,22 @@ export const Clients = {
       });
     });
 
-    document.getElementById('clientModal').classList.add('active');
-    document.getElementById('btnModalClientClose').onclick = () => document.getElementById('clientModal').classList.remove('active');
-    document.getElementById('btnModalClientCloseBtn').onclick = () => document.getElementById('clientModal').classList.remove('active');
+    const clientModal = document.getElementById('clientModal');
+    clientModal.classList.add('active');
+    const closeClientModal = () => clientModal.classList.remove('active');
+    document.getElementById('btnModalClientClose').onclick = (e) => {
+      if (e) e.preventDefault();
+      closeClientModal();
+    };
+    document.getElementById('btnModalClientCloseBtn').onclick = (e) => {
+      if (e) e.preventDefault();
+      closeClientModal();
+    };
+    clientModal.onclick = (e) => {
+      if (e.target === clientModal) closeClientModal();
+    };
     document.getElementById('btnEditFromHistory').onclick = () => {
-      document.getElementById('clientModal').classList.remove('active');
+      closeClientModal();
       this.openEdit({ name: document.getElementById('btnEditFromHistory').dataset.name, phone: document.getElementById('btnEditFromHistory').dataset.phone || I18n.t('clients.noPhone') });
     };
   },
@@ -241,8 +252,28 @@ export const Clients = {
   },
 
   setupEditModal() {
-    document.getElementById('btnClientEditClose').addEventListener('click', () => document.getElementById('clientEditModal').classList.remove('active'));
-    document.getElementById('btnClientEditCancel').addEventListener('click', () => document.getElementById('clientEditModal').classList.remove('active'));
+    const editModal = document.getElementById('clientEditModal');
+    const clientModal = document.getElementById('clientModal');
+    const closeEditModal = () => editModal.classList.remove('active');
+
+    document.getElementById('btnClientEditClose').addEventListener('click', (e) => {
+      e.preventDefault();
+      closeEditModal();
+    });
+    document.getElementById('btnClientEditCancel').addEventListener('click', (e) => {
+      e.preventDefault();
+      closeEditModal();
+    });
+    editModal.addEventListener('click', (e) => {
+      if (e.target === editModal) closeEditModal();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        if (clientModal && clientModal.classList.contains('active')) clientModal.classList.remove('active');
+        if (editModal && editModal.classList.contains('active')) editModal.classList.remove('active');
+      }
+    });
+
     document.getElementById('btnClientEditSave').addEventListener('click', () => this.saveEdit());
     document.getElementById('editClientPhone').addEventListener('input', (e) => maskPhone(e.target));
     

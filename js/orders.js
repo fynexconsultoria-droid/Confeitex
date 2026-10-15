@@ -365,12 +365,29 @@ export const Orders = {
     const closeOrderModal = () => {
       modal.classList.remove('active');
     };
-    document.getElementById('btnModalOrderClose').addEventListener('click', closeOrderModal);
-    document.getElementById('btnModalOrderCancel').addEventListener('click', closeOrderModal);
+    const btnOrderClose = document.getElementById('btnModalOrderClose');
+    if (btnOrderClose) {
+      btnOrderClose.addEventListener('click', (e) => {
+        e.preventDefault();
+        closeOrderModal();
+      });
+    }
+    const btnOrderCancel = document.getElementById('btnModalOrderCancel');
+    if (btnOrderCancel) {
+      btnOrderCancel.addEventListener('click', (e) => {
+        e.preventDefault();
+        closeOrderModal();
+      });
+    }
+
+    // Fechar ao clicar no overlay de fundo escuro
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeOrderModal();
+    });
 
     // Acessibilidade: fechar modal de pedido com Escape
-    modal.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') closeOrderModal();
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && modal.classList.contains('active')) closeOrderModal();
     });
 
     // Phone mask

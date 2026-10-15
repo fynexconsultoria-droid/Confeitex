@@ -205,36 +205,96 @@
 
 .plan-card-modal-close,
 .plan-manage-close,
-.plan-payment-close {
+.plan-payment-close,
+.paywall-close {
   position: absolute;
-  top: 1.25rem;
-  right: 1.25rem;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  color: var(--text-muted);
-  width: 32px;
-  height: 32px;
+  top: 0.75rem;
+  right: 0.75rem;
+  z-index: 25;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  color: #94a3b8;
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  min-height: 36px;
   border-radius: 50%;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.2rem;
+  font-size: 1rem;
   cursor: pointer;
-  transition: all 0.15s ease;
+  padding: 0;
+  margin: 0;
+  flex-shrink: 0;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   line-height: 1;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  user-select: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+/* Área de toque expandida para mobile mantendo tamanho visual moderno */
+.plan-card-modal-close::before,
+.plan-manage-close::before,
+.plan-payment-close::before,
+.paywall-close::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  min-width: 48px;
+  min-height: 48px;
+  pointer-events: auto;
 }
 
 .plan-card-modal-close:hover,
 .plan-manage-close:hover,
-.plan-payment-close:hover {
-  background: rgba(239, 68, 68, 0.12);
-  border-color: rgba(239, 68, 68, 0.3);
-  color: var(--color-danger);
+.plan-payment-close:hover,
+.paywall-close:hover {
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 255, 255, 0.28);
+  color: #ffffff;
+  transform: scale(1.08);
+}
+
+.plan-card-modal-close:active,
+.plan-manage-close:active,
+.plan-payment-close:active,
+.paywall-close:active {
+  background: rgba(239, 68, 68, 0.22);
+  border-color: rgba(239, 68, 68, 0.45);
+  color: var(--color-danger, #ef4444);
+  transform: scale(0.92);
+}
+
+.plan-card-modal-close svg,
+.plan-manage-close svg,
+.plan-payment-close svg,
+.paywall-close svg {
+  width: 15px;
+  height: 15px;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  display: block;
+  pointer-events: none;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.plan-card-modal-close:hover svg,
+.plan-manage-close:hover svg,
+.plan-payment-close:hover svg,
+.paywall-close:hover svg {
+  transform: rotate(90deg);
 }
 
 .plan-card-modal-header {
   margin-bottom: 1.15rem;
-  padding-right: 2rem;
+  padding-right: 3rem;
 }
 
 .plan-card-badge-tag {
@@ -592,6 +652,7 @@
   align-items: center;
   justify-content: space-between;
   margin-bottom: 1.15rem;
+  padding-right: 3rem;
 }
 
 .plan-manage-header h2 {
