@@ -7,7 +7,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Confeitex - Controle de Encomendas</title>
   <meta name="description" content="Controle de encomendas para confeitaria — gerencie pedidos, clientes e entregas. 100% offline.">
-  <meta name="version" content="1.3.2">
+  <meta name="version" content="1.3.3">
 
   <!-- Google Fonts: Plus Jakarta Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -139,6 +139,20 @@
         <div class="rsb-link-body">
           <span class="rsb-link-title">Plano Confeitex</span>
           <span class="rsb-link-sub">Recursos e assinatura</span>
+        </div>
+        <svg class="rsb-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      </a>
+
+      <a href="#" class="rsb-link" id="rsb-ai-support">
+        <span class="rsb-link-icon" style="background:linear-gradient(135deg, #009ee3, #8b5cf6); color:#fff;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2 2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><rect x="4" y="8" width="16" height="12" rx="2"/><circle cx="9" cy="13" r="1.5" fill="currentColor"/><circle cx="15" cy="13" r="1.5" fill="currentColor"/><path d="M9 17h6"/></svg>
+        </span>
+        <div class="rsb-link-body">
+          <span class="rsb-link-title" style="display:flex; align-items:center; gap:0.4rem;">
+            Suporte com IA
+            <span style="font-size:0.65rem; background:#10b981; color:#fff; padding:0.1rem 0.45rem; border-radius:10px; font-weight:800;">7 DIAS VIP</span>
+          </span>
+          <span class="rsb-link-sub">Dúvidas rápidas & Garantia 100%</span>
         </div>
         <svg class="rsb-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
       </a>
@@ -279,6 +293,11 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
             <span id="currentDateDisplay">12/07/2026</span>
           </div>
+
+          <button class="btn btn-secondary" id="btnAiSupportHeader" title="Suporte com IA e Garantia de 7 Dias" style="display:flex; align-items:center; gap:0.4rem; font-size:0.8rem; font-weight:800; padding:0.5rem 0.85rem; border-radius:var(--border-radius-full); background:rgba(0,158,227,0.15); border:1px solid rgba(0,158,227,0.35); color:#38bdf8;">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2 2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><rect x="4" y="8" width="16" height="12" rx="2"/><circle cx="9" cy="13" r="1.5" fill="currentColor"/><circle cx="15" cy="13" r="1.5" fill="currentColor"/><path d="M9 17h6"/></svg>
+            <span>Suporte IA</span>
+          </button>
           
 <div class="notif-bell" id="notifBellWrap">
             <button class="btn btn-secondary btn-bell" id="btnNotifBell" aria-label="Notificações" title="Notificações" data-i18n-title="notif.title">

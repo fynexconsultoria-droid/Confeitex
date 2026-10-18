@@ -56,6 +56,9 @@ export const Plan = {
     safeStorage.set(this.KEY_ACTIVATION_KEY, key);
     safeStorage.set(this.KEY_SUB_STATUS, 'active');
     safeStorage.set(this.KEY_PAYMENT_METHOD, method);
+    if (!safeStorage.get('confeitex_activation_date')) {
+      safeStorage.set('confeitex_activation_date', new Date().toISOString());
+    }
     this.renderPlanBadge();
     if (typeof document !== 'undefined') {
       const overlay = document.getElementById('startupLockOverlay');
@@ -369,7 +372,8 @@ export const Plan = {
           <div class="slb-item">✓ Pedidos e encomendas ilimitadas</div>
           <div class="slb-item">✓ Ficha técnica e cálculo de lucro garantido</div>
           <div class="slb-item">✓ Recibos profissionais no WhatsApp</div>
-          <div class="slb-item">✓ 100% no seu celular e sem mensalidades</div>
+          <div class="slb-item">✓ Suporte com Inteligência Artificial por 7 dias</div>
+          <div class="slb-item">✓ 100% Reembolso se não se adaptar em até 7 dias</div>
         </div>
 
         <div class="startup-lock-actions">

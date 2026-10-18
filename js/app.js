@@ -21,6 +21,7 @@ import { UI } from './ui.js';
 import { Updates } from './updates.js';
 import { fmtDate, fmtISO, safeStorage } from './utils.js';
 import { PullToRefresh } from './pull-to-refresh.js';
+import { AiSupport } from './aiSupport.js';
 import './pwa.js';
 
 (async () => {
@@ -29,8 +30,9 @@ import './pwa.js';
   Auth.init();
   if (Auth.isLocked()) await Auth.showLogin();
 
-  // ─── Planos e versão ──────────────────────────────────────────────
+  // ─── Planos, Suporte IA e versão ──────────────────────────────────
   Plan.init();
+  AiSupport.init();
   const rawVer = Updates.verAtual;
   const verText = rawVer.startsWith('v') ? rawVer : `v${rawVer}`;
   ['sidebarVersion', 'rightSidebarVersion'].forEach(id => {

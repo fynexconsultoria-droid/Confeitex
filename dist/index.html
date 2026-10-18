@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Confeitex — O App Definitivo de Gestão e Lucro para Confeitarias</title>
   <meta name="description" content="Controle encomendas, precifique bolos e doces sem prejuízo e envie recibos pelo WhatsApp. 100% no celular, funciona sem internet e sem mensalidades. Pagamento único de R$ 89,90.">
-  <meta name="version" content="1.3.2">
+  <meta name="version" content="1.3.3">
 
   <!-- Google Fonts: Plus Jakarta Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -35,7 +35,7 @@
   <!-- 1. BARRA SUPERIOR DE OFERTA -->
   <aside class="top-bar" aria-label="Aviso de promoção">
     <span class="top-bar-badge" style="background:rgba(0,158,227,0.3);">MERCADO PAGO</span>
-    <span>Acesso Vitalício por Pagamento Único de <strong>R$ 89,90</strong> via <strong>Mercado Pago</strong> (PIX ou até 2x no Cartão)!</span>
+    <span>Acesso Vitalício de <strong>R$ 89,90</strong> (PIX ou 2x) + <strong>Suporte IA por 7 Dias</strong> & <strong>Garantia de 100% de Reembolso</strong>!</span>
   </aside>
 
   <!-- 2. CABEÇALHO / NAVBAR -->
@@ -112,8 +112,12 @@
           <span>Pagamento Seguro Mercado Pago</span>
         </div>
         <div class="hero-trust-item">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="1" y1="1" x2="23" y2="23"/><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/><path d="M10.71 5.05A16 16 0 0 1 22.58 9"/><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
-          <span>Funciona 100% Offline</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2 2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><rect x="4" y="8" width="16" height="12" rx="2"/><path d="M9 17h6"/></svg>
+          <span>Suporte IA por 7 Dias</span>
+        </div>
+        <div class="hero-trust-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          <span>Garantia de 7 Dias (100% Reembolso)</span>
         </div>
       </div>
     </div>
@@ -557,7 +561,7 @@
       <div class="pricing-card-wrapper">
         <div class="pricing-card-glow"></div>
         <div class="pricing-card">
-          <span class="pricing-badge">💳 Pagamento Seguro Mercado Pago • Acesso Vitalício</span>
+          <span class="pricing-badge">💳 Mercado Pago • Suporte IA 7 Dias & 100% Reembolso</span>
           <h3 class="pricing-plan-name">Confeitex Profissional</h3>
           <p class="pricing-plan-sub">Tudo o que sua confeitaria precisa para faturar alto e organizar a produção</p>
 
@@ -572,6 +576,14 @@
           </div>
 
           <ul class="pricing-features-list">
+            <li class="pfl-item" style="background:rgba(236,72,153,0.1); border-radius:10px; padding:0.45rem 0.65rem; border:1px solid rgba(236,72,153,0.3);">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#ec4899" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <span><strong>🤖 Suporte via IA por 7 Dias:</strong> tire todas as dúvidas na hora e aprenda a usar cada função do app</span>
+            </li>
+            <li class="pfl-item" style="background:rgba(16,185,129,0.1); border-radius:10px; padding:0.45rem 0.65rem; border:1px solid rgba(16,185,129,0.3);">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              <span><strong>🛡️ Garantia de 7 Dias:</strong> não se adaptou? Devolvemos 100% do seu dinheiro sem burocracia</span>
+            </li>
             <li class="pfl-item">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
               <span><strong>Acesso Vitalício:</strong> use para sempre sem mensalidades</span>
@@ -617,9 +629,14 @@
             </button>
           </div>
 
-          <div class="pricing-guarantee">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-            <span>Compra 100% Protegida pelo Mercado Pago • Garantia Incondicional de 7 Dias</span>
+          <div class="pricing-guarantee" style="flex-direction:column; gap:0.4rem; text-align:center;">
+            <div style="display:flex; align-items:center; justify-content:center; gap:0.5rem;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              <strong style="color:#fff;">Garantia Incondicional de 7 Dias + Suporte com IA</strong>
+            </div>
+            <span style="font-size:0.82rem; color:var(--c-text-muted);">
+              Você tem 7 dias de suporte inteligente com IA para se adaptar. Se não gostar por qualquer motivo, solicite reembolso total de 100% do seu dinheiro.
+            </span>
           </div>
         </div>
       </div>
@@ -742,6 +759,16 @@
           </button>
           <div class="faq-answer">
             O Confeitex possui uma ferramenta de Backup completo em 1 clique. Você pode exportar seus dados e restaurar no seu novo celular facilmente, usando a sua mesma chave de ativação vitalícia.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question">
+            <span>Como funciona o Suporte com IA por 7 dias e a Garantia de Reembolso?</span>
+            <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="faq-answer">
+            Ao adquirir o Confeitex, você tem direito a <strong>7 dias de acompanhamento exclusivo com nosso assistente de Inteligência Artificial</strong> para ajudar você a cadastrar suas receitas, custos e fechar pedidos. E se durante esses 7 dias você sentir que não se adaptou ou o app não supriu suas expectativas, basta solicitar o reembolso e <strong>devolveremos 100% do seu dinheiro</strong> sem burocracia e sem perguntas!
           </div>
         </div>
       </div>
@@ -887,6 +914,10 @@
       </div>
 
       <div class="download-steps" style="margin-bottom:1.5rem;">
+        <div class="d-step" style="border:1px solid rgba(236,72,153,0.3); background:rgba(236,72,153,0.08);">
+          <div class="d-step-num" style="background:#ec4899; color:#fff;">★</div>
+          <div class="d-step-text"><strong>Suporte IA por 7 Dias + Garantia:</strong> Auxílio inteligente para se adaptar ao app e 100% de reembolso se não gostar.</div>
+        </div>
         <div class="d-step" style="border:1px solid rgba(0,158,227,0.3); background:rgba(0,158,227,0.08);">
           <div class="d-step-num" style="background:#009ee3; color:#fff;">✓</div>
           <div class="d-step-text"><strong>PIX Imediato:</strong> Aprovação em tempo real no Mercado Pago.</div>
