@@ -362,7 +362,7 @@ export const Plan = {
         <h2 class="startup-lock-title">Bem-vinda ao Confeitex!</h2>
         <p class="startup-lock-desc">
           Seu aplicativo profissional de confeitaria está pronto.<br>
-          Para desbloquear todas as funções de pedidos, precificação, receitas e relatórios, ative seu <strong>Acesso Vitalício por R$ 89,90 (pagamento único)</strong>.
+          Para desbloquear todas as funções de pedidos, precificação, receitas e relatórios, ative seu <strong>Acesso Vitalício por R$ 89,90 (PIX ou até 2x no cartão)</strong>.
         </p>
 
         <div class="startup-lock-benefits">

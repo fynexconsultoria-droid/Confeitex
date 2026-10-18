@@ -103,7 +103,7 @@ ${t}
         <h2 class="startup-lock-title">Bem-vinda ao Confeitex!</h2>
         <p class="startup-lock-desc">
           Seu aplicativo profissional de confeitaria est\xE1 pronto.<br>
-          Para desbloquear todas as fun\xE7\xF5es de pedidos, precifica\xE7\xE3o, receitas e relat\xF3rios, ative seu <strong>Acesso Vital\xEDcio por R$ 89,90 (pagamento \xFAnico)</strong>.
+          Para desbloquear todas as fun\xE7\xF5es de pedidos, precifica\xE7\xE3o, receitas e relat\xF3rios, ative seu <strong>Acesso Vital\xEDcio por R$ 89,90 (PIX ou at\xE9 2x no cart\xE3o)</strong>.
         </p>
 
         <div class="startup-lock-benefits">
