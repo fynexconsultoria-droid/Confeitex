@@ -1,7 +1,8 @@
 # push.ps1 — Invalida cache PWA, compila assets e faz push para GitHub
 # Uso: .\push.ps1 ["mensagem opcional de commit"]
 param(
-    [string]$CommitMessage = ""
+    [string]$CommitMessage = "",
+    [string]$TargetVersion = ""
 )
 
 Set-StrictMode -Version Latest
@@ -12,15 +13,17 @@ $swFile      = Join-Path $PSScriptRoot 'sw.js'
 $pkgFile     = Join-Path $PSScriptRoot 'package.json'
 $htmlFile    = Join-Path $PSScriptRoot 'index.html'
 
-# 1. Le e incrementa o patch (suporta semver e normaliza texto legado)
+# 1. Le e incrementa o patch (ou usa TargetVersion se fornecido)
 $current = (Get-Content $versionFile -Raw).Trim()
-if ($current -match '(\d+)\.(\d+)(?:\.(\d+))?') {
+if ($TargetVersion -ne "") {
+    $newVer = $TargetVersion
+} elseif ($current -match '(\d+)\.(\d+)(?:\.(\d+))?') {
     $major = $Matches[1]
     $minor = $Matches[2]
     $patch = if ($Matches[3]) { [int]$Matches[3] + 1 } else { 1 }
     $newVer = "$major.$minor.$patch"
 } else {
-    $newVer = "1.2.1"
+    $newVer = "1.3.0"
 }
 
 Write-Host "Atualizando versao: $current -> $newVer" -ForegroundColor Cyan
@@ -43,12 +46,19 @@ $pkgReplacement = '"version": "' + $newVer + '"'
 $pkgNew = [regex]::Replace($pkg, $pkgPattern, $pkgReplacement)
 [System.IO.File]::WriteAllText($pkgFile, $pkgNew)
 
-# 5. Atualiza meta version em index.html
+# 5. Atualiza meta version em index.html e app.html
 $html = [System.IO.File]::ReadAllText($htmlFile)
 $metaPattern = '<meta name="version" content="[^"]*">'
 $metaReplacement = '<meta name="version" content="' + $newVer + '">'
 $htmlNew = [regex]::Replace($html, $metaPattern, $metaReplacement)
 [System.IO.File]::WriteAllText($htmlFile, $htmlNew)
+
+$appHtmlFile = Join-Path $PSScriptRoot 'app.html'
+if (Test-Path $appHtmlFile) {
+    $appHtml = [System.IO.File]::ReadAllText($appHtmlFile)
+    $appHtmlNew = [regex]::Replace($appHtml, $metaPattern, $metaReplacement)
+    [System.IO.File]::WriteAllText($appHtmlFile, $appHtmlNew)
+}
 
 # 6. Compila bundle de producao (dist/)
 Write-Host "Compilando assets (dist/)..." -ForegroundColor Yellow

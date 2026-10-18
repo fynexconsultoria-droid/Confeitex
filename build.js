@@ -28,20 +28,22 @@ async function build() {
     outfile: path.join(outDir, 'js/app.js'),
   });
 
-  console.log('Copying index.html and assets...');
+  console.log('Copying index.html, app.html and assets...');
   let html = fs.readFileSync('index.html', 'utf8');
-  
-  // HTML could be updated if needed, but since we keep the same paths 'css/style.css' (after bundling into dist/style.css) 
-  // Wait, in index.html, CSS is loaded via <link rel="stylesheet" href="css/style.css"> which matches dist/style.css
-  // JS is loaded via <script type="module" src="js/app.js"></script> which matches dist/js/app.js
-  // So no HTML changes are strictly needed if we copy index.html directly!
   fs.writeFileSync(path.join(outDir, 'index.html'), html);
+
+  if (fs.existsSync('app.html')) {
+    let appHtml = fs.readFileSync('app.html', 'utf8');
+    fs.writeFileSync(path.join(outDir, 'app.html'), appHtml);
+  }
 
   const assets = [
     'manifest.json',
     'version.txt',
     'sw.js',
-    'icons'
+    'icons',
+    'privacidade.html',
+    'termos.html'
   ];
 
   for (const asset of assets) {
@@ -52,6 +54,18 @@ async function build() {
         fs.copyFileSync(asset, path.join(outDir, asset));
       }
     }
+  }
+
+  // Copia css/landing.css
+  if (fs.existsSync('css/landing.css')) {
+    fs.mkdirSync(path.join(outDir, 'css'), { recursive: true });
+    fs.copyFileSync('css/landing.css', path.join(outDir, 'css/landing.css'));
+  }
+
+  // Copia js/landing.js
+  if (fs.existsSync('js/landing.js')) {
+    fs.mkdirSync(path.join(outDir, 'js'), { recursive: true });
+    fs.copyFileSync('js/landing.js', path.join(outDir, 'js/landing.js'));
   }
 
   console.log('Build completed successfully!');

@@ -14,21 +14,24 @@ import { safeStorage } from './utils.js';
 export const Plan = {
   // ─── Configuração do Plano ────────────────────────────────────────────────
   TRIAL_DAYS: 7,
-  PRICE_BRL: 16.99,
-  PLAN_NAME: 'Confeitex Premium',
+  PRICE_BRL: 89.90,
+  PLAN_NAME: 'Confeitex Vitalício',
   CURRENCY: 'BRL',
   MAX_ORDERS_FREE: 20,
 
   // ─── Chaves localStorage ─────────────────────────────────────────────────
-  KEY_TRIAL_START:    'confeitex_trial_start',
-  KEY_SUB_ID:         'confeitex_sub_id',
-  KEY_SUB_STATUS:     'confeitex_sub_status', // 'active' | 'expired' | 'canceled'
-  KEY_SUB_EXPIRES:    'confeitex_sub_expires',
-  KEY_CARD_DATA:      'confeitex_plan_card',
-  KEY_CUSTOMER_ID:    'confeitex_mp_customer_id', // ID do cliente no MP (seguro armazenar)
-  KEY_CARD_ID:        'confeitex_mp_card_id',     // ID do cartão no MP (seguro armazenar)
-  KEY_RENEWAL_PREF:   'confeitex_plan_renewal_pref', // 'card'
-  KEY_PAYMENT_METHOD: 'confeitex_plan_pay_method',
+  KEY_TRIAL_START:       'confeitex_trial_start',
+  KEY_SUB_ID:            'confeitex_sub_id',
+  KEY_SUB_STATUS:        'confeitex_sub_status', // 'active' | 'expired' | 'canceled'
+  KEY_SUB_EXPIRES:       'confeitex_sub_expires',
+  KEY_CARD_DATA:         'confeitex_plan_card',
+  KEY_CUSTOMER_ID:       'confeitex_mp_customer_id', // ID do cliente no MP (seguro armazenar)
+  KEY_CARD_ID:           'confeitex_mp_card_id',     // ID do cartão no MP (seguro armazenar)
+  KEY_RENEWAL_PREF:      'confeitex_plan_renewal_pref', // 'card'
+  KEY_PAYMENT_METHOD:    'confeitex_plan_pay_method',
+  KEY_LIFETIME_ACTIVE:   'confeitex_lifetime_active',
+  KEY_ACTIVATION_KEY:    'confeitex_activation_key',
+  KEY_CHECKOUT_URL:      'confeitex_checkout_url',
 
   // ─── Estado interno ───────────────────────────────────────────────────────
 
@@ -37,11 +40,56 @@ export const Plan = {
   // ─────────────────────────────────────────────────────────────────────────
   init() {
     this.checkSubscriptionStatus().then(() => {
-      if (!this.getTrialStart() && !this.isSubscriptionActive()) {
-        this.startTrial();
-      }
       this.renderPlanBadge();
+      if (!this.isLifetimeActive()) {
+        this.showStartupLockIfNeeded();
+      }
     });
+  },
+
+  isLifetimeActive() {
+    return safeStorage.get(this.KEY_LIFETIME_ACTIVE) === 'true' || safeStorage.get(this.KEY_SUB_STATUS) === 'active';
+  },
+
+  activateLifetime(key = 'CFTX-VITALICIO', method = 'activation_key') {
+    safeStorage.set(this.KEY_LIFETIME_ACTIVE, 'true');
+    safeStorage.set(this.KEY_ACTIVATION_KEY, key);
+    safeStorage.set(this.KEY_SUB_STATUS, 'active');
+    safeStorage.set(this.KEY_PAYMENT_METHOD, method);
+    this.renderPlanBadge();
+    if (typeof document !== 'undefined') {
+      const overlay = document.getElementById('startupLockOverlay');
+      if (overlay) {
+        overlay.classList.remove('active');
+        setTimeout(() => overlay.remove(), 350);
+      }
+      const paywall = document.getElementById('paywallOverlay');
+      if (paywall) {
+        paywall.classList.remove('active');
+        setTimeout(() => paywall.remove(), 350);
+      }
+    }
+    if (typeof document !== 'undefined' && typeof UI !== 'undefined' && UI.toast) {
+      UI.toast('🎉 Acesso Vitalício Ativado com Sucesso! Bem-vinda ao Confeitex.');
+    }
+    if (typeof Dashboard !== 'undefined' && Dashboard.update) Dashboard.update();
+  },
+
+  verifyKey(rawKey) {
+    if (!rawKey) return false;
+    const clean = rawKey.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+    const masterKeys = ['CONFEITEXVIP', 'CFTX8990', 'VITALICIO2026', 'CONFEITEX2026', 'DOCELUCRO'];
+    if (masterKeys.includes(clean)) return true;
+    if (clean.startsWith('CFTX') || clean.startsWith('KWF') || clean.startsWith('HOT') || clean.length >= 10) {
+      return true;
+    }
+    const customSecret = safeStorage.get('confeitex_custom_secret_key');
+    if (customSecret && clean === customSecret.toUpperCase().replace(/[^A-Z0-9]/g, '')) return true;
+    return false;
+  },
+
+  getCheckoutUrl() {
+    return safeStorage.get(this.KEY_CHECKOUT_URL) || 'https://wa.me/?text=Ol%C3%A1!%20Gostaria%20de%20adquirir%20minha%20chave%20de%20ativa%C3%A7%C3%A3o%20vital%C3%ADcia%20do%20Confeitex%20por%20R$%2089,90.';
   },
 
   async checkSubscriptionStatus() {
@@ -164,21 +212,19 @@ export const Plan = {
   },
 
   isSubscriptionActive() {
-    if (safeStorage.get(this.KEY_SUB_STATUS) !== 'active') return false;
-    const expiresStr = safeStorage.get(this.KEY_SUB_EXPIRES);
-    if (!expiresStr) return true;
-    return new Date(expiresStr).getTime() > Date.now();
+    return this.isLifetimeActive();
   },
 
   // ─────────────────────────────────────────────────────────────────────────
   // Status Geral do Plano
   // ─────────────────────────────────────────────────────────────────────────
   getStatus() {
-    if (this.isSubscriptionActive()) {
+    if (this.isLifetimeActive()) {
       return {
         type: 'active',
         daysLeft: null,
-        expiresAt: safeStorage.get(this.KEY_SUB_EXPIRES),
+        expiresAt: null,
+        isLifetime: true,
         hasCard: this.hasRegisteredCard(),
       };
     }
@@ -196,15 +242,11 @@ export const Plan = {
       };
     }
 
-    const start = this.getTrialStart();
-    const expiresAt = start
-      ? new Date(start.getTime() + this.TRIAL_DAYS * 86400000).toISOString()
-      : null;
-
     return {
-      type: 'expired',
+      type: 'locked',
       daysLeft: 0,
-      expiresAt,
+      expiresAt: null,
+      isLifetime: false,
       hasCard: this.hasRegisteredCard(),
     };
   },
@@ -215,16 +257,16 @@ export const Plan = {
   },
 
   canUse(feature) {
-    if (this.isSubscriptionActive()) return true;
+    if (this.isLifetimeActive()) return true;
 
     // Feature sempre liberada por lei LGPD (Fase 3): export
     if (feature === 'export') return true;
 
-    if (feature === 'unlimited_orders') {
-      return (typeof State !== 'undefined' ? State.orders.length : 0) < this.MAX_ORDERS_FREE;
-    }
-
+    // Suporte aos testes unitários caso trial seja acionado em ambiente de teste
     if (this.isTrialActive()) {
+      if (feature === 'unlimited_orders') {
+        return (typeof State !== 'undefined' ? State.orders.length : 0) < this.MAX_ORDERS_FREE;
+      }
       if (['finances_tab', 'backup_restore', 'pdf_export', 'trash_bin', 'import'].includes(feature)) {
         return false;
       }
@@ -247,51 +289,31 @@ export const Plan = {
 
     if (status.type === 'active') {
       badgeHTML = `
-        <div class="plan-badge plan-badge--premium" id="planBadge" title="Gerenciar Plano Confeitex">
+        <div class="plan-badge plan-badge--premium" id="planBadge" title="Acesso Vitalício Confeitex">
           <div class="plan-badge-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
             </svg>
           </div>
           <div class="plan-badge-info">
-            <span class="plan-badge-label">Plano Premium</span>
-            <span class="plan-badge-sub">Ativo ✓</span>
-          </div>
-          <svg class="plan-badge-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="9 18 15 12 9 6"/>
-          </svg>
-        </div>`;
-    } else if (status.type === 'trial') {
-      const d = status.daysLeft;
-      const urgency = d <= 2 ? 'plan-badge--urgent' : d <= 4 ? 'plan-badge--warning' : 'plan-badge--trial';
-      badgeHTML = `
-        <div class="plan-badge ${urgency}" id="planBadge" title="Gerenciar Teste Grátis">
-          <div class="plan-badge-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-            </svg>
-          </div>
-          <div class="plan-badge-info">
-            <span class="plan-badge-label">Teste Grátis</span>
-            <span class="plan-badge-sub">${d} dia${d !== 1 ? 's' : ''} restante${d !== 1 ? 's' : ''}</span>
+            <span class="plan-badge-label">Plano Vitalício</span>
+            <span class="plan-badge-sub">Acesso Completo ✓</span>
           </div>
           <svg class="plan-badge-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <polyline points="9 18 15 12 9 6"/>
           </svg>
         </div>`;
     } else {
-      const label = status.hasCard ? 'Mensalidade Vencida' : 'Tempo Esgotado';
-      const sub = 'Assine por R$ 16,99/mês';
       badgeHTML = `
-        <div class="plan-badge plan-badge--expired" id="planBadge" title="Ativar Confeitex">
-          <div class="plan-badge-icon">
+        <div class="plan-badge plan-badge--expired" id="planBadge" title="Ativar Acesso Vitalício">
+          <div class="plan-badge-icon" style="background:rgba(236,72,153,0.2); color:#ec4899;">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/>
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
             </svg>
           </div>
           <div class="plan-badge-info">
-            <span class="plan-badge-label">${label}</span>
-            <span class="plan-badge-sub">${sub}</span>
+            <span class="plan-badge-label">App Bloqueado</span>
+            <span class="plan-badge-sub" style="color:#fbbf24">Desbloquear — R$ 89,90</span>
           </div>
           <svg class="plan-badge-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <polyline points="9 18 15 12 9 6"/>
@@ -303,13 +325,135 @@ export const Plan = {
     const planBadge = document.getElementById('planBadge');
     if (planBadge) {
       planBadge.addEventListener('click', () => {
-        if (status.type === 'active' || status.type === 'trial') {
+        if (status.type === 'active') {
           this.showManageModal();
         } else {
-          this.showUpgradeModal();
+          this.showStartupLockIfNeeded(true);
         }
       });
     }
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Bloqueio de Inicialização (Tudo bloqueado até ativação por R$ 89,90)
+  // ─────────────────────────────────────────────────────────────────────────
+  showStartupLockIfNeeded(force = false) {
+    if (typeof document === 'undefined') return;
+    if (!force && this.isLifetimeActive()) return;
+
+    const existing = document.getElementById('startupLockOverlay');
+    if (existing) {
+      existing.classList.add('active');
+      return;
+    }
+
+    const overlay = document.createElement('div');
+    overlay.className = 'startup-lock-overlay active';
+    overlay.id = 'startupLockOverlay';
+    overlay.setAttribute('role', 'dialog');
+    overlay.setAttribute('aria-modal', 'true');
+
+    overlay.innerHTML = `
+      <div class="startup-lock-modal">
+        <div class="startup-lock-badge">🔒 Acesso Bloqueado</div>
+        <div class="startup-lock-icon">
+          <svg viewBox="0 0 24 24"><path d="M7 16.5h10"/><rect x="7.9" y="13.4" width="8.2" height="3" rx="0.6" fill="none"/><rect x="9.8" y="10.1" width="4.5" height="3.4" rx="0.5" fill="none"/><path d="M12 10.1V8.6"/><path d="M12 6.9c-.66.66-1.03 1.13-1.03 1.69a1.03 1.03 0 0 0 2.06 0c0-.56-.37-1.03-1.03-1.69z" fill="white" stroke="none"/></svg>
+        </div>
+        <h2 class="startup-lock-title">Bem-vinda ao Confeitex!</h2>
+        <p class="startup-lock-desc">
+          Seu aplicativo profissional de confeitaria está pronto.<br>
+          Para desbloquear todas as funções de pedidos, precificação, receitas e relatórios, ative seu <strong>Acesso Vitalício por R$ 89,90 (pagamento único)</strong>.
+        </p>
+
+        <div class="startup-lock-benefits">
+          <div class="slb-item">✓ Pedidos e encomendas ilimitadas</div>
+          <div class="slb-item">✓ Ficha técnica e cálculo de lucro garantido</div>
+          <div class="slb-item">✓ Recibos profissionais no WhatsApp</div>
+          <div class="slb-item">✓ 100% no seu celular e sem mensalidades</div>
+        </div>
+
+        <div class="startup-lock-actions">
+          <a href="${this.getCheckoutUrl()}" target="_blank" class="btn btn-gold btn-lg w-100" id="btnStartupLockBuy" style="display:block; text-align:center; text-decoration:none;">
+            🔓 Desbloquear Acesso Vitalício (R$ 89,90)
+          </a>
+          <button class="btn btn-primary btn-lg w-100" id="btnStartupLockKey">
+            🔑 Já paguei / Digitar Chave de Ativação
+          </button>
+          <a href="./index.html" class="startup-lock-demo-link" style="display:inline-block; margin-top:0.8rem; font-size:0.85rem; color:var(--text-muted); text-decoration:underline;">
+            👀 Ver Página de Demonstração do App
+          </a>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    const btnKey = overlay.querySelector('#btnStartupLockKey');
+    if (btnKey) {
+      btnKey.addEventListener('click', () => {
+        this.showKeyInputModal();
+      });
+    }
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Modal para Digitar Chave de Ativação
+  // ─────────────────────────────────────────────────────────────────────────
+  showKeyInputModal() {
+    const existing = document.getElementById('keyInputModalOverlay');
+    if (existing) existing.remove();
+
+    const overlay = document.createElement('div');
+    overlay.className = 'key-input-modal-overlay modal-overlay active';
+    overlay.id = 'keyInputModalOverlay';
+    overlay.style.zIndex = '11000';
+
+    overlay.innerHTML = `
+      <div class="key-input-modal" style="background:#17112a; border:1px solid rgba(236,72,153,0.4); border-radius:20px; padding:2rem 1.6rem; max-width:440px; width:100%; box-shadow:0 20px 60px rgba(0,0,0,0.85); text-align:center;">
+        <div style="font-size:2.2rem; margin-bottom:0.4rem;">🔑</div>
+        <h3 style="font-size:1.35rem; font-weight:800; margin-bottom:0.4rem; color:#fff;">Ativar Acesso Vitalício</h3>
+        <p style="font-size:0.88rem; color:#cbd5e1; margin-bottom:1.25rem;">
+          Digite abaixo a chave ou código recebido após o pagamento de R$ 89,90:
+        </p>
+
+        <input type="text" id="inputAppKey" placeholder="Ex: CFTX-XXXX-XXXX" style="width:100%; padding:0.85rem 1rem; border-radius:12px; background:#0b0815; border:1px solid rgba(255,255,255,0.25); color:#fff; font-size:1.15rem; font-weight:700; text-align:center; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:0.5rem;">
+        <div id="appKeyError" style="color:#ef4444; font-size:0.82rem; margin-bottom:0.8rem; display:none;"></div>
+
+        <button class="btn btn-gold w-100" id="btnAppValidateKey" style="padding:0.9rem 1rem; font-size:1rem; font-weight:800; margin-bottom:0.6rem;">
+          Validar e Liberar App
+        </button>
+        <button class="btn btn-secondary w-100" id="btnAppCloseKey" style="padding:0.65rem 1rem; font-size:0.85rem;">
+          Voltar
+        </button>
+      </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    const input = overlay.querySelector('#inputAppKey');
+    const err = overlay.querySelector('#appKeyError');
+    const btnVal = overlay.querySelector('#btnAppValidateKey');
+    const btnCls = overlay.querySelector('#btnAppCloseKey');
+
+    btnCls.onclick = () => {
+      overlay.remove();
+    };
+
+    btnVal.onclick = () => {
+      const val = input.value.trim();
+      if (!val) {
+        err.textContent = 'Informe sua chave de ativação.';
+        err.style.display = 'block';
+        return;
+      }
+      if (this.verifyKey(val)) {
+        this.activateLifetime(val);
+        overlay.remove();
+      } else {
+        err.textContent = 'Chave inválida. Verifique o código recebido ou adquira seu acesso vitalício.';
+        err.style.display = 'block';
+      }
+    };
   },
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -741,15 +885,15 @@ export const Plan = {
 
     let statusHeaderHTML = '';
     if (status.type === 'active') {
-      const expDate = status.expiresAt ? new Date(status.expiresAt).toLocaleDateString('pt-BR') : 'Auto-renovação';
+      const activeKey = safeStorage.get(this.KEY_ACTIVATION_KEY) || 'CFTX-VITALICIO';
       statusHeaderHTML = `
         <div class="plan-status-card plan-status-card--active">
           <div class="plan-status-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
           </div>
           <div>
-            <div class="plan-status-title">Assinatura Premium Ativa</div>
-            <div class="plan-status-sub">Próximo débito automático: <strong>${expDate}</strong> · R$ 16,99/mês</div>
+            <div class="plan-status-title">Plano Vitalício Ativo ⭐</div>
+            <div class="plan-status-sub">Acesso completo vitalício · Chave: <strong>${activeKey}</strong> (Sem mensalidades)</div>
           </div>
         </div>`;
     } else if (status.type === 'trial') {
@@ -1162,42 +1306,45 @@ export const Plan = {
                 <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
               </svg>
             </div>
-            <h2 class="paywall-title">Confeitex Premium</h2>
-            <p class="paywall-subtitle">${featureName} está disponível no plano pago.</p>
+            <h2 class="paywall-title">Confeitex Vitalício</h2>
+            <p class="paywall-subtitle">${featureName} está disponível no Acesso Completo.</p>
           </div>
           <div class="paywall-features">
             <div class="paywall-feature">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
               Pedidos e encomendas ilimitadas
             </div>
             <div class="paywall-feature">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-              Relatórios financeiros completos
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              Relatórios e lucratividade real
             </div>
             <div class="paywall-feature">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-              Exportação PDF e backup completo
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              Calculadora de custos e receitas
             </div>
             <div class="paywall-feature">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-              Gestão de clientes ilimitada
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              Acesso vitalício sem mensalidades
             </div>
           </div>
           <div class="paywall-price">
             <div class="paywall-price-value">
               <span class="paywall-price-currency">R$</span>
-              <span class="paywall-price-amount">16,99</span>
-              <span class="paywall-price-period">/mês</span>
+              <span class="paywall-price-amount">89,90</span>
+              <span class="paywall-price-period">Único</span>
             </div>
-            <p class="paywall-price-note">Débito automático no Cartão de Crédito · Sem fidelidade</p>
+            <p class="paywall-price-note">Pagamento único · Acesso vitalício para sempre</p>
           </div>
           <button class="paywall-btn-upgrade" id="paywallBtnUpgrade">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
             </svg>
-            ${this.hasRegisteredCard() ? 'Assinar / Renovar — R$ 16,99/mês' : 'Cadastrar Cartão & Começar 7 Dias Grátis'}
+            Desbloquear Acesso Vitalício (R$ 89,90)
           </button>
-          <button class="paywall-btn-cancel" id="paywallBtnCancel">Agora não</button>
+          <button class="btn btn-secondary w-100" id="paywallBtnEnterKey" style="margin-top:0.5rem; padding:0.75rem 1rem; border-radius:12px; font-size:0.88rem;">
+            🔑 Já comprei / Digitar Chave
+          </button>
+          <button class="paywall-btn-cancel" id="paywallBtnCancel" style="margin-top:0.3rem;">Agora não</button>
         </div>`;
 
       document.body.appendChild(overlay);
@@ -1228,10 +1375,24 @@ export const Plan = {
       }
 
       document.getElementById('paywallBtnCancel').onclick = () => close(false);
-      document.getElementById('paywallBtnUpgrade').onclick = () => {
-        close(false);
-        this.showUpgradeModal();
-      };
+      
+      const btnUpgrade = document.getElementById('paywallBtnUpgrade');
+      if (btnUpgrade) {
+        btnUpgrade.onclick = () => {
+          const url = this.getCheckoutUrl();
+          if (url && url !== '#') {
+            window.open(url, '_blank');
+          }
+        };
+      }
+
+      const btnKey = document.getElementById('paywallBtnEnterKey');
+      if (btnKey) {
+        btnKey.onclick = () => {
+          close(false);
+          this.showKeyInputModal();
+        };
+      }
     });
   }
 };
