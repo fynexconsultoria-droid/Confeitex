@@ -153,6 +153,41 @@
     }
   });
 
+  // ─── 5. Modal de Checkout Mercado Pago ───────────────────────────────────
+  const mpModal = document.getElementById('mpModal');
+  const btnCloseMpModal = document.getElementById('closeMpModal');
+  const btnGoToMp = document.getElementById('btnGoToMp');
+  const defaultCheckoutUrl = 'https://link.mercadopago.com.br/';
+
+  function getMercadoPagoUrl() {
+    return localStorage.getItem('confeitex_mp_checkout_link') || 
+           localStorage.getItem('confeitex_checkout_url') || 
+           defaultCheckoutUrl;
+  }
+
+  function openMpModal() {
+    if (mpModal) {
+      if (btnGoToMp) {
+        btnGoToMp.href = getMercadoPagoUrl();
+      }
+      mpModal.classList.add('active');
+    }
+  }
+
+  function closeMpModal() {
+    if (mpModal) mpModal.classList.remove('active');
+  }
+
+  if (btnCloseMpModal) {
+    btnCloseMpModal.addEventListener('click', closeMpModal);
+  }
+
+  if (mpModal) {
+    mpModal.addEventListener('click', (e) => {
+      if (e.target === mpModal) closeMpModal();
+    });
+  }
+
   // ─── 4. Modal de Chave de Ativação / Desbloqueio ──────────────────────────
   const unlockModal = document.getElementById('unlockModal');
   const btnCloseUnlock = document.getElementById('closeUnlockModal');
@@ -162,6 +197,7 @@
   const keyError = document.getElementById('keyErrorMsg');
 
   function openUnlockModal() {
+    closeMpModal();
     if (unlockModal) {
       if (keyError) keyError.style.display = 'none';
       if (inputKey) inputKey.value = '';
@@ -194,6 +230,7 @@
     if (e.key === 'Escape') {
       closeDownloadModal();
       closeUnlockModal();
+      closeMpModal();
     }
   });
 
@@ -209,8 +246,8 @@
       }
 
       // Validação de Chave: Códigos mestres ou formato padrão
-      const masterKeys = ['CONFEITEXVIP', 'CFTX8990', 'VITALICIO2026', 'CONFEITEX2026', 'DOCELUCRO'];
-      const isValid = masterKeys.includes(raw) || raw.startsWith('CFTX') || raw.startsWith('KWF') || raw.startsWith('HOT') || raw.length >= 10;
+      const masterKeys = ['CONFEITEXVIP', 'CFTX8990', 'VITALICIO2026', 'CONFEITEX2026', 'DOCELUCRO', 'MERCADOPAGO', 'MP8990'];
+      const isValid = masterKeys.includes(raw) || raw.startsWith('CFTX') || raw.startsWith('MP') || raw.startsWith('KWF') || raw.startsWith('HOT') || raw.length >= 10;
 
       if (isValid) {
         try {
@@ -230,20 +267,16 @@
     });
   }
 
-  // ─── 5. Configuração do Link de Checkout ─────────────────────────────────
-  // Link configurável: pode ser alterado para Kiwify, Hotmart, Mercado Pago ou WhatsApp
-  const defaultCheckoutUrl = 'https://wa.me/?text=Ol%C3%A1!%20Gostaria%20de%20adquirir%20minha%20chave%20de%20ativa%C3%A7%C3%A3o%20vital%C3%ADcia%20do%20Confeitex%20por%20R$%2089,90.';
-  
+  // ─── 6. Ações de Checkout Mercado Pago ───────────────────────────────────
   document.querySelectorAll('.btn-checkout-link').forEach(btn => {
     btn.addEventListener('click', (e) => {
-      const customUrl = localStorage.getItem('confeitex_checkout_url');
-      const targetUrl = customUrl || btn.getAttribute('href') || defaultCheckoutUrl;
-      if (targetUrl && targetUrl !== '#' && !targetUrl.startsWith('javascript:')) {
-        // Se for link externo, permite navegação normal
-        return;
-      }
       e.preventDefault();
-      window.open(customUrl || defaultCheckoutUrl, '_blank');
+      const customUrl = localStorage.getItem('confeitex_mp_checkout_link') || localStorage.getItem('confeitex_checkout_url');
+      if (customUrl && customUrl.startsWith('http')) {
+        window.open(customUrl, '_blank');
+      } else {
+        openMpModal();
+      }
     });
   });
 

@@ -666,6 +666,7 @@ export const Settings = {
 
   // ─── Mercado Pago: Configuração do Worker URL & Public Key ──────────────────────
   setupMercadoPagoConfig() {
+    const inputLicenseLink = document.getElementById('mpLicenseLink');
     const inputUrl = document.getElementById('mpWorkerUrl');
     const inputKey = document.getElementById('mpPublicKey');
     const inputSecret = document.getElementById('mpAppSecret');
@@ -674,14 +675,18 @@ export const Settings = {
     const display = document.getElementById('mpWorkerUrlDisplay');
     const badge = document.getElementById('mpWorkerStatusBadge');
 
-    if (!inputUrl || !btnSave) return;
+    if (!btnSave) return;
 
     // Carrega valores salvos
+    const savedLicenseLink = safeStorage.get('confeitex_mp_checkout_link') || safeStorage.get('confeitex_checkout_url') || '';
     const savedUrl = safeStorage.get('confeitex_mp_worker_url') || '';
     const savedKey = safeStorage.get('confeitex_mp_public_key') || '';
     const savedSecret = safeStorage.get('confeitex_mp_app_secret') || '';
 
-    if (savedUrl) {
+    if (inputLicenseLink && savedLicenseLink) {
+      inputLicenseLink.value = savedLicenseLink;
+    }
+    if (inputUrl && savedUrl) {
       inputUrl.value = savedUrl;
       if (display) {
         display.textContent = savedUrl;
@@ -698,35 +703,34 @@ export const Settings = {
 
     // Salvar
     btnSave.addEventListener('click', () => {
-      const url = inputUrl.value.trim().replace(/\/+$/, '');
+      const licenseLink = inputLicenseLink ? inputLicenseLink.value.trim() : '';
+      const url = inputUrl ? inputUrl.value.trim().replace(/\/+$/, '') : '';
       const key = inputKey ? inputKey.value.trim() : '';
 
-      if (!url) {
-        UI.alert(I18n.t('mp.alertNoWorker'));
-        return;
+      if (licenseLink) {
+        safeStorage.set('confeitex_mp_checkout_link', licenseLink);
+        safeStorage.set('confeitex_checkout_url', licenseLink);
       }
 
-      safeStorage.set('confeitex_mp_worker_url', url);
+      if (url) {
+        safeStorage.set('confeitex_mp_worker_url', url);
+        if (typeof MercadoPagoCheckout !== 'undefined') {
+          MercadoPagoCheckout.setWorkerUrl(url);
+        }
+        if (display) {
+          display.textContent = url;
+          display.style.display = 'block';
+        }
+      }
+
       if (key) {
         safeStorage.set('confeitex_mp_public_key', key);
-      } else {
-        safeStorage.remove('confeitex_mp_public_key');
+        if (typeof MercadoPagoCheckout !== 'undefined') {
+          MercadoPagoCheckout.setPublicKey(key);
+        }
       }
 
-      // APP_SECRET agora fica apenas no Worker (removido do cliente por segurança)
-      safeStorage.remove('confeitex_mp_app_secret');
-
-      if (typeof MercadoPagoCheckout !== 'undefined') {
-        MercadoPagoCheckout.setWorkerUrl(url);
-        if (key) MercadoPagoCheckout.setPublicKey(key);
-      }
-
-      if (display) {
-        display.textContent = url;
-        display.style.display = 'block';
-      }
-
-      UI.toast(I18n.t('mp.toastConfigured'), 'success');
+      UI.toast(I18n.t('mp.toastConfigured') || 'Configurações do Mercado Pago salvas com sucesso!', 'success');
     });
 
     // Testar Conexão

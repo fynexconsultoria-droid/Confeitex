@@ -7,7 +7,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Confeitex - Controle de Encomendas</title>
   <meta name="description" content="Controle de encomendas para confeitaria — gerencie pedidos, clientes e entregas. 100% offline.">
-  <meta name="version" content="1.3.0">
+  <meta name="version" content="1.3.1">
 
   <!-- Google Fonts: Plus Jakarta Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -978,6 +978,13 @@
               Aceite pagamentos via Pix, Cartão de Crédito, Débito e Links de Pagamento para suas encomendas.
             </p>
             <div class="mp-config-group">
+              <div class="form-group mb-2">
+                <label for="mpLicenseLink" style="color:var(--color-accent-pink); font-weight:700;">Link Oficial Mercado Pago (Licença R$ 89,90)</label>
+                <input type="url" class="form-control" id="mpLicenseLink" placeholder="https://mpago.la/xxxxxx ou https://link.mercadopago.com.br/...">
+                <small style="color:var(--text-muted); font-size:0.75rem; display:block; margin-top:0.25rem;">
+                  Link de Pagamento gerado no seu painel Mercado Pago para vender o Confeitex Vitalício no Instagram e Web.
+                </small>
+              </div>
               <div class="form-group mb-2">
                 <label for="mpWorkerUrl" data-i18n="mp.settingsLabel">URL do Cloudflare Worker *</label>
                 <input type="url" class="form-control" id="mpWorkerUrl" placeholder="https://confeitex-api.seu-subdominio.workers.dev" data-i18n-ph="mp.settingsPh">

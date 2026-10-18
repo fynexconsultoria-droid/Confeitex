@@ -89,7 +89,7 @@ export const Plan = {
   },
 
   getCheckoutUrl() {
-    return safeStorage.get(this.KEY_CHECKOUT_URL) || 'https://wa.me/?text=Ol%C3%A1!%20Gostaria%20de%20adquirir%20minha%20chave%20de%20ativa%C3%A7%C3%A3o%20vital%C3%ADcia%20do%20Confeitex%20por%20R$%2089,90.';
+    return safeStorage.get('confeitex_mp_checkout_link') || safeStorage.get(this.KEY_CHECKOUT_URL) || 'https://link.mercadopago.com.br/';
   },
 
   async checkSubscriptionStatus() {
@@ -373,8 +373,9 @@ export const Plan = {
         </div>
 
         <div class="startup-lock-actions">
-          <a href="${this.getCheckoutUrl()}" target="_blank" class="btn btn-gold btn-lg w-100" id="btnStartupLockBuy" style="display:block; text-align:center; text-decoration:none;">
-            🔓 Desbloquear Acesso Vitalício (R$ 89,90)
+          <a href="${this.getCheckoutUrl()}" target="_blank" class="btn btn-lg w-100" id="btnStartupLockBuy" style="display:flex; align-items:center; justify-content:center; gap:0.5rem; text-align:center; text-decoration:none; background:#009ee3; color:#fff; font-weight:800; border-radius:14px; padding:0.95rem 1.2rem; box-shadow:0 4px 20px rgba(0, 158, 227, 0.4);">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+            <span>Pagar com Mercado Pago (R$ 89,90)</span>
           </a>
           <button class="btn btn-primary btn-lg w-100" id="btnStartupLockKey">
             🔑 Já paguei / Digitar Chave de Ativação
@@ -1335,11 +1336,11 @@ export const Plan = {
             </div>
             <p class="paywall-price-note">Pagamento único · Acesso vitalício para sempre</p>
           </div>
-          <button class="paywall-btn-upgrade" id="paywallBtnUpgrade">
+          <button class="paywall-btn-upgrade" id="paywallBtnUpgrade" style="background:#009ee3; border-color:rgba(255,255,255,0.25); box-shadow:0 4px 20px rgba(0, 158, 227, 0.4);">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+              <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/>
             </svg>
-            Desbloquear Acesso Vitalício (R$ 89,90)
+            Pagar com Mercado Pago (R$ 89,90)
           </button>
           <button class="btn btn-secondary w-100" id="paywallBtnEnterKey" style="margin-top:0.5rem; padding:0.75rem 1rem; border-radius:12px; font-size:0.88rem;">
             🔑 Já comprei / Digitar Chave
