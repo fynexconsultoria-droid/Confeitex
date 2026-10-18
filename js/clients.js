@@ -8,6 +8,9 @@ import { fmt, fmtDateStr, debounce, escapeHTML, getOrderTotal, maskPhone, badgeC
 
 export const Clients = {
   _debouncedRender: null,
+  pageSize: 25,
+  currentPage: 1,
+  _currentPageClients: [],
 
   render() {
     // Lazy init: cria o debounce uma única vez e reutiliza
@@ -19,8 +22,9 @@ export const Clients = {
 
   _performRender() {
     const tbody = document.getElementById('clientsTableBody');
-    const search = document.getElementById('clientSearchInput').value.toLowerCase();
+    const search = document.getElementById('clientSearchInput')?.value?.toLowerCase() || '';
     const empty = document.getElementById('clientsEmptyState');
+    const paginationEl = document.getElementById('clientsPagination');
 
     const map = {};
     State.orders.forEach(o => {
@@ -40,6 +44,8 @@ export const Clients = {
       empty.style.display = 'flex';
       const table = tbody.closest('table');
       if (table) table.style.display = 'none';
+      if (paginationEl) paginationEl.style.display = 'none';
+      this._currentPageClients = [];
       return;
     }
 
@@ -47,9 +53,19 @@ export const Clients = {
     const table = tbody.closest('table');
     if (table) table.style.display = 'table';
 
+    // Paginação para evitar sobrecarga de DOM em bases de clientes grandes
+    const totalCount = clients.length;
+    const totalPages = Math.max(1, Math.ceil(totalCount / this.pageSize));
+    if (this.currentPage > totalPages) this.currentPage = totalPages;
+    if (this.currentPage < 1) this.currentPage = 1;
+
+    const startIndex = (this.currentPage - 1) * this.pageSize;
+    const endIndex = Math.min(startIndex + this.pageSize, totalCount);
+    const pageClients = clients.slice(startIndex, endIndex);
+    this._currentPageClients = pageClients;
+
     let html = '';
-    clients.forEach((c, idx) => {
-      const safeKey = 'c_' + idx;
+    pageClients.forEach((c, idx) => {
       const totalKg = c.ordersList
         .filter(o => o.productType === 'Bolo de Kg' && o.status !== 'Cancelado')
         .reduce((s, o) => s + (o.weight || 0), 0);
@@ -88,7 +104,7 @@ export const Clients = {
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                 ${I18n.t('clients.actHistory')}
               </button>
-              <button class="btn btn-secondary btn-sm btn-delete-client" data-idx="${idx}" style="color:var(--color-danger);border-color:rgba(239,68,68,0.2);">
+              <button class="btn btn-secondary btn-sm btn-delete-client" data-idx="${idx}" style="color:var(--color-danger);border-color:rgba(239,68,68,0.2);" aria-label="${I18n.t('clients.actDelete')}">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                 ${I18n.t('clients.actDelete')}
               </button>
@@ -98,6 +114,9 @@ export const Clients = {
       </tr>`;
     });
     tbody.innerHTML = html;
+
+    // Renderiza controles de paginação
+    this.renderPagination(totalCount, totalPages, startIndex, endIndex);
 
     // Delegação de eventos — evita memory leak
     if (!tbody.dataset.hasListener) {
@@ -110,13 +129,16 @@ export const Clients = {
 
         if (btnHistory) {
           e.stopPropagation();
-          this.openHistory(clients[btnHistory.dataset.idx]);
+          const client = this._currentPageClients[btnHistory.dataset.idx];
+          if (client) this.openHistory(client);
         } else if (btnEdit) {
           e.stopPropagation();
-          this.openEdit(clients[btnEdit.dataset.idx]);
+          const client = this._currentPageClients[btnEdit.dataset.idx];
+          if (client) this.openEdit(client);
         } else if (btnDelete) {
           e.stopPropagation();
-          this.delete(clients[btnDelete.dataset.idx]);
+          const client = this._currentPageClients[btnDelete.dataset.idx];
+          if (client) this.delete(client);
         } else if (row && !e.target.closest('button')) {
           const idx = row.dataset.idx;
           const detail = document.getElementById('client-detail-' + idx);
@@ -127,6 +149,58 @@ export const Clients = {
           }
         }
       });
+    }
+  },
+
+  renderPagination(totalCount, totalPages, startIndex, endIndex) {
+    const paginationEl = document.getElementById('clientsPagination');
+    if (!paginationEl) return;
+
+    if (totalCount <= this.pageSize && totalPages <= 1) {
+      paginationEl.innerHTML = `
+        <div class="pagination-info">
+          <span>${I18n.t('pagination.showingAll', { total: totalCount })}</span>
+        </div>
+      `;
+      paginationEl.style.display = 'flex';
+      return;
+    }
+
+    paginationEl.style.display = 'flex';
+    paginationEl.innerHTML = `
+      <div class="pagination-info">
+        <span>${I18n.t('pagination.showing', { from: startIndex + 1, to: endIndex, total: totalCount })}</span>
+      </div>
+      <div class="pagination-controls">
+        <button type="button" class="btn btn-secondary btn-sm btn-client-prev" ${this.currentPage <= 1 ? 'disabled' : ''} aria-label="${I18n.t('pagination.prev')}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><polyline points="15 18 9 12 15 6"/></svg>
+          <span>${I18n.t('pagination.prev')}</span>
+        </button>
+        <span class="pagination-page-indicator">${I18n.t('pagination.page', { current: this.currentPage, total: totalPages })}</span>
+        <button type="button" class="btn btn-secondary btn-sm btn-client-next" ${this.currentPage >= totalPages ? 'disabled' : ''} aria-label="${I18n.t('pagination.next')}">
+          <span>${I18n.t('pagination.next')}</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
+    `;
+
+    const btnPrev = paginationEl.querySelector('.btn-client-prev');
+    const btnNext = paginationEl.querySelector('.btn-client-next');
+
+    if (btnPrev && this.currentPage > 1) {
+      btnPrev.onclick = () => {
+        this.currentPage--;
+        this.render();
+        document.getElementById('clientsTable')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      };
+    }
+
+    if (btnNext && this.currentPage < totalPages) {
+      btnNext.onclick = () => {
+        this.currentPage++;
+        this.render();
+        document.getElementById('clientsTable')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      };
     }
   },
 
@@ -279,7 +353,10 @@ export const Clients = {
     
     const searchInput = document.getElementById('clientSearchInput');
     if (searchInput) {
-      searchInput.addEventListener('input', debounce(() => this.render(), 250));
+      searchInput.addEventListener('input', debounce(() => {
+        this.currentPage = 1;
+        this.render();
+      }, 250));
     }
   },
 

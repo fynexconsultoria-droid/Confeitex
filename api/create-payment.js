@@ -8,7 +8,7 @@
 // 1. Crie um Worker no Cloudflare Dashboard (workers.cloudflare.com)
 // 2. Implante o código do worker com as variáveis de ambiente:
 //    - MP_ACCESS_TOKEN  → Token de acesso do Mercado Pago
-//    - ALLOWED_ORIGIN   → URL do seu app (ex: https://seu-user.github.io)
+//    - ALLOWED_ORIGIN   → URL do seu app (ex: https://confeitex.fynexconsultoria.com.br)
 // 3. Cole a URL do Worker nas Configurações > Mercado Pago do app.
 //
 // Endpoints esperados pelo app:

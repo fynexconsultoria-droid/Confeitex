@@ -7,7 +7,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Confeitex - Controle de Encomendas</title>
   <meta name="description" content="Controle de encomendas para confeitaria — gerencie pedidos, clientes e entregas. 100% offline.">
-  <meta name="version" content="1.2.3">
+  <meta name="version" content="1.2.4">
 
   <!-- Google Fonts: Plus Jakarta Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -474,6 +474,9 @@
           <div id="ordersTableBody">
             <!-- Dynamically populated -->
           </div>
+          <div id="ordersPagination" class="pagination-bar" style="display: none;">
+            <!-- Dynamically populated -->
+          </div>
         </div>
         
         <div id="ordersEmptyState" class="empty-state">
@@ -511,6 +514,9 @@
               <!-- Dynamically populated -->
             </tbody>
           </table>
+          <div id="clientsPagination" class="pagination-bar" style="display: none;">
+            <!-- Dynamically populated -->
+          </div>
         </div>
 
         <div id="clientsEmptyState" class="empty-state">

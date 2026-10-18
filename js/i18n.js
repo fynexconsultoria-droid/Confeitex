@@ -235,6 +235,13 @@ export const I18n = {
       'orders.alertDate': 'Informe a data de entrega.',
       'orders.alertTime': 'Informe o horário de entrega.',
       'orders.alertDelivered': 'Esta encomenda já foi entregue.',
+      // pagination
+      'pagination.showing': 'Mostrando {from}–{to} de {total}',
+      'pagination.showingAll': 'Mostrando todos os {total}',
+      'pagination.page': 'Página {current} de {total}',
+      'pagination.prev': 'Anterior',
+      'pagination.next': 'Próxima',
+      'pagination.perPage': '{count} por pág.',
       // clients
       'clients.searchPh': 'Buscar cliente por nome ou telefone...',
       'clients.thName': 'Nome do Cliente',
@@ -817,6 +824,13 @@ export const I18n = {
       'orders.alertDate': 'Enter the delivery date.',
       'orders.alertTime': 'Enter the delivery time.',
       'orders.alertDelivered': 'This order has already been delivered.',
+      // pagination
+      'pagination.showing': 'Showing {from}–{to} of {total}',
+      'pagination.showingAll': 'Showing all {total}',
+      'pagination.page': 'Page {current} of {total}',
+      'pagination.prev': 'Previous',
+      'pagination.next': 'Next',
+      'pagination.perPage': '{count} per page',
       'clients.searchPh': 'Search customer by name or phone...',
       'clients.thName': 'Customer Name',
       'clients.thPhone': 'Phone',

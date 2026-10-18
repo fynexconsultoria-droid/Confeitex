@@ -9,6 +9,9 @@ import { UI } from './ui.js';
 import { fmt, fmtDateStr, fmtISO, debounce, escapeHTML, getOrderTotal, maskPhone, badgeClass, formatWeight } from './utils.js';
 
 export const Orders = {
+  pageSize: 25,
+  currentPage: 1,
+
   // ─── Configura listeners dos filtros (chamado uma única vez no setup) ─────
   setupFilters() {
     const search = document.getElementById('orderSearchInput');
@@ -16,14 +19,15 @@ export const Orders = {
     const filterDate = document.getElementById('orderFilterDate');
     const btnClear = document.getElementById('btnClearFilters');
 
-    if (search) search.addEventListener('input', debounce(() => this.render(), 250));
-    if (filterStatus) filterStatus.addEventListener('change', () => this.render());
-    if (filterDate) filterDate.addEventListener('change', () => this.render());
+    if (search) search.addEventListener('input', debounce(() => { this.currentPage = 1; this.render(); }, 250));
+    if (filterStatus) filterStatus.addEventListener('change', () => { this.currentPage = 1; this.render(); });
+    if (filterDate) filterDate.addEventListener('change', () => { this.currentPage = 1; this.render(); });
     if (btnClear) {
       btnClear.addEventListener('click', () => {
         if (search) search.value = '';
         if (filterStatus) filterStatus.value = 'all';
         if (filterDate) { filterDate.type = 'date'; filterDate.value = fmtISO(new Date()); }
+        this.currentPage = 1;
         this.render();
       });
     }
@@ -35,6 +39,7 @@ export const Orders = {
     const filterStatus = document.getElementById('orderFilterStatus')?.value || 'all';
     const filterDate = document.getElementById('orderFilterDate')?.value || '';
     const empty = document.getElementById('ordersEmptyState');
+    const paginationEl = document.getElementById('ordersPagination');
 
     // Mostra/esconde botão "Limpar filtros" conforme estado dos filtros
     const btnClear = document.getElementById('btnClearFilters');
@@ -52,7 +57,7 @@ export const Orders = {
 
     filtered.sort((a, b) => b.deliveryDate.localeCompare(a.deliveryDate) || (b.deliveryTime || '').localeCompare(a.deliveryTime || ''));
 
-    // Atualiza barra de resumo de faturamento (uma única passagem)
+    // Atualiza barra de resumo de faturamento (uma única passagem sobre todos os pedidos filtrados)
     const summaryBar = document.getElementById('ordersSummaryBar');
     if (summaryBar) {
       let totalFilt = 0, totalPeso = 0;
@@ -72,13 +77,25 @@ export const Orders = {
       tbody.innerHTML = '';
       empty.style.display = 'flex';
       document.getElementById('ordersTable').style.display = 'none';
+      if (paginationEl) paginationEl.style.display = 'none';
       return;
     }
 
     empty.style.display = 'none';
     document.getElementById('ordersTable').style.display = 'block';
+
+    // Paginação para suportar milhares de pedidos sem travamento de DOM
+    const totalCount = filtered.length;
+    const totalPages = Math.max(1, Math.ceil(totalCount / this.pageSize));
+    if (this.currentPage > totalPages) this.currentPage = totalPages;
+    if (this.currentPage < 1) this.currentPage = 1;
+
+    const startIndex = (this.currentPage - 1) * this.pageSize;
+    const endIndex = Math.min(startIndex + this.pageSize, totalCount);
+    const pageOrders = filtered.slice(startIndex, endIndex);
+
     let html = '';
-    filtered.forEach(o => {
+    pageOrders.forEach(o => {
       const badge = badgeClass(o.status);
       const val = getOrderTotal(o);
       const profit = val - (o.cost || 0);
@@ -171,6 +188,9 @@ export const Orders = {
     });
     tbody.innerHTML = html;
 
+    // Renderiza controles de paginação
+    this.renderPagination(totalCount, totalPages, startIndex, endIndex);
+
     // Delegate pattern - um único listener no tbody em vez de múltiplos
     if (!tbody.dataset.hasDelegate) {
       tbody.dataset.hasDelegate = '1';
@@ -208,7 +228,74 @@ export const Orders = {
       });
       tbody.style.cursor = 'pointer';
     }
+  },
 
+  renderPagination(totalCount, totalPages, startIndex, endIndex) {
+    const paginationEl = document.getElementById('ordersPagination');
+    if (!paginationEl) return;
+
+    if (totalCount <= this.pageSize && totalPages <= 1) {
+      paginationEl.innerHTML = `
+        <div class="pagination-info">
+          <span>${I18n.t('pagination.showingAll', { total: totalCount })}</span>
+        </div>
+      `;
+      paginationEl.style.display = 'flex';
+      return;
+    }
+
+    paginationEl.style.display = 'flex';
+    paginationEl.innerHTML = `
+      <div class="pagination-info">
+        <span>${I18n.t('pagination.showing', { from: startIndex + 1, to: endIndex, total: totalCount })}</span>
+      </div>
+      <div class="pagination-controls">
+        <button type="button" class="btn btn-secondary btn-sm btn-order-prev" ${this.currentPage <= 1 ? 'disabled' : ''} aria-label="${I18n.t('pagination.prev')}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><polyline points="15 18 9 12 15 6"/></svg>
+          <span>${I18n.t('pagination.prev')}</span>
+        </button>
+        <span class="pagination-page-indicator">${I18n.t('pagination.page', { current: this.currentPage, total: totalPages })}</span>
+        <button type="button" class="btn btn-secondary btn-sm btn-order-next" ${this.currentPage >= totalPages ? 'disabled' : ''} aria-label="${I18n.t('pagination.next')}">
+          <span>${I18n.t('pagination.next')}</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
+      <div class="pagination-size-wrap">
+        <select class="pagination-size-select" id="orderPageSizeSelect" aria-label="Itens por página">
+          <option value="25" ${this.pageSize === 25 ? 'selected' : ''}>25 / pág.</option>
+          <option value="50" ${this.pageSize === 50 ? 'selected' : ''}>50 / pág.</option>
+          <option value="100" ${this.pageSize === 100 ? 'selected' : ''}>100 / pág.</option>
+        </select>
+      </div>
+    `;
+
+    const btnPrev = paginationEl.querySelector('.btn-order-prev');
+    const btnNext = paginationEl.querySelector('.btn-order-next');
+    const selectSize = paginationEl.querySelector('#orderPageSizeSelect');
+
+    if (btnPrev && this.currentPage > 1) {
+      btnPrev.onclick = () => {
+        this.currentPage--;
+        this.render();
+        document.getElementById('ordersTable')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      };
+    }
+
+    if (btnNext && this.currentPage < totalPages) {
+      btnNext.onclick = () => {
+        this.currentPage++;
+        this.render();
+        document.getElementById('ordersTable')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      };
+    }
+
+    if (selectSize) {
+      selectSize.onchange = (e) => {
+        this.pageSize = parseInt(e.target.value, 10) || 25;
+        this.currentPage = 1;
+        this.render();
+      };
+    }
   },
 
   openEdit(id) {
