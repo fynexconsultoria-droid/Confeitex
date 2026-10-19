@@ -1213,98 +1213,84 @@ Click "Update" to install in the background. You can keep using the app during t
     `,document.body.appendChild(t),this._spinner=t,this._icon=t.querySelector(".ptr-icon")},_resetIndicator(){this._spinner&&(this._spinner.classList.remove("ptr-dragging","ptr-show","ptr-spinning"),this._spinner.style.transform="translateX(-50%) translateY(-50px) scale(0)",this._spinner.style.opacity="0",this._icon&&(this._icon.style.transform="rotate(0deg)"),this._pulling=!1)},_bindEvents(){let e=()=>window.pageYOffset||document.documentElement.scrollTop||document.body.scrollTop||0;document.addEventListener("touchstart",a=>{this._isTabAllowed()&&(e()>2||a.target.closest(".right-sidebar-overlay, .sidebar-overlay, .modal-overlay, .ob-overlay, .modal-container")||(this._startY=a.touches[0].clientY,this._startX=a.touches[0].clientX,this._pulling=!1,this._triggered=!1,this._canPull=!0))},{passive:!0}),document.addEventListener("touchmove",a=>{if(!this._canPull||this._triggered)return;if(e()>2){this._pulling&&this._resetIndicator();return}let n=a.touches[0].clientY-this._startY;if(Math.abs(a.touches[0].clientX-this._startX)>n)return;if(n<=0){this._pulling&&this._resetIndicator();return}a.cancelable&&a.preventDefault(),this._pulling=!0;let i=Math.min(n/this._THRESHOLD,1),r=Math.min(n*.45,34),d=Math.min(.4+.6*i,1);this._spinner.classList.add("ptr-show","ptr-dragging"),this._spinner.style.transform=`translateX(-50%) translateY(${r}px) scale(${d})`,this._spinner.style.opacity=String(Math.min(i*1.5,1)),this._icon&&(this._icon.style.transform=`rotate(${i*280}deg)`),n>=this._THRESHOLD&&(this._triggered=!0,this._doRefresh())},{passive:!1}),document.addEventListener("touchend",()=>{this._pulling&&!this._triggered&&this._resetIndicator(),this._pulling=!1,this._canPull=!1});let t=!1;document.addEventListener("mousedown",a=>{this._isTabAllowed()&&(e()>2||a.target.closest('button, input, select, a, [role="button"], .right-sidebar-overlay, .sidebar-overlay, .modal-overlay, .ob-overlay, .modal-container')||(t=!0,this._startY=a.clientY,this._pulling=!1,this._triggered=!1))}),document.addEventListener("mousemove",a=>{if(!t||this._triggered)return;let n=a.clientY-this._startY;if(n<=0)return;this._pulling=!0;let o=Math.min(n/this._THRESHOLD,1),i=Math.min(n*.45,34),r=Math.min(.4+.6*o,1);this._spinner.classList.add("ptr-show","ptr-dragging"),this._spinner.style.transform=`translateX(-50%) translateY(${i}px) scale(${r})`,this._spinner.style.opacity=String(Math.min(o*1.5,1)),this._icon&&(this._icon.style.transform=`rotate(${o*280}deg)`),n>=this._THRESHOLD&&(this._triggered=!0,t=!1,this._doRefresh())}),document.addEventListener("mouseup",()=>{t&&this._pulling&&!this._triggered&&this._resetIndicator(),t=!1,this._pulling=!1})},async _doRefresh(){this._spinner.classList.remove("ptr-dragging"),this._spinner.classList.add("ptr-show","ptr-spinning"),this._spinner.style.transform="translateX(-50%) translateY(30px) scale(1)",this._spinner.style.opacity="1",this._icon&&(this._icon.style.transform="");try{"vibrate"in navigator&&navigator.vibrate(15)}catch{}let e=document.querySelector(".tab-content.active")?.id||"dashboard",t=document.getElementById(e);t&&t.classList.add("content-reloading");let a=!1,n=new Promise(i=>setTimeout(i,600)),o=async()=>{try{if("serviceWorker"in navigator){let h=await navigator.serviceWorker.getRegistration();h&&(h.waiting?(h.waiting.postMessage({type:"SKIP_WAITING"}),a=!0):h.update().catch(()=>{}))}let i=!navigator.onLine;i&&typeof window.UI<"u"&&window.UI.toast&&window.UI.toast("Sem conex\xE3o. Exibindo dados locais.","warning");let r=()=>window.State?Array.isArray(window.State.orders)?window.State.orders.length:window.State.data&&Array.isArray(window.State.data.orders)?window.State.data.orders.length:0:0,d=r();!i&&typeof window.API<"u"&&typeof window.API.sync=="function"?await window.API.sync():!i&&typeof window.syncCloud=="function"&&await window.syncCloud(),typeof window.State<"u"&&window.State.load&&await window.State.load();let l=0;!i&&typeof window.MercadoPagoCheckout<"u"&&typeof window.MercadoPagoCheckout.syncPendingPayments=="function"&&(l=await window.MercadoPagoCheckout.syncPendingPayments());let p=r()-d;if(p>0||l>0){if(typeof window.UI<"u"&&window.UI.toast){let h=[];p>0&&h.push(`${p} novo(s) pedido(s)`),l>0&&h.push(`${l} pgto(s) aprovado(s)`);let C=new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});window.UI.toast(`\u{1F389} ${h.join(" e ")} \xE0s ${C}!`,"success")}}else if(!i&&typeof window.UI<"u"&&window.UI.toast){let h=new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});window.UI.toast(`Tudo atualizado \xE0s ${h}!`,"primary")}!i&&typeof window.Updates<"u"&&window.Updates.checkSilent&&await window.Updates.checkSilent(),typeof window.switchTab=="function"&&window.switchTab(e,!1)}catch(i){console.warn("[PullToRefresh] Erro ao sincronizar:",i)}};if(await Promise.all([o(),n]),t&&t.classList.remove("content-reloading"),a){window.location.reload();return}this._resetIndicator(),this._triggered=!1}}});var qe,Ve=j(()=>{Y();qe={SUPPORT_DAYS:7,REFUND_AMOUNT_BRL:"89,90",init(){this.ensureActivationDate(),this.bindGlobalTriggers()},ensureActivationDate(){let e=g.get("confeitex_activation_date");return e||(e=new Date().toISOString(),g.set("confeitex_activation_date",e)),e},getDaysElapsed(){let e=this.ensureActivationDate(),t=new Date(e).getTime(),n=Date.now()-t;return Math.max(1,Math.min(this.SUPPORT_DAYS,Math.floor(n/(1e3*60*60*24))+1))},getDaysRemaining(){let e=this.getDaysElapsed();return Math.max(0,this.SUPPORT_DAYS-e+1)},isWithinGuarantee(){let e=this.ensureActivationDate(),t=new Date(e).getTime();return(Date.now()-t)/(1e3*60*60*24)<=this.SUPPORT_DAYS},bindGlobalTriggers(){if(typeof document>"u")return;["btnAiSupportHeader","btnAiSupportDesktop"].forEach(t=>{let a=document.getElementById(t);a&&a.addEventListener("click",n=>{n.preventDefault(),this.openModal()})}),document.querySelectorAll(".btn-ai-support-header, .btn-ai-header").forEach(t=>{t.addEventListener("click",a=>{a.preventDefault(),this.openModal()})});let e=document.getElementById("rsb-ai-support");e&&e.addEventListener("click",t=>{t.preventDefault();let a=document.getElementById("rightSidebar");a&&a.classList.remove("open");let n=document.getElementById("rightSidebarOverlay");n&&n.classList.remove("active"),this.openModal()})},openModal(){if(typeof document>"u")return;let e=document.getElementById("aiSupportModalOverlay");e||(e=this.createModalElement(),document.body.appendChild(e));let t=this.getDaysElapsed(),a=this.getDaysRemaining(),n=e.querySelector("#aiSupportDayBadge");n&&(n.textContent=`Dia ${t} de ${this.SUPPORT_DAYS} \xB7 VIP`),e.classList.add("active")},closeModal(){let e=document.getElementById("aiSupportModalOverlay");e&&e.classList.remove("active")},createModalElement(){let e=document.createElement("div");e.className="modal-overlay ai-support-overlay",e.id="aiSupportModalOverlay",e.setAttribute("role","dialog"),e.setAttribute("aria-modal","true"),e.setAttribute("aria-label","Suporte com Intelig\xEAncia Artificial e Garantia"),e.innerHTML=`
       <div class="modal-container ai-support-card">
         
-        <!-- Header do Modal com Linha Superior Separada para Badge e Fechar -->
+        <!-- Minimalist Header (Single Row) -->
         <div class="ai-support-header">
-          <div class="ai-header-top-row">
-            <div class="ai-day-badge-wrap">
-              <span class="ai-badge-dot"></span>
-              <span id="aiSupportDayBadge">Dia 1 de 7 \xB7 VIP</span>
+          <div class="ai-header-left">
+            <div class="ai-avatar-mini">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2 2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/>
+                <rect x="4" y="8" width="16" height="12" rx="2"/>
+                <circle cx="9" cy="13" r="1.5" fill="currentColor"/>
+                <circle cx="15" cy="13" r="1.5" fill="currentColor"/>
+                <path d="M9 17h6"/>
+              </svg>
             </div>
-            <button id="closeAiSupportModal" class="ai-close-btn" type="button" aria-label="Fechar suporte">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-            </button>
+            <div class="ai-header-info">
+              <h3 class="ai-header-title">Assistente Confeitex</h3>
+              <div class="ai-status-row">
+                <span class="ai-live-dot"></span>
+                <span id="aiSupportDayBadge">Dia 1 de 7 \xB7 VIP</span>
+              </div>
+            </div>
           </div>
-
-          <div class="ai-header-main">
-            <div class="ai-robot-avatar">
-              <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" stroke-width="2"><path d="M12 2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2 2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><rect x="4" y="8" width="16" height="12" rx="2"/><circle cx="9" cy="13" r="1.5" fill="#fff"/><circle cx="15" cy="13" r="1.5" fill="#fff"/><path d="M9 17h6"/></svg>
-            </div>
-            <div class="ai-header-titles">
-              <h3 class="ai-modal-title">Suporte Confeitex com IA</h3>
-              <p class="ai-modal-desc">Sua assistente inteligente para dominar o app nos seus primeiros 7 dias.</p>
-            </div>
-          </div>
+          <button id="closeAiSupportModal" class="ai-close-btn" type="button" aria-label="Fechar assistente">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
         </div>
 
-        <!-- Conte\xFAdo do Chat / Perguntas R\xE1pidas -->
+        <!-- Body -->
         <div class="ai-support-body" id="aiSupportBody">
           
-          <!-- Mensagem de Boas-vindas -->
-          <div class="ai-welcome-card">
-            <span class="ai-welcome-icon">\u{1F370}</span>
-            <div>
-              <strong>Ol\xE1, confeiteira!</strong> Parab\xE9ns pelo seu acesso vital\xEDcio. Durante seus primeiros <strong>7 dias</strong>, estou aqui para te ajudar em cada detalhe. Toque nas d\xFAvidas r\xE1pidas abaixo ou me fa\xE7a uma pergunta:
-            </div>
+          <!-- Greeting -->
+          <div class="ai-greeting">
+            <div class="ai-greeting-title">Como posso te ajudar hoje?</div>
+            <p class="ai-greeting-sub">Tire d\xFAvidas sobre o app nos seus 7 dias VIP ou toque em um atalho:</p>
           </div>
 
-          <!-- Lista Estruturada de D\xFAvidas R\xE1pidas -->
-          <div>
-            <div class="ai-section-title">D\xFAvidas Mais Frequentes</div>
-            <div class="ai-quick-list" id="aiQuickChips">
-              <button class="ai-chip-card ai-chip-btn" data-query="precificacao" type="button">
-                <div class="ai-chip-card-content">
-                  <span class="ai-chip-emoji">\u{1F4B0}</span>
-                  <span class="ai-chip-text">Como precificar meu bolo?</span>
-                </div>
-                <svg class="ai-chip-chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+          <!-- Prompt Suggestions (Clean Grid with Sleek Icons) -->
+          <div class="ai-prompts-section">
+            <div class="ai-prompts-label">Atalhos Frequentes</div>
+            <div class="ai-prompts-grid" id="aiQuickChips">
+              <button class="ai-prompt-btn ai-chip-btn" data-query="precificacao" type="button">
+                <svg class="ai-prompt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                <span class="ai-prompt-text">Precifica\xE7\xE3o & Lucro</span>
               </button>
 
-              <button class="ai-chip-card ai-chip-btn" data-query="encomenda" type="button">
-                <div class="ai-chip-card-content">
-                  <span class="ai-chip-emoji">\u{1F382}</span>
-                  <span class="ai-chip-text">Como cadastrar uma encomenda?</span>
-                </div>
-                <svg class="ai-chip-chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+              <button class="ai-prompt-btn ai-chip-btn" data-query="encomenda" type="button">
+                <svg class="ai-prompt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                <span class="ai-prompt-text">Novo Pedido</span>
               </button>
 
-              <button class="ai-chip-card ai-chip-btn" data-query="whatsapp" type="button">
-                <div class="ai-chip-card-content">
-                  <span class="ai-chip-emoji">\u{1F4F1}</span>
-                  <span class="ai-chip-text">Como enviar recibo no WhatsApp?</span>
-                </div>
-                <svg class="ai-chip-chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+              <button class="ai-prompt-btn ai-chip-btn" data-query="whatsapp" type="button">
+                <svg class="ai-prompt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+                <span class="ai-prompt-text">Recibo no WhatsApp</span>
               </button>
 
-              <button class="ai-chip-card ai-chip-btn" data-query="offline" type="button">
-                <div class="ai-chip-card-content">
-                  <span class="ai-chip-emoji">\u{1F4F6}</span>
-                  <span class="ai-chip-text">Como usar offline na cozinha?</span>
-                </div>
-                <svg class="ai-chip-chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+              <button class="ai-prompt-btn ai-chip-btn" data-query="offline" type="button">
+                <svg class="ai-prompt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="1" y1="1" x2="23" y2="23"/><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+                <span class="ai-prompt-text">Uso Offline</span>
               </button>
 
-              <button class="ai-chip-card ai-chip-btn" data-query="backup" type="button">
-                <div class="ai-chip-card-content">
-                  <span class="ai-chip-emoji">\u{1F4BE}</span>
-                  <span class="ai-chip-text">Como fazer backup dos dados?</span>
-                </div>
-                <svg class="ai-chip-chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+              <button class="ai-prompt-btn ai-chip-btn full-width" data-query="backup" type="button">
+                <svg class="ai-prompt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                <span class="ai-prompt-text">Backup & Restaura\xE7\xE3o</span>
               </button>
             </div>
           </div>
 
-          <!-- \xC1rea de Resposta da IA -->
+          <!-- AI Response Box -->
           <div id="aiResponseBox" class="ai-response-box" style="display:none;">
             <div class="ai-response-header">
               <div class="ai-response-badge">
-                <span>\u{1F916} Resposta da IA</span>
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2 2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><rect x="4" y="8" width="16" height="12" rx="2"/><circle cx="9" cy="13" r="1.5" fill="currentColor"/><circle cx="15" cy="13" r="1.5" fill="currentColor"/><path d="M9 17h6"/></svg>
+                <span>Resposta da IA</span>
               </div>
               <button type="button" class="ai-response-close" id="aiBtnCloseResponse" title="Fechar resposta" aria-label="Fechar resposta">\u2715</button>
             </div>
             <div id="aiResponseText" class="ai-response-text"></div>
           </div>
 
-          <!-- Caixa de Pergunta Manual -->
+          <!-- Input Bar -->
           <div class="ai-input-bar">
             <input 
               type="text" 
@@ -1313,26 +1299,21 @@ Click "Update" to install in the background. You can keep using the app during t
               placeholder="Digite sua d\xFAvida sobre o app..." 
               aria-label="Digite sua d\xFAvida sobre o app"
             >
-            <button id="btnAiSend" class="ai-btn-send" type="button">
-              <span>Perguntar</span>
+            <button id="btnAiSend" class="ai-btn-send" type="button" title="Enviar pergunta" aria-label="Enviar pergunta">
               <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
             </button>
           </div>
 
-          <!-- Se\xE7\xE3o de Garantia Blindada de 7 Dias & Reembolso -->
-          <div class="ai-guarantee-card">
-            <div class="ai-guarantee-top">
-              <div class="ai-guarantee-icon">\u{1F6E1}\uFE0F</div>
-              <div class="ai-guarantee-info">
-                <div class="ai-guarantee-title">Garantia Incondicional de 7 Dias</div>
-                <p class="ai-guarantee-desc">
-                  Se durante seus primeiros 7 dias voc\xEA sentir que o Confeitex n\xE3o \xE9 para voc\xEA, voc\xEA tem direito ao <strong>reembolso integral de R$ ${this.REFUND_AMOUNT_BRL}</strong> sem perguntas e sem burocracia.
-                </p>
-              </div>
+          <!-- Guarantee Trust Note (Minimalist) -->
+          <div class="ai-trust-card">
+            <div class="ai-trust-info">
+              <svg class="ai-trust-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              <p class="ai-trust-text">
+                <strong>Garantia de 7 dias:</strong> Reembolso de 100% (R$ ${this.REFUND_AMOUNT_BRL}) sem perguntas.
+              </p>
             </div>
-            <button id="btnRequestRefund" class="ai-btn-refund" type="button">
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><polyline points="3 3 3 8 8 8"/></svg>
-              <span>Solicitar Reembolso Integral (R$ ${this.REFUND_AMOUNT_BRL})</span>
+            <button id="btnRequestRefund" class="ai-btn-refund-link" type="button">
+              Estorno
             </button>
           </div>
 
@@ -1340,10 +1321,10 @@ Click "Update" to install in the background. You can keep using the app during t
 
         <!-- Rodap\xE9 do Modal -->
         <div class="ai-support-footer">
-          <span>Confeitex IA Support v1.3.4</span>
+          <span>Confeitex IA \xB7 100% Seguro</span>
           <a href="https://wa.me/?text=Ol%C3%A1!%20Preciso%20de%20ajuda%20com%20o%20meu%20Confeitex." target="_blank" rel="noopener" class="ai-wa-link">
-            <span>Falar no WhatsApp</span>
-            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            <span>WhatsApp Oficial</span>
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
           </a>
         </div>
 
