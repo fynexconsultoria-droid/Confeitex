@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Confeitex — O App Definitivo de Gestão e Lucro para Confeitarias</title>
   <meta name="description" content="Controle encomendas, precifique bolos e doces sem prejuízo e envie recibos pelo WhatsApp. 100% no celular, funciona sem internet e sem mensalidades. Pagamento único de R$ 89,90.">
-  <meta name="version" content="1.3.3">
+  <meta name="version" content="1.3.4">
 
   <!-- Google Fonts: Plus Jakarta Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -26,6 +26,30 @@
   <!-- PWA Manifest -->
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#090712">
+
+  <!-- Redirecionamento Mobile / PWA: No celular ou app instalado, vai direto para o app -->
+  <script>
+    (function() {
+      try {
+        var isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
+                           window.navigator.standalone === true ||
+                           document.referrer.indexOf('android-app://') !== -1 ||
+                           window.location.search.indexOf('mode=app') !== -1 ||
+                           window.location.search.indexOf('pwa=1') !== -1;
+
+        var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+                       (window.innerWidth <= 768 && ('ontouchstart' in window || navigator.maxTouchPoints > 0));
+
+        var forceLanding = window.location.search.indexOf('view=landing') !== -1;
+
+        if ((isStandalone || isMobile) && !forceLanding) {
+          window.location.replace('./app.html' + window.location.hash);
+        }
+      } catch (e) {
+        console.warn('Redirect check error:', e);
+      }
+    })();
+  </script>
 
   <!-- Custom Landing Page Stylesheet -->
   <link rel="stylesheet" href="css/landing.css">

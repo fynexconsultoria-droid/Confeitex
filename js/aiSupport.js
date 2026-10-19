@@ -46,14 +46,23 @@ export const AiSupport = {
   bindGlobalTriggers() {
     if (typeof document === 'undefined') return;
 
-    // Trigger no Header
-    const btnHeader = document.getElementById('btnAiSupportHeader');
-    if (btnHeader) {
-      btnHeader.addEventListener('click', (e) => {
+    // Triggers no Header (Mobile ao lado das 3 barras e Desktop)
+    ['btnAiSupportHeader', 'btnAiSupportDesktop'].forEach((id) => {
+      const btn = document.getElementById(id);
+      if (btn) {
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          this.openModal();
+        });
+      }
+    });
+
+    document.querySelectorAll('.btn-ai-support-header').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
         e.preventDefault();
         this.openModal();
       });
-    }
+    });
 
     // Trigger no Menu Lateral Direito
     const btnSidebar = document.getElementById('rsb-ai-support');
@@ -61,7 +70,9 @@ export const AiSupport = {
       btnSidebar.addEventListener('click', (e) => {
         e.preventDefault();
         const rsb = document.getElementById('rightSidebar');
-        if (rsb) rsb.classList.remove('active');
+        if (rsb) rsb.classList.remove('open');
+        const overlay = document.getElementById('rightSidebarOverlay');
+        if (overlay) overlay.classList.remove('active');
         this.openModal();
       });
     }
@@ -81,7 +92,7 @@ export const AiSupport = {
     const daysLeft = this.getDaysRemaining();
     const badge = overlay.querySelector('#aiSupportDayBadge');
     if (badge) {
-      badge.textContent = `Dia ${currentDay} de ${this.SUPPORT_DAYS} de Acompanhamento VIP`;
+      badge.textContent = `Dia ${currentDay} de ${this.SUPPORT_DAYS} · VIP`;
     }
 
     overlay.classList.add('active');
@@ -99,113 +110,141 @@ export const AiSupport = {
     overlay.setAttribute('role', 'dialog');
     overlay.setAttribute('aria-modal', 'true');
     overlay.setAttribute('aria-label', 'Suporte com Inteligência Artificial e Garantia');
-    overlay.style.zIndex = '10500';
 
     overlay.innerHTML = `
-      <div class="modal-container ai-support-card" style="max-width:580px; background:#130e28; border:1px solid rgba(236,72,153,0.35); border-radius:24px; padding:0; overflow:hidden; box-shadow:0 25px 70px rgba(0,0,0,0.85);">
+      <div class="modal-container ai-support-card">
         
-        <!-- Header do Modal com Gradiente -->
-        <div style="background:linear-gradient(135deg, rgba(236,72,153,0.2) 0%, rgba(139,92,246,0.2) 100%); padding:1.4rem 1.6rem 1.2rem; border-bottom:1px solid rgba(255,255,255,0.08); position:relative;">
-          <button id="closeAiSupportModal" style="position:absolute; top:1.2rem; right:1.2rem; background:rgba(255,255,255,0.1); border:none; color:#fff; width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer;">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-          </button>
-
-          <div style="display:flex; align-items:center; gap:0.85rem;">
-            <div style="width:52px; height:52px; border-radius:16px; background:linear-gradient(135deg, #009ee3, #8b5cf6); display:flex; align-items:center; justify-content:center; box-shadow:0 8px 24px rgba(0,158,227,0.4);">
-              <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#fff" stroke-width="2"><path d="M12 2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2 2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><rect x="4" y="8" width="16" height="12" rx="2"/><circle cx="9" cy="13" r="1.5" fill="#fff"/><circle cx="15" cy="13" r="1.5" fill="#fff"/><path d="M9 17h6"/></svg>
+        <!-- Header do Modal com Linha Superior Separada para Badge e Fechar -->
+        <div class="ai-support-header">
+          <div class="ai-header-top-row">
+            <div class="ai-day-badge-wrap">
+              <span class="ai-badge-dot"></span>
+              <span id="aiSupportDayBadge">Dia 1 de 7 · VIP</span>
             </div>
-            <div>
-              <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.25rem;">
-                <h3 style="font-size:1.2rem; font-weight:800; color:#fff; margin:0;">Suporte Confeitex com IA</h3>
-                <span id="aiSupportDayBadge" style="font-size:0.68rem; font-weight:800; background:#10b981; color:#fff; padding:0.15rem 0.55rem; border-radius:20px;">
-                  Dia 1 de 7 VIP
-                </span>
-              </div>
-              <p style="font-size:0.82rem; color:#cbd5e1; margin:0; line-height:1.4;">
-                Sua assistente inteligente para tirar dúvidas na hora e dominar o app nos seus primeiros 7 dias.
-              </p>
+            <button id="closeAiSupportModal" class="ai-close-btn" type="button" aria-label="Fechar suporte">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+
+          <div class="ai-header-main">
+            <div class="ai-robot-avatar">
+              <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" stroke-width="2"><path d="M12 2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2 2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><rect x="4" y="8" width="16" height="12" rx="2"/><circle cx="9" cy="13" r="1.5" fill="#fff"/><circle cx="15" cy="13" r="1.5" fill="#fff"/><path d="M9 17h6"/></svg>
+            </div>
+            <div class="ai-header-titles">
+              <h3 class="ai-modal-title">Suporte Confeitex com IA</h3>
+              <p class="ai-modal-desc">Sua assistente inteligente para dominar o app nos seus primeiros 7 dias.</p>
             </div>
           </div>
         </div>
 
         <!-- Conteúdo do Chat / Perguntas Rápidas -->
-        <div style="padding:1.4rem 1.6rem; max-height:60vh; overflow-y:auto;" id="aiSupportBody">
+        <div class="ai-support-body" id="aiSupportBody">
           
           <!-- Mensagem de Boas-vindas -->
-          <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:16px; padding:1rem; margin-bottom:1.25rem; font-size:0.86rem; color:#f1f5f9; line-height:1.5;">
-            🍰 <strong>Olá, confeiteira!</strong> Parabéns pelo seu acesso vitalício. Durante seus primeiros <strong>7 dias</strong>, estou aqui para te ajudar em cada detalhe. Toque nas dúvidas rápidas abaixo ou me faça uma pergunta:
+          <div class="ai-welcome-card">
+            <span class="ai-welcome-icon">🍰</span>
+            <div>
+              <strong>Olá, confeiteira!</strong> Parabéns pelo seu acesso vitalício. Durante seus primeiros <strong>7 dias</strong>, estou aqui para te ajudar em cada detalhe. Toque nas dúvidas rápidas abaixo ou me faça uma pergunta:
+            </div>
           </div>
 
-          <!-- Chips de Dúvidas Rápidas -->
-          <div style="margin-bottom:1.25rem;">
-            <div style="font-size:0.75rem; font-weight:700; color:#94a3b8; text-transform:uppercase; margin-bottom:0.6rem; letter-spacing:0.05em;">
-              Dúvidas Mais Frequentes:
-            </div>
-            <div style="display:flex; flex-wrap:wrap; gap:0.45rem;" id="aiQuickChips">
-              <button class="ai-chip-btn" data-query="precificacao" style="background:rgba(236,72,153,0.12); border:1px solid rgba(236,72,153,0.3); color:#f472b6; padding:0.4rem 0.75rem; border-radius:12px; font-size:0.8rem; font-weight:700; cursor:pointer;">
-                💰 Como precificar meu bolo?
+          <!-- Lista Estruturada de Dúvidas Rápidas -->
+          <div>
+            <div class="ai-section-title">Dúvidas Mais Frequentes</div>
+            <div class="ai-quick-list" id="aiQuickChips">
+              <button class="ai-chip-card ai-chip-btn" data-query="precificacao" type="button">
+                <div class="ai-chip-card-content">
+                  <span class="ai-chip-emoji">💰</span>
+                  <span class="ai-chip-text">Como precificar meu bolo?</span>
+                </div>
+                <svg class="ai-chip-chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
               </button>
-              <button class="ai-chip-btn" data-query="encomenda" style="background:rgba(0,158,227,0.12); border:1px solid rgba(0,158,227,0.3); color:#38bdf8; padding:0.4rem 0.75rem; border-radius:12px; font-size:0.8rem; font-weight:700; cursor:pointer;">
-                🎂 Como cadastrar uma encomenda?
+
+              <button class="ai-chip-card ai-chip-btn" data-query="encomenda" type="button">
+                <div class="ai-chip-card-content">
+                  <span class="ai-chip-emoji">🎂</span>
+                  <span class="ai-chip-text">Como cadastrar uma encomenda?</span>
+                </div>
+                <svg class="ai-chip-chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
               </button>
-              <button class="ai-chip-btn" data-query="whatsapp" style="background:rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.3); color:#34d399; padding:0.4rem 0.75rem; border-radius:12px; font-size:0.8rem; font-weight:700; cursor:pointer;">
-                📱 Como enviar recibo no WhatsApp?
+
+              <button class="ai-chip-card ai-chip-btn" data-query="whatsapp" type="button">
+                <div class="ai-chip-card-content">
+                  <span class="ai-chip-emoji">📱</span>
+                  <span class="ai-chip-text">Como enviar recibo no WhatsApp?</span>
+                </div>
+                <svg class="ai-chip-chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
               </button>
-              <button class="ai-chip-btn" data-query="offline" style="background:rgba(251,191,36,0.12); border:1px solid rgba(251,191,36,0.3); color:#fbbf24; padding:0.4rem 0.75rem; border-radius:12px; font-size:0.8rem; font-weight:700; cursor:pointer;">
-                📶 Como usar offline na cozinha?
+
+              <button class="ai-chip-card ai-chip-btn" data-query="offline" type="button">
+                <div class="ai-chip-card-content">
+                  <span class="ai-chip-emoji">📶</span>
+                  <span class="ai-chip-text">Como usar offline na cozinha?</span>
+                </div>
+                <svg class="ai-chip-chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
               </button>
-              <button class="ai-chip-btn" data-query="backup" style="background:rgba(139,92,246,0.12); border:1px solid rgba(139,92,246,0.3); color:#c084fc; padding:0.4rem 0.75rem; border-radius:12px; font-size:0.8rem; font-weight:700; cursor:pointer;">
-                💾 Como fazer backup dos dados?
+
+              <button class="ai-chip-card ai-chip-btn" data-query="backup" type="button">
+                <div class="ai-chip-card-content">
+                  <span class="ai-chip-emoji">💾</span>
+                  <span class="ai-chip-text">Como fazer backup dos dados?</span>
+                </div>
+                <svg class="ai-chip-chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
               </button>
             </div>
           </div>
 
           <!-- Área de Resposta da IA -->
-          <div id="aiResponseBox" style="background:#0a0618; border:1px solid rgba(255,255,255,0.1); border-radius:16px; padding:1.1rem; margin-bottom:1.25rem; display:none;">
-            <div style="display:flex; align-items:center; gap:0.4rem; font-size:0.8rem; font-weight:800; color:#38bdf8; margin-bottom:0.5rem;">
-              <span>🤖 Resposta da IA:</span>
+          <div id="aiResponseBox" class="ai-response-box" style="display:none;">
+            <div class="ai-response-header">
+              <div class="ai-response-badge">
+                <span>🤖 Resposta da IA</span>
+              </div>
+              <button type="button" class="ai-response-close" id="aiBtnCloseResponse" title="Fechar resposta" aria-label="Fechar resposta">✕</button>
             </div>
-            <div id="aiResponseText" style="font-size:0.88rem; color:#f8fafc; line-height:1.6;"></div>
+            <div id="aiResponseText" class="ai-response-text"></div>
           </div>
 
           <!-- Caixa de Pergunta Manual -->
-          <div style="display:flex; gap:0.5rem; margin-bottom:1.5rem;">
+          <div class="ai-input-bar">
             <input 
               type="text" 
               id="aiInputQuery" 
+              class="ai-input-field"
               placeholder="Digite sua dúvida sobre o app..." 
-              style="flex:1; background:rgba(0,0,0,0.5); border:1px solid rgba(255,255,255,0.18); border-radius:12px; padding:0.75rem 1rem; color:#fff; font-size:0.9rem;"
+              aria-label="Digite sua dúvida sobre o app"
             >
-            <button id="btnAiSend" style="background:linear-gradient(135deg, #009ee3, #8b5cf6); border:none; color:#fff; border-radius:12px; padding:0.75rem 1.1rem; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:0.35rem;">
+            <button id="btnAiSend" class="ai-btn-send" type="button">
               <span>Perguntar</span>
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
             </button>
           </div>
 
           <!-- Seção de Garantia Blindada de 7 Dias & Reembolso -->
-          <div style="background:rgba(239,68,68,0.06); border:1px solid rgba(239,68,68,0.25); border-radius:18px; padding:1.15rem; margin-top:0.5rem;">
-            <div style="display:flex; align-items:flex-start; gap:0.75rem;">
-              <div style="font-size:1.5rem; line-height:1;">🛡️</div>
-              <div style="flex:1;">
-                <div style="font-size:0.92rem; font-weight:800; color:#f87171; margin-bottom:0.25rem;">
-                  Garantia Incondicional de 7 Dias
-                </div>
-                <p style="font-size:0.8rem; color:#cbd5e1; margin:0 0 0.85rem 0; line-height:1.45;">
-                  Queremos que você se sinta 100% segura. Se durante os seus primeiros 7 dias você sentir que o Confeitex não é para você, você tem direito ao <strong>reembolso integral de R$ ${this.REFUND_AMOUNT_BRL}</strong> sem perguntas e sem complicação.
+          <div class="ai-guarantee-card">
+            <div class="ai-guarantee-top">
+              <div class="ai-guarantee-icon">🛡️</div>
+              <div class="ai-guarantee-info">
+                <div class="ai-guarantee-title">Garantia Incondicional de 7 Dias</div>
+                <p class="ai-guarantee-desc">
+                  Se durante seus primeiros 7 dias você sentir que o Confeitex não é para você, você tem direito ao <strong>reembolso integral de R$ ${this.REFUND_AMOUNT_BRL}</strong> sem perguntas e sem burocracia.
                 </p>
-                <button id="btnRequestRefund" style="background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.4); color:#fca5a5; font-size:0.8rem; font-weight:800; padding:0.55rem 0.95rem; border-radius:10px; cursor:pointer; display:flex; align-items:center; gap:0.4rem;">
-                  <span>Solicitar Reembolso Completo (R$ ${this.REFUND_AMOUNT_BRL})</span>
-                </button>
               </div>
             </div>
+            <button id="btnRequestRefund" class="ai-btn-refund" type="button">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><polyline points="3 3 3 8 8 8"/></svg>
+              <span>Solicitar Reembolso Integral (R$ ${this.REFUND_AMOUNT_BRL})</span>
+            </button>
           </div>
 
         </div>
 
-        <!-- Footer do Modal -->
-        <div style="background:rgba(0,0,0,0.4); padding:0.85rem 1.6rem; border-top:1px solid rgba(255,255,255,0.06); display:flex; align-items:center; justify-content:space-between; font-size:0.75rem; color:#94a3b8;">
-          <span>Confeitex IA Support v1.3</span>
-          <a href="https://wa.me/?text=Ol%C3%A1!%20Preciso%20de%20ajuda%20com%20o%20meu%20Confeitex." target="_blank" rel="noopener" style="color:#38bdf8; text-decoration:none; font-weight:700;">
-            Falar no WhatsApp
+        <!-- Rodapé do Modal -->
+        <div class="ai-support-footer">
+          <span>Confeitex IA Support v1.3.4</span>
+          <a href="https://wa.me/?text=Ol%C3%A1!%20Preciso%20de%20ajuda%20com%20o%20meu%20Confeitex." target="_blank" rel="noopener" class="ai-wa-link">
+            <span>Falar no WhatsApp</span>
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
           </a>
         </div>
 
@@ -219,6 +258,15 @@ export const AiSupport = {
     overlay.onclick = (e) => {
       if (e.target === overlay) this.closeModal();
     };
+
+    // Fechar caixa de resposta
+    const btnCloseResp = overlay.querySelector('#aiBtnCloseResponse');
+    if (btnCloseResp) {
+      btnCloseResp.onclick = () => {
+        const box = overlay.querySelector('#aiResponseBox');
+        if (box) box.style.display = 'none';
+      };
+    }
 
     // Chips de perguntas rápidas
     const chips = overlay.querySelectorAll('.ai-chip-btn');

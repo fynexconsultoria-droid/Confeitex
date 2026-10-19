@@ -14,7 +14,7 @@ if (typeof Promise.allSettled === 'undefined') {
   };
 }
 
-const SW_VERSION = '1.3.3';
+const SW_VERSION = '1.3.4';
 const CACHE_NAME = 'confeitex-cache-v' + SW_VERSION;
 
 // Arquivos que serão cacheados na instalação do Service Worker
@@ -154,6 +154,8 @@ async function networkFirstWithCacheFallback(event) {
 
   const cachedResponse = await cache.match(request, { ignoreSearch: true });
   if (cachedResponse) return cachedResponse;
+  const appFallback = await cache.match('./app.html');
+  if (appFallback) return appFallback;
   return new Response('Offline', { status: 504, statusText: 'Offline' });
 }
 
@@ -195,7 +197,7 @@ self.addEventListener('fetch', (event) => {
   }
 
   const isAppAsset = [
-    '/index.html', '/style.css', '/manifest.json', '/js/', '/vendor/', '/icons/', '/sw.js', '/termos.html', '/privacidade.html'
+    '/index.html', '/app.html', '/style.css', '/manifest.json', '/js/', '/vendor/', '/icons/', '/sw.js', '/termos.html', '/privacidade.html'
   ].some((fragment) => url.pathname.endsWith(fragment) || url.pathname.includes(fragment));
 
   if (isAppAsset) {

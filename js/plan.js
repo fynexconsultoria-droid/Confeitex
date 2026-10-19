@@ -71,6 +71,13 @@ export const Plan = {
         paywall.classList.remove('active');
         setTimeout(() => paywall.remove(), 350);
       }
+      const ob = document.getElementById('onboardingOverlay');
+      if (ob) {
+        ob.classList.remove('active');
+        setTimeout(() => ob.remove(), 350);
+      }
+      const rsbSub = document.getElementById('rsbKeySub');
+      if (rsbSub) rsbSub.textContent = 'Acesso Vitalício Ativado ✓';
     }
     if (typeof document !== 'undefined' && typeof UI !== 'undefined' && UI.toast) {
       UI.toast('🎉 Acesso Vitalício Ativado com Sucesso! Bem-vinda ao Confeitex.');
@@ -384,9 +391,9 @@ export const Plan = {
           <button class="btn btn-primary btn-lg w-100" id="btnStartupLockKey">
             🔑 Já paguei / Digitar Chave de Ativação
           </button>
-          <a href="./index.html" class="startup-lock-demo-link" style="display:inline-block; margin-top:0.8rem; font-size:0.85rem; color:var(--text-muted); text-decoration:underline;">
-            👀 Ver Página de Demonstração do App
-          </a>
+          <button type="button" class="btn btn-secondary w-100" id="btnStartupLockPresentation" style="margin-top:0.6rem; padding:0.75rem 1rem; font-size:0.9rem; border-radius:12px;">
+            👀 Rever Apresentação do App
+          </button>
         </div>
       </div>
     `;
@@ -397,6 +404,16 @@ export const Plan = {
     if (btnKey) {
       btnKey.addEventListener('click', () => {
         this.showKeyInputModal();
+      });
+    }
+
+    const btnPres = overlay.querySelector('#btnStartupLockPresentation');
+    if (btnPres) {
+      btnPres.addEventListener('click', () => {
+        overlay.classList.remove('active');
+        if (typeof window !== 'undefined' && window.Onboarding) {
+          window.Onboarding.show(true);
+        }
       });
     }
   },
@@ -427,7 +444,10 @@ export const Plan = {
         <button class="btn btn-gold w-100" id="btnAppValidateKey" style="padding:0.9rem 1rem; font-size:1rem; font-weight:800; margin-bottom:0.6rem;">
           Validar e Liberar App
         </button>
-        <button class="btn btn-secondary w-100" id="btnAppCloseKey" style="padding:0.65rem 1rem; font-size:0.85rem;">
+        <a href="${this.getCheckoutUrl()}" target="_blank" rel="noopener" class="btn btn-secondary w-100" style="padding:0.65rem 1rem; font-size:0.85rem; margin-bottom:0.6rem; text-decoration:none; display:flex; align-items:center; justify-content:center; gap:0.4rem; border-color:rgba(0,158,227,0.5); color:#38bdf8;">
+          💳 Comprar no Mercado Pago (R$ 89,90)
+        </a>
+        <button class="btn btn-secondary w-100" id="btnAppCloseKey" style="padding:0.65rem 1rem; font-size:0.85rem; opacity:0.8;">
           Voltar
         </button>
       </div>

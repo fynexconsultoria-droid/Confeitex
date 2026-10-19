@@ -268,3 +268,14 @@
 @media (min-width: 769px) {
   #menuToggle { display: flex !important; }
 }
+
+/* Suporte IA no Top Header (Desktop vs Mobile) */
+#btnAiSupportDesktop {
+  display: inline-flex;
+}
+
+@media (max-width: 768px) {
+  #btnAiSupportDesktop {
+    display: none !important;
+  }
+}

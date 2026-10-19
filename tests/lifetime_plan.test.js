@@ -52,4 +52,15 @@ describe('Confeitex Lifetime Plan & Lock System', () => {
     expect(Plan.canUse('pdf_export')).toBe(true);
     expect(Plan.canUse('backup_restore')).toBe(true);
   });
+
+  it('should require presentation and key input when not activated', async () => {
+    const { Onboarding } = await import('../js/onboarding.js');
+    expect(Plan.isLifetimeActive()).toBe(false);
+    expect(Onboarding.shouldShow()).toBe(true);
+
+    Plan.activateLifetime('CONFEITEXVIP');
+    expect(Plan.isLifetimeActive()).toBe(true);
+    Onboarding.markSeen();
+    expect(Onboarding.shouldShow()).toBe(false);
+  });
 });

@@ -28,17 +28,77 @@
   overflow: hidden;
 }
 
-.ob-skip {
+.ob-topbar {
   position: absolute;
-  top: max(env(safe-area-inset-top, 0px), 16px);
-  right: 20px;
-  z-index: 10;
+  top: max(env(safe-area-inset-top, 0px), 14px);
+  left: 16px;
+  right: 16px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ob-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 800;
+  color: #fff;
+  font-size: 0.95rem;
+}
+
+.ob-brand-icon {
+  width: 28px;
+  height: 28px;
+  background: var(--gradient-primary, linear-gradient(135deg, #ec4899, #8b5cf6));
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ob-brand-icon svg {
+  width: 16px;
+  height: 16px;
+  fill: #fff;
+}
+
+.ob-topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ob-btn-key-top {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  color: #0b0813;
+  font-size: 0.8rem;
+  font-weight: 800;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(251, 191, 36, 0.35);
+  transition: transform 0.2s, box-shadow 0.2s;
+  font-family: var(--font-family);
+}
+
+.ob-btn-key-top:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(251, 191, 36, 0.5);
+}
+
+.ob-skip {
   background: rgba(255,255,255,0.08);
   border: 1px solid rgba(255,255,255,0.1);
   color: rgba(255,255,255,0.6);
-  padding: 6px 16px;
+  padding: 6px 14px;
   border-radius: 20px;
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   font-family: var(--font-family);
   cursor: pointer;
   transition: all 0.2s;
@@ -46,6 +106,54 @@
   backdrop-filter: blur(8px);
 }
 .ob-skip:hover { background: rgba(255,255,255,0.15); color: white; }
+
+.ob-btn-buy-slide {
+  width: 100%;
+  padding: 13px 20px;
+  background: rgba(0, 158, 227, 0.15);
+  border: 1px solid rgba(0, 158, 227, 0.5);
+  border-radius: 16px;
+  color: #38bdf8;
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-decoration: none;
+  transition: all 0.2s;
+  box-sizing: border-box;
+}
+
+.ob-btn-buy-slide:hover {
+  background: rgba(0, 158, 227, 0.25);
+  color: #fff;
+}
+
+.ob-btn-key-slide {
+  width: 100%;
+  padding: 15px 20px;
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  border: none;
+  border-radius: 16px;
+  color: #0b0813;
+  font-size: 1rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 8px 30px rgba(251, 191, 36, 0.4);
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
+
+.ob-btn-key-slide:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 35px rgba(251, 191, 36, 0.6);
+}
 
 .ob-slides-wrapper {
   display: flex;

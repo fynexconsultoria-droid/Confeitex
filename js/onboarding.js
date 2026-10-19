@@ -3,8 +3,8 @@ import { safeStorage } from './utils.js';
 
 /**
  * Onboarding.js — Tela de Apresentação Confeitex
- * Exibida apenas na primeira abertura do app.
- * 5 slides animados mostrando as funcionalidades principais.
+ * Exibida na inicialização do app no celular.
+ * Apresenta as funcionalidades e fornece o menu direto para inserir a chave de acesso.
  */
 
 export const Onboarding = {
@@ -18,6 +18,10 @@ export const Onboarding = {
   // Verifica se deve exibir
   // ─────────────────────────────────────────────────────────────────────────
   shouldShow() {
+    // Se ainda não ativou a chave vitalícia, sempre exibe a apresentação para orientar e permitir ativação
+    if (typeof Plan !== 'undefined' && !Plan.isLifetimeActive()) {
+      return true;
+    }
     return safeStorage.get(this.KEY_SEEN) !== 'true';
   },
 
@@ -63,8 +67,8 @@ export const Onboarding = {
           <circle cx="80" cy="88" r="3" fill="white" opacity="0.5"/>
         </svg>
       </div>`,
-      title: 'Bem-vindo ao Confeitex!',
-      desc: 'Seu assistente completo para gerenciar a confeitaria dos seus sonhos. Mais organização, mais tempo, mais lucro.',
+      title: 'Bem-vinda ao Confeitex!',
+      desc: 'O assistente inteligente para confeiteiras de sucesso. Mais organização, menos desperdício e lucro real em cada receita.',
       color: 'pink'
     },
     {
@@ -89,8 +93,8 @@ export const Onboarding = {
           <polyline points="53,58 57,62 64,54" stroke="white" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </div>`,
-      title: 'Pedidos Organizados',
-      desc: 'Cadastre encomendas com todos os detalhes: cliente, sabor, data de entrega, valor e status. Nunca mais perca um pedido.',
+      title: 'Pedidos & Encomendas',
+      desc: 'Cadastre encomendas completas: cliente, sabor, data de entrega, peso e status. Nunca mais perca um pedido ou anotação de caderno.',
       color: 'purple'
     },
     {
@@ -115,7 +119,7 @@ export const Onboarding = {
         </svg>
       </div>`,
       title: 'Clientes Fiéis',
-      desc: 'Gerencie seu relacionamento com clientes. Veja o histórico completo de pedidos, preferências e total gasto por cliente.',
+      desc: 'Histórico completo de compras, preferências e faturamento por cliente salvo com segurança diretamente no seu aparelho.',
       color: 'cyan'
     },
     {
@@ -140,8 +144,8 @@ export const Onboarding = {
           <text x="18" y="16" text-anchor="middle" fill="white" font-size="10" font-weight="bold">R$</text>
         </svg>
       </div>`,
-      title: 'Controle Financeiro',
-      desc: 'Acompanhe faturamento, lucro real, despesas e muito mais. Tome decisões baseadas em dados concretos do seu negócio.',
+      title: 'Precificação & WhatsApp',
+      desc: 'Ficha técnica para calcular custos reais e margem garantida. Gere comprovantes e recibos para enviar no WhatsApp com 1 toque.',
       color: 'green'
     },
     {
@@ -172,8 +176,8 @@ export const Onboarding = {
           <circle cx="80" cy="40" r="2" fill="white" opacity="0.7" class="ob-star"/>
         </svg>
       </div>`,
-      title: 'Pronto para Decolar!',
-      desc: 'Você tem <strong>7 dias grátis</strong> para experimentar tudo. Depois, continue por apenas <strong>R$7,99/mês</strong>.',
+      title: 'Acesso Vitalício',
+      desc: 'App 100% no celular, funciona sem internet e sem mensalidades. Ative sua chave de acesso ou adquira por taxa única de <strong>R$ 89,90</strong> no Mercado Pago.',
       color: 'pink',
       isFinal: true
     }
@@ -182,23 +186,44 @@ export const Onboarding = {
   // ─────────────────────────────────────────────────────────────────────────
   // Exibe o onboarding
   // ─────────────────────────────────────────────────────────────────────────
-  show() {
-    if (this._overlay) return;
+  show(force = false) {
+    if (this._overlay) {
+      if (force) {
+        this._overlay.remove();
+        this._overlay = null;
+      } else {
+        return;
+      }
+    }
 
     const overlay = document.createElement('div');
     overlay.className = 'ob-overlay';
     overlay.id = 'onboardingOverlay';
     overlay.setAttribute('role', 'dialog');
     overlay.setAttribute('aria-modal', 'true');
-    overlay.setAttribute('aria-label', 'Boas-vindas ao Confeitex');
+    overlay.setAttribute('aria-label', 'Apresentação do Confeitex');
     this._overlay = overlay;
     this._current = 0;
 
     overlay.innerHTML = `
       <div class="ob-container">
 
-        <!-- Botão pular -->
-        <button class="ob-skip" id="obSkip">Pular</button>
+        <!-- Barra superior com marca e botão de Ativar Chave -->
+        <div class="ob-topbar">
+          <div class="ob-brand">
+            <div class="ob-brand-icon">
+              <svg viewBox="0 0 24 24"><path d="M7 16.5h10"/><rect x="7.9" y="13.4" width="8.2" height="3" rx="0.6"/><rect x="9.8" y="10.1" width="4.5" height="3.4" rx="0.5"/><path d="M12 10.1V8.6"/><path d="M12 6.9c-.66.66-1.03 1.13-1.03 1.69a1.03 1.03 0 0 0 2.06 0c0-.56-.37-1.03-1.03-1.69z" fill="white" stroke="none"/></svg>
+            </div>
+            <span>Confeitex</span>
+          </div>
+          <div class="ob-topbar-actions">
+            <button class="ob-btn-key-top" id="obHeaderKeyBtn" title="Inserir Chave de Acesso">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              <span>Ativar Chave</span>
+            </button>
+            <button class="ob-skip" id="obSkip">Pular</button>
+          </div>
+        </div>
 
         <!-- Slides wrapper -->
         <div class="ob-slides-wrapper" id="obSlidesWrapper">
@@ -232,13 +257,27 @@ export const Onboarding = {
     requestAnimationFrame(() => overlay.classList.add('active'));
 
     // Eventos
-    document.getElementById('obSkip').onclick  = () => this.finish();
-    document.getElementById('obNext').onclick  = () => this.next();
-    document.getElementById('obBack').onclick  = () => this.prev();
+    const btnSkip = document.getElementById('obSkip');
+    if (btnSkip) btnSkip.onclick = () => this.finish();
+
+    const btnNext = document.getElementById('obNext');
+    if (btnNext) btnNext.onclick = () => this.next();
+
+    const btnBack = document.getElementById('obBack');
+    if (btnBack) btnBack.onclick = () => this.prev();
+
+    const btnHeaderKey = document.getElementById('obHeaderKeyBtn');
+    if (btnHeaderKey) {
+      btnHeaderKey.onclick = () => {
+        if (typeof Plan !== 'undefined' && Plan.showKeyInputModal) {
+          Plan.showKeyInputModal();
+        }
+      };
+    }
 
     // Dots
     overlay.querySelectorAll('.ob-dot').forEach(dot => {
-      dot.onclick = () => this.goTo(parseInt(dot.dataset.index));
+      dot.onclick = () => this.goTo(parseInt(dot.dataset.index, 10));
     });
 
     // Swipe gestures (mobile)
@@ -256,15 +295,26 @@ export const Onboarding = {
   },
 
   _renderSlide(slide, index) {
+    const checkoutUrl = (typeof Plan !== 'undefined' && Plan.getCheckoutUrl)
+      ? Plan.getCheckoutUrl()
+      : 'https://link.mercadopago.com.br/';
+
     const finalBtns = slide.isFinal ? `
       <div class="ob-final-actions">
-        <button class="ob-btn-start" id="obBtnStart">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+        <button class="ob-btn-key-slide" id="obBtnKey">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
           </svg>
-          Começar 7 Dias Grátis
+          Inserir Chave de Acesso
         </button>
-        <div class="ob-final-price">Depois, apenas R$7,99/mês · Cancele quando quiser</div>
+        <a href="${checkoutUrl}" target="_blank" rel="noopener" class="ob-btn-buy-slide" id="obBtnBuy">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/>
+          </svg>
+          Comprar no Mercado Pago (R$ 89,90)
+        </a>
+        <div class="ob-final-price">Taxa única vitalícia · Suporte IA 7 dias · 100% Reembolso</div>
       </div>` : '';
 
     return `
@@ -295,10 +345,16 @@ export const Onboarding = {
 
     this._updateNav();
 
-    // Bind botão start no último slide
+    // Bind botão key no último slide
     if (index === this._total - 1) {
-      const btnStart = document.getElementById('obBtnStart');
-      if (btnStart) btnStart.onclick = () => this.finish();
+      const btnKey = document.getElementById('obBtnKey');
+      if (btnKey) {
+        btnKey.onclick = () => {
+          if (typeof Plan !== 'undefined' && Plan.showKeyInputModal) {
+            Plan.showKeyInputModal();
+          }
+        };
+      }
     }
   },
 
@@ -352,17 +408,16 @@ export const Onboarding = {
           this._overlay = null;
         }
 
-        // Se ainda não cadastrou o cartão para o trial e não tem assinatura ativa, abre o modal de cadastro de cartão
         if (typeof Plan !== 'undefined') {
-          Plan.init();
-          // REMOVIDA A OBRIGATORIEDADE DE CARTÃO PARA TESTE (A PEDIDO DO USUÁRIO)
-          // if (!Plan.hasRegisteredCard() && !Plan.isSubscriptionActive()) {
-          //   setTimeout(() => {
-          //     Plan.showCardRegistrationModal({ forTrial: true });
-          //   }, 300);
-          // }
+          if (!Plan.isLifetimeActive()) {
+            Plan.showStartupLockIfNeeded();
+          }
         }
-      }, 600);
+      }, 500);
     }
   }
 };
+
+if (typeof window !== 'undefined') {
+  window.Onboarding = Onboarding;
+}

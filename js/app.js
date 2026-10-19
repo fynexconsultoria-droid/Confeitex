@@ -66,6 +66,8 @@ import './pwa.js';
   }
 
   window.State = State;
+  window.Plan = Plan;
+  window.Onboarding = Onboarding;
 
   // ─── Inicializa pull-to-refresh (apenas mobile/touch) ──────────────────────
   PullToRefresh.init();
@@ -260,6 +262,32 @@ import './pwa.js';
   rightOverlay?.addEventListener('click', handleOverlayClose);
   rightOverlay?.addEventListener('touchstart', handleOverlayClose, { passive: false });
   document.querySelectorAll('.right-sidebar-link').forEach(l => l.addEventListener('click', closeRight));
+
+  // Ações do menu: Inserir Chave e Ver Apresentação
+  document.getElementById('rsb-key')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    closeRight();
+    Plan.showKeyInputModal();
+  });
+
+  document.getElementById('rsb-show-presentation')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    closeRight();
+    Onboarding.show(true);
+  });
+
+  document.getElementById('sidebarFooterKeyLink')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    Plan.showKeyInputModal();
+  });
+
+  const updateKeyStatus = () => {
+    const sub = document.getElementById('rsbKeySub');
+    if (sub) {
+      sub.textContent = Plan.isLifetimeActive() ? 'Acesso Vitalício Ativado ✓' : 'Inserir código ou chave';
+    }
+  };
+  updateKeyStatus();
 
   // ─── Status Online/Offline ───────────────────────────────────────────────────────────
 
