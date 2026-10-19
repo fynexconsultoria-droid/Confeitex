@@ -3,6 +3,7 @@
  * Módulo de Suporte Inteligente via IA
  * • Primeiros 7 Dias: Onboarding VIP & Garantia Incondicional de Reembolso Integral (100%)
  * • Acesso Vitalício Permanente: Assistente contínua disponível 24/7 sempre que precisar
+ * • Design moderno estilo Intercom / Zendesk / WhatsApp com Body Scroll Lock anti-vazamento
  */
 
 import { safeStorage } from './utils.js';
@@ -135,6 +136,9 @@ export const AiSupport = {
     }
 
     this.updateModalState(overlay);
+
+    // Trava de rolagem da tela de fundo (Body Scroll Lock)
+    document.body.classList.add('ai-modal-open');
     overlay.classList.add('active');
 
     // Foca suavemente o input
@@ -148,6 +152,9 @@ export const AiSupport = {
   closeModal() {
     const overlay = document.getElementById('aiSupportModalOverlay');
     if (overlay) overlay.classList.remove('active');
+    if (typeof document !== 'undefined') {
+      document.body.classList.remove('ai-modal-open');
+    }
   },
 
   updateModalState(overlay) {
@@ -171,7 +178,7 @@ export const AiSupport = {
       }
     }
 
-    // Banner de modo
+    // Banner de modo compacto
     const banner = overlay.querySelector('#aiModeBanner');
     if (banner) {
       if (isGuarantee) {
@@ -179,7 +186,7 @@ export const AiSupport = {
         banner.innerHTML = `
           <span class="ai-mode-banner-icon">🌟</span>
           <div class="ai-mode-banner-text">
-            <strong>Onboarding VIP (Dia ${elapsed} de ${this.SUPPORT_DAYS}):</strong> Estamos te ajudando a configurar seu app! Use sem medo com <strong>100% de garantia</strong>.
+            <strong>Onboarding VIP (Dia ${elapsed} de ${this.SUPPORT_DAYS}):</strong> Assistência inteligente para decolar seu negócio com <strong>100% de garantia</strong>.
           </div>
         `;
       } else {
@@ -187,33 +194,52 @@ export const AiSupport = {
         banner.innerHTML = `
           <span class="ai-mode-banner-icon">💜</span>
           <div class="ai-mode-banner-text">
-            <strong>Suporte IA Vitalício Ativo:</strong> Seus primeiros 7 dias foram concluídos! A IA continua liberada para tirar dúvidas sempre que você precisar.
+            <strong>Suporte IA Vitalício Ativo:</strong> Seus primeiros 7 dias foram concluídos! O suporte via IA continua liberado permanentemente.
           </div>
         `;
       }
     }
 
-    // Seção de Garantia vs Card Vitalício
+    // Seção de Garantia vs Card Vitalício (Accordion moderno)
     const guaranteeSection = overlay.querySelector('#aiGuaranteeSection');
     if (guaranteeSection) {
       if (isGuarantee) {
         guaranteeSection.innerHTML = `
-          <div class="ai-guarantee-card">
-            <div class="ai-guarantee-top">
-              <div class="ai-guarantee-icon">🛡️</div>
-              <div class="ai-guarantee-info">
-                <div class="ai-guarantee-title">Garantia Incondicional de 7 Dias</div>
-                <p class="ai-guarantee-desc">
-                  Durante seus primeiros 7 dias de adaptação, você tem direito a <strong>100% de reembolso (R$ ${this.REFUND_AMOUNT_BRL})</strong> sem burocracia.
-                </p>
+          <div class="ai-guarantee-accordion">
+            <button type="button" class="ai-guarantee-toggle" id="btnToggleGuarantee" aria-expanded="false" title="Ver detalhes da garantia de 7 dias">
+              <div class="ai-guarantee-toggle-left">
+                <span class="ai-guarantee-badge-icon">🛡️</span>
+                <span class="ai-guarantee-toggle-text"><strong>Garantia de 7 Dias:</strong> Reembolso integral de R$ ${this.REFUND_AMOUNT_BRL}</span>
               </div>
-            </div>
-            <button id="btnRequestRefund" class="ai-btn-refund" type="button">
-              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><polyline points="3 3 3 8 8 8"/></svg>
-              <span>Solicitar Reembolso Integral (R$ ${this.REFUND_AMOUNT_BRL})</span>
+              <span class="ai-guarantee-chevron" id="aiGuaranteeChevron">▾</span>
             </button>
+            <div class="ai-guarantee-expanded" id="aiGuaranteeDetails" style="display:none;">
+              <p class="ai-guarantee-desc">
+                Se durante seus primeiros 7 dias você sentir que o Confeitex não é para você, devolvemos <strong>100% de R$ ${this.REFUND_AMOUNT_BRL}</strong> via Mercado Pago sem perguntas.
+              </p>
+              <button id="btnRequestRefund" class="ai-btn-refund" type="button">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><polyline points="3 3 3 8 8 8"/></svg>
+                <span>Solicitar Reembolso Integral (R$ ${this.REFUND_AMOUNT_BRL})</span>
+              </button>
+            </div>
           </div>
         `;
+
+        const toggleBtn = guaranteeSection.querySelector('#btnToggleGuarantee');
+        const details = guaranteeSection.querySelector('#aiGuaranteeDetails');
+        const chevron = guaranteeSection.querySelector('#aiGuaranteeChevron');
+
+        if (toggleBtn && details) {
+          toggleBtn.onclick = (e) => {
+            e.preventDefault();
+            const isHidden = details.style.display === 'none';
+            details.style.display = isHidden ? 'block' : 'none';
+            toggleBtn.setAttribute('aria-expanded', isHidden ? 'true' : 'false');
+            if (chevron) chevron.textContent = isHidden ? '▴' : '▾';
+            this.scrollToBottom(overlay);
+          };
+        }
+
         const btnRefund = guaranteeSection.querySelector('#btnRequestRefund');
         if (btnRefund) {
           btnRefund.onclick = () => this.triggerRefundFlow();
@@ -225,7 +251,7 @@ export const AiSupport = {
               <span class="ai-lifetime-icon">🎉</span>
               <div>
                 <div class="ai-lifetime-title">Onboarding Concluído · Suporte Vitalício</div>
-                <div class="ai-lifetime-sub">Sua assistente de confeitaria segue disponível para sempre!</div>
+                <div class="ai-lifetime-sub">Sua assistente inteligente continua com você para sempre!</div>
               </div>
             </div>
           </div>
@@ -632,6 +658,9 @@ export const AiSupport = {
     overlay.innerHTML = `
       <div class="modal-container ai-support-card">
         
+        <!-- Puxador mobile nativo estilo bottom sheet -->
+        <div class="ai-sheet-grab" aria-hidden="true"></div>
+
         <!-- Cabeçalho -->
         <div class="ai-support-header">
           <div class="ai-header-top-row">
@@ -651,7 +680,7 @@ export const AiSupport = {
 
           <div class="ai-header-main">
             <div class="ai-robot-avatar">
-              <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M12 2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2 2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/>
                 <rect x="4" y="8" width="16" height="12" rx="2"/>
                 <circle cx="9" cy="13" r="1.5" fill="currentColor"/>
@@ -660,10 +689,19 @@ export const AiSupport = {
                 <line x1="2" y1="14" x2="4" y2="14"/>
                 <line x1="20" y1="14" x2="22" y2="14"/>
               </svg>
+              <span class="ai-avatar-status-dot" title="Assistente Online"></span>
             </div>
             <div class="ai-header-titles">
-              <h2 class="ai-modal-title">Assistente Confeitex com IA</h2>
-              <p class="ai-modal-desc">Dúvidas sobre custos, encomendas, receitas e uso do app</p>
+              <div class="ai-title-row">
+                <h2 class="ai-modal-title">Assistente Confeitex IA</h2>
+                <span class="ai-verified-badge" title="Suporte Oficial Confeitex" aria-label="Verificado">
+                  <svg viewBox="0 0 24 24" width="12" height="12" fill="#38bdf8"><path d="M12 2l2.4 3.7 4.4.6-3.2 3.1.8 4.4L12 11.7l-4.4 2.1.8-4.4-3.2-3.1 4.4-.6L12 2z"/></svg>
+                </span>
+              </div>
+              <div class="ai-agent-status-line">
+                <span class="ai-status-pulse"></span>
+                <span>Online agora • Responde instantaneamente</span>
+              </div>
             </div>
           </div>
         </div>
@@ -750,6 +788,18 @@ export const AiSupport = {
     overlay.onclick = (e) => {
       if (e.target === overlay) this.closeModal();
     };
+
+    // Bloqueia rolagem da tela de fundo por toque no overlay (Mobile Touch Lock)
+    overlay.addEventListener('touchmove', (e) => {
+      if (!e.target.closest('.ai-chat-stream, .ai-chips-carousel, .ai-input-field')) {
+        e.preventDefault();
+      }
+    }, { passive: false });
+
+    // Fecha ao pressionar Escape
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') this.closeModal();
+    });
 
     // Botão de resetar conversa
     const resetBtn = overlay.querySelector('#aiBtnResetChat');
