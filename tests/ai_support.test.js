@@ -29,16 +29,56 @@ describe('AiSupport & 7-Day Guarantee System', () => {
     expect(AiSupport.isWithinGuarantee()).toBe(true);
   });
 
-  it('should handle elapsed days and guarantee expiration boundary', () => {
-    // Simula 3 dias decorridos
-    const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString();
-    globalThis.localStorage.setItem('confeitex_activation_date', threeDaysAgo);
-    expect(AiSupport.getDaysElapsed()).toBe(4);
-    expect(AiSupport.isWithinGuarantee()).toBe(true);
+  it('should distinguish onboarding mode (first 7 days) from permanent lifetime support mode', () => {
+    // Primeiros 7 dias
+    const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString();
+    globalThis.localStorage.setItem('confeitex_activation_date', twoDaysAgo);
+    expect(AiSupport.getMode()).toBe('onboarding');
+    expect(AiSupport.getBadgeLabel()).toContain('Onboarding VIP');
 
-    // Simula 8 dias decorridos (fora do prazo de 7 dias)
-    const eightDaysAgo = new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString();
-    globalThis.localStorage.setItem('confeitex_activation_date', eightDaysAgo);
-    expect(AiSupport.isWithinGuarantee()).toBe(false);
+    // Após 7 dias: acesso permanente ativo
+    const tenDaysAgo = new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString();
+    globalThis.localStorage.setItem('confeitex_activation_date', tenDaysAgo);
+    expect(AiSupport.getMode()).toBe('permanent');
+    expect(AiSupport.getBadgeLabel()).toBe('Suporte IA Vitalício · Online');
+  });
+
+  it('should provide specialized confectionery answers in knowledge response engine', () => {
+    // Precificação
+    const pricingResp = AiSupport.getKnowledgeResponse('Como precificar meu bolo?');
+    expect(pricingResp).toContain('Margem de Lucro');
+    expect(pricingResp).toContain('Custos Invisíveis');
+
+    // Pedidos
+    const orderResp = AiSupport.getKnowledgeResponse('Como cadastrar uma encomenda?');
+    expect(orderResp).toContain('Nova Encomenda');
+    expect(orderResp).toContain('50% de sinal');
+
+    // WhatsApp
+    const waResp = AiSupport.getKnowledgeResponse('Enviar comprovante no whatsapp');
+    expect(waResp).toContain('Comprovante WhatsApp');
+    expect(waResp).toContain('Pix');
+
+    // Aros e fatias
+    const aroResp = AiSupport.getKnowledgeResponse('Quantas fatias rende o aro 20?');
+    expect(aroResp).toContain('Aro 20 cm');
+    expect(aroResp).toContain('20 a 25 fatias');
+
+    // Acesso pós 7 dias
+    const after7Resp = AiSupport.getKnowledgeResponse('O suporte de IA acaba depois dos 7 dias?');
+    expect(after7Resp).toContain('vitaliciamente');
+    expect(after7Resp).toContain('sem mensalidades');
+  });
+
+  it('should manage chat history and support reset', () => {
+    AiSupport.saveChatHistory([
+      { sender: 'user', text: 'Oi', time: '10:00' },
+      { sender: 'bot', text: 'Olá confeiteira!', time: '10:00' }
+    ]);
+    expect(AiSupport.getChatHistory().length).toBe(2);
+
+    AiSupport.clearChatHistory();
+    expect(AiSupport.getChatHistory().length).toBe(0);
   });
 });
+
