@@ -189,15 +189,6 @@ export const Settings = {
     Notifications.init();
     this.renderNotificationStatus();
 
-    // Plano Confeitex — Gerenciamento
-    const btnPlanManage = document.getElementById('btnOpenPlanManage');
-    if (btnPlanManage) {
-      btnPlanManage.addEventListener('click', () => {
-        if (typeof Plan !== 'undefined') {
-          Plan.showManageModal();
-        }
-      });
-    }
 
     // Mercado Pago — Configuração do Worker URL
     this.setupMercadoPagoConfig();

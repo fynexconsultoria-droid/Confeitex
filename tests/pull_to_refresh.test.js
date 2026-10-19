@@ -35,7 +35,7 @@ describe('PullToRefresh allowed tabs', () => {
   });
 
   it('should not allow reload when active tab is settings or updates', () => {
-    const disallowedTabs = ['settings', 'updates', 'notificacoes', 'mercadopago', 'plano'];
+    const disallowedTabs = ['settings', 'updates', 'notificacoes', 'mercadopago'];
     disallowedTabs.forEach(tabId => {
       globalThis.document = {
         querySelector: (selector) => {

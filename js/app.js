@@ -83,7 +83,6 @@ import './pwa.js';
     updates:      { title: 'tab.updates.title',  subtitle: 'tab.updates.sub' },
     notificacoes: { title: 'settings.notifTitle', subtitle: 'settings.notifDesc' },
     mercadopago:  { title: 'mp.settingsTitle',    subtitle: 'mp.settingsDesc' },
-    plano:        { title: 'plan.settingsTitle',  subtitle: 'plan.settingsDesc' },
   };
 
   const hashParams   = new URLSearchParams(location.hash.slice(1));
