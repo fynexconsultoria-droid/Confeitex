@@ -512,3 +512,71 @@
     font-size: 0.8rem;
   }
 }
+
+/* ─── Minimalist Trigger Buttons (Header & Top-bar) ────────────────────── */
+.btn-ai-header,
+.btn-ai-support-header {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  height: 32px;
+  padding: 0 0.65rem;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #e2e8f0;
+  font-family: inherit;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  line-height: 1;
+  text-decoration: none;
+  box-shadow: none;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  box-sizing: border-box;
+}
+
+.btn-ai-header svg,
+.btn-ai-support-header svg {
+  width: 14px;
+  height: 14px;
+  stroke: #94a3b8;
+  transition: stroke 0.18s ease, transform 0.18s ease;
+  flex-shrink: 0;
+}
+
+.btn-ai-header:hover,
+.btn-ai-support-header:hover {
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(255, 255, 255, 0.22);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.btn-ai-header:hover svg,
+.btn-ai-support-header:hover svg {
+  stroke: #38bdf8;
+  transform: scale(1.08);
+}
+
+.btn-ai-header:active,
+.btn-ai-support-header:active {
+  background: rgba(255, 255, 255, 0.06);
+  transform: scale(0.96);
+}
+
+#btnAiSupportDesktop {
+  display: inline-flex;
+  height: 34px;
+  padding: 0 0.75rem;
+}
+
+@media (max-width: 768px) {
+  #btnAiSupportDesktop {
+    display: none !important;
+  }
+}

@@ -57,7 +57,7 @@ export const AiSupport = {
       }
     });
 
-    document.querySelectorAll('.btn-ai-support-header').forEach((btn) => {
+    document.querySelectorAll('.btn-ai-support-header, .btn-ai-header').forEach((btn) => {
       btn.addEventListener('click', (e) => {
         e.preventDefault();
         this.openModal();
