@@ -235,7 +235,7 @@
   });
 
   if (btnConfirmKey && inputKey) {
-    btnConfirmKey.addEventListener('click', () => {
+    btnConfirmKey.addEventListener('click', async () => {
       const raw = inputKey.value.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
       if (!raw) {
         if (keyError) {
@@ -249,21 +249,60 @@
       const masterKeys = ['CONFEITEXVIP', 'CFTX8990', 'VITALICIO2026', 'CONFEITEX2026', 'DOCELUCRO', 'MERCADOPAGO', 'MP8990'];
       const isValid = masterKeys.includes(raw) || raw.startsWith('CFTX') || raw.startsWith('MP') || raw.startsWith('KWF') || raw.startsWith('HOT') || raw.length >= 10;
 
-      if (isValid) {
-        try {
-          localStorage.setItem('confeitex_lifetime_active', 'true');
-          localStorage.setItem('confeitex_activation_key', inputKey.value.trim().toUpperCase());
-          localStorage.setItem('confeitex_sub_status', 'active');
-        } catch (_) {}
-
-        alert('🎉 Acesso Vitalício Confeitex ativado com sucesso! Redirecionando para o seu app...');
-        window.location.href = './app.html';
-      } else {
+      if (!isValid) {
         if (keyError) {
           keyError.textContent = 'Chave inválida. Verifique o código recebido ou adquira seu acesso vitalício.';
           keyError.style.display = 'block';
         }
+        return;
       }
+
+      // Identificação do dispositivo
+      let deviceId = localStorage.getItem('confeitex_device_id');
+      if (!deviceId) {
+        if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+          deviceId = 'cftx_' + crypto.randomUUID().replace(/-/g, '').slice(0, 16);
+        } else {
+          deviceId = 'cftx_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 9);
+        }
+        localStorage.setItem('confeitex_device_id', deviceId);
+      }
+
+      const workerUrl = (localStorage.getItem('confeitex_mp_worker_url') || '').trim().replace(/\/+$/, '');
+      if (workerUrl && (workerUrl.startsWith('https://') || workerUrl.startsWith('http://localhost'))) {
+        btnConfirmKey.disabled = true;
+        const originalText = btnConfirmKey.innerHTML;
+        btnConfirmKey.innerHTML = '<span>Verificando dispositivos...</span>';
+
+        try {
+          const res = await fetch(`${workerUrl}/validate-license`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ key: raw, deviceId, maxDevices: 2 })
+          });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok || data.valid === false || data.error) {
+            btnConfirmKey.disabled = false;
+            btnConfirmKey.innerHTML = originalText;
+            if (keyError) {
+              keyError.textContent = data.message || 'Limite de 2 dispositivos atingido para esta chave de acesso.';
+              keyError.style.display = 'block';
+            }
+            return;
+          }
+        } catch (e) {
+          console.warn('[Landing] Falha ao verificar no worker:', e);
+        }
+      }
+
+      try {
+        localStorage.setItem('confeitex_lifetime_active', 'true');
+        localStorage.setItem('confeitex_activation_key', inputKey.value.trim().toUpperCase());
+        localStorage.setItem('confeitex_sub_status', 'active');
+      } catch (_) {}
+
+      alert('🎉 Acesso Vitalício Confeitex ativado com sucesso! Redirecionando para o seu app...');
+      window.location.href = './app.html';
     });
   }
 

@@ -2,6 +2,9 @@ import http from 'http';
 
 const PORT = 8787;
 
+// Memória de licenças para controle de limite de dispositivos (máximo 2 por chave)
+const licenseStore = new Map();
+
 const server = http.createServer((req, res) => {
   // Configura CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -82,6 +85,106 @@ const server = http.createServer((req, res) => {
         status: 'approved',
         status_detail: 'accredited'
       }));
+    });
+    return;
+  }
+
+  // Rota Validar Licença e Limite de Dispositivos (Máximo 2)
+  if (req.url === '/validate-license' && req.method === 'POST') {
+    let body = '';
+    req.on('data', chunk => body += chunk.toString());
+    req.on('end', () => {
+      try {
+        const payload = JSON.parse(body || '{}');
+        const key = (payload.key || '').trim().toUpperCase();
+        const deviceId = (payload.deviceId || '').trim();
+        const deviceName = payload.deviceName || 'Dispositivo';
+        const maxDevices = Number(payload.maxDevices) || 2;
+
+        if (!key || !deviceId) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ valid: false, error: 'missing_params', message: 'Chave e deviceId são obrigatórios.' }));
+          return;
+        }
+
+        let record = licenseStore.get(key);
+        if (!record) {
+          record = { key, devices: [] };
+          licenseStore.set(key, record);
+        }
+
+        const existingDevIndex = record.devices.findIndex(d => d.deviceId === deviceId);
+        if (existingDevIndex !== -1) {
+          record.devices[existingDevIndex].lastSeen = new Date().toISOString();
+          record.devices[existingDevIndex].deviceName = deviceName;
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({
+            valid: true,
+            devicesCount: record.devices.length,
+            maxDevices,
+            message: `Dispositivo já autorizado (${record.devices.length} de ${maxDevices}).`
+          }));
+          return;
+        }
+
+        if (record.devices.length >= maxDevices) {
+          res.writeHead(403, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({
+            valid: false,
+            error: 'device_limit_exceeded',
+            devicesCount: record.devices.length,
+            maxDevices,
+            message: `Limite de dispositivos atingido! Esta chave já está cadastrada no limite máximo de ${maxDevices} aparelhos.`
+          }));
+          return;
+        }
+
+        record.devices.push({
+          deviceId,
+          deviceName,
+          activatedAt: new Date().toISOString()
+        });
+
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+          valid: true,
+          devicesCount: record.devices.length,
+          maxDevices,
+          message: `Dispositivo vinculado com sucesso (${record.devices.length} de ${maxDevices})!`
+        }));
+      } catch (err) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ valid: false, error: 'invalid_json' }));
+      }
+    });
+    return;
+  }
+
+  // Rota Liberar Dispositivo da Licença
+  if (req.url === '/release-license' && req.method === 'POST') {
+    let body = '';
+    req.on('data', chunk => body += chunk.toString());
+    req.on('end', () => {
+      try {
+        const payload = JSON.parse(body || '{}');
+        const key = (payload.key || '').trim().toUpperCase();
+        const deviceId = (payload.deviceId || '').trim();
+
+        const record = licenseStore.get(key);
+        if (record) {
+          record.devices = record.devices.filter(d => d.deviceId !== deviceId);
+        }
+
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+          success: true,
+          devicesCount: record ? record.devices.length : 0,
+          message: 'Dispositivo liberado com sucesso.'
+        }));
+      } catch (err) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'invalid_json' }));
+      }
     });
     return;
   }

@@ -130,10 +130,11 @@ export const AiSupport = {
     if (typeof document === 'undefined') return;
 
     let overlay = document.getElementById('aiSupportModalOverlay');
-    if (!overlay) {
-      overlay = this.createModalElement();
-      document.body.appendChild(overlay);
+    if (overlay) {
+      overlay.remove();
     }
+    overlay = this.createModalElement();
+    document.body.appendChild(overlay);
 
     this.updateModalState(overlay);
 

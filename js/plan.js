@@ -32,6 +32,10 @@ export const Plan = {
   KEY_LIFETIME_ACTIVE:   'confeitex_lifetime_active',
   KEY_ACTIVATION_KEY:    'confeitex_activation_key',
   KEY_CHECKOUT_URL:      'confeitex_checkout_url',
+  KEY_DEVICE_ID:         'confeitex_device_id',
+  KEY_DEVICE_NAME:       'confeitex_device_name',
+  KEY_DEVICE_COUNT:      'confeitex_device_count',
+  MAX_DEVICES_PER_KEY:   2,
 
   // ─── Estado interno ───────────────────────────────────────────────────────
 
@@ -96,6 +100,140 @@ export const Plan = {
     const customSecret = safeStorage.get('confeitex_custom_secret_key');
     if (customSecret && clean === customSecret.toUpperCase().replace(/[^A-Z0-9]/g, '')) return true;
     return false;
+  },
+
+  getDeviceId() {
+    let id = safeStorage.get(this.KEY_DEVICE_ID);
+    if (!id) {
+      if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+        id = 'cftx_' + crypto.randomUUID().replace(/-/g, '').slice(0, 16);
+      } else {
+        id = 'cftx_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 9);
+      }
+      safeStorage.set(this.KEY_DEVICE_ID, id);
+    }
+    return id;
+  },
+
+  getDeviceName() {
+    if (typeof navigator === 'undefined') return 'Dispositivo Padrão';
+    const ua = navigator.userAgent || '';
+    let os = 'Dispositivo';
+    if (/Android/i.test(ua)) os = 'Android';
+    else if (/iPhone|iPad|iPod/i.test(ua)) os = 'iOS';
+    else if (/Windows/i.test(ua)) os = 'Windows';
+    else if (/Macintosh|Mac OS/i.test(ua)) os = 'Mac';
+    else if (/Linux/i.test(ua)) os = 'Linux';
+
+    let browser = 'Navegador';
+    if (/Chrome|CriOS/i.test(ua) && !/Edge|Edg|OPR/i.test(ua)) browser = 'Chrome';
+    else if (/Safari/i.test(ua) && !/Chrome|CriOS/i.test(ua)) browser = 'Safari';
+    else if (/Firefox/i.test(ua)) browser = 'Firefox';
+    else if (/Edg/i.test(ua)) browser = 'Edge';
+
+    return `${browser} no ${os}`;
+  },
+
+  async validateKeyWithDevice(rawKey) {
+    if (!rawKey) {
+      return { valid: false, error: 'empty_key', message: 'Informe a chave de ativação.' };
+    }
+    const clean = rawKey.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+    if (!this.verifyKey(clean)) {
+      return { valid: false, error: 'invalid_key', message: 'Chave inválida. Verifique o código recebido ou adquira seu acesso vitalício.' };
+    }
+
+    const deviceId = this.getDeviceId();
+    const deviceName = this.getDeviceName();
+
+    const workerUrl = typeof MercadoPagoCheckout !== 'undefined' && MercadoPagoCheckout.WORKER_URL
+      ? MercadoPagoCheckout.WORKER_URL
+      : (safeStorage.get('confeitex_mp_worker_url') || '').trim().replace(/\/+$/, '');
+
+    if (workerUrl && (workerUrl.startsWith('https://') || workerUrl.startsWith('http://localhost'))) {
+      try {
+        const res = await fetch(`${workerUrl}/validate-license`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            key: clean,
+            deviceId,
+            deviceName,
+            maxDevices: this.MAX_DEVICES_PER_KEY
+          })
+        });
+
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || data.valid === false || data.error) {
+          if (data.error === 'device_limit_exceeded') {
+            return {
+              valid: false,
+              error: 'device_limit_exceeded',
+              devicesCount: data.devicesCount || this.MAX_DEVICES_PER_KEY,
+              maxDevices: this.MAX_DEVICES_PER_KEY,
+              message: `Limite de dispositivos atingido! Esta chave já está ativa em ${data.devicesCount || this.MAX_DEVICES_PER_KEY} de ${this.MAX_DEVICES_PER_KEY} aparelhos permitidos.`
+            };
+          }
+          return {
+            valid: false,
+            error: data.error || 'server_error',
+            message: data.message || 'Erro ao validar licença com o servidor.'
+          };
+        }
+
+        safeStorage.set(this.KEY_DEVICE_COUNT, String(data.devicesCount || 1));
+        return {
+          valid: true,
+          devicesCount: data.devicesCount || 1,
+          maxDevices: this.MAX_DEVICES_PER_KEY,
+          message: data.message || 'Chave validada com sucesso!'
+        };
+      } catch (err) {
+        console.warn('[Plan] Falha de conexão ao validar licença no worker:', err);
+        return {
+          valid: true,
+          offlineFallback: true,
+          devicesCount: 1,
+          maxDevices: this.MAX_DEVICES_PER_KEY,
+          message: 'Ativado em modo local.'
+        };
+      }
+    }
+
+    // Modo offline / demo
+    return {
+      valid: true,
+      demo: true,
+      devicesCount: 1,
+      maxDevices: this.MAX_DEVICES_PER_KEY
+    };
+  },
+
+  async releaseDevice() {
+    const key = safeStorage.get(this.KEY_ACTIVATION_KEY);
+    const deviceId = this.getDeviceId();
+    const workerUrl = typeof MercadoPagoCheckout !== 'undefined' && MercadoPagoCheckout.WORKER_URL
+      ? MercadoPagoCheckout.WORKER_URL
+      : (safeStorage.get('confeitex_mp_worker_url') || '').trim().replace(/\/+$/, '');
+
+    if (workerUrl && key) {
+      try {
+        await fetch(`${workerUrl}/release-license`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ key, deviceId })
+        });
+      } catch (e) {
+        console.warn('[Plan] Erro ao liberar dispositivo no servidor:', e);
+      }
+    }
+
+    safeStorage.remove(this.KEY_LIFETIME_ACTIVE);
+    safeStorage.remove(this.KEY_ACTIVATION_KEY);
+    safeStorage.remove(this.KEY_SUB_STATUS);
+    safeStorage.remove(this.KEY_PAYMENT_METHOD);
+    safeStorage.remove(this.KEY_DEVICE_COUNT);
+    this.renderPlanBadge();
   },
 
   getCheckoutUrl() {
@@ -464,19 +602,39 @@ export const Plan = {
       overlay.remove();
     };
 
-    btnVal.onclick = () => {
+    btnVal.onclick = async () => {
       const val = input.value.trim();
       if (!val) {
         err.textContent = 'Informe sua chave de ativação.';
         err.style.display = 'block';
         return;
       }
-      if (this.verifyKey(val)) {
-        this.activateLifetime(val);
-        overlay.remove();
-      } else {
-        err.textContent = 'Chave inválida. Verifique o código recebido ou adquira seu acesso vitalício.';
+
+      err.style.display = 'none';
+      btnVal.disabled = true;
+      const originalText = btnVal.innerHTML;
+      btnVal.innerHTML = 'Verificando chave e dispositivos...';
+
+      try {
+        const result = await this.validateKeyWithDevice(val);
+        if (result.valid) {
+          this.activateLifetime(val, 'activation_key');
+          overlay.remove();
+          if (typeof UI !== 'undefined' && UI.toast) {
+            const devInfo = result.devicesCount ? ` (Aparelho ${result.devicesCount} de ${result.maxDevices || 2})` : '';
+            UI.toast(`🎉 Acesso Vitalício Ativado com Sucesso!${devInfo}`);
+          }
+        } else {
+          err.textContent = result.message || 'Chave inválida. Verifique o código recebido ou adquira seu acesso vitalício.';
+          err.style.display = 'block';
+          btnVal.disabled = false;
+          btnVal.innerHTML = originalText;
+        }
+      } catch (e) {
+        err.textContent = 'Erro ao validar chave. Tente novamente.';
         err.style.display = 'block';
+        btnVal.disabled = false;
+        btnVal.innerHTML = originalText;
       }
     };
   },
@@ -911,6 +1069,7 @@ export const Plan = {
     let statusHeaderHTML = '';
     if (status.type === 'active') {
       const activeKey = safeStorage.get(this.KEY_ACTIVATION_KEY) || 'CFTX-VITALICIO';
+      const devName = this.getDeviceName();
       statusHeaderHTML = `
         <div class="plan-status-card plan-status-card--active">
           <div class="plan-status-icon">
@@ -918,7 +1077,12 @@ export const Plan = {
           </div>
           <div>
             <div class="plan-status-title">Plano Vitalício Ativo ⭐</div>
-            <div class="plan-status-sub">Acesso completo vitalício · Chave: <strong>${activeKey}</strong> (Sem mensalidades)</div>
+            <div class="plan-status-sub">Acesso completo vitalício · Chave: <strong>${activeKey}</strong></div>
+            <div style="margin-top:0.35rem; font-size:0.78rem; color:#93c5fd; display:flex; align-items:center; gap:0.4rem; flex-wrap:wrap;">
+              <span>📱 Este dispositivo: <strong>${devName}</strong></span>
+              <span>·</span>
+              <span class="badge" style="background:rgba(59,130,246,0.25); color:#60a5fa; padding:0.15rem 0.5rem; border-radius:6px;">Máximo 2 aparelhos por chave</span>
+            </div>
           </div>
         </div>`;
     } else if (status.type === 'trial') {
@@ -1007,6 +1171,29 @@ export const Plan = {
             ${cardInfoHTML}
           </div>
 
+          ${status.type === 'active' ? `
+          <!-- Seção de Dispositivo Autorizado -->
+          <div class="plan-section">
+            <h3 class="plan-section-title">Dispositivo Conectado</h3>
+            <div class="plan-saved-card-box" style="margin-bottom:0.6rem;">
+              <div class="plan-saved-card-left">
+                <div class="plan-saved-card-icon">📱</div>
+                <div>
+                  <strong>${this.getDeviceName()}</strong>
+                  <div class="plan-saved-card-holder">Dispositivo autorizado (Limite: máx 2 aparelhos)</div>
+                </div>
+              </div>
+              <span class="badge" style="background:rgba(16,185,129,0.2); color:#34d399; font-size:0.75rem; padding:0.2rem 0.5rem; border-radius:6px; font-weight:700;">Ativo</span>
+            </div>
+            <button class="btn btn-secondary w-100" id="btnReleaseDevice" style="font-size:0.85rem; border-color:rgba(239,68,68,0.4); color:#fca5a5; padding:0.6rem 1rem;">
+              Desvincular Licença deste Dispositivo
+            </button>
+            <small style="color:var(--text-muted); font-size:0.75rem; display:block; margin-top:0.35rem; text-align:center;">
+              Libera uma das 2 vagas caso queira transferir sua licença para outro aparelho.
+            </small>
+          </div>
+          ` : ''}
+
           <!-- Botões de Ação Imediata -->
           <div class="plan-manage-actions">
             <button class="btn btn-primary w-100" id="btnPayPlanNow">
@@ -1074,6 +1261,32 @@ export const Plan = {
       btnPayNow.onclick = () => {
         closeModal();
         this.showPlanPaymentModal('card');
+      };
+    }
+
+    // Desvincular Dispositivo da Licença
+    const btnRelease = document.getElementById('btnReleaseDevice');
+    if (btnRelease) {
+      btnRelease.onclick = async () => {
+        const ok = typeof UI !== 'undefined' && UI.confirm
+          ? await UI.confirm({
+              title: 'Desvincular Dispositivo?',
+              message: 'Deseja desvincular a licença deste aparelho? Isso liberará uma vaga para você ativar o Confeitex em outro dispositivo.',
+              confirmText: 'Sim, Desvincular',
+              variant: 'danger'
+            })
+          : confirm('Deseja desvincular a licença deste aparelho? Isso liberará uma vaga para você ativar em outro dispositivo.');
+
+        if (ok) {
+          btnRelease.disabled = true;
+          btnRelease.textContent = 'Desvinculando...';
+          await this.releaseDevice();
+          closeModal();
+          if (typeof UI !== 'undefined' && UI.toast) {
+            UI.toast('Licença desvinculada deste dispositivo com sucesso.', 'info');
+          }
+          this.showStartupLockIfNeeded(true);
+        }
       };
     }
   },
