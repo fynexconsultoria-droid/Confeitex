@@ -198,6 +198,7 @@ export const AiSupport = {
       return `
         <p>👋 <strong>Olá, confeiteira! Seja bem-vinda!</strong></p>
         <p>Estou aqui para tirar dúvidas sobre <strong>precificação, encomendas e uso do app</strong>. Toque em uma sugestão abaixo ou faça sua pergunta:</p>
+        <p style="font-size:0.75rem; color:#cbd5e1; margin-top:0.35rem; padding:0.35rem 0.55rem; background:rgba(34,197,94,0.08); border:1px solid rgba(34,197,94,0.22); border-radius:8px;">💬 <em>Atendimento humano com o <strong>Criador do Confeitex</strong>: <a href="https://wa.me/5562986290913?text=Ol%C3%A1%2C%20criador%20do%20Confeitex!%20Preciso%20de%20ajuda." target="_blank" rel="noopener" style="color:#4ade80; font-weight:700; text-decoration:underline;">(62) 98629-0913</a></em></p>
       `;
     }
 
@@ -645,7 +646,7 @@ export const AiSupport = {
           </button>
           <a href="https://wa.me/5562986290913?text=Ol%C3%A1!%20Preciso%20de%20ajuda%20com%20o%20meu%20Confeitex." target="_blank" rel="noopener" class="ai-wa-link" title="Falar com o Criador do Confeitex no WhatsApp">
             <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0 0 12.04 2m.01 1.67c2.2 0 4.26.86 5.82 2.41a8.16 8.16 0 0 1 2.41 5.83c0 4.54-3.7 8.24-8.24 8.24-1.48 0-2.93-.4-4.2-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.19 8.19 0 0 1-1.26-4.38c0-4.54 3.7-8.24 8.24-8.24m4.52 11.66c-.25-.13-1.47-.72-1.7-.81-.23-.08-.39-.13-.56.13-.17.25-.64.81-.79.97-.14.17-.29.19-.54.06-.25-.13-1.06-.39-2.02-1.25-.75-.67-1.26-1.5-1.4-1.75-.15-.25-.02-.39.11-.51.11-.11.25-.29.37-.44.13-.14.17-.25.25-.42.08-.17.04-.31-.02-.44-.06-.13-.56-1.35-.77-1.85-.2-.49-.41-.42-.56-.43h-.48c-.17 0-.44.06-.67.31-.23.25-.88.86-.88 2.1s.9 2.44 1.03 2.61c.13.17 1.77 2.7 4.29 3.79.6.26 1.07.41 1.43.53.6.19 1.15.16 1.58.1.48-.07 1.47-.6 1.68-1.18.21-.58.21-1.08.15-1.18-.06-.1-.23-.17-.48-.29"/></svg>
-            <span>WhatsApp</span>
+            <span>WhatsApp do Criador (62) 98629-0913</span>
           </a>
         </div>
 
