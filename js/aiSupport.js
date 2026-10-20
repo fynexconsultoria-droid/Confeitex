@@ -161,101 +161,27 @@ export const AiSupport = {
     const isGuarantee = this.isWithinGuarantee();
     const elapsed = this.getDaysElapsed();
 
-    // Badge do topo
-    const badgeWrap = overlay.querySelector('.ai-day-badge-wrap');
     const badgeText = overlay.querySelector('#aiSupportDayBadge');
-    const badgeDot = overlay.querySelector('.ai-badge-dot');
-
-    if (badgeWrap && badgeText && badgeDot) {
+    if (badgeText) {
       if (isGuarantee) {
-        badgeWrap.classList.remove('ai-badge-lifetime');
-        badgeDot.classList.remove('ai-badge-dot-lifetime');
         badgeText.textContent = `Dia ${elapsed} de ${this.SUPPORT_DAYS} · Onboarding VIP`;
+        badgeText.className = 'ai-header-badge mode-onboarding';
       } else {
-        badgeWrap.classList.add('ai-badge-lifetime');
-        badgeDot.classList.add('ai-badge-dot-lifetime');
         badgeText.textContent = `Suporte IA Vitalício · Online`;
+        badgeText.className = 'ai-header-badge mode-lifetime';
       }
     }
 
-    // Banner de modo compacto
-    const banner = overlay.querySelector('#aiModeBanner');
-    if (banner) {
+    const refundBtn = overlay.querySelector('#btnFooterRefund');
+    if (refundBtn) {
       if (isGuarantee) {
-        banner.className = 'ai-mode-banner mode-onboarding';
-        banner.innerHTML = `
-          <span class="ai-mode-banner-icon">🌟</span>
-          <div class="ai-mode-banner-text">
-            <strong>Onboarding VIP (Dia ${elapsed} de ${this.SUPPORT_DAYS}):</strong> Assistência inteligente para decolar seu negócio com <strong>100% de garantia</strong>.
-          </div>
-        `;
+        refundBtn.style.display = 'inline-flex';
+        refundBtn.onclick = (e) => {
+          e.preventDefault();
+          this.triggerRefundFlow();
+        };
       } else {
-        banner.className = 'ai-mode-banner mode-lifetime';
-        banner.innerHTML = `
-          <span class="ai-mode-banner-icon">💜</span>
-          <div class="ai-mode-banner-text">
-            <strong>Suporte IA Vitalício Ativo:</strong> Seus primeiros 7 dias foram concluídos! O suporte via IA continua liberado permanentemente.
-          </div>
-        `;
-      }
-    }
-
-    // Seção de Garantia vs Card Vitalício (Accordion moderno)
-    const guaranteeSection = overlay.querySelector('#aiGuaranteeSection');
-    if (guaranteeSection) {
-      if (isGuarantee) {
-        guaranteeSection.innerHTML = `
-          <div class="ai-guarantee-accordion">
-            <button type="button" class="ai-guarantee-toggle" id="btnToggleGuarantee" aria-expanded="false" title="Ver detalhes da garantia de 7 dias">
-              <div class="ai-guarantee-toggle-left">
-                <span class="ai-guarantee-badge-icon">🛡️</span>
-                <span class="ai-guarantee-toggle-text"><strong>Garantia de 7 Dias:</strong> Reembolso integral de R$ ${this.REFUND_AMOUNT_BRL}</span>
-              </div>
-              <span class="ai-guarantee-chevron" id="aiGuaranteeChevron">▾</span>
-            </button>
-            <div class="ai-guarantee-expanded" id="aiGuaranteeDetails" style="display:none;">
-              <p class="ai-guarantee-desc">
-                Se durante seus primeiros 7 dias você sentir que o Confeitex não é para você, devolvemos <strong>100% de R$ ${this.REFUND_AMOUNT_BRL}</strong> via Mercado Pago sem perguntas.
-              </p>
-              <button id="btnRequestRefund" class="ai-btn-refund" type="button">
-                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><polyline points="3 3 3 8 8 8"/></svg>
-                <span>Solicitar Reembolso Integral (R$ ${this.REFUND_AMOUNT_BRL})</span>
-              </button>
-            </div>
-          </div>
-        `;
-
-        const toggleBtn = guaranteeSection.querySelector('#btnToggleGuarantee');
-        const details = guaranteeSection.querySelector('#aiGuaranteeDetails');
-        const chevron = guaranteeSection.querySelector('#aiGuaranteeChevron');
-
-        if (toggleBtn && details) {
-          toggleBtn.onclick = (e) => {
-            e.preventDefault();
-            const isHidden = details.style.display === 'none';
-            details.style.display = isHidden ? 'block' : 'none';
-            toggleBtn.setAttribute('aria-expanded', isHidden ? 'true' : 'false');
-            if (chevron) chevron.textContent = isHidden ? '▴' : '▾';
-            this.scrollToBottom(overlay);
-          };
-        }
-
-        const btnRefund = guaranteeSection.querySelector('#btnRequestRefund');
-        if (btnRefund) {
-          btnRefund.onclick = () => this.triggerRefundFlow();
-        }
-      } else {
-        guaranteeSection.innerHTML = `
-          <div class="ai-lifetime-card">
-            <div class="ai-lifetime-info">
-              <span class="ai-lifetime-icon">🎉</span>
-              <div>
-                <div class="ai-lifetime-title">Onboarding Concluído · Suporte Vitalício</div>
-                <div class="ai-lifetime-sub">Sua assistente inteligente continua com você para sempre!</div>
-              </div>
-            </div>
-          </div>
-        `;
+        refundBtn.style.display = 'none';
       }
     }
 
@@ -265,27 +191,18 @@ export const AiSupport = {
 
   getInitialBotMessage() {
     const isGuarantee = this.isWithinGuarantee();
-    const elapsed = this.getDaysElapsed();
 
     if (isGuarantee) {
       return `
-        <p>👋 <strong>Olá, confeiteira! Seja muito bem-vinda ao Confeitex!</strong></p>
-        <p>Você está no <strong>Dia ${elapsed} de seus 7 dias de Onboarding VIP</strong>. Estou aqui para te ajudar a dar os primeiros passos com tranquilidade:</p>
-        <ul>
-          <li>Como cadastrar suas primeiras encomendas 🎂</li>
-          <li>Como calcular custos e precificar com lucro real 💰</li>
-          <li>Como enviar recibo automático no WhatsApp da cliente 📱</li>
-        </ul>
-        <p>✨ <em>Lembre-se: você tem 7 dias de garantia incondicional com 100% de reembolso!</em></p>
-        <p>Como posso te ajudar agora? Toque em um dos temas rápidos abaixo ou digite sua pergunta!</p>
+        <p>👋 <strong>Olá, confeiteira! Seja bem-vinda!</strong></p>
+        <p>Estou aqui para tirar dúvidas sobre <strong>precificação, encomendas e uso do app</strong>. Toque em uma sugestão abaixo ou faça sua pergunta:</p>
       `;
     }
 
     return `
-      <p>👋 <strong>Olá, confeiteira! Que bom ter você por aqui de novo!</strong></p>
-      <p>Seu <strong>Suporte com IA Vitalício</strong> está 100% ativo e disponível para você consultar sempre que precisar.</p>
-      <p>Posso te ajudar com cálculos de custos, rendimento de massas e recheios por tamanho de aro, fichas técnicas ou no uso do Confeitex no dia a dia.</p>
-      <p>O que você gostaria de calcular ou tirar dúvida hoje? 🍰</p>
+      <p>👋 <strong>Olá, confeiteira!</strong></p>
+      <p>Sua assistente está online para tirar dúvidas de <strong>precificação, fatias e pedidos</strong>.</p>
+      <p>Como posso te ajudar agora?</p>
     `;
   },
 
@@ -653,69 +570,46 @@ export const AiSupport = {
     overlay.id = 'aiSupportModalOverlay';
     overlay.setAttribute('role', 'dialog');
     overlay.setAttribute('aria-modal', 'true');
-    overlay.setAttribute('aria-label', 'Suporte com Inteligência Artificial e Gestão Confeitex');
+    overlay.setAttribute('aria-label', 'Suporte Confeitex IA');
 
     overlay.innerHTML = `
       <div class="modal-container ai-support-card">
-        
-        <!-- Puxador mobile nativo estilo bottom sheet -->
-        <div class="ai-sheet-grab" aria-hidden="true"></div>
 
-        <!-- Cabeçalho -->
+        <!-- Cabeçalho Compacto (Linha Única) -->
         <div class="ai-support-header">
-          <div class="ai-header-top-row">
-            <div class="ai-day-badge-wrap">
-              <span class="ai-badge-dot"></span>
-              <span id="aiSupportDayBadge">${this.getBadgeLabel()}</span>
-            </div>
-            <div class="ai-header-actions">
-              <button id="aiBtnResetChat" class="ai-header-btn" type="button" aria-label="Limpar conversa" title="Recomeçar conversa">
-                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><polyline points="3 3 3 8 8 8"/></svg>
-              </button>
-              <button id="closeAiSupportModal" class="ai-close-btn" type="button" aria-label="Fechar suporte">
-                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-              </button>
-            </div>
-          </div>
-
-          <div class="ai-header-main">
+          <div class="ai-header-brand">
             <div class="ai-robot-avatar">
-              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M12 2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2 2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/>
                 <rect x="4" y="8" width="16" height="12" rx="2"/>
                 <circle cx="9" cy="13" r="1.5" fill="currentColor"/>
                 <circle cx="15" cy="13" r="1.5" fill="currentColor"/>
                 <path d="M9 17h6"/>
-                <line x1="2" y1="14" x2="4" y2="14"/>
-                <line x1="20" y1="14" x2="22" y2="14"/>
               </svg>
-              <span class="ai-avatar-status-dot" title="Assistente Online"></span>
+              <span class="ai-avatar-status-dot" title="Online"></span>
             </div>
             <div class="ai-header-titles">
-              <div class="ai-title-row">
-                <h2 class="ai-modal-title">Assistente Confeitex IA</h2>
-                <span class="ai-verified-badge" title="Suporte Oficial Confeitex" aria-label="Verificado">
-                  <svg viewBox="0 0 24 24" width="12" height="12" fill="#38bdf8"><path d="M12 2l2.4 3.7 4.4.6-3.2 3.1.8 4.4L12 11.7l-4.4 2.1.8-4.4-3.2-3.1 4.4-.6L12 2z"/></svg>
-                </span>
-              </div>
-              <div class="ai-agent-status-line">
-                <span class="ai-status-pulse"></span>
-                <span>Online agora • Responde instantaneamente</span>
-              </div>
+              <span class="ai-modal-title">Suporte IA</span>
+              <span class="ai-header-badge" id="aiSupportDayBadge">${this.getBadgeLabel()}</span>
             </div>
+          </div>
+          <div class="ai-header-actions">
+            <button id="aiBtnResetChat" class="ai-header-btn" type="button" aria-label="Limpar conversa" title="Recomeçar conversa">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><polyline points="3 3 3 8 8 8"/></svg>
+            </button>
+            <button id="closeAiSupportModal" class="ai-close-btn" type="button" aria-label="Fechar suporte">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
           </div>
         </div>
 
         <!-- Conteúdo do Chat -->
         <div class="ai-support-body" id="aiSupportBody">
           
-          <!-- Banner dinâmico de modo (Onboarding 7 dias vs Vitalício) -->
-          <div id="aiModeBanner" class="ai-mode-banner"></div>
-
           <!-- Fluxo de Mensagens do Chat -->
           <div class="ai-chat-stream" id="aiChatStream"></div>
 
-          <!-- Carrossel de Dúvidas Rápidas -->
+          <!-- Carrossel de Dúvidas Rápidas (Chips) -->
           <div class="ai-chips-carousel" id="aiQuickChips">
             <button class="ai-chip-pill" data-query="Como precificar meu primeiro bolo?" type="button">
               <span>💰</span><span>Precificar bolo</span>
@@ -727,25 +621,10 @@ export const AiSupport = {
               <span>📱</span><span>Recibo WhatsApp</span>
             </button>
             <button class="ai-chip-pill" data-query="Quantas fatias rende cada aro de bolo?" type="button">
-              <span>📏</span><span>Rendimento & Fatias</span>
-            </button>
-            <button class="ai-chip-pill" data-query="Como calcular o valor da minha mão de obra?" type="button">
-              <span>⏱️</span><span>Mão de obra</span>
-            </button>
-            <button class="ai-chip-pill" data-query="Como usar o app offline na cozinha?" type="button">
-              <span>📶</span><span>Modo Offline</span>
-            </button>
-            <button class="ai-chip-pill" data-query="Como fazer backup dos meus dados?" type="button">
-              <span>💾</span><span>Fazer backup</span>
-            </button>
-            <button class="ai-chip-pill" data-query="Dicas de validade e conservação de brigadeiros e bolos" type="button">
-              <span>🍓</span><span>Validade</span>
+              <span>📏</span><span>Rendimento & Aros</span>
             </button>
             <button class="ai-chip-pill" data-query="Como funciona a garantia de 7 dias?" type="button">
               <span>🛡️</span><span>Garantia 7 dias</span>
-            </button>
-            <button class="ai-chip-pill" data-query="O suporte de IA continua depois dos 7 dias?" type="button">
-              <span>💜</span><span>Depois dos 7 dias</span>
             </button>
           </div>
 
@@ -755,26 +634,24 @@ export const AiSupport = {
               type="text" 
               id="aiInputQuery" 
               class="ai-input-field" 
-              placeholder="Digite sua dúvida sobre bolos, pedidos, preços..." 
-              aria-label="Digite sua dúvida sobre bolos, pedidos ou preços"
+              placeholder="Digite sua dúvida aqui..." 
+              aria-label="Digite sua dúvida sobre o app ou confeitaria"
             >
             <button id="btnAiSend" class="ai-btn-send" type="button" title="Enviar pergunta" aria-label="Enviar pergunta">
-              <span>Perguntar</span>
-              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
             </button>
           </div>
 
-          <!-- Seção de Garantia ou Card Vitalício -->
-          <div id="aiGuaranteeSection"></div>
-
         </div>
 
-        <!-- Rodapé -->
+        <!-- Rodapé Minimalista -->
         <div class="ai-support-footer">
-          <span>Confeitex IA · Acesso Permanente</span>
+          <button id="btnFooterRefund" class="ai-footer-refund-btn" type="button" title="Garantia de 7 Dias">
+            <span>🛡️</span><span>Garantia 7 Dias (100% Reembolso)</span>
+          </button>
           <a href="https://wa.me/?text=Ol%C3%A1!%20Preciso%20de%20ajuda%20com%20o%20meu%20Confeitex." target="_blank" rel="noopener" class="ai-wa-link">
-            <span>Falar no WhatsApp</span>
-            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            <span>WhatsApp</span>
+            <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
           </a>
         </div>
 
