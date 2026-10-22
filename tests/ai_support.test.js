@@ -80,5 +80,13 @@ describe('AiSupport & 7-Day Guarantee System', () => {
     AiSupport.clearChatHistory();
     expect(AiSupport.getChatHistory().length).toBe(0);
   });
+
+  it('should escape HTML in user query to prevent XSS injection in chat responses', () => {
+    const maliciousQuery = '<script>alert("xss")</script>" onmouseover="alert(1)';
+    const response = AiSupport.getKnowledgeResponse(maliciousQuery);
+    expect(response).not.toContain('<script>');
+    expect(response).toContain('&lt;script&gt;');
+    expect(response).toContain('&quot; onmouseover=&quot;alert(1)');
+  });
 });
 

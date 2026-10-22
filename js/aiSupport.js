@@ -6,7 +6,7 @@
  * • Design moderno estilo Intercom / Zendesk / WhatsApp com Body Scroll Lock anti-vazamento
  */
 
-import { safeStorage } from './utils.js';
+import { safeStorage, escapeHTML } from './utils.js';
 
 export const AiSupport = {
   SUPPORT_DAYS: 7,
@@ -331,8 +331,8 @@ export const AiSupport = {
     const stream = overlay.querySelector('#aiChatStream');
     if (!stream) return;
 
-    // Escapa HTML básico da pergunta do usuário
-    const safeText = q.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    // Escapa HTML completo da pergunta do usuário
+    const safeText = escapeHTML(q);
     this.appendMessageElement(stream, 'user', safeText, true);
     this.scrollToBottom(overlay);
 
@@ -538,8 +538,9 @@ export const AiSupport = {
     }
 
     // 13. Resposta contextual inteligente com sugestão
+    const safeQuery = escapeHTML(query);
     return `
-      <p>Entendi sua pergunta sobre <strong>"${query}"</strong>!</p>
+      <p>Entendi sua pergunta sobre <strong>"${safeQuery}"</strong>!</p>
       <p>O Confeitex foi projetado exatamente para simplificar o seu dia a dia na confeitaria:</p>
       <ul>
         <li>Para calcular preços e ingredientes, veja a aba <strong>Financeiro</strong>;</li>
