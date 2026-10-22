@@ -283,7 +283,7 @@ import './pwa.js';
   const updateKeyStatus = () => {
     const sub = document.getElementById('rsbKeySub');
     if (sub) {
-      sub.textContent = Plan.isLifetimeActive() ? 'Acesso Vitalício Ativado ✓' : 'Inserir código ou chave';
+      sub.textContent = Plan.isLifetimeActive() ? 'Plano Anual Ativo ✓' : 'Inserir código ou chave';
     }
   };
   updateKeyStatus();

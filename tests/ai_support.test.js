@@ -23,7 +23,7 @@ describe('AiSupport & 7-Day Guarantee System', () => {
   it('should initialize with 7 days of VIP support and calculate days correctly', () => {
     AiSupport.init();
     expect(AiSupport.SUPPORT_DAYS).toBe(7);
-    expect(AiSupport.REFUND_AMOUNT_BRL).toBe('89,90');
+    expect(AiSupport.REFUND_AMOUNT_BRL).toBe('397,90');
     expect(AiSupport.getDaysElapsed()).toBe(1);
     expect(AiSupport.getDaysRemaining()).toBe(7);
     expect(AiSupport.isWithinGuarantee()).toBe(true);
@@ -66,8 +66,8 @@ describe('AiSupport & 7-Day Guarantee System', () => {
 
     // Acesso pós 7 dias
     const after7Resp = AiSupport.getKnowledgeResponse('O suporte de IA acaba depois dos 7 dias?');
-    expect(after7Resp).toContain('vitaliciamente');
-    expect(after7Resp).toContain('sem mensalidades');
+    expect(after7Resp).toContain('ano de assinatura');
+    expect(after7Resp).toContain('Sem nenhuma mensalidade');
   });
 
   it('should manage chat history and support reset', () => {

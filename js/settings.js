@@ -669,7 +669,7 @@ export const Settings = {
     if (!btnSave) return;
 
     // Carrega valores salvos
-    const savedLicenseLink = safeStorage.get('confeitex_mp_checkout_link') || safeStorage.get('confeitex_checkout_url') || '';
+    const savedLicenseLink = safeStorage.get('confeitex_mp_checkout_link') || safeStorage.get('confeitex_checkout_url') || 'https://mpago.la/1e6EgRS';
     const savedUrl = safeStorage.get('confeitex_mp_worker_url') || '';
     const savedKey = safeStorage.get('confeitex_mp_public_key') || '';
     const savedSecret = safeStorage.get('confeitex_mp_app_secret') || '';

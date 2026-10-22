@@ -53,11 +53,6 @@ export const MercadoPagoCheckout = {
     this._bricksBuilder = null;
   },
 
-  setAppSecret(secret) {
-    // APP_SECRET agora fica apenas no Worker — método mantido para compatibilidade
-    safeStorage.remove('confeitex_mp_app_secret');
-  },
-
   _getHeaders(extra = {}) {
     // APP_SECRET agora fica apenas no Worker — cliente não envia mais
     return { 'Content-Type': 'application/json', ...extra };

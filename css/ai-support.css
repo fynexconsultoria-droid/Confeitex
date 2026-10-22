@@ -505,6 +505,8 @@ body.ai-modal-open {
   line-height: 1.4;
   min-width: 0;
   -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  appearance: none !important;
   border-radius: 0 !important;
 }
 

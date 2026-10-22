@@ -176,8 +176,8 @@ export const Onboarding = {
           <circle cx="80" cy="40" r="2" fill="white" opacity="0.7" class="ob-star"/>
         </svg>
       </div>`,
-      title: 'Acesso Vitalício',
-      desc: 'App 100% no celular, funciona sem internet e sem mensalidades. Ative sua chave de acesso ou adquira por taxa única de <strong>R$ 89,90</strong> no Mercado Pago.',
+      title: 'Plano Anual (1 Ano de Uso)',
+      desc: 'App 100% no celular, funciona sem internet e sem mensalidades. Ative sua chave de acesso ou adquira seu plano anual de <strong>R$ 397,90/ano</strong> (em até 10x sem juros, PIX ou Boleto) no Mercado Pago. Válido por 1 ano inteiro de uso completo.',
       color: 'pink',
       isFinal: true
     }
@@ -297,7 +297,7 @@ export const Onboarding = {
   _renderSlide(slide, index) {
     const checkoutUrl = (typeof Plan !== 'undefined' && Plan.getCheckoutUrl)
       ? Plan.getCheckoutUrl()
-      : 'https://link.mercadopago.com.br/';
+      : 'https://mpago.la/1e6EgRS';
 
     const finalBtns = slide.isFinal ? `
       <div class="ob-final-actions">
@@ -312,9 +312,9 @@ export const Onboarding = {
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
             <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/>
           </svg>
-          Comprar no Mercado Pago (R$ 89,90)
+          Comprar Plano Anual (R$ 397,90/ano — até 10x)
         </a>
-        <div class="ob-final-price">Taxa única vitalícia · Suporte IA 7 dias · 100% Reembolso</div>
+        <div class="ob-final-price">Licença anual (1 ano de uso) · Em até 10x sem juros · PIX e Boleto · Suporte IA 7 dias · 100% Reembolso</div>
       </div>` : '';
 
     return `

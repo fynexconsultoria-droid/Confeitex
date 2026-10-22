@@ -61,7 +61,7 @@ export default {
         }
 
         // Validação básica do formato da chave
-        const masterKeys = ['CONFEITEXVIP', 'CFTX8990', 'VITALICIO2026', 'CONFEITEX2026', 'DOCELUCRO', 'MERCADOPAGO', 'MP8990'];
+        const masterKeys = ['CONFEITEXVIP', 'CFTX8990', 'CFTX397', 'CFTX39790', 'VITALICIO2026', 'CONFEITEX2026', 'DOCELUCRO', 'MERCADOPAGO', 'MP8990', 'MP397'];
         const isMaster = masterKeys.includes(key);
         const isStandard = key.startsWith('CFTX') || key.startsWith('MP') || key.startsWith('KWF') || key.startsWith('HOT') || key.length >= 10;
 
@@ -207,6 +207,45 @@ export default {
             'Content-Type': 'application/json'
           },
           body: JSON.stringify(body)
+        });
+        const mpData = await mpRes.json();
+        return json(mpData, mpRes.status);
+      }
+
+      // Criar Link de Pagamento da Licença Confeitex (R$ 397,90 em até 10x sem juros, Pix e Boleto)
+      if (pathname === '/create-license-preference' && request.method === 'POST') {
+        const body = await request.json().catch(() => ({}));
+        const email = body.email || undefined;
+        const preferencePayload = {
+          items: [{
+            id: 'cftx_anual_397',
+            title: 'Confeitex — Plano Anual + Suporte IA',
+            description: 'Plano Anual Confeitex - 1 Ano de Uso (Gestão, Precificação, Pedidos e Suporte IA 7 dias)',
+            quantity: 1,
+            currency_id: 'BRL',
+            unit_price: 397.90
+          }],
+          payment_methods: {
+            installments: 10,
+            default_installments: 1
+          },
+          statement_descriptor: 'CONFEITEX',
+          payer: email ? { email } : undefined,
+          back_urls: {
+            success: origin + '/app.html?payment=success',
+            failure: origin + '/app.html?payment=failure',
+            pending: origin + '/app.html?payment=pending'
+          },
+          auto_return: 'approved'
+        };
+
+        const mpRes = await fetch('https://api.mercadopago.com/checkout/preferences', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${mpToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(preferencePayload)
         });
         const mpData = await mpRes.json();
         return json(mpData, mpRes.status);

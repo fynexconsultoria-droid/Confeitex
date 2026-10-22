@@ -6,6 +6,26 @@
 (() => {
   'use strict';
 
+  // ─── 0. Verificação de Retorno do Mercado Pago (Auto-Ativação) ────────────
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const payment = params.get('payment');
+    const status = params.get('status') || params.get('collection_status');
+    const paymentId = params.get('payment_id') || params.get('collection_id');
+    if (payment === 'success' || status === 'approved') {
+      const key = paymentId ? `MP-${paymentId}` : 'CFTX397';
+      localStorage.setItem('confeitex_lifetime_active', 'true');
+      localStorage.setItem('confeitex_activation_key', key);
+      localStorage.setItem('confeitex_sub_status', 'active');
+      const now = new Date();
+      localStorage.setItem('confeitex_activation_date', now.toISOString());
+      const expires = new Date(now.getTime() + 365 * 86400000);
+      localStorage.setItem('confeitex_sub_expires', expires.toISOString());
+      window.location.href = './app.html?payment=success' + (paymentId ? `&payment_id=${paymentId}` : '');
+      return;
+    }
+  } catch (_) {}
+
   // ─── 1. PWA Install Handler ──────────────────────────────────────────────
   let deferredInstallPrompt = null;
   const ua = navigator.userAgent || '';
@@ -157,7 +177,7 @@
   const mpModal = document.getElementById('mpModal');
   const btnCloseMpModal = document.getElementById('closeMpModal');
   const btnGoToMp = document.getElementById('btnGoToMp');
-  const defaultCheckoutUrl = 'https://link.mercadopago.com.br/';
+  const defaultCheckoutUrl = 'https://mpago.la/1e6EgRS';
 
   function getMercadoPagoUrl() {
     return localStorage.getItem('confeitex_mp_checkout_link') || 
@@ -246,12 +266,12 @@
       }
 
       // Validação de Chave: Códigos mestres ou formato padrão
-      const masterKeys = ['CONFEITEXVIP', 'CFTX8990', 'VITALICIO2026', 'CONFEITEX2026', 'DOCELUCRO', 'MERCADOPAGO', 'MP8990'];
+      const masterKeys = ['CONFEITEXVIP', 'CFTX8990', 'CFTX397', 'CFTX39790', 'VITALICIO2026', 'CONFEITEX2026', 'DOCELUCRO', 'MERCADOPAGO', 'MP8990', 'MP397'];
       const isValid = masterKeys.includes(raw) || raw.startsWith('CFTX') || raw.startsWith('MP') || raw.startsWith('KWF') || raw.startsWith('HOT') || raw.length >= 10;
 
       if (!isValid) {
         if (keyError) {
-          keyError.textContent = 'Chave inválida. Verifique o código recebido ou adquira seu acesso vitalício.';
+          keyError.textContent = 'Chave inválida. Verifique o código recebido ou adquira seu plano anual.';
           keyError.style.display = 'block';
         }
         return;
@@ -299,9 +319,13 @@
         localStorage.setItem('confeitex_lifetime_active', 'true');
         localStorage.setItem('confeitex_activation_key', inputKey.value.trim().toUpperCase());
         localStorage.setItem('confeitex_sub_status', 'active');
+        const now = new Date();
+        localStorage.setItem('confeitex_activation_date', now.toISOString());
+        const expires = new Date(now.getTime() + 365 * 86400000);
+        localStorage.setItem('confeitex_sub_expires', expires.toISOString());
       } catch (_) {}
 
-      alert('🎉 Acesso Vitalício Confeitex ativado com sucesso! Redirecionando para o seu app...');
+      alert('🎉 Plano Anual Confeitex (1 Ano) ativado com sucesso! Redirecionando para o seu app...');
       window.location.href = './app.html';
     });
   }

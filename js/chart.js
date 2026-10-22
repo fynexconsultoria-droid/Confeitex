@@ -248,43 +248,6 @@ export const Chart = {
     }
   },
 
-  _drawSingle(p) {
-    const { ctx, _w: w, _h: h } = this;
-    const cx = w / 2, cy = h / 2;
-    const pointRadius = 5;
-
-    ctx.save();
-
-    ctx.fillStyle = '#f43f5e';
-    ctx.beginPath();
-    ctx.arc(cx, cy, pointRadius, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.strokeStyle = 'rgba(244, 63, 94, 0.45)';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.arc(cx, cy, pointRadius + 5, 0, Math.PI * 2);
-    ctx.stroke();
-
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillStyle = '#d7dde5';
-    ctx.font = '700 14px "Plus Jakarta Sans", system-ui, sans-serif';
-    ctx.fillText(fmt(p.sales), cx, cy - 30);
-
-    ctx.fillStyle = '#f43f5e';
-    ctx.font = '600 11px "Plus Jakarta Sans", system-ui, sans-serif';
-    ctx.fillText(I18n.t('chart.ordersCount', { count: p.count }), cx, cy + 30);
-
-    if (p.count > 0) {
-      ctx.fillStyle = '#8b93a7';
-      ctx.font = '600 10px "Plus Jakarta Sans", system-ui, sans-serif';
-      ctx.fillText(`${I18n.t('chart.avgTicket')}: ${fmt(p.avgTicket)}`, cx, cy + 47);
-    }
-
-    ctx.restore();
-  },
-
   _drawDataPoint(p, isHover) {
     const { ctx } = this;
     ctx.save();

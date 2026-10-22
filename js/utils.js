@@ -4,7 +4,7 @@
  */
 
 import { I18n } from './i18n.js';
-import { error, warn } from './logger.js';
+import { error } from './logger.js';
 
 export const fmt = (val) => {
   const loc = (typeof I18n !== 'undefined' && I18n.locale) ? I18n.locale() : 'pt-BR';
@@ -58,16 +58,6 @@ export const safeStorage = {
       const target = typeof sessionStorage !== 'undefined' ? sessionStorage : null;
       if (!target) return false;
       target.setItem(key, String(value));
-      return true;
-    } catch (e) {
-      return false;
-    }
-  },
-  sessionRemove(key) {
-    try {
-      const target = typeof sessionStorage !== 'undefined' ? sessionStorage : null;
-      if (!target) return false;
-      target.removeItem(key);
       return true;
     } catch (e) {
       return false;
@@ -296,40 +286,6 @@ export const AppDB = {
     } catch (e) { error('[AppDB] Erro em remove:', e); return false; }
   },
 
-  async putOrder(order, encryptionKey = null) {
-    try {
-      const db = await this.init();
-      let dataToSave = order;
-      if (encryptionKey) {
-        const str = JSON.stringify(order);
-        dataToSave = {
-          id: order.id,
-          deliveryDate: order.deliveryDate,
-          status: order.status,
-          _encryptedData: await CryptoUtils.encrypt(str, encryptionKey)
-        };
-      }
-      return new Promise((resolve, reject) => {
-        const tx = db.transaction('orders', 'readwrite');
-        const req = tx.objectStore('orders').put(dataToSave);
-        req.onsuccess = () => resolve();
-        req.onerror = () => reject(tx.error);
-      });
-    } catch (e) { error('[AppDB] Erro em putOrder:', e); }
-  },
-
-  async removeOrder(id) {
-    try {
-      const db = await this.init();
-      return new Promise((resolve, reject) => {
-        const tx = db.transaction('orders', 'readwrite');
-        const req = tx.objectStore('orders').delete(id);
-        req.onsuccess = () => resolve(true);
-        req.onerror = () => reject(tx.error);
-      });
-    } catch (e) { error('[AppDB] Erro em removeOrder:', e); }
-  },
-
   /**
    * Sincroniza a store 'orders' com a lista em memória numa única transação:
    * grava/atualiza todos os pedidos atuais e apaga os IDs removidos.
@@ -482,7 +438,3 @@ export const CryptoUtils = {
     return dec.decode(decrypted);
   }
 };
-
-export function getCurrentTab() {
-  return document.querySelector('.nav-link.active')?.dataset?.tab || null;
-}

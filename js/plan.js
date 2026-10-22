@@ -14,8 +14,9 @@ import { safeStorage } from './utils.js';
 export const Plan = {
   // ─── Configuração do Plano ────────────────────────────────────────────────
   TRIAL_DAYS: 7,
-  PRICE_BRL: 89.90,
-  PLAN_NAME: 'Confeitex Vitalício',
+  PRICE_BRL: 397.90,
+  PLAN_NAME: 'Confeitex Anual',
+  PLAN_DURATION_DAYS: 365,
   CURRENCY: 'BRL',
   MAX_ORDERS_FREE: 20,
 
@@ -43,6 +44,7 @@ export const Plan = {
   // Inicialização
   // ─────────────────────────────────────────────────────────────────────────
   init() {
+    this.handleMercadoPagoReturn();
     this.checkSubscriptionStatus().then(() => {
       this.renderPlanBadge();
       if (!this.isLifetimeActive()) {
@@ -51,18 +53,154 @@ export const Plan = {
     });
   },
 
-  isLifetimeActive() {
-    return safeStorage.get(this.KEY_LIFETIME_ACTIVE) === 'true' || safeStorage.get(this.KEY_SUB_STATUS) === 'active';
+  handleMercadoPagoReturn() {
+    if (typeof window === 'undefined' || !window.location || !window.location.search) return false;
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const payment = params.get('payment');
+      const status = params.get('status') || params.get('collection_status');
+      const paymentId = params.get('payment_id') || params.get('collection_id');
+
+      // Se o retorno do Mercado Pago indicar aprovação (ex: payment=success ou status=approved)
+      if (payment === 'success' || status === 'approved') {
+        const key = paymentId ? `MP-${paymentId}` : 'CFTX397';
+        this.activateLifetime(key, 'mercadopago_auto', 365);
+
+        // Limpa os parâmetros da URL de forma elegante
+        try {
+          const cleanUrl = window.location.pathname;
+          window.history.replaceState({}, document.title, cleanUrl);
+        } catch (_) {}
+
+        if (typeof document !== 'undefined') {
+          setTimeout(() => {
+            this.showPaymentSuccessModal(key);
+          }, 250);
+        }
+        return true;
+      }
+    } catch (e) {
+      console.warn('[Plan] Erro ao processar retorno do Mercado Pago:', e);
+    }
+    return false;
   },
 
-  activateLifetime(key = 'CFTX-VITALICIO', method = 'activation_key') {
+  showPaymentSuccessModal(key = 'CFTX397') {
+    if (typeof document === 'undefined') return;
+    const existing = document.getElementById('paymentSuccessOverlay');
+    if (existing) existing.remove();
+
+    const overlay = document.createElement('div');
+    overlay.className = 'startup-lock-overlay active';
+    overlay.id = 'paymentSuccessOverlay';
+    overlay.setAttribute('role', 'dialog');
+    overlay.setAttribute('aria-modal', 'true');
+
+    overlay.innerHTML = `
+      <div class="startup-lock-modal" style="max-width:440px; border:1px solid rgba(34,197,94,0.4); box-shadow:0 12px 40px rgba(34,197,94,0.25);">
+        <div class="startup-lock-badge" style="background:#22c55e; color:#fff; border-color:#22c55e;">
+          🎉 Pagamento Aprovado!
+        </div>
+        <div class="startup-lock-icon" style="background:linear-gradient(135deg, #10b981, #059669); color:#fff; width:64px; height:64px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:1rem auto;">
+          <svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <h2 class="startup-lock-title" style="margin-top:0.5rem;">Plano Anual Liberado!</h2>
+        <p class="startup-lock-desc">
+          Seja muito bem-vinda ao <strong>Confeitex</strong>!<br>
+          Seu acesso de <strong>1 ano (365 dias)</strong> foi ativado automaticamente com sucesso neste dispositivo.
+        </p>
+
+        <div style="background:rgba(255,255,255,0.06); border:1px dashed rgba(251,191,36,0.5); border-radius:14px; padding:1rem; margin:1rem 0; text-align:center;">
+          <span style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--c-text-muted); font-weight:700; display:block; margin-bottom:0.35rem;">
+            🔑 Sua Chave de Ativação (2º Aparelho):
+          </span>
+          <div style="display:flex; align-items:center; justify-content:center; gap:0.5rem;">
+            <code id="displaySuccessKey" style="font-size:1.3rem; font-weight:900; color:#fbbf24; letter-spacing:0.08em;">${key}</code>
+            <button id="btnCopySuccessKey" type="button" class="btn btn-secondary btn-sm" style="padding:0.35rem 0.65rem; font-size:0.75rem; border-radius:8px;">
+              Copiar
+            </button>
+          </div>
+          <small style="display:block; margin-top:0.45rem; font-size:0.75rem; color:var(--c-text-muted);">
+            Você pode usar esta mesma chave em até 2 aparelhos (ex: seu celular e computador).
+          </small>
+        </div>
+
+        <div class="startup-lock-benefits" style="margin-bottom:1.25rem;">
+          <div class="slb-item">✓ Acesso liberado por 365 dias</div>
+          <div class="slb-item">✓ Pedidos, precificação e relatórios ilimitados</div>
+          <div class="slb-item">✓ Suporte com Inteligência Artificial ativo</div>
+        </div>
+
+        <div class="startup-lock-actions">
+          <button class="btn btn-gold btn-lg w-100" id="btnStartUsingConfeitex" style="width:100%; padding:0.95rem; font-weight:800; font-size:1.05rem;">
+            🚀 Começar a Usar Agora
+          </button>
+          <a href="https://wa.me/5562986290913?text=Ol%C3%A1!%20Acabei%20de%20ativar%20meu%20Confeitex%20Anual." target="_blank" rel="noopener" style="display:flex; align-items:center; justify-content:center; gap:0.4rem; color:#4ade80; font-size:0.85rem; font-weight:600; text-decoration:none; margin-top:0.6rem;">
+            💬 Suporte VIP no WhatsApp: (62) 98629-0913
+          </a>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    const btnClose = overlay.querySelector('#btnStartUsingConfeitex');
+    if (btnClose) {
+      btnClose.addEventListener('click', () => {
+        overlay.classList.remove('active');
+        setTimeout(() => overlay.remove(), 350);
+        if (typeof UI !== 'undefined' && UI.toast) {
+          UI.toast('✨ Bem-vinda ao Confeitex!');
+        }
+      });
+    }
+
+    const btnCopy = overlay.querySelector('#btnCopySuccessKey');
+    if (btnCopy) {
+      btnCopy.addEventListener('click', () => {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(key).then(() => {
+            btnCopy.textContent = 'Copiado!';
+            setTimeout(() => { btnCopy.textContent = 'Copiar'; }, 2000);
+          }).catch(() => {});
+        } else {
+          btnCopy.textContent = 'Copiado!';
+          setTimeout(() => { btnCopy.textContent = 'Copiar'; }, 2000);
+        }
+      });
+    }
+  },
+
+  isLifetimeActive() {
+    const isSubActive = safeStorage.get(this.KEY_SUB_STATUS) === 'active';
+    const isLifeStored = safeStorage.get(this.KEY_LIFETIME_ACTIVE) === 'true';
+    if (!isSubActive && !isLifeStored) return false;
+
+    // Validação de expiração da licença anual (1 ano / 365 dias)
+    const expiresStr = safeStorage.get(this.KEY_SUB_EXPIRES);
+    if (expiresStr) {
+      const expTime = new Date(expiresStr).getTime();
+      if (!isNaN(expTime) && Date.now() > expTime) {
+        // Expirou após 1 ano de uso: bloqueia até renovação
+        return false;
+      }
+    }
+    return true;
+  },
+
+  activateLifetime(key = 'CFTX-ANUAL', method = 'activation_key', days = 365) {
     safeStorage.set(this.KEY_LIFETIME_ACTIVE, 'true');
     safeStorage.set(this.KEY_ACTIVATION_KEY, key);
     safeStorage.set(this.KEY_SUB_STATUS, 'active');
     safeStorage.set(this.KEY_PAYMENT_METHOD, method);
+
+    const now = new Date();
     if (!safeStorage.get('confeitex_activation_date')) {
-      safeStorage.set('confeitex_activation_date', new Date().toISOString());
+      safeStorage.set('confeitex_activation_date', now.toISOString());
     }
+    const expires = new Date(now.getTime() + days * 86400000);
+    safeStorage.set(this.KEY_SUB_EXPIRES, expires.toISOString());
+
     this.renderPlanBadge();
     if (typeof document !== 'undefined') {
       const overlay = document.getElementById('startupLockOverlay');
@@ -81,10 +219,10 @@ export const Plan = {
         setTimeout(() => ob.remove(), 350);
       }
       const rsbSub = document.getElementById('rsbKeySub');
-      if (rsbSub) rsbSub.textContent = 'Acesso Vitalício Ativado ✓';
+      if (rsbSub) rsbSub.textContent = 'Plano Anual Ativado ✓';
     }
     if (typeof document !== 'undefined' && typeof UI !== 'undefined' && UI.toast) {
-      UI.toast('🎉 Acesso Vitalício Ativado com Sucesso! Bem-vinda ao Confeitex.');
+      UI.toast('🎉 Plano Anual (1 Ano) Ativado com Sucesso! Bem-vinda ao Confeitex.');
     }
     if (typeof Dashboard !== 'undefined' && Dashboard.update) Dashboard.update();
   },
@@ -92,9 +230,9 @@ export const Plan = {
   verifyKey(rawKey) {
     if (!rawKey) return false;
     const clean = rawKey.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
-    const masterKeys = ['CONFEITEXVIP', 'CFTX8990', 'VITALICIO2026', 'CONFEITEX2026', 'DOCELUCRO'];
+    const masterKeys = ['CONFEITEXVIP', 'CFTX8990', 'CFTX397', 'CFTX39790', 'VITALICIO2026', 'CONFEITEX2026', 'DOCELUCRO', 'MERCADOPAGO', 'MP8990', 'MP397'];
     if (masterKeys.includes(clean)) return true;
-    if (clean.startsWith('CFTX') || clean.startsWith('KWF') || clean.startsWith('HOT') || clean.length >= 10) {
+    if (clean.startsWith('CFTX') || clean.startsWith('MP') || clean.startsWith('KWF') || clean.startsWith('HOT') || clean.length >= 10) {
       return true;
     }
     const customSecret = safeStorage.get('confeitex_custom_secret_key');
@@ -140,7 +278,7 @@ export const Plan = {
     }
     const clean = rawKey.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
     if (!this.verifyKey(clean)) {
-      return { valid: false, error: 'invalid_key', message: 'Chave inválida. Verifique o código recebido ou adquira seu acesso vitalício.' };
+      return { valid: false, error: 'invalid_key', message: 'Chave inválida. Verifique o código recebido ou adquira seu plano anual.' };
     }
 
     const deviceId = this.getDeviceId();
@@ -237,7 +375,7 @@ export const Plan = {
   },
 
   getCheckoutUrl() {
-    return safeStorage.get('confeitex_mp_checkout_link') || safeStorage.get(this.KEY_CHECKOUT_URL) || 'https://link.mercadopago.com.br/';
+    return safeStorage.get('confeitex_mp_checkout_link') || safeStorage.get(this.KEY_CHECKOUT_URL) || 'https://mpago.la/1e6EgRS';
   },
 
   async checkSubscriptionStatus() {
@@ -296,22 +434,11 @@ export const Plan = {
     if (cardData.card_id) safeStorage.set(this.KEY_CARD_ID, cardData.card_id);
   },
 
-  removeCardData() {
-    safeStorage.remove(this.KEY_CARD_DATA);
-    safeStorage.remove(this.KEY_CUSTOMER_ID);
-    safeStorage.remove(this.KEY_CARD_ID);
-  },
-
   // ─────────────────────────────────────────────────────────────────────────
   // Preferência de Pagamento no Vencimento (Cartão direto)
   // ─────────────────────────────────────────────────────────────────────────
   getRenewalPreference() {
     return 'card';
-  },
-
-  setRenewalPreference(pref) {
-    // Apenas cartão é aceito
-    safeStorage.set(this.KEY_RENEWAL_PREF, 'card');
   },
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -359,20 +486,36 @@ export const Plan = {
     if (typeof Dashboard !== 'undefined' && Dashboard.update) Dashboard.update();
   },
 
-  isSubscriptionActive() {
-    return this.isLifetimeActive();
-  },
-
   // ─────────────────────────────────────────────────────────────────────────
   // Status Geral do Plano
   // ─────────────────────────────────────────────────────────────────────────
   getStatus() {
     if (this.isLifetimeActive()) {
+      const expiresStr = safeStorage.get(this.KEY_SUB_EXPIRES);
+      let daysLeft = 365;
+      if (expiresStr) {
+        const exp = new Date(expiresStr).getTime();
+        daysLeft = Math.max(0, Math.ceil((exp - Date.now()) / 86400000));
+      }
       return {
         type: 'active',
-        daysLeft: null,
-        expiresAt: null,
+        daysLeft,
+        expiresAt: expiresStr || null,
         isLifetime: true,
+        isAnnual: true,
+        hasCard: this.hasRegisteredCard(),
+      };
+    }
+
+    // Se o plano anual expirou
+    const expiresStr = safeStorage.get(this.KEY_SUB_EXPIRES);
+    if (expiresStr && new Date(expiresStr).getTime() < Date.now()) {
+      return {
+        type: 'expired',
+        daysLeft: 0,
+        expiresAt: expiresStr,
+        isLifetime: false,
+        isAnnual: true,
         hasCard: this.hasRegisteredCard(),
       };
     }
@@ -395,6 +538,7 @@ export const Plan = {
       daysLeft: 0,
       expiresAt: null,
       isLifetime: false,
+      isAnnual: true,
       hasCard: this.hasRegisteredCard(),
     };
   },
@@ -436,32 +580,34 @@ export const Plan = {
     let badgeHTML = '';
 
     if (status.type === 'active') {
+      const subLabel = status.daysLeft !== null ? `${status.daysLeft} dias restantes` : '1 Ano de Acesso ✓';
       badgeHTML = `
-        <div class="plan-badge plan-badge--premium" id="planBadge" title="Acesso Vitalício Confeitex">
+        <div class="plan-badge plan-badge--premium" id="planBadge" title="Plano Anual Confeitex (1 Ano de Uso)">
           <div class="plan-badge-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
             </svg>
           </div>
           <div class="plan-badge-info">
-            <span class="plan-badge-label">Plano Vitalício</span>
-            <span class="plan-badge-sub">Acesso Completo ✓</span>
+            <span class="plan-badge-label">Plano Anual</span>
+            <span class="plan-badge-sub">${subLabel}</span>
           </div>
           <svg class="plan-badge-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <polyline points="9 18 15 12 9 6"/>
           </svg>
         </div>`;
     } else {
+      const isExp = status.type === 'expired';
       badgeHTML = `
-        <div class="plan-badge plan-badge--expired" id="planBadge" title="Ativar Acesso Vitalício">
+        <div class="plan-badge plan-badge--expired" id="planBadge" title="${isExp ? 'Renovar Plano Anual' : 'Ativar Plano Anual'}">
           <div class="plan-badge-icon" style="background:rgba(236,72,153,0.2); color:#ec4899;">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
             </svg>
           </div>
           <div class="plan-badge-info">
-            <span class="plan-badge-label">App Bloqueado</span>
-            <span class="plan-badge-sub" style="color:#fbbf24">Desbloquear — R$ 89,90</span>
+            <span class="plan-badge-label">${isExp ? 'Anuidade Vencida' : 'App Bloqueado'}</span>
+            <span class="plan-badge-sub" style="color:#fbbf24">${isExp ? 'Renovar — R$ 397,90' : 'Desbloquear — R$ 397,90'}</span>
           </div>
           <svg class="plan-badge-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <polyline points="9 18 15 12 9 6"/>
@@ -510,11 +656,12 @@ export const Plan = {
         <h2 class="startup-lock-title">Bem-vinda ao Confeitex!</h2>
         <p class="startup-lock-desc">
           Seu aplicativo profissional de confeitaria está pronto.<br>
-          Para desbloquear todas as funções de pedidos, precificação, receitas e relatórios, ative seu <strong>Acesso Vitalício por R$ 89,90 (PIX ou até 2x no cartão)</strong>.
+          Para desbloquear todas as funções de pedidos, precificação, receitas e relatórios, ative seu <strong>Plano Anual por R$ 397,90/ano (em até 10x sem juros de R$ 39,79, PIX ou Boleto no Mercado Pago)</strong>. Válido por 1 ano inteiro de uso (renovação anual).
         </p>
 
         <div class="startup-lock-benefits">
-          <div class="slb-item">✓ Pedidos e encomendas ilimitadas</div>
+          <div class="slb-item">✓ 1 ano de acesso completo a todas as ferramentas</div>
+          <div class="slb-item">✓ Pedidos e encomendas ilimitadas sem mensalidade</div>
           <div class="slb-item">✓ Ficha técnica e cálculo de lucro garantido</div>
           <div class="slb-item">✓ Recibos profissionais no WhatsApp</div>
           <div class="slb-item">✓ Suporte com Inteligência Artificial por 7 dias</div>
@@ -524,7 +671,7 @@ export const Plan = {
         <div class="startup-lock-actions">
           <a href="${this.getCheckoutUrl()}" target="_blank" class="btn btn-lg w-100" id="btnStartupLockBuy" style="display:flex; align-items:center; justify-content:center; gap:0.5rem; text-align:center; text-decoration:none; background:#009ee3; color:#fff; font-weight:800; border-radius:14px; padding:0.95rem 1.2rem; box-shadow:0 4px 20px rgba(0, 158, 227, 0.4);">
             <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-            <span>Pagar com Mercado Pago (R$ 89,90)</span>
+            <span>Assinar Plano Anual (R$ 397,90/ano — até 10x)</span>
           </a>
           <button class="btn btn-primary btn-lg w-100" id="btnStartupLockKey">
             🔑 Já paguei / Digitar Chave de Ativação
@@ -571,19 +718,19 @@ export const Plan = {
     overlay.innerHTML = `
       <div class="key-input-modal" style="background:#17112a; border:1px solid rgba(236,72,153,0.4); border-radius:20px; padding:2rem 1.6rem; max-width:440px; width:100%; box-shadow:0 20px 60px rgba(0,0,0,0.85); text-align:center;">
         <div style="font-size:2.2rem; margin-bottom:0.4rem;">🔑</div>
-        <h3 style="font-size:1.35rem; font-weight:800; margin-bottom:0.4rem; color:#fff;">Ativar Acesso Vitalício</h3>
+        <h3 style="font-size:1.35rem; font-weight:800; margin-bottom:0.4rem; color:#fff;">Ativar Plano Anual</h3>
         <p style="font-size:0.88rem; color:#cbd5e1; margin-bottom:1.25rem;">
-          Digite abaixo a chave ou código recebido após o pagamento de R$ 89,90:
+          Digite abaixo a chave recebida após o pagamento de R$ 397,90 do seu plano anual:
         </p>
 
         <input type="text" id="inputAppKey" placeholder="Ex: CFTX-XXXX-XXXX" style="width:100%; padding:0.85rem 1rem; border-radius:12px; background:#0b0815; border:1px solid rgba(255,255,255,0.25); color:#fff; font-size:1.15rem; font-weight:700; text-align:center; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:0.5rem;">
         <div id="appKeyError" style="color:#ef4444; font-size:0.82rem; margin-bottom:0.8rem; display:none;"></div>
 
         <button class="btn btn-gold w-100" id="btnAppValidateKey" style="padding:0.9rem 1rem; font-size:1rem; font-weight:800; margin-bottom:0.6rem;">
-          Validar e Liberar App
+          Validar e Liberar App (1 Ano)
         </button>
         <a href="${this.getCheckoutUrl()}" target="_blank" rel="noopener" class="btn btn-secondary w-100" style="padding:0.65rem 1rem; font-size:0.85rem; margin-bottom:0.6rem; text-decoration:none; display:flex; align-items:center; justify-content:center; gap:0.4rem; border-color:rgba(0,158,227,0.5); color:#38bdf8;">
-          💳 Comprar no Mercado Pago (R$ 89,90)
+          💳 Comprar Plano Anual no Mercado Pago (R$ 397,90)
         </a>
         <button class="btn btn-secondary w-100" id="btnAppCloseKey" style="padding:0.65rem 1rem; font-size:0.85rem; opacity:0.8;">
           Voltar
@@ -622,10 +769,10 @@ export const Plan = {
           overlay.remove();
           if (typeof UI !== 'undefined' && UI.toast) {
             const devInfo = result.devicesCount ? ` (Aparelho ${result.devicesCount} de ${result.maxDevices || 2})` : '';
-            UI.toast(`🎉 Acesso Vitalício Ativado com Sucesso!${devInfo}`);
+            UI.toast(`🎉 Plano Anual Ativado com Sucesso!${devInfo}`);
           }
         } else {
-          err.textContent = result.message || 'Chave inválida. Verifique o código recebido ou adquira seu acesso vitalício.';
+          err.textContent = result.message || 'Chave inválida. Verifique o código recebido ou adquira seu plano anual.';
           err.style.display = 'block';
           btnVal.disabled = false;
           btnVal.innerHTML = originalText;
@@ -1068,20 +1215,21 @@ export const Plan = {
 
     let statusHeaderHTML = '';
     if (status.type === 'active') {
-      const activeKey = safeStorage.get(this.KEY_ACTIVATION_KEY) || 'CFTX-VITALICIO';
+      const activeKey = safeStorage.get(this.KEY_ACTIVATION_KEY) || 'CFTX-ANUAL';
       const devName = this.getDeviceName();
+      const expDate = status.expiresAt ? new Date(status.expiresAt).toLocaleDateString('pt-BR') : '1 ano';
       statusHeaderHTML = `
         <div class="plan-status-card plan-status-card--active">
           <div class="plan-status-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
           </div>
           <div>
-            <div class="plan-status-title">Plano Vitalício Ativo ⭐</div>
-            <div class="plan-status-sub">Acesso completo vitalício · Chave: <strong>${activeKey}</strong></div>
+            <div class="plan-status-title">Plano Anual Ativo ⭐</div>
+            <div class="plan-status-sub">Válido por 1 ano · Vence em: <strong>${expDate}</strong> (${status.daysLeft} dias restantes)</div>
             <div style="margin-top:0.35rem; font-size:0.78rem; color:#93c5fd; display:flex; align-items:center; gap:0.4rem; flex-wrap:wrap;">
-              <span>📱 Este dispositivo: <strong>${devName}</strong></span>
+              <span>📱 Dispositivo: <strong>${devName}</strong></span>
               <span>·</span>
-              <span class="badge" style="background:rgba(59,130,246,0.25); color:#60a5fa; padding:0.15rem 0.5rem; border-radius:6px;">Máximo 2 aparelhos por chave</span>
+              <span class="badge" style="background:rgba(59,130,246,0.25); color:#60a5fa; padding:0.15rem 0.5rem; border-radius:6px;">Máx 2 aparelhos</span>
             </div>
           </div>
         </div>`;
@@ -1095,7 +1243,7 @@ export const Plan = {
           </div>
           <div>
             <div class="plan-status-title">Período de Testes: ${d} dia${d !== 1 ? 's' : ''} restante${d !== 1 ? 's' : ''}</div>
-            <div class="plan-status-sub">Primeiro débito em: <strong>${expDate}</strong> · Depois R$ 16,99/mês</div>
+            <div class="plan-status-sub">Assine o plano anual por R$ 397,90/ano (em até 10x sem juros)</div>
           </div>
         </div>`;
     } else {
@@ -1105,8 +1253,8 @@ export const Plan = {
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
           </div>
           <div>
-            <div class="plan-status-title">Mensalidade Vencida</div>
-            <div class="plan-status-sub">Regularize sua assinatura (R$ 16,99/mês) para continuar usando todas as funções.</div>
+            <div class="plan-status-title">Plano Anual Vencido</div>
+            <div class="plan-status-sub">Seu período de 1 ano encerrou. Renove sua anuidade (R$ 397,90) para continuar usando todas as funções.</div>
           </div>
         </div>`;
     }
@@ -1288,17 +1436,6 @@ export const Plan = {
           this.showStartupLockIfNeeded(true);
         }
       };
-    }
-  },
-
-  // ─────────────────────────────────────────────────────────────────────────
-  // Modal de Assinatura / Upgrade
-  // ─────────────────────────────────────────────────────────────────────────
-  showUpgradeModal() {
-    if (!this.hasRegisteredCard()) {
-      this.showCardRegistrationModal({ forTrial: true });
-    } else {
-      this.showManageModal();
     }
   },
 
@@ -1544,10 +1681,14 @@ export const Plan = {
                 <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
               </svg>
             </div>
-            <h2 class="paywall-title">Confeitex Vitalício</h2>
+            <h2 class="paywall-title">Plano Anual Confeitex</h2>
             <p class="paywall-subtitle">${featureName} está disponível no Acesso Completo.</p>
           </div>
           <div class="paywall-features">
+            <div class="paywall-feature">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              1 ano de acesso completo a todas as funções
+            </div>
             <div class="paywall-feature">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
               Pedidos e encomendas ilimitadas
@@ -1560,24 +1701,20 @@ export const Plan = {
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
               Calculadora de custos e receitas
             </div>
-            <div class="paywall-feature">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-              Acesso vitalício sem mensalidades
-            </div>
           </div>
           <div class="paywall-price">
             <div class="paywall-price-value">
               <span class="paywall-price-currency">R$</span>
-              <span class="paywall-price-amount">89,90</span>
-              <span class="paywall-price-period">Único</span>
+              <span class="paywall-price-amount">397,90</span>
+              <span class="paywall-price-period">/ano</span>
             </div>
-            <p class="paywall-price-note">Pagamento único · Acesso vitalício para sempre</p>
+            <p class="paywall-price-note">Válido por 1 ano de uso · Em até 10x de R$ 39,79 sem juros</p>
           </div>
           <button class="paywall-btn-upgrade" id="paywallBtnUpgrade" style="background:#009ee3; border-color:rgba(255,255,255,0.25); box-shadow:0 4px 20px rgba(0, 158, 227, 0.4);">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/>
             </svg>
-            Pagar com Mercado Pago (R$ 89,90)
+            Assinar Plano Anual — R$ 397,90 (até 10x)
           </button>
           <button class="btn btn-secondary w-100" id="paywallBtnEnterKey" style="margin-top:0.5rem; padding:0.75rem 1rem; border-radius:12px; font-size:0.88rem;">
             🔑 Já comprei / Digitar Chave

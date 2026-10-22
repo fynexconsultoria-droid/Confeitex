@@ -1,1 +1,18 @@
+# Dependências
 node_modules/
+
+# Build gerado por `npm run build` (o CI recompila a cada push)
+dist/
+
+# Logs e cache de ferramentas
+npm-debug.log*
+*.log
+.vitest/
+coverage/
+
+# Sistema operacional / editores
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/

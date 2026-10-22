@@ -10,7 +10,7 @@ import { safeStorage } from './utils.js';
 
 export const AiSupport = {
   SUPPORT_DAYS: 7,
-  REFUND_AMOUNT_BRL: '89,90',
+  REFUND_AMOUNT_BRL: '397,90',
   SUPPORT_PHONE: '5562986290913',
   STORAGE_KEY_CONV: 'confeitex_ai_chat_history',
   _memoryHistory: [],
@@ -490,15 +490,15 @@ export const AiSupport = {
       `;
     }
 
-    // 10. Dúvida sobre o suporte após os 7 dias / Acesso vitalício
-    if (q.includes('depois') || q.includes('apos') || q.includes('vai acabar') || q.includes('expira') || q.includes('acaba') || q.includes('mensalidade') || q.includes('vitalicio')) {
+    // 10. Dúvida sobre o suporte após os 7 dias / Plano Anual
+    if (q.includes('depois') || q.includes('apos') || q.includes('vai acabar') || q.includes('expira') || q.includes('acaba') || q.includes('mensalidade') || q.includes('vitalicio') || q.includes('renovar') || q.includes('anual')) {
       return `
         <p><strong>💜 O Suporte com IA continua depois dos 7 dias?</strong></p>
         <p><strong>SIM, com certeza!</strong></p>
-        <p>Os <em>primeiros 7 dias</em> são sua fase de onboarding especial, com garantia de reembolso de 100%. Depois desse período, seu <strong>acesso continua liberado vitaliciamente</strong>!</p>
+        <p>Os <em>primeiros 7 dias</em> são sua fase de onboarding VIP, com garantia incondicional de reembolso de 100%. Depois desse período, seu <strong>acesso continua liberado durante todo o seu ano de assinatura (365 dias)</strong>!</p>
         <ul>
-          <li>Você pode abrir este chat e tirar dúvidas de confeitaria sempre que precisar;</li>
-          <li>Sem nenhuma cobrança adicional e sem mensalidades;</li>
+          <li>Você pode abrir este chat e tirar dúvidas de confeitaria sempre que precisar durante o seu plano anual;</li>
+          <li>Sem nenhuma mensalidade durante o ano vigente (renovação necessária somente após 1 ano de uso);</li>
           <li>Acesso total às ferramentas de precificação, encomendas, financeiro e clientes.</li>
         </ul>
       `;
@@ -517,7 +517,7 @@ export const AiSupport = {
       return `
         <p><strong>🛡️ Período de Garantia Inicial Concluído:</strong></p>
         <p>Parabéns! Seus primeiros 7 dias de adaptação inicial foram concluídos com sucesso.</p>
-        <p>Agora você é membro vitalícia oficial do Confeitex, e tem acesso contínuo às atualizações, ferramentas de cálculo e a este <strong>Suporte com IA liberado permanentemente</strong> para te ajudar sempre que precisar!</p>
+        <p>Agora você é assinante anual oficial do Confeitex, e tem acesso contínuo às atualizações, ferramentas de cálculo e a este <strong>Suporte com IA liberado durante todo o seu ano de assinatura</strong> para te ajudar sempre que precisar!</p>
       `;
     }
 

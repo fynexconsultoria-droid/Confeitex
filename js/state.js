@@ -5,8 +5,8 @@
 
 import { Auth } from './auth.js';
 import { Notifications } from './notifications.js';
-import { fmt, fmtDate, fmtISO, safeStorage, sanitizeForStorage, validateStateDump, getOrderTotal, formatWeight, AppDB, CryptoUtils } from './utils.js';
-import { error, warn, log } from './logger.js';
+import { fmtISO, safeStorage, sanitizeForStorage, validateStateDump, getOrderTotal, AppDB, CryptoUtils } from './utils.js';
+import { error, warn } from './logger.js';
 
 
 export const DEFAULT_CATALOG = [
@@ -343,61 +343,5 @@ export const State = {
     } catch (e) {
       console.warn('[State] Erro em autoSnapshotCheck:', e);
     }
-  },
-
-  async restoreSnapshot(index = 0) {
-    try {
-      const existingStr = safeStorage.get('confeitex_snapshots');
-      if (!existingStr) return false;
-      const rawParsed = JSON.parse(existingStr);
-
-      let list;
-      // Verifica se está no formato criptografado
-      if (rawParsed && !Array.isArray(rawParsed) && rawParsed._enc && rawParsed.data) {
-        if (typeof Auth === 'undefined' || !Auth.encryptionKey) {
-          console.warn('[State] Snapshot criptografado mas sem chave de descriptografia.');
-          return false;
-        }
-        const dec = await CryptoUtils.decrypt(rawParsed.data, Auth.encryptionKey);
-        list = JSON.parse(dec);
-      } else {
-        // Formato legado (texto puro)
-        list = rawParsed;
-      }
-
-      if (!Array.isArray(list) || !list[index] || !list[index].data) return false;
-      const snapData = list[index].data;
-      if (snapData.orders) this.orders = snapData.orders.map(migrateOrder);
-      if (snapData.catalog) this.catalog = snapData.catalog;
-      if (snapData.expenses) this.expenses = snapData.expenses;
-      this.saveOrders();
-      this.saveCatalog();
-      this.saveExpenses();
-      return true;
-    } catch (e) {
-      console.warn('[State] Erro ao restaurar snapshot:', e);
-      return false;
-    }
-  },
-
-  exportFormattedWhatsApp() {
-    const hojeStr = fmtISO(new Date());
-    const pedidosHoje = this.orders.filter(o => o.deliveryDate === hojeStr && o.status !== 'Cancelado');
-    let msg = `🎂 *CONFEITEX - RESUMO DE PEDIDOS DE HOJE (${fmtDate(new Date())})*\n\n`;
-    if (pedidosHoje.length === 0) {
-      msg += `Nenhum pedido agendado para hoje.`;
-    } else {
-      let totalGeral = 0;
-      pedidosHoje.forEach((o, i) => {
-        const val = getOrderTotal(o);
-        totalGeral += val;
-        msg += `*${i + 1}. ${o.clientName}* (${o.deliveryTime})\n`;
-        msg += `   • Sabor: ${o.flavor} (${formatWeight(o)})\n`;
-        msg += `   • Status: ${o.status}\n`;
-        msg += `   • Valor: ${fmt(val)}\n\n`;
-      });
-      msg += `💰 *Total do Dia:* ${fmt(totalGeral)}`;
-    }
-    return msg;
   }
 };
