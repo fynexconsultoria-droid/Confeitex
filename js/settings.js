@@ -10,7 +10,7 @@ import { DEFAULT_CATALOG, migrateOrder, State } from './state.js';
 import { Trash } from './trash.js';
 import { UI } from './ui.js';
 
-import { fmt, fmtDateStr, fmtISO, safeStorage, escapeHTML, validateStateDump } from './utils.js';
+import { fmt, fmtDateStr, fmtISO, safeStorage, escapeHTML, validateStateDump, csvCell } from './utils.js';
 
 export const Settings = {
   renderCatalog() {
@@ -164,11 +164,20 @@ export const Settings = {
         const headers = 'Cliente,Telefone,Produto,Sabor,Peso/Quant,Valor Unit.,Taxa Extra,Custo,Valor Total,Pagamento,Data Entrega,Hora,Status,Obs';
         const sorted = [...State.orders].sort((a, b) => b.deliveryDate.localeCompare(a.deliveryDate) || (b.deliveryTime || '').localeCompare(a.deliveryTime || ''));
         const rows = sorted.map(o => [
-          `"${o.clientName}"`, `"${o.clientPhone || ''}"`, `"${o.productType}"`, `"${o.flavor}"`,
-          o.weight, (+o.unitPrice || 0).toFixed(2), (+o.extraCharges || 0).toFixed(2), (+o.cost || 0).toFixed(2),
-          (+o.totalValue || 0).toFixed(2), `"${o.paymentMethod || 'Dinheiro'}"`,
-          o.deliveryDate, o.deliveryTime, `"${o.status}"`,
-          `"${(o.notes || '').replace(/"/g, '""')}"`
+          csvCell(o.clientName),
+          csvCell(o.clientPhone || ''),
+          csvCell(o.productType),
+          csvCell(o.flavor),
+          Number(o.weight) || 0,
+          (+o.unitPrice || 0).toFixed(2),
+          (+o.extraCharges || 0).toFixed(2),
+          (+o.cost || 0).toFixed(2),
+          (+o.totalValue || 0).toFixed(2),
+          csvCell(o.paymentMethod || 'Dinheiro'),
+          csvCell(o.deliveryDate),
+          csvCell(o.deliveryTime),
+          csvCell(o.status),
+          csvCell(o.notes || '')
         ].join(','));
         const csv = '\uFEFF' + headers + '\n' + rows.join('\n');
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
@@ -177,7 +186,7 @@ export const Settings = {
         link.download = `confeitex_relatorio_${fmtISO(new Date())}.csv`;
         link.href = url;
         link.click();
-        URL.revokeObjectURL(url);
+        setTimeout(() => URL.revokeObjectURL(url), 60000);
         UI.toast(I18n.t('settings.toastCsv'));
       });
     }

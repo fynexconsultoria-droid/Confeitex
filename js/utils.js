@@ -72,6 +72,15 @@ export const debounce = (fn, ms = 250) => {
 };
 export const escapeHTML = (s) => s ? String(s).replace(/[&<>'"]/g, t => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[t])) : '';
 
+export function csvCell(val) {
+  if (val === null || val === undefined) return '""';
+  let str = String(val);
+  if (/^[=+\-@\t\r]/.test(str)) {
+    str = "'" + str;
+  }
+  return `"${str.replace(/"/g, '""')}"`;
+}
+
 export function sanitizeText(value) {
   if (value === null || value === undefined) return '';
   // Fase 3.1: Armazenar dados puros para não destruir formatação (quebras de linha, símbolos).
