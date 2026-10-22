@@ -101,4 +101,55 @@ describe('Confeitex Lifetime Plan & Lock System', () => {
 
     globalThis.window = originalWindow;
   });
+
+  it('should sanitize payment_id and prevent XSS injection in modal', () => {
+    const originalWindow = globalThis.window;
+    const originalDoc = globalThis.document;
+
+    // Simula URL com payload XSS no payment_id
+    globalThis.window = {
+      location: {
+        search: '?payment=success&payment_id=%3Cimg%20src=x%20onerror=alert(1)%3E',
+        pathname: '/app.html'
+      },
+      history: {
+        replaceState: () => {}
+      }
+    };
+
+    Plan.handleMercadoPagoReturn();
+    // Como o payment_id tem caracteres inválidos (< > =), deve cair no fallback seguro 'CFTX397'
+    const storedKey = globalThis.localStorage.getItem('confeitex_activation_key');
+    expect(storedKey).toBe('CFTX397');
+    expect(storedKey).not.toContain('<img');
+
+    // Testa escape no showPaymentSuccessModal diretamente com um mock DOM
+    const createdElements = [];
+    globalThis.document = {
+      getElementById: () => null,
+      createElement: (tag) => {
+        const el = {
+          tagName: tag,
+          className: '',
+          id: '',
+          innerHTML: '',
+          setAttribute: () => {},
+          querySelector: () => null
+        };
+        createdElements.push(el);
+        return el;
+      },
+      body: {
+        appendChild: () => {}
+      }
+    };
+
+    Plan.showPaymentSuccessModal('<script>alert("xss")</script>');
+    const modalOverlay = createdElements[0];
+    expect(modalOverlay.innerHTML).not.toContain('<script>');
+    expect(modalOverlay.innerHTML).toContain('&lt;script&gt;');
+
+    globalThis.window = originalWindow;
+    globalThis.document = originalDoc;
+  });
 });

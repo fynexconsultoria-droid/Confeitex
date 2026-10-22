@@ -2,7 +2,7 @@ import { Dashboard } from './dashboard.js';
 import { MercadoPagoCheckout } from './mercadopago.js';
 import { State } from './state.js';
 import { UI } from './ui.js';
-import { safeStorage } from './utils.js';
+import { safeStorage, escapeHTML } from './utils.js';
 
 /**
  * Plan.js — Sistema de Planos Confeitex integrado ao Mercado Pago
@@ -63,7 +63,9 @@ export const Plan = {
 
       // Se o retorno do Mercado Pago indicar aprovação (ex: payment=success ou status=approved)
       if (payment === 'success' || status === 'approved') {
-        const key = paymentId ? `MP-${paymentId}` : 'CFTX397';
+        const rawId = paymentId ? String(paymentId).trim() : '';
+        const isValidId = /^[A-Za-z0-9_-]+$/.test(rawId);
+        const key = isValidId ? `MP-${rawId}` : 'CFTX397';
         this.activateLifetime(key, 'mercadopago_auto', 365);
 
         // Limpa os parâmetros da URL de forma elegante
@@ -87,6 +89,8 @@ export const Plan = {
 
   showPaymentSuccessModal(key = 'CFTX397') {
     if (typeof document === 'undefined') return;
+    const cleanKey = String(key || 'CFTX397').trim();
+    const safeKey = escapeHTML(cleanKey);
     const existing = document.getElementById('paymentSuccessOverlay');
     if (existing) existing.remove();
 
@@ -115,7 +119,7 @@ export const Plan = {
             🔑 Sua Chave de Ativação (2º Aparelho):
           </span>
           <div style="display:flex; align-items:center; justify-content:center; gap:0.5rem;">
-            <code id="displaySuccessKey" style="font-size:1.3rem; font-weight:900; color:#fbbf24; letter-spacing:0.08em;">${key}</code>
+            <code id="displaySuccessKey" style="font-size:1.3rem; font-weight:900; color:#fbbf24; letter-spacing:0.08em;">${safeKey}</code>
             <button id="btnCopySuccessKey" type="button" class="btn btn-secondary btn-sm" style="padding:0.35rem 0.65rem; font-size:0.75rem; border-radius:8px;">
               Copiar
             </button>
