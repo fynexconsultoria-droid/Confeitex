@@ -102,6 +102,20 @@ export const UI = {
       modal.appendChild(actions);
       overlay.appendChild(modal);
 
+      const previousActiveElement = typeof document !== 'undefined' ? document.activeElement : null;
+
+      const cleanup = (confirmed) => {
+        document.removeEventListener('keydown', onKeyDown);
+        overlay.classList.remove('active');
+        setTimeout(() => {
+          overlay.remove();
+          if (previousActiveElement && typeof previousActiveElement.focus === 'function') {
+            try { previousActiveElement.focus(); } catch (_) {}
+          }
+        }, 300);
+        resolve(confirmed);
+      };
+
       document.body.appendChild(overlay);
       requestAnimationFrame(() => {
         overlay.classList.add('active');
@@ -112,18 +126,27 @@ export const UI = {
       overlay.addEventListener('click', (e) => {
         const btn = e.target.closest('[data-action]');
         if (!btn) return;
-        overlay.classList.remove('active');
-        setTimeout(() => overlay.remove(), 300);
-        resolve(btn.dataset.action === 'confirm');
+        cleanup(btn.dataset.action === 'confirm');
       });
 
-      // Acessibilidade: fechar com Escape
+      // Acessibilidade: fechar com Escape e prender o foco (Focus Trap)
       const onKeyDown = (e) => {
         if (e.key === 'Escape') {
-          document.removeEventListener('keydown', onKeyDown);
-          overlay.classList.remove('active');
-          setTimeout(() => overlay.remove(), 300);
-          resolve(false);
+          cleanup(false);
+          return;
+        }
+        if (e.key === 'Tab') {
+          const focusable = modal.querySelectorAll('button:not([disabled]), [tabindex]:not([tabindex="-1"])');
+          if (focusable.length === 0) return;
+          const first = focusable[0];
+          const last = focusable[focusable.length - 1];
+          if (e.shiftKey && document.activeElement === first) {
+            last.focus();
+            e.preventDefault();
+          } else if (!e.shiftKey && document.activeElement === last) {
+            first.focus();
+            e.preventDefault();
+          }
         }
       };
       document.addEventListener('keydown', onKeyDown);
