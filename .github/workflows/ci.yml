@@ -2,38 +2,43 @@ name: CI
 
 on:
   push:
-    branches: [ "main", "master" ]
+    branches: [ "main", "master", "fix/*" ]
   pull_request:
     branches: [ "main", "master" ]
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
-    - name: Use Node.js
-      uses: actions/setup-node@v3
+    - name: Use Node.js 20
+      uses: actions/setup-node@v4
       with:
-        node-version: 18.x
+        node-version: 20.x
+        cache: 'npm'
 
-    - name: Syntax Check
+    - name: Syntax Check (ESM Modules, Workers & Service Worker)
       run: |
-        echo "Fazendo check de sintaxe básica nos módulos JS (ESM)..."
+        echo "Validando sintaxe dos módulos ES..."
         for file in js/*.js; do
           if [ -f "$file" ]; then
             node --input-type=module --check < "$file" || exit 1
           fi
         done
+        echo "Validando sintaxe do Service Worker..."
         node --check sw.js || exit 1
-        echo "Sintaxe OK."
+        echo "Validando sintaxe dos Workers de API..."
+        node --check api/cloudflare-worker.js || exit 1
+        node --check api/license-worker.js || exit 1
+        echo "Sintaxe 100% OK!"
 
     - name: Install Dependencies
       run: npm ci || npm install
 
-    - name: Run Tests
-      run: npm run test
+    - name: Run Automated Test Suite
+      run: npm test
 
-    - name: Run Build
+    - name: Run Production Build
       run: npm run build

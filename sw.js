@@ -23,6 +23,8 @@ const ASSETS_TO_CACHE = [
   './',
   './index.html',
   './app.html',
+  './termos.html',
+  './privacidade.html',
   './style.css',
   './manifest.json',
   './css/base.css',
@@ -56,6 +58,7 @@ const ASSETS_TO_CACHE = [
   './js/license.js',
   './js/plan.js',
   './js/onboarding.js',
+  './js/landing.js',
   './js/updates.js',
   './js/pull-to-refresh.js',
   './js/app.js',
@@ -118,13 +121,6 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Suporte para skipWaiting manual via postMessage
-self.addEventListener('message', (event) => {
-  if (event.data && event.data.type === 'SKIP_WAITING') {
-    self.skipWaiting();
-  }
-});
-
 // FETCH — prioriza rede para navegação e assets do app para garantir que a
 // nova versão seja carregada em celulares e para evitar ficar preso em cache antigo.
 // Mantém fallback para offline quando não houver rede.
@@ -140,18 +136,24 @@ async function networkFirstWithCacheFallback(event) {
   const request = event.request;
   const cache = await caches.open(CACHE_NAME);
 
+  const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+  const timeoutId = controller ? setTimeout(() => controller.abort(), 2500) : null;
+
   try {
-    const fetchPromise = fetch(request, { cache: 'no-store' });
-    const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('Network timeout')), 2500)
-    );
-    const networkResponse = await Promise.race([fetchPromise, timeoutPromise]);
+    const fetchOptions = { cache: 'no-store' };
+    if (controller) fetchOptions.signal = controller.signal;
+
+    const networkResponse = await fetch(request, fetchOptions);
+    if (timeoutId) clearTimeout(timeoutId);
+
     if (networkResponse && networkResponse.ok) {
       cachePutIfSafe(cache, request, networkResponse);
       return networkResponse;
     }
   } catch (_) {
-    // Falha de rede ou timeout — usa cache
+    // Falha de rede ou timeout abortado — usa cache
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId);
   }
 
   const cachedResponse = await cache.match(request, { ignoreSearch: true });
