@@ -68,7 +68,7 @@ export const Onboarding = {
         </svg>
       </div>`,
       title: 'Bem-vinda ao Confeitex!',
-      desc: 'O assistente inteligente para confeiteiras de sucesso. Mais organização, menos desperdício e lucro real em cada receita.',
+      desc: 'O assistente para confeiteiras de sucesso. Mais organização, menos desperdício e lucro real em cada receita.',
       color: 'pink'
     },
     {
@@ -314,7 +314,7 @@ export const Onboarding = {
           </svg>
           Comprar Plano Anual (R$ 397,90/ano — até 10x)
         </a>
-        <div class="ob-final-price">Licença anual (1 ano de uso) · Em até 10x sem juros · PIX e Boleto · Suporte IA 7 dias · 100% Reembolso</div>
+        <div class="ob-final-price">Licença anual (1 ano de uso) · Em até 10x sem juros · PIX e Boleto · Assistente Confeitex 7 dias · 100% Reembolso</div>
       </div>` : '';
 
     return `

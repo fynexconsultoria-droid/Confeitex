@@ -1,12 +1,14 @@
 /**
  * Confeitex — aiSupport.js
- * Módulo de Suporte Inteligente via IA
+ * Módulo do Assistente Confeitex
  * • Primeiros 7 Dias: Onboarding VIP & Garantia Incondicional de Reembolso Integral (100%)
- * • Acesso Vitalício Permanente: Assistente contínua disponível 24/7 sempre que precisar
+ * • Assistente disponível para tirar dúvidas de confeitaria e suporte
  * • Design moderno estilo Intercom / Zendesk / WhatsApp com Body Scroll Lock anti-vazamento
  */
 
 import { safeStorage, escapeHTML } from './utils.js';
+import { UI } from './ui.js';
+import { License } from './license.js';
 
 export const AiSupport = {
   SUPPORT_DAYS: 7,
@@ -21,6 +23,12 @@ export const AiSupport = {
   },
 
   ensureActivationDate() {
+    if (typeof License !== 'undefined' && License.getClaims) {
+      const claims = License.getClaims();
+      if (claims && claims.purchasedAt) {
+        return claims.purchasedAt;
+      }
+    }
     let date = safeStorage.get('confeitex_activation_date');
     if (!date) {
       date = new Date().toISOString();
@@ -57,7 +65,7 @@ export const AiSupport = {
     if (this.isWithinGuarantee()) {
       return `Dia ${this.getDaysElapsed()} de ${this.SUPPORT_DAYS} · Onboarding VIP`;
     }
-    return `Suporte IA Vitalício · Online`;
+    return `Assistente Confeitex · Online`;
   },
 
   getChatHistory() {
@@ -169,7 +177,7 @@ export const AiSupport = {
         badgeText.textContent = `Dia ${elapsed} de ${this.SUPPORT_DAYS} · Onboarding VIP`;
         badgeText.className = 'ai-header-badge mode-onboarding';
       } else {
-        badgeText.textContent = `Suporte IA Vitalício · Online`;
+        badgeText.textContent = `Assistente Confeitex · Online`;
         badgeText.className = 'ai-header-badge mode-lifetime';
       }
     }
@@ -303,7 +311,7 @@ export const AiSupport = {
         </svg>
       </div>
       <div class="ai-bubble ai-bubble-bot ai-typing-bubble">
-        <span class="ai-typing-text">Assistente pensando</span>
+        <span class="ai-typing-text">Digitando...</span>
         <span class="ai-typing-dots">
           <span></span><span></span><span></span>
         </span>
@@ -525,7 +533,7 @@ export const AiSupport = {
     if (q === 'oi' || q === 'ola' || q === 'bom dia' || q === 'boa tarde' || q === 'boa noite' || q.includes('quem e voce') || q.includes('obrigad') || q.includes('valeu') || q === 'ajuda') {
       return `
         <p>👋 <strong>Olá! É um prazer imenso conversar com você!</strong></p>
-        <p>Eu sou a <strong>Assistente Inteligente do Confeitex</strong>, especializada em te ajudar na rotina doce da confeitaria.</p>
+        <p>Eu sou a <strong>Assistente do Confeitex</strong>, especializada em te ajudar na rotina doce da confeitaria.</p>
         <p>Você pode me perguntar sobre:</p>
         <ul>
           <li>Cálculo de custos e lucros de bolos e doces 💰</li>
@@ -551,13 +559,23 @@ export const AiSupport = {
     `;
   },
 
-  triggerRefundFlow() {
+  async triggerRefundFlow() {
     const textMsg = encodeURIComponent(
       `Olá! Gostaria de solicitar o reembolso integral da minha licença Confeitex (R$ ${this.REFUND_AMOUNT_BRL}) adquirida via Mercado Pago dentro do prazo de garantia de 7 dias.`
     );
     const whatsappUrl = `https://wa.me/${this.SUPPORT_PHONE}?text=${textMsg}`;
 
-    if (confirm(`Deseja abrir a solicitação de reembolso total de 100% (R$ ${this.REFUND_AMOUNT_BRL}) via WhatsApp com o criador do Confeitex?`)) {
+    const ok = (typeof UI !== 'undefined' && UI.confirm)
+      ? await UI.confirm({
+          title: 'Garantia Confeitex',
+          message: `Deseja abrir a solicitação de reembolso total de 100% (R$ ${this.REFUND_AMOUNT_BRL}) via WhatsApp com o criador do Confeitex?`,
+          confirmText: 'Abrir WhatsApp',
+          cancelText: 'Cancelar',
+          variant: 'primary'
+        })
+      : confirm(`Deseja abrir a solicitação de reembolso total de 100% (R$ ${this.REFUND_AMOUNT_BRL}) via WhatsApp com o criador do Confeitex?`);
+
+    if (ok) {
       window.open(whatsappUrl, '_blank');
     }
   },
@@ -568,7 +586,7 @@ export const AiSupport = {
     overlay.id = 'aiSupportModalOverlay';
     overlay.setAttribute('role', 'dialog');
     overlay.setAttribute('aria-modal', 'true');
-    overlay.setAttribute('aria-label', 'Suporte Confeitex IA');
+    overlay.setAttribute('aria-label', 'Assistente Confeitex');
 
     overlay.innerHTML = `
       <div class="modal-container ai-support-card">
@@ -584,7 +602,7 @@ export const AiSupport = {
               <span class="ai-avatar-status-dot" title="Online"></span>
             </div>
             <div class="ai-header-titles">
-              <span class="ai-modal-title">Suporte IA</span>
+              <span class="ai-modal-title">Assistente Confeitex</span>
               <span class="ai-header-badge" id="aiSupportDayBadge">${this.getBadgeLabel()}</span>
             </div>
           </div>

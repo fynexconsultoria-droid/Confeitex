@@ -36,11 +36,11 @@ describe('AiSupport & 7-Day Guarantee System', () => {
     expect(AiSupport.getMode()).toBe('onboarding');
     expect(AiSupport.getBadgeLabel()).toContain('Onboarding VIP');
 
-    // Após 7 dias: acesso permanente ativo
+    // Após 7 dias: acesso contínuo ativo
     const tenDaysAgo = new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString();
     globalThis.localStorage.setItem('confeitex_activation_date', tenDaysAgo);
     expect(AiSupport.getMode()).toBe('permanent');
-    expect(AiSupport.getBadgeLabel()).toBe('Suporte IA Vitalício · Online');
+    expect(AiSupport.getBadgeLabel()).toBe('Assistente Confeitex · Online');
   });
 
   it('should provide specialized confectionery answers in knowledge response engine', () => {

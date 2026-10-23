@@ -5,10 +5,10 @@ import { UI } from './ui.js';
 import { safeStorage, escapeHTML } from './utils.js';
 
 /**
- * Plan.js — Sistema de Planos Confeitex integrado ao Mercado Pago
- * - Teste Grátis de 7 dias com cadastro obrigatório de Cartão de Crédito
- * - Mensalidade de R$ 16,99/mês
- * - Pagamento automático no Cartão de Crédito cadastrado (Débito em conta automático)
+ * Plan.js — Sistema de Planos Confeitex
+ * - Plano Anual de R$ 397,90/ano (em até 10x sem juros, Pix ou Boleto)
+ * - Checkout Pro integrado via Mercado Pago e tokens assinados ECDSA P-256
+ * - Limite rigoroso de até 2 dispositivos simultâneos por licença
  */
 
 export const Plan = {
@@ -1320,21 +1320,15 @@ export const Plan = {
         <div class="plan-manage-body">
           ${statusHeaderHTML}
 
-          <!-- Banner Informativo de Débito Automático -->
+          <!-- Banner Informativo do Plano Anual -->
           <div class="plan-auto-debit-banner">
             <div class="plan-auto-debit-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
             </div>
             <div class="plan-auto-debit-text">
-              <strong>Débito Automático Mensal no Cartão</strong>
-              <p>Sua mensalidade de <strong>R$ 16,99/mês</strong> é debitada automaticamente no cartão cadastrado. Sem necessidade de boletos ou renovação manual.</p>
+              <strong>Plano Anual Confeitex (R$ 397,90/ano)</strong>
+              <p>Acesso completo por 1 ano inteiro a todas as funções, precificação e relatórios. Pagamento seguro via Mercado Pago (em até 10x sem juros, Pix ou Boleto).</p>
             </div>
-          </div>
-
-          <!-- Seção de Cartão de Crédito -->
-          <div class="plan-section">
-            <h3 class="plan-section-title">Cartão de Crédito Cadastrado</h3>
-            ${cardInfoHTML}
           </div>
 
           ${status.type === 'active' ? `
@@ -1364,7 +1358,7 @@ export const Plan = {
           <div class="plan-manage-actions">
             <button class="btn btn-primary w-100" id="btnPayPlanNow">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-              ${status.type === 'active' ? 'Antecipar Débito / Renovar Mensalidade (R$ 16,99)' : 'Pagar Mensalidade Agora — R$ 16,99'}
+              ${status.type === 'active' ? 'Renovar Plano Anual no Mercado Pago (R$ 397,90)' : 'Comprar Plano Anual no Mercado Pago — R$ 397,90'}
             </button>
           </div>
         </div>
@@ -1372,7 +1366,7 @@ export const Plan = {
         <div class="plan-manage-footer">
           <div class="plan-manage-secure">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-            Cobrança processada com segurança pelo Mercado Pago · Sem carência ou fidelidade
+            Cobrança processada com segurança pelo Mercado Pago · 1 ano de acesso
           </div>
         </div>
       </div>
@@ -1405,28 +1399,16 @@ export const Plan = {
       });
     }
 
-    // Ações do Cartão
-    const btnChangeCard = document.getElementById('btnChangePlanCard');
-    const btnAddCard = document.getElementById('btnAddPlanCard');
-    if (btnChangeCard) {
-      btnChangeCard.onclick = () => {
-        closeModal();
-        this.showCardRegistrationModal({ forTrial: false, onComplete: () => this.showManageModal() });
-      };
-    }
-    if (btnAddCard) {
-      btnAddCard.onclick = () => {
-        closeModal();
-        this.showCardRegistrationModal({ forTrial: false, onComplete: () => this.showManageModal() });
-      };
-    }
-
-    // Pagar Agora
+    // Pagar / Renovar via Checkout Pro
     const btnPayNow = document.getElementById('btnPayPlanNow');
     if (btnPayNow) {
       btnPayNow.onclick = () => {
         closeModal();
-        this.showPlanPaymentModal('card');
+        if (typeof License !== 'undefined' && License.startPurchase) {
+          License.startPurchase();
+        } else {
+          this.showStartupLockIfNeeded(true);
+        }
       };
     }
 

@@ -30,7 +30,7 @@ import './pwa.js';
   Auth.init();
   if (Auth.isLocked()) await Auth.showLogin();
 
-  // ─── Planos, Suporte IA e versão ──────────────────────────────────
+  // ─── Planos, Assistente Confeitex e versão ────────────────────────────
   Plan.init();
   AiSupport.init();
   const rawVer = Updates.verAtual;

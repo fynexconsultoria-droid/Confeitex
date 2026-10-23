@@ -3,25 +3,17 @@
  * Lógica da Página de Demonstração, Instalação PWA e Simulação Interativa
  */
 
+import { License } from './license.js';
+
 (() => {
   'use strict';
 
-  // ─── 0. Verificação de Retorno do Mercado Pago (Auto-Ativação) ────────────
+  // ─── 0. Verificação de Retorno do Mercado Pago (Claim via ref) ─────────────
   try {
     const params = new URLSearchParams(window.location.search);
-    const payment = params.get('payment');
-    const status = params.get('status') || params.get('collection_status');
-    const paymentId = params.get('payment_id') || params.get('collection_id');
-    if (payment === 'success' || status === 'approved') {
-      const key = paymentId ? `MP-${paymentId}` : 'CFTX397';
-      localStorage.setItem('confeitex_lifetime_active', 'true');
-      localStorage.setItem('confeitex_activation_key', key);
-      localStorage.setItem('confeitex_sub_status', 'active');
-      const now = new Date();
-      localStorage.setItem('confeitex_activation_date', now.toISOString());
-      const expires = new Date(now.getTime() + 365 * 86400000);
-      localStorage.setItem('confeitex_sub_expires', expires.toISOString());
-      window.location.href = './app.html?payment=success' + (paymentId ? `&payment_id=${paymentId}` : '');
+    const ref = params.get('ref') || params.get('external_reference');
+    if (ref) {
+      window.location.href = `./app.html?ref=${encodeURIComponent(ref)}`;
       return;
     }
   } catch (_) {}
@@ -256,7 +248,7 @@
 
   if (btnConfirmKey && inputKey) {
     btnConfirmKey.addEventListener('click', async () => {
-      const raw = inputKey.value.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+      const raw = inputKey.value.trim().toUpperCase().replace(/[^A-Z0-9-]/g, '');
       if (!raw) {
         if (keyError) {
           keyError.textContent = 'Por favor, digite o código de ativação.';
@@ -265,79 +257,37 @@
         return;
       }
 
-      // Validação de Chave: Códigos mestres ou formato padrão
-      const masterKeys = ['CONFEITEXVIP', 'CFTX8990', 'CFTX397', 'CFTX39790', 'VITALICIO2026', 'CONFEITEX2026', 'DOCELUCRO', 'MERCADOPAGO', 'MP8990', 'MP397'];
-      const isValid = masterKeys.includes(raw) || raw.startsWith('CFTX') || raw.startsWith('MP') || raw.startsWith('KWF') || raw.startsWith('HOT') || raw.length >= 10;
-
-      if (!isValid) {
-        if (keyError) {
-          keyError.textContent = 'Chave inválida. Verifique o código recebido ou adquira seu plano anual.';
-          keyError.style.display = 'block';
-        }
-        return;
-      }
-
-      // Identificação do dispositivo
-      let deviceId = localStorage.getItem('confeitex_device_id');
-      if (!deviceId) {
-        if (typeof crypto !== 'undefined' && crypto.randomUUID) {
-          deviceId = 'cftx_' + crypto.randomUUID().replace(/-/g, '').slice(0, 16);
-        } else {
-          deviceId = 'cftx_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 9);
-        }
-        localStorage.setItem('confeitex_device_id', deviceId);
-      }
-
-      const workerUrl = (localStorage.getItem('confeitex_mp_worker_url') || '').trim().replace(/\/+$/, '');
-      if (workerUrl && (workerUrl.startsWith('https://') || workerUrl.startsWith('http://localhost'))) {
-        btnConfirmKey.disabled = true;
-        const originalText = btnConfirmKey.innerHTML;
-        btnConfirmKey.innerHTML = '<span>Verificando dispositivos...</span>';
-
-        try {
-          const res = await fetch(`${workerUrl}/validate-license`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ key: raw, deviceId, maxDevices: 2 })
-          });
-          const data = await res.json().catch(() => ({}));
-          if (!res.ok || data.valid === false || data.error) {
-            btnConfirmKey.disabled = false;
-            btnConfirmKey.innerHTML = originalText;
-            if (keyError) {
-              keyError.textContent = data.message || 'Limite de 2 dispositivos atingido para esta chave de acesso.';
-              keyError.style.display = 'block';
-            }
-            return;
-          }
-        } catch (e) {
-          console.warn('[Landing] Falha ao verificar no worker:', e);
-        }
-      }
+      btnConfirmKey.disabled = true;
+      const originalText = btnConfirmKey.innerHTML;
+      btnConfirmKey.innerHTML = '<span>Verificando licença...</span>';
 
       try {
-        localStorage.setItem('confeitex_lifetime_active', 'true');
-        localStorage.setItem('confeitex_activation_key', inputKey.value.trim().toUpperCase());
-        localStorage.setItem('confeitex_sub_status', 'active');
-        const now = new Date();
-        localStorage.setItem('confeitex_activation_date', now.toISOString());
-        const expires = new Date(now.getTime() + 365 * 86400000);
-        localStorage.setItem('confeitex_sub_expires', expires.toISOString());
-      } catch (_) {}
-
-      alert('🎉 Plano Anual Confeitex (1 Ano) ativado com sucesso! Redirecionando para o seu app...');
-      window.location.href = './app.html';
+        const result = await License.activateKey(raw);
+        if (result && result.success) {
+          alert('🎉 Plano Anual Confeitex (1 Ano) ativado com sucesso! Redirecionando para o seu app...');
+          window.location.href = './app.html';
+          return;
+        }
+        throw new Error((result && result.message) || 'Falha ao ativar chave de acesso.');
+      } catch (err) {
+        btnConfirmKey.disabled = false;
+        btnConfirmKey.innerHTML = originalText;
+        if (keyError) {
+          keyError.textContent = err.message || 'Chave inválida ou limite de 2 dispositivos atingido.';
+          keyError.style.display = 'block';
+        }
+      }
     });
   }
 
   // ─── 6. Ações de Checkout Mercado Pago ───────────────────────────────────
   document.querySelectorAll('.btn-checkout-link').forEach(btn => {
-    btn.addEventListener('click', (e) => {
+    btn.addEventListener('click', async (e) => {
       e.preventDefault();
-      const customUrl = localStorage.getItem('confeitex_mp_checkout_link') || localStorage.getItem('confeitex_checkout_url');
-      if (customUrl && customUrl.startsWith('http')) {
-        window.open(customUrl, '_blank');
-      } else {
+      try {
+        await License.startPurchase();
+      } catch (err) {
+        console.warn('[Landing Checkout]:', err);
         openMpModal();
       }
     });

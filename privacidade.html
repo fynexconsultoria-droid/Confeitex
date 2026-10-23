@@ -284,11 +284,11 @@
           <li>Os dados permanecem sob controle do usuário no dispositivo até que decida excluí-los ou exportá-los.</li>
         </ul>
 
-        <h2>4. Processamento Seguro de Pagamentos (Mercado Pago & PCI-DSS)</h2>
-        <p>Para viabilizar transações financeiras voluntárias — tais como geração de cobranças via Pix/Cartão para encomendas de clientes ou adesão ao Plano Confeitex —, o aplicativo comunica-se exclusivamente com servidores certificados do <strong>Mercado Pago</strong> através de requisições criptografadas (HTTPS/TLS com HMAC-SHA256) via Cloudflare Worker:</p>
+        <h2>4. Recebimento de Encomendas & Pagamento do Plano Confeitex</h2>
+        <p>No Confeitex, separamos com clareza total os recebimentos das suas clientes e o pagamento da assinatura do aplicativo:</p>
         <ul>
-          <li><strong>Conformidade PCI-DSS:</strong> Dados sensíveis de cartão de crédito são tokenizados de forma segura diretamente pela infraestrutura da processadora (Mercado Pago). O Confeitex <strong>nunca armazena números de cartão ou códigos de segurança (CVV)</strong> no seu dispositivo ou em bancos de dados.</li>
-          <li><strong>Finalidade Estrita:</strong> Apenas os dados estritamente necessários para a conclusão da transação e emissão do comprovante são trafegados no momento da solicitação do usuário.</li>
+          <li><strong>Recebimento de Encomendas (Pix & Bancos de sua preferência):</strong> Para cobrar suas clientes, o Confeitex opera de forma 100% descentralizada e universal. Você pode cadastrar sua própria chave Pix (padrão BACEN) ou dados de qualquer instituição bancária de sua escolha. Os pagamentos das clientes vão direto para a sua conta, sem intermediários, sem retenção e sem nenhuma taxa cobrada pelo Confeitex.</li>
+          <li><strong>Assinatura do Plano Anual Confeitex (Mercado Pago):</strong> A adesão à anuidade do aplicativo é processada exclusivamente em servidores certificados do <strong>Mercado Pago Checkout Pro</strong> através de requisições HTTPS criptografadas com HMAC-SHA256 via Cloudflare Worker. O Confeitex <strong>nunca armazena números de cartão ou códigos CVV</strong>.</li>
         </ul>
 
         <h2>5. Service Worker e Cache Offline</h2>
@@ -334,11 +334,11 @@
           <li>Your data remains under your exclusive control.</li>
         </ul>
 
-        <h2>4. Secure Payment Processing (Mercado Pago & PCI-DSS)</h2>
-        <p>When you choose to process payments (such as generating Pix or Credit Card payments for customer orders or subscribing to Confeitex), the app communicates securely with certified <strong>Mercado Pago</strong> services over encrypted HTTPS/TLS connections via Cloudflare Workers:</p>
+        <h2>4. Customer Payments & Confeitex Subscription</h2>
+        <p>In Confeitex, we strictly separate your customer order payments from the software subscription:</p>
         <ul>
-          <li><strong>PCI-DSS Compliance:</strong> Sensitive payment details are securely tokenized directly by the payment processor. Confeitex <strong>never stores full credit card numbers or CVV codes</strong> on your device or databases.</li>
-          <li><strong>Strict Purpose:</strong> Only information strictly required for payment processing and receipt generation is processed upon user request.</li>
+          <li><strong>Customer Order Payments (Universal Pix & Any Bank):</strong> To receive payments from your customers, Confeitex works in a 100% decentralized manner. You can enter your own Pix key (BACEN standard) or any bank details of your choice. All customer payments go directly to your personal bank account, with zero fees and no third-party custody from Confeitex.</li>
+          <li><strong>Confeitex Annual Plan Subscription (Mercado Pago):</strong> App annual subscription payments are processed securely via certified <strong>Mercado Pago Checkout Pro</strong> servers over encrypted HTTPS connections via Cloudflare Workers. Confeitex <strong>never stores credit card numbers or CVV codes</strong>.</li>
         </ul>
 
         <h2>5. Service Worker and Offline Cache</h2>
