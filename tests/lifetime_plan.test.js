@@ -29,15 +29,16 @@ describe('Confeitex Lifetime Plan & Lock System', () => {
     expect(Plan.canUse('finances_tab')).toBe(false);
   });
 
-  it('should validate activation keys correctly', () => {
+  it('should validate activation keys correctly and reject backdoors', () => {
     expect(Plan.PRICE_BRL).toBe(397.90);
-    expect(Plan.verifyKey('CONFEITEXVIP')).toBe(true);
-    expect(Plan.verifyKey('cftx-8990')).toBe(true);
-    expect(Plan.verifyKey('cftx-397')).toBe(true);
-    expect(Plan.verifyKey('CFTX39790')).toBe(true);
+    // Chaves padrão Confeitex válidas
     expect(Plan.verifyKey('CFTX-2026-ABCD')).toBe(true);
-    expect(Plan.verifyKey('KWF-9876543210')).toBe(true);
-    expect(Plan.verifyKey('HOT-9876543210')).toBe(true);
+    expect(Plan.verifyKey('CFTX-ABCD-EFGH-JKLM')).toBe(true);
+    expect(Plan.verifyKey('CFTX39790')).toBe(true);
+    // Backdoors e chaves mestras inseguras foram removidas
+    expect(Plan.verifyKey('CONFEITEXVIP')).toBe(false);
+    expect(Plan.verifyKey('KWF-9876543210')).toBe(false);
+    expect(Plan.verifyKey('HOT-9876543210')).toBe(false);
     expect(Plan.verifyKey('123')).toBe(false);
     expect(Plan.verifyKey('')).toBe(false);
   });
@@ -81,7 +82,7 @@ describe('Confeitex Lifetime Plan & Lock System', () => {
     expect(Plan.canUse('unlimited_orders')).toBe(false);
   });
 
-  it('should auto-activate annual plan when Mercado Pago returns with payment=success', () => {
+  it('should auto-activate annual plan when Mercado Pago returns with payment=success', async () => {
     const originalWindow = globalThis.window;
     globalThis.window = {
       location: {
@@ -94,7 +95,7 @@ describe('Confeitex Lifetime Plan & Lock System', () => {
     };
 
     expect(Plan.isLifetimeActive()).toBe(false);
-    const result = Plan.handleMercadoPagoReturn();
+    const result = await Plan.handleMercadoPagoReturn();
     expect(result).toBe(true);
     expect(Plan.isLifetimeActive()).toBe(true);
     expect(globalThis.localStorage.getItem('confeitex_activation_key')).toBe('MP-9876543210');
@@ -102,7 +103,7 @@ describe('Confeitex Lifetime Plan & Lock System', () => {
     globalThis.window = originalWindow;
   });
 
-  it('should sanitize payment_id and prevent XSS injection in modal', () => {
+  it('should sanitize payment_id and prevent XSS injection in modal', async () => {
     const originalWindow = globalThis.window;
     const originalDoc = globalThis.document;
 
@@ -117,7 +118,7 @@ describe('Confeitex Lifetime Plan & Lock System', () => {
       }
     };
 
-    Plan.handleMercadoPagoReturn();
+    await Plan.handleMercadoPagoReturn();
     // Como o payment_id tem caracteres inválidos (< > =), deve cair no fallback seguro 'CFTX397'
     const storedKey = globalThis.localStorage.getItem('confeitex_activation_key');
     expect(storedKey).toBe('CFTX397');

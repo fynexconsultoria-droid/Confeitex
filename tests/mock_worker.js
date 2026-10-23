@@ -4,12 +4,13 @@ const PORT = 8787;
 
 // Memória de licenças para controle de limite de dispositivos (máximo 2 por chave)
 const licenseStore = new Map();
+const refStore = new Map();
 
 const server = http.createServer((req, res) => {
   // Configura CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Idempotency-Key');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Request-Id');
 
   if (req.method === 'OPTIONS') {
     res.writeHead(204);
@@ -17,80 +18,90 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  // Rota Health Check
+  // 1. Health Check
   if (req.url === '/health' && req.method === 'GET') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ status: 'ok', environment: 'mock-test' }));
+    res.end(JSON.stringify({ status: 'ok', service: 'confeitex-mock-worker', environment: 'mock-test' }));
     return;
   }
 
-  // Rota Criar Pagamento Mockada
-  if (req.url === '/create-payment' && req.method === 'POST') {
+  // 2. Criar Compra Mercado Pago Checkout Pro (POST /purchase)
+  if (req.url === '/purchase' && req.method === 'POST') {
     let body = '';
     req.on('data', chunk => body += chunk.toString());
     req.on('end', () => {
       try {
-        const payload = JSON.stringify(body);
-        console.log('[Mock Worker] Recebido pedido de pagamento:', payload);
-        
-        // Simula latência de rede (1s)
+        const payload = JSON.parse(body || '{}');
+        const ref = 'mock_ref_' + Date.now();
+        refStore.set(ref, {
+          ref,
+          deviceId: payload.deviceId,
+          status: 'pending',
+          createdAt: new Date().toISOString()
+        });
+
+        // Simula aprovação automática após 2 segundos em mock
         setTimeout(() => {
-          res.writeHead(201, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({
-            id: 'mock_pay_' + Date.now(),
-            status: 'approved',
-            status_detail: 'accredited',
-            point_of_interaction: {
-              transaction_data: {
-                ticket_url: 'https://www.mercadopago.com.br/mock-ticket',
-                qr_code: '00020101021243650016COM.MERCADOLIBRE02013063638f1192a-5fd1-4180-a180-8bcae3556bc35204000053039865802BR5925Mock Confeitex6009SAO PAULO62070503***6304FC73',
-                qr_code_base64: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==' // pixel mock
-              }
-            }
-          }));
-        }, 1000);
+          const rec = refStore.get(ref);
+          if (rec) {
+            const key = 'CFTX-MOCK-TEST-2026';
+            rec.status = 'approved';
+            rec.key = key;
+            rec.exp = Date.now() + (365 * 86400000);
+            licenseStore.set(key, {
+              key,
+              exp: rec.exp,
+              devices: [{ deviceId: rec.deviceId, activatedAt: new Date().toISOString() }]
+            });
+          }
+        }, 1500);
+
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+          ref,
+          init_point: `https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=mock_${ref}`
+        }));
       } catch (err) {
         res.writeHead(400, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: 'Invalid JSON body' }));
+        res.end(JSON.stringify({ error: 'invalid_json' }));
       }
     });
     return;
   }
 
-  // Rota Validar Cartão Mockada
-  if (req.url === '/validate-card' && req.method === 'POST') {
+  // 3. Reivindicação Pós-compra (POST /claim)
+  if (req.url === '/claim' && req.method === 'POST') {
     let body = '';
     req.on('data', chunk => body += chunk.toString());
     req.on('end', () => {
-      res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({
-        valid: true,
-        customer_id: 'mock_cust_' + Date.now(),
-        card_id: 'mock_card_' + Date.now(),
-        lastFourDigits: '4242',
-        status: 'validated'
-      }));
+      try {
+        const payload = JSON.parse(body || '{}');
+        const ref = payload.ref;
+        const rec = refStore.get(ref);
+
+        if (!rec || rec.status !== 'approved') {
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ status: 'pending', message: 'Aguardando aprovação do pagamento...' }));
+          return;
+        }
+
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+          status: 'approved',
+          key: rec.key,
+          exp: rec.exp,
+          message: 'Licença confirmada!'
+        }));
+      } catch (e) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'invalid_json' }));
+      }
     });
     return;
   }
 
-  // Rota Pagamento de Plano Mockada
-  if (req.url === '/plan-payment' && req.method === 'POST') {
-    let body = '';
-    req.on('data', chunk => body += chunk.toString());
-    req.on('end', () => {
-      res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({
-        id: 'mock_plan_pay_' + Date.now(),
-        status: 'approved',
-        status_detail: 'accredited'
-      }));
-    });
-    return;
-  }
-
-  // Rota Validar Licença e Limite de Dispositivos (Máximo 2)
-  if (req.url === '/validate-license' && req.method === 'POST') {
+  // 4. Validar Licença e Limite de Dispositivos (POST /validate-license ou /activate)
+  if ((req.url === '/validate-license' || req.url === '/activate') && req.method === 'POST') {
     let body = '';
     req.on('data', chunk => body += chunk.toString());
     req.on('end', () => {
@@ -134,7 +145,7 @@ const server = http.createServer((req, res) => {
             error: 'device_limit_exceeded',
             devicesCount: record.devices.length,
             maxDevices,
-            message: `Limite de dispositivos atingido! Esta chave já está cadastrada no limite máximo de ${maxDevices} aparelhos.`
+            message: `Limite de dispositivos atingido! Esta chave já está ativa em ${record.devices.length} de ${maxDevices} aparelhos permitidos.`
           }));
           return;
         }
@@ -160,8 +171,8 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  // Rota Liberar Dispositivo da Licença
-  if (req.url === '/release-license' && req.method === 'POST') {
+  // 5. Liberar Dispositivo da Licença (POST /release-license ou /release)
+  if ((req.url === '/release-license' || req.url === '/release') && req.method === 'POST') {
     let body = '';
     req.on('data', chunk => body += chunk.toString());
     req.on('end', () => {
@@ -195,5 +206,4 @@ const server = http.createServer((req, res) => {
 
 server.listen(PORT, () => {
   console.log(`[Mock Worker] Rodando em http://localhost:${PORT}`);
-  console.log('Para testar pagamentos offline localmente, defina o Worker URL no app para http://localhost:8787');
 });

@@ -1,4 +1,5 @@
 import { Dashboard } from './dashboard.js';
+import { License } from './license.js';
 import { State } from './state.js';
 import { UI } from './ui.js';
 import { safeStorage, escapeHTML } from './utils.js';
@@ -66,25 +67,40 @@ export const Plan = {
     });
   },
 
-  handleMercadoPagoReturn() {
+  async handleMercadoPagoReturn() {
     if (typeof window === 'undefined' || !window.location || !window.location.search) return false;
     try {
       const params = new URLSearchParams(window.location.search);
+      const ref = params.get('ref') || safeStorage.get('confeitex_pending_purchase_ref');
       const payment = params.get('payment');
       const status = params.get('status') || params.get('collection_status');
       const paymentId = params.get('payment_id') || params.get('collection_id');
 
-      // Se o retorno do Mercado Pago indicar aprovação (ex: payment=success ou status=approved)
+      // 1. Fluxo oficial seguro via ref verificado pelo worker
+      if (ref && (payment === 'success' || status === 'approved' || !payment)) {
+        const claimResult = await License.claimPurchase(ref);
+        if (claimResult.status === 'approved' && claimResult.key) {
+          this.activateLifetime(claimResult.key, 'mercadopago_auto', 365);
+          try {
+            window.history.replaceState({}, document.title, window.location.pathname);
+          } catch (_) {}
+          this.showPaymentSuccessModal(claimResult.key);
+          return true;
+        } else if (payment === 'failure' || status === 'rejected') {
+          UI.toast('O pagamento não foi concluído. Tente novamente quando desejar.', 'warning');
+          return false;
+        }
+      }
+
+      // 2. Retorno com payment_id aprovado
       if (payment === 'success' || status === 'approved') {
         const rawId = paymentId ? String(paymentId).trim() : '';
         const isValidId = /^[A-Za-z0-9_-]+$/.test(rawId);
         const key = isValidId ? `MP-${rawId}` : 'CFTX397';
         this.activateLifetime(key, 'mercadopago_auto', 365);
 
-        // Limpa os parâmetros da URL de forma elegante
         try {
-          const cleanUrl = window.location.pathname;
-          window.history.replaceState({}, document.title, cleanUrl);
+          window.history.replaceState({}, document.title, window.location.pathname);
         } catch (_) {}
 
         if (typeof document !== 'undefined') {
@@ -246,15 +262,8 @@ export const Plan = {
 
   verifyKey(rawKey) {
     if (!rawKey) return false;
-    const clean = rawKey.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
-    const masterKeys = ['CONFEITEXVIP', 'CFTX8990', 'CFTX397', 'CFTX39790', 'VITALICIO2026', 'CONFEITEX2026', 'DOCELUCRO', 'MERCADOPAGO', 'MP8990', 'MP397'];
-    if (masterKeys.includes(clean)) return true;
-    if (clean.startsWith('CFTX') || clean.startsWith('MP') || clean.startsWith('KWF') || clean.startsWith('HOT') || clean.length >= 10) {
-      return true;
-    }
-    const customSecret = safeStorage.get('confeitex_custom_secret_key');
-    if (customSecret && clean === customSecret.toUpperCase().replace(/[^A-Z0-9]/g, '')) return true;
-    return false;
+    const clean = rawKey.trim().toUpperCase().replace(/[^A-Z0-9-]/g, '');
+    return /^CFTX(-[A-Z0-9]{4}){2,3}$/.test(clean) || /^CFTX[A-Z0-9]{4,12}$/.test(clean);
   },
 
   getDeviceId() {
@@ -293,9 +302,9 @@ export const Plan = {
     if (!rawKey) {
       return { valid: false, error: 'empty_key', message: 'Informe a chave de ativação.' };
     }
-    const clean = rawKey.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+    const clean = rawKey.trim().toUpperCase().replace(/[^A-Z0-9-]/g, '');
     if (!this.verifyKey(clean)) {
-      return { valid: false, error: 'invalid_key', message: 'Chave inválida. Verifique o código recebido ou adquira seu plano anual.' };
+      return { valid: false, error: 'invalid_key', message: 'Chave inválida. O formato padrão é CFTX-XXXX-XXXX-XXXX.' };
     }
 
     const deviceId = this.getDeviceId();
@@ -333,6 +342,9 @@ export const Plan = {
           };
         }
 
+        if (data.token) {
+          safeStorage.set(License.STORAGE_KEYS.TOKEN, data.token);
+        }
         safeStorage.set(this.KEY_DEVICE_COUNT, String(data.devicesCount || 1));
         return {
           valid: true,
@@ -343,11 +355,9 @@ export const Plan = {
       } catch (err) {
         console.warn('[Plan] Falha de conexão ao validar licença no worker:', err);
         return {
-          valid: true,
-          offlineFallback: true,
-          devicesCount: 1,
-          maxDevices: this.MAX_DEVICES_PER_KEY,
-          message: 'Ativado em modo local.'
+          valid: false,
+          error: 'network_error',
+          message: 'Não foi possível conectar ao servidor para validar a chave. Verifique sua conexão com a internet.'
         };
       }
     }

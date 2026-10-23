@@ -158,14 +158,15 @@ describe('Confeitex 2-Device Limit per License Key', () => {
     expect(res3Retry.devicesCount).toBe(2);
   });
 
-  it('should provide graceful offline fallback when worker is unreachable', async () => {
+  it('should require internet connection to activate a new key and reject unauthorized bypasses', async () => {
     globalThis.localStorage.setItem('confeitex_mp_worker_url', 'https://confeitex-api.offline.workers.dev');
 
     // Simula erro de conexão (offline)
     globalThis.fetch = vi.fn().mockRejectedValue(new Error('Failed to fetch (offline)'));
 
-    const res = await Plan.validateKeyWithDevice('CONFEITEXVIP');
-    expect(res.valid).toBe(true);
-    expect(res.offlineFallback).toBe(true);
+    const res = await Plan.validateKeyWithDevice('CFTX-8990-TEST');
+    expect(res.valid).toBe(false);
+    expect(res.error).toBe('network_error');
+    expect(res.message).toContain('Verifique sua conexão');
   });
 });

@@ -53,6 +53,7 @@ const ASSETS_TO_CACHE = [
   './js/paymentCharge.js',
   './js/i18n.js',
   './js/logger.js',
+  './js/license.js',
   './js/plan.js',
   './js/onboarding.js',
   './js/updates.js',
