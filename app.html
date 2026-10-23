@@ -121,13 +121,13 @@
 
       <div class="rsb-section-label" style="margin-top:0.75rem;">Financeiro</div>
 
-      <a href="#" class="rsb-link nav-link right-sidebar-link" data-tab="mercadopago" id="rsb-mp">
+      <a href="#" class="rsb-link nav-link right-sidebar-link" data-tab="pagamentos" id="rsb-pagamentos">
         <span class="rsb-link-icon rsb-icon-blue">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
         </span>
         <div class="rsb-link-body">
-          <span class="rsb-link-title">Mercado Pago</span>
-          <span class="rsb-link-sub">Integração de pagamentos</span>
+          <span class="rsb-link-title">Formas de Recebimento</span>
+          <span class="rsb-link-sub">Pix, dados bancários e links</span>
         </div>
         <svg class="rsb-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
       </a>
@@ -951,52 +951,75 @@
       </section>
 
 
-      <!-- TAB: MERCADO PAGO -->
-      <section id="mercadopago" class="tab-content">
+      <!-- TAB: FORMAS DE RECEBIMENTO (PIX & QUALQUER BANCO) -->
+      <section id="pagamentos" class="tab-content">
         <div class="config-grid">
-          <!-- Mercado Pago Config Card -->
           <div class="config-card">
             <div class="config-card-header">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-              <span data-i18n="mp.settingsTitle">Mercado Pago (Checkout & Pagamentos)</span>
+              <span>Formas de Recebimento (Seu Banco / Pix)</span>
             </div>
-            <p class="config-desc" data-i18n="mp.settingsDesc">
-              Aceite pagamentos via Pix, Cartão de Crédito, Débito e Links de Pagamento para suas encomendas.
+            <p class="config-desc">
+              Configure seus dados para receber o pagamento das suas encomendas diretamente na sua conta de qualquer banco (Nubank, Inter, Itaú, BB, Caixa, etc).
             </p>
+
             <div class="mp-config-group">
+              <!-- Chave Pix -->
               <div class="form-group mb-2">
-                <label for="mpLicenseLink" style="color:var(--color-accent-pink); font-weight:700;">Link Oficial Mercado Pago (Licença R$ 397,90)</label>
-                <input type="url" class="form-control" id="mpLicenseLink" placeholder="https://mpago.la/1e6EgRS" value="https://mpago.la/1e6EgRS">
+                <label for="cfgPixKey" style="color:var(--color-accent-pink); font-weight:700;">Sua Chave Pix *</label>
+                <input type="text" class="form-control" id="cfgPixKey" placeholder="CPF, Celular com DDD, E-mail ou Chave Aleatória">
                 <small style="color:var(--text-muted); font-size:0.75rem; display:block; margin-top:0.25rem;">
-                  Link de Pagamento gerado no seu Mercado Pago para o Confeitex Anual (R$ 397,90/ano - parcelamento em até 10x de R$ 39,79 sem juros, Pix e Boleto).
+                  Utilizada para gerar o QR Code e o código Pix Copia e Cola automático com o valor do pedido.
                 </small>
               </div>
+
+              <!-- Titular da Conta -->
               <div class="form-group mb-2">
-                <label for="mpWorkerUrl" data-i18n="mp.settingsLabel">URL do Cloudflare Worker *</label>
-                <input type="url" class="form-control" id="mpWorkerUrl" placeholder="https://confeitex-api.seu-subdominio.workers.dev" data-i18n-ph="mp.settingsPh">
+                <label for="cfgPixName">Nome do Titular da Conta</label>
+                <input type="text" class="form-control" id="cfgPixName" placeholder="Ex: Maria Oliveira ou Confeitaria Doce Arte" maxlength="25">
                 <small style="color:var(--text-muted); font-size:0.75rem; display:block; margin-top:0.25rem;">
-                  Responsável pelo processamento do Mercado Pago e controle de limite de até 2 dispositivos por licença.
+                  Nome que aparecerá no comprovante Pix (máximo 25 letras, padrão do Banco Central).
                 </small>
               </div>
+
+              <!-- Cidade da Conta -->
               <div class="form-group mb-2">
-                <label for="mpPublicKey" data-i18n="mp.settingsPublicKey">Public Key do Mercado Pago (Opcional)</label>
-                <input type="text" class="form-control" id="mpPublicKey" placeholder="APP_USR-xxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
+                <label for="cfgPixCity">Cidade da Conta</label>
+                <input type="text" class="form-control" id="cfgPixCity" placeholder="Ex: São Paulo" maxlength="15">
+                <small style="color:var(--text-muted); font-size:0.75rem; display:block; margin-top:0.25rem;">
+                  Cidade do titular da conta (máximo 15 letras, padrão do Banco Central).
+                </small>
               </div>
+
+              <!-- Dados Bancários Alternativos -->
               <div class="form-group mb-2">
-                <label for="mpAppSecret" data-i18n="mp.settingsAppSecret">Chave Secreta do App (Opcional - X-App-Secret)</label>
-                <input type="password" class="form-control" id="mpAppSecret" placeholder="Sua chave secreta configurada no Worker" autocomplete="off">
+                <label for="cfgBankInfo">Dados Bancários para Transferência / TED (Opcional)</label>
+                <textarea class="form-control" id="cfgBankInfo" rows="2" placeholder="Ex: Banco Inter (077) - Ag 0001 - Conta 1234567-8 - Maria Oliveira"></textarea>
+                <small style="color:var(--text-muted); font-size:0.75rem; display:block; margin-top:0.25rem;">
+                  Aparece como opção alternativa para clientes que preferem transferência bancária direta.
+                </small>
               </div>
-              <div class="mp-config-actions">
-                <button class="btn btn-primary" id="btnSaveMpWorker" data-i18n="mp.settingsSave">Salvar Configurações</button>
-                <button class="btn btn-secondary" id="btnTestMpWorker" data-i18n="mp.settingsTest">Testar Conexão</button>
+
+              <!-- Link de Pagamento Externo -->
+              <div class="form-group mb-2">
+                <label for="cfgPaymentLink">Link de Pagamento com Cartão de Crédito (Opcional)</label>
+                <input type="url" class="form-control" id="cfgPaymentLink" placeholder="Ex: Link da sua maquininha InfinitePay, PicPay, PagBank ou Mercado Pago próprio">
+                <small style="color:var(--text-muted); font-size:0.75rem; display:block; margin-top:0.25rem;">
+                  Se você tiver um link de cobrança de qualquer instituição, seus clientes poderão pagar com cartão em parcelas.
+                </small>
+              </div>
+
+              <!-- Instruções Personalizadas -->
+              <div class="form-group mb-2">
+                <label for="cfgPaymentInstructions">Instruções para a Cliente (Opcional)</label>
+                <input type="text" class="form-control" id="cfgPaymentInstructions" placeholder="Ex: Pedido confirmado mediante envio de comprovante de 50% de sinal.">
+              </div>
+
+              <div class="mp-config-actions" style="margin-top:1rem;">
+                <button class="btn btn-primary" id="btnSavePaymentConfig">Salvar Formas de Recebimento</button>
               </div>
             </div>
-            <div class="mp-config-status" id="mpWorkerStatusBadge" style="display:none;"></div>
-            <div class="mp-config-url" id="mpWorkerUrlDisplay" style="display:none;"></div>
           </div>
-
-
-          
         </div>
       </section>
 
@@ -1331,137 +1354,92 @@
     if (migrated) console.log('[Migrate] Dados antigos migrados para Confeitex');
   })();
   </script>
-  <!-- MERCADO PAGO: Modal de Checkout Embebido & Links -->
-  <div class="modal-overlay" id="mpCheckoutModal" role="dialog" aria-modal="true" aria-label="Pagamento Mercado Pago">
-    <div class="modal-container mp-checkout-modal-container">
-      <div class="modal-header mp-modal-header">
+  <!-- MODAL DE COBRANÇA DA ENCOMENDA (PIX, DADOS BANCÁRIOS & WHATSAPP) -->
+  <div class="modal-overlay" id="paymentChargeModal" role="dialog" aria-modal="true" aria-label="Cobrança da Encomenda">
+    <div class="modal-container charge-modal-container">
+      <div class="modal-header">
         <div>
           <h2>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-            <span data-i18n="mp.modalTitle">Cobrança Mercado Pago</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+            <span>Cobrança da Encomenda</span>
           </h2>
-          <div class="mp-modal-order-summary" id="mpModalOrderSummary"></div>
+          <div class="mp-modal-order-summary" id="chargeModalOrderSummary"></div>
         </div>
-        <button class="modal-close" id="btnMpCheckoutClose" aria-label="Fechar">
+        <button class="modal-close" id="btnChargeModalClose" aria-label="Fechar">
           <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>
       </div>
 
-      <!-- Abas de Navegação -->
-      <div class="mp-tabs-nav">
-        <button class="mp-tab-btn active" id="mpTabDirect" type="button">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-          <span data-i18n="mp.tabDirect">Pagar no App (Cartão/Pix)</span>
-        </button>
-        <button class="mp-tab-btn" id="mpTabLink" type="button">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-          <span data-i18n="mp.tabLink">Enviar Link / WhatsApp</span>
-        </button>
-      </div>
+      <div class="modal-body">
+        <!-- Aviso quando nenhuma forma de recebimento foi cadastrada ainda -->
+        <div id="chargeNoConfigNotice" style="display:none; text-align:center; padding:1.5rem 0.5rem;">
+          <div style="font-size:2rem; margin-bottom:0.5rem;">⚙️</div>
+          <h3 style="font-size:1.1rem; margin-bottom:0.5rem;">Nenhuma forma de recebimento configurada</h3>
+          <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:1rem;">
+            Cadastre sua chave Pix ou dados bancários em <strong>Formas de Recebimento</strong> para gerar QR Codes e cobranças automáticas.
+          </p>
+          <button class="btn btn-primary" id="btnGoToPaymentConfig" type="button">Configurar Agora</button>
+        </div>
 
-      <div class="modal-body mp-checkout-body">
-        <!-- PAINEL 1: Cobrança Direta (Payment Brick / Pix) -->
-        <div id="mpPanelDirect" class="mp-tab-panel">
-          <!-- Loading -->
-          <div class="mp-brick-loading" id="mpBrickLoading">
-            <div class="mp-spinner"></div>
-            <span id="mpLoadingText" data-i18n="mp.loading">Preparando checkout seguro...</span>
+        <div id="chargeModalContent">
+          <!-- QR Code Pix -->
+          <div class="charge-qr-card">
+            <div class="charge-qr-container" id="chargeQrContainer"></div>
+            <span style="color:#0b0813; font-size:0.75rem; font-weight:800; text-transform:uppercase; letter-spacing:0.05em; margin-top:0.35rem;">
+              Pix Instantâneo
+            </span>
           </div>
 
-          <!-- Brick Container Oficial MP -->
-          <div class="mp-brick-container" id="mpBrickContainer"></div>
-
-          <!-- Pix View Dedicada -->
-          <div class="mp-brick-pix" id="mpBrickPix" style="display:none;">
-            <div class="mp-pix-header">
-              <span class="mp-pix-badge">PIX Instantâneo</span>
-              <div class="mp-pix-amount-box">
-                <span data-i18n="mp.pixTotalLabel">Valor a pagar:</span>
-                <span class="mp-pix-amount" id="mpPixAmount">R$ 0,00</span>
-              </div>
-            </div>
-
-            <div class="mp-pix-qr-wrap">
-              <img id="mpPixQrImg" class="mp-pix-qr-img" alt="QR Code PIX" style="display:none;" />
-              <p class="mp-pix-instructions" data-i18n="mp.pixScanTip">Abra o app do seu banco e escaneie o QR Code acima ou use o Pix Copia e Cola:</p>
-            </div>
-
-            <div class="mp-pix-code-group">
-              <input type="text" class="form-control mp-pix-input" id="mpPixCodeInput" readonly />
-              <button class="btn btn-primary" id="btnCopyPixCode" type="button">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-                <span data-i18n="mp.btnCopyPix">Copiar Código Pix</span>
+          <!-- Código Pix Copia e Cola -->
+          <div class="form-group mb-2">
+            <label style="font-size:0.8rem; font-weight:700;">Pix Copia e Cola:</label>
+            <div class="charge-pix-input-group">
+              <input type="text" class="form-control charge-pix-input" id="chargePixCodeInput" readonly />
+              <button class="btn btn-secondary btn-sm" id="btnCopyChargePix" type="button" title="Copiar código">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copiar
               </button>
             </div>
+          </div>
 
-            <div class="mp-pix-status-check">
-              <div class="mp-pulse-dot"></div>
-              <span data-i18n="mp.pixAwaiting">Aguardando confirmação do pagamento...</span>
-              <button class="btn btn-secondary btn-sm" id="btnCheckPixStatus" type="button" data-i18n="mp.btnCheckStatus">Verificar Agora</button>
+          <!-- Dados Bancários Alternativos (se houver) -->
+          <div class="charge-extra-section" id="chargeBankSection" style="display:none;">
+            <div class="charge-extra-title">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v4M12 14v4M16 14v4"/></svg>
+              Transferência / TED:
+            </div>
+            <div id="chargeBankText" style="white-space:pre-wrap; font-size:0.8rem; color:var(--text-secondary);"></div>
+          </div>
+
+          <!-- Link Externo com Cartão (se houver) -->
+          <div class="charge-extra-section" id="chargeLinkSection" style="display:none;">
+            <div class="charge-extra-title">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+              Pagar com Cartão (Link Externo):
+            </div>
+            <div class="charge-pix-input-group">
+              <input type="text" class="form-control charge-pix-input" id="chargeLinkInput" readonly />
+              <button class="btn btn-secondary btn-sm" id="btnChargeOpenLink" type="button">Abrir</button>
             </div>
           </div>
 
-          <!-- Success View -->
-          <div class="mp-brick-success" id="mpBrickSuccess" style="display:none;">
-            <div class="mp-success-icon-wrap">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-            </div>
-            <h3 class="mp-success-status" id="mpSuccessStatus"></h3>
-            <div class="mp-success-details" id="mpSuccessDetails"></div>
-            <button class="btn btn-primary w-100" id="btnMpCheckoutDone" data-i18n="mp.btnDone">Concluir</button>
+          <!-- Ação Principal: WhatsApp -->
+          <div style="margin-top:1.25rem;">
+            <button class="btn btn-whatsapp-charge w-100" id="btnSendChargeWhatsApp" type="button" style="padding:0.85rem; font-size:0.95rem; display:flex; align-items:center; justify-content:center; gap:0.5rem;">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.664-.699c.971.532 1.77.818 2.796.818 3.182 0 5.768-2.587 5.768-5.766.001-3.183-2.575-5.769-5.768-5.769zm10.024 5.766c-.001 5.547-4.512 10.057-10.055 10.057-1.747 0-3.391-.453-4.82-1.246l-5.18 1.359 1.385-5.048c-.87-1.493-1.37-3.23-1.37-5.122 0-5.545 4.51-10.055 10.054-10.055 5.544 0 10.055 4.51 10.055 10.055z"/></svg>
+              <span>Enviar Cobrança no WhatsApp</span>
+            </button>
           </div>
 
-          <!-- Error View -->
-          <div class="mp-brick-error" id="mpBrickError" style="display:none;">
-            <div class="mp-error-icon-wrap">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
-            </div>
-            <span id="mpErrorMessage"></span>
-            <button class="btn btn-secondary" id="btnMpRetry" data-i18n="mp.btnRetry">Tentar Novamente</button>
+          <!-- Controle de Pagamento Rápido -->
+          <div style="display:flex; gap:0.5rem; margin-top:0.75rem;">
+            <button class="btn btn-secondary btn-sm w-100" id="btnChargeMarkDeposit" type="button" title="Registrar sinal de 50%">
+              💰 Sinal 50%
+            </button>
+            <button class="btn btn-secondary btn-sm w-100" id="btnChargeMarkPaid" type="button" style="color:var(--color-success); border-color:rgba(16,185,129,0.3);" title="Marcar como 100% pago">
+              ✓ Marcar Pago
+            </button>
           </div>
-        </div>
-
-        <!-- PAINEL 2: Link de Pagamento / WhatsApp -->
-        <div id="mpPanelLink" class="mp-tab-panel" style="display:none;">
-          <div class="mp-link-loading" id="mpLinkLoading" style="display:none;">
-            <div class="mp-spinner"></div>
-            <span data-i18n="mp.generatingLink">Gerando link seguro de pagamento...</span>
-          </div>
-
-          <div class="mp-link-content" id="mpLinkContent">
-            <div class="mp-link-info-card">
-              <p data-i18n="mp.linkInfoDesc">Envie este link para seu cliente pagar com segurança via Pix, Cartão de Crédito em até 12x ou Boleto.</p>
-              
-              <div class="form-group mb-3">
-                <label for="mpPaymentLinkInput" data-i18n="mp.lblPaymentLink">Link de Pagamento (Checkout Pro)</label>
-                <div class="mp-link-input-wrap">
-                  <input type="text" class="form-control" id="mpPaymentLinkInput" readonly />
-                  <button class="btn btn-secondary" id="btnCopyPaymentLink" type="button" title="Copiar link">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-                  </button>
-                </div>
-              </div>
-
-              <div class="mp-link-action-buttons">
-                <button class="btn btn-whatsapp w-100" id="btnSendPaymentWhatsApp" type="button">
-                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.664-.699c.971.532 1.77.818 2.796.818 3.182 0 5.768-2.587 5.768-5.766.001-3.183-2.575-5.769-5.768-5.769zm10.024 5.766c-.001 5.547-4.512 10.057-10.055 10.057-1.747 0-3.391-.453-4.82-1.246l-5.18 1.359 1.385-5.048c-.87-1.493-1.37-3.23-1.37-5.122 0-5.545 4.51-10.055 10.054-10.055 5.544 0 10.055 4.51 10.055 10.055z"/></svg>
-                  <span data-i18n="mp.btnSendWhatsApp">Enviar Cobrança no WhatsApp</span>
-                </button>
-
-                <button class="btn btn-secondary w-100" id="btnOpenPaymentLink" type="button">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-                  <span data-i18n="mp.btnOpenLink">Abrir Link de Pagamento</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="modal-footer mp-checkout-footer">
-        <div class="mp-secure-badge">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-          <span data-i18n="mp.secure">Pagamento 100% criptografado e seguro via Mercado Pago</span>
         </div>
       </div>
     </div>

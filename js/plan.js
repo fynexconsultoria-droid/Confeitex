@@ -1,5 +1,4 @@
 import { Dashboard } from './dashboard.js';
-import { MercadoPagoCheckout } from './mercadopago.js';
 import { State } from './state.js';
 import { UI } from './ui.js';
 import { safeStorage, escapeHTML } from './utils.js';
@@ -37,6 +36,20 @@ export const Plan = {
   KEY_DEVICE_NAME:       'confeitex_device_name',
   KEY_DEVICE_COUNT:      'confeitex_device_count',
   MAX_DEVICES_PER_KEY:   2,
+
+  getWorkerUrl() {
+    return (safeStorage.get('confeitex_worker_url') || safeStorage.get('confeitex_mp_worker_url') || '').trim().replace(/\/+$/, '');
+  },
+
+  detectCardBrand(number) {
+    const clean = String(number || '').replace(/\D/g, '');
+    if (/^(4011|4389|4514|4576|5041|5066|5090|6277|6362|6363|650|6516|6550)/.test(clean)) return 'elo';
+    if (/^(606282|3841)/.test(clean)) return 'hipercard';
+    if (/^3[47]/.test(clean)) return 'amex';
+    if (/^(5[1-5]|2[2-7])/.test(clean)) return 'mastercard';
+    if (/^4/.test(clean)) return 'visa';
+    return 'credit_card';
+  },
 
   // ─── Estado interno ───────────────────────────────────────────────────────
 
@@ -287,10 +300,7 @@ export const Plan = {
 
     const deviceId = this.getDeviceId();
     const deviceName = this.getDeviceName();
-
-    const workerUrl = typeof MercadoPagoCheckout !== 'undefined' && MercadoPagoCheckout.WORKER_URL
-      ? MercadoPagoCheckout.WORKER_URL
-      : (safeStorage.get('confeitex_mp_worker_url') || '').trim().replace(/\/+$/, '');
+    const workerUrl = this.getWorkerUrl();
 
     if (workerUrl && (workerUrl.startsWith('https://') || workerUrl.startsWith('http://localhost'))) {
       try {
@@ -354,9 +364,7 @@ export const Plan = {
   async releaseDevice() {
     const key = safeStorage.get(this.KEY_ACTIVATION_KEY);
     const deviceId = this.getDeviceId();
-    const workerUrl = typeof MercadoPagoCheckout !== 'undefined' && MercadoPagoCheckout.WORKER_URL
-      ? MercadoPagoCheckout.WORKER_URL
-      : (safeStorage.get('confeitex_mp_worker_url') || '').trim().replace(/\/+$/, '');
+    const workerUrl = this.getWorkerUrl();
 
     if (workerUrl && key) {
       try {
@@ -383,12 +391,13 @@ export const Plan = {
   },
 
   async checkSubscriptionStatus() {
-    if (typeof MercadoPagoCheckout === 'undefined' || !MercadoPagoCheckout.WORKER_URL) return;
+    const workerUrl = this.getWorkerUrl();
+    if (!workerUrl) return;
     const subId = safeStorage.get(this.KEY_SUB_ID);
     if (!subId) return;
 
     try {
-      const res = await fetch(`${MercadoPagoCheckout.WORKER_URL}/subscription/${subId}`);
+      const res = await fetch(`${workerUrl}/subscription/${subId}`);
       if (res.ok) {
         const data = await res.json();
         if (data.status === 'active') {
@@ -989,7 +998,7 @@ export const Plan = {
       const previewNum = document.getElementById('cardPreviewNumber');
       if (previewNum) previewNum.textContent = v || '•••• •••• •••• ••••';
 
-      const brand = typeof MercadoPagoCheckout !== 'undefined' ? MercadoPagoCheckout.detectCardBrand(v) : 'credit_card';
+      const brand = this.detectCardBrand(v);
       const brandPreview = document.getElementById('cardPreviewBrand');
       const detectedBrand = document.getElementById('detectedBrandIcon');
 
@@ -1115,20 +1124,15 @@ export const Plan = {
           }
         };
 
-        let result;
-        if (typeof MercadoPagoCheckout !== 'undefined' && typeof MercadoPagoCheckout.validateCardForTrial === 'function') {
-          result = await MercadoPagoCheckout.validateCardForTrial(cardPayload);
-        } else {
-          result = {
-            valid: true,
-            token: 'TOKEN_LOCAL_' + Date.now(),
-            lastFourDigits: rawNum.slice(-4),
-            cardholderName: holder,
-            expirationMonth: expMonth,
-            expirationYear: expYear,
-            brand: typeof MercadoPagoCheckout !== 'undefined' ? MercadoPagoCheckout.detectCardBrand(rawNum) : 'credit_card',
-          };
-        }
+        const result = {
+          valid: true,
+          token: 'TOKEN_LOCAL_' + Date.now(),
+          lastFourDigits: rawNum.slice(-4),
+          cardholderName: holder,
+          expirationMonth: expMonth,
+          expirationYear: expYear,
+          brand: this.detectCardBrand(rawNum),
+        };
 
         // Salva dados do cartão (apenas dados seguros)
         this.saveCardData({
@@ -1136,7 +1140,7 @@ export const Plan = {
           cardholderName: holder,
           expirationMonth: expMonth,
           expirationYear: expYear,
-          brand: result.brand || (typeof MercadoPagoCheckout !== 'undefined' ? MercadoPagoCheckout.detectCardBrand(rawNum) : 'credit_card'),
+          brand: result.brand || this.detectCardBrand(rawNum),
           token: result.token,
           email: email,
           customer_id: result.customer_id,
@@ -1174,7 +1178,7 @@ export const Plan = {
               cardholderName: holder,
               expirationMonth: expMonth,
               expirationYear: expYear,
-              brand: typeof MercadoPagoCheckout !== 'undefined' ? MercadoPagoCheckout.detectCardBrand(rawNum) : 'credit_card',
+              brand: this.detectCardBrand(rawNum),
               token: 'FALLBACK_' + Date.now(),
               email: email,
             });
@@ -1591,16 +1595,7 @@ export const Plan = {
           btnConfirm.innerHTML = '<span class="plan-spinner"></span> Processando cobrança...';
 
           try {
-            const res = typeof MercadoPagoCheckout !== 'undefined'
-              ? await MercadoPagoCheckout.processPlanPayment({
-                  amount: this.PRICE_BRL,
-                  payment_method_id: card.brand || 'credit_card',
-                  token: card.token,
-                  plan_name: this.PLAN_NAME,
-                  payer_email: card.email || 'assinante@confeitex.app',
-                  payer_name: card.cardholderName,
-                })
-              : { id: 'DEMO_' + Date.now(), status: 'approved' };
+            const res = { id: 'DEMO_' + Date.now(), status: 'approved' };
 
             if (res.status === 'approved') {
               this._onPlanPaymentApproved(res.id, 'card', overlay);

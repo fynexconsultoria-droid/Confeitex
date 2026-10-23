@@ -20,7 +20,7 @@ Confeitex/
 │   ├── variables.css     # Tokens de design (cores, espaçamentos)
 │   ├── base.css, layout.css, components.css
 │   ├── dashboard.css, modals.css, onboarding.css, plans.css
-│   ├── mercadopago.css, ai-support.css, mobile-app.css
+│   ├── ai-support.css, mobile-app.css
 │   └── landing.css       # Exclusivo da landing page
 │
 ├── js/                   # Módulos ES (entrada: app.js)
@@ -28,7 +28,7 @@ Confeitex/
 │   ├── state.js          # Estado global + persistência
 │   ├── utils.js          # Formatadores, safeStorage, AppDB, CryptoUtils
 │   ├── logger.js, ui.js, i18n.js, pwa.js, updates.js, pull-to-refresh.js
-│   ├── auth.js, plan.js, onboarding.js, mercadopago.js
+│   ├── auth.js, plan.js, onboarding.js, pix.js, qrcode.js, paymentCharge.js
 │   ├── dashboard.js, chart.js, orders.js, clients.js, finances.js
 │   ├── notifications.js, settings.js, trash.js, aiSupport.js
 │   └── landing.js        # Exclusivo da landing page

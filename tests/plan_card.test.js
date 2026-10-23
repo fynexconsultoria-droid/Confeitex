@@ -1,8 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { MercadoPagoCheckout } from '../js/mercadopago.js';
 import { Plan } from '../js/plan.js';
 
-describe('MercadoPago and Card Registration', () => {
+describe('Plan Card Registration and Brand Detection', () => {
   let mockStore = {};
   let originalLocalStorage;
 
@@ -22,31 +21,12 @@ describe('MercadoPago and Card Registration', () => {
   });
 
   it('should detect card brands correctly', () => {
-    expect(MercadoPagoCheckout.detectCardBrand('4111111111111111')).toBe('visa');
-    expect(MercadoPagoCheckout.detectCardBrand('5500000000000004')).toBe('mastercard');
-    expect(MercadoPagoCheckout.detectCardBrand('378282246310005')).toBe('amex');
-    expect(MercadoPagoCheckout.detectCardBrand('4011781234567890')).toBe('elo');
-    expect(MercadoPagoCheckout.detectCardBrand('6062821234567890')).toBe('hipercard');
-  });
-
-  it('should return safe demo card validation when worker is not configured', async () => {
-    MercadoPagoCheckout.WORKER_URL = '';
-    MercadoPagoCheckout.PUBLIC_KEY = '';
-
-    const cardPayload = {
-      cardNumber: '4111 1111 1111 1111',
-      cardholderName: 'Maria Silva',
-      cardExpirationMonth: '12',
-      cardExpirationYear: '2028',
-      securityCode: '123',
-      email: 'maria@exemplo.com'
-    };
-
-    const result = await MercadoPagoCheckout.validateCardForTrial(cardPayload);
-    expect(result.valid).toBe(true);
-    expect(result.demo).toBe(true);
-    expect(result.lastFourDigits).toBe('1111');
-    expect(result.brand).toBe('visa');
+    expect(Plan.detectCardBrand('4111111111111111')).toBe('visa');
+    expect(Plan.detectCardBrand('5500000000000004')).toBe('mastercard');
+    expect(Plan.detectCardBrand('378282246310005')).toBe('amex');
+    expect(Plan.detectCardBrand('4011781234567890')).toBe('elo');
+    expect(Plan.detectCardBrand('6062821234567890')).toBe('hipercard');
+    expect(Plan.detectCardBrand('1234567890123456')).toBe('credit_card');
   });
 
   it('should correctly save and retrieve card data safely without exposing sensitive CVV or full PAN', () => {

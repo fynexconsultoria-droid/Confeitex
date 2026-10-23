@@ -9,10 +9,10 @@ import { Clients } from './clients.js';
 import { Dashboard } from './dashboard.js';
 import { Finance } from './finances.js';
 import { I18n } from './i18n.js';
-import { MercadoPagoCheckout } from './mercadopago.js';
 import { Notifications } from './notifications.js';
 import { Onboarding } from './onboarding.js';
 import { Orders } from './orders.js';
+import { PaymentCharge } from './paymentCharge.js';
 import { Plan } from './plan.js';
 import { Settings } from './settings.js';
 import { State } from './state.js';
@@ -82,7 +82,7 @@ import './pwa.js';
     settings:     { title: 'tab.settings.title', subtitle: 'tab.settings.sub' },
     updates:      { title: 'tab.updates.title',  subtitle: 'tab.updates.sub' },
     notificacoes: { title: 'settings.notifTitle', subtitle: 'settings.notifDesc' },
-    mercadopago:  { title: 'mp.settingsTitle',    subtitle: 'mp.settingsDesc' },
+    pagamentos:   { title: 'Recebimentos & Pix',   subtitle: 'Configure suas formas de recebimento e chave Pix para os pedidos' },
   };
 
   const hashParams   = new URLSearchParams(location.hash.slice(1));
@@ -147,6 +147,7 @@ import './pwa.js';
       else if (tabId === 'clients')   Clients.render();
       else if (tabId === 'finances')  Finance.render();
       else if (tabId === 'settings')  { Settings.renderCatalog(); Updates.render(); }
+      else if (tabId === 'pagamentos') PaymentCharge.init();
       else if (tabId === 'updates')   Updates.render();
     } catch (e) { console.warn('[Confeitex] Erro na aba', tabId, e); }
   }
@@ -475,40 +476,42 @@ import './pwa.js';
     setTimeout(() => document.getElementById('btnNewOrder')?.click(), 350);
   }
 
-  // ─── Mercado Pago ─────────────────────────────────────────────────────────────────────────
-  if (typeof MercadoPagoCheckout !== 'undefined') {
-    MercadoPagoCheckout.init();
+  // ─── Cobrança Universal (Pix / TED / WhatsApp) ───────────────────────────
+  if (typeof PaymentCharge !== 'undefined') {
+    PaymentCharge.init();
 
-    const mpCheckoutModal = document.getElementById('mpCheckoutModal');
-    document.getElementById('btnMpCheckoutClose')?.addEventListener('click', (e) => {
+    const paymentModal = document.getElementById('paymentChargeModal');
+    document.getElementById('btnPaymentChargeClose')?.addEventListener('click', (e) => {
       e.preventDefault();
-      MercadoPagoCheckout.closeCheckout();
+      PaymentCharge.close();
     });
-    if (mpCheckoutModal) {
-      mpCheckoutModal.addEventListener('click', (e) => {
-        if (e.target === mpCheckoutModal) MercadoPagoCheckout.closeCheckout();
+    if (paymentModal) {
+      paymentModal.addEventListener('click', (e) => {
+        if (e.target === paymentModal) PaymentCharge.close();
       });
     }
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && mpCheckoutModal && mpCheckoutModal.classList.contains('active')) {
-        MercadoPagoCheckout.closeCheckout();
+      if (e.key === 'Escape' && paymentModal && paymentModal.classList.contains('active')) {
+        PaymentCharge.close();
       }
     });
 
-    document.getElementById('btnMpCheckoutDone')?.addEventListener('click', () => {
-      MercadoPagoCheckout.closeCheckout();
+    document.getElementById('btnCopyPixCharge')?.addEventListener('click', () => PaymentCharge.copyPix());
+    document.getElementById('btnSendWhatsappCharge')?.addEventListener('click', () => PaymentCharge.sendWhatsApp());
+    document.getElementById('btnMarkDepositPaid')?.addEventListener('click', () => {
+      PaymentCharge.markStatus('deposit');
       Orders.render();
       Dashboard.update();
     });
-    document.getElementById('btnMpRetry')?.addEventListener('click', () => {
-      if (MercadoPagoCheckout._currentOrder) MercadoPagoCheckout.openCheckout(MercadoPagoCheckout._currentOrder);
-      else MercadoPagoCheckout.closeCheckout();
+    document.getElementById('btnMarkTotalPaid')?.addEventListener('click', () => {
+      PaymentCharge.markStatus('paid');
+      Orders.render();
+      Dashboard.update();
     });
-    document.getElementById('btnCopyPixCode')?.addEventListener('click', () => MercadoPagoCheckout.copyPixCode());
-    document.getElementById('btnCheckPixStatus')?.addEventListener('click', () => {
-      if (MercadoPagoCheckout._currentPaymentId) {
-        MercadoPagoCheckout.checkPaymentStatus(MercadoPagoCheckout._currentPaymentId, true);
-      }
+    document.getElementById('btnMarkPending')?.addEventListener('click', () => {
+      PaymentCharge.markStatus('pending');
+      Orders.render();
+      Dashboard.update();
     });
   }
 

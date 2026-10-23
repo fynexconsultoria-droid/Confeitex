@@ -16,6 +16,7 @@ export const Dashboard = {
   },
 
   _performUpdate() {
+    if (typeof document === 'undefined') return;
     const todayStr = fmtISO(new Date());
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);

@@ -2,7 +2,7 @@ import { Auth } from './auth.js';
 import { Clients } from './clients.js';
 import { Dashboard } from './dashboard.js';
 import { I18n } from './i18n.js';
-import { MercadoPagoCheckout } from './mercadopago.js';
+import { PaymentCharge } from './paymentCharge.js';
 import { Notifications } from './notifications.js';
 import { Orders } from './orders.js';
 import { Plan } from './plan.js';
@@ -199,8 +199,8 @@ export const Settings = {
     this.renderNotificationStatus();
 
 
-    // Mercado Pago — Configuração do Worker URL
-    this.setupMercadoPagoConfig();
+    // Formas de Recebimento (Pix / Bancos)
+    this.setupPaymentChargeConfig();
 
     const btnToggleNotif = document.getElementById('btnToggleNotifications');
     if (btnToggleNotif) {
@@ -664,113 +664,38 @@ export const Settings = {
     }
   },
 
-  // ─── Mercado Pago: Configuração do Worker URL & Public Key ──────────────────────
-  setupMercadoPagoConfig() {
-    const inputLicenseLink = document.getElementById('mpLicenseLink');
-    const inputUrl = document.getElementById('mpWorkerUrl');
-    const inputKey = document.getElementById('mpPublicKey');
-    const inputSecret = document.getElementById('mpAppSecret');
-    const btnSave = document.getElementById('btnSaveMpWorker');
-    const btnTest = document.getElementById('btnTestMpWorker');
-    const display = document.getElementById('mpWorkerUrlDisplay');
-    const badge = document.getElementById('mpWorkerStatusBadge');
+  // ─── Formas de Recebimento (Pix & Qualquer Banco) ────────────────────────
+  setupPaymentChargeConfig() {
+    const inputPixKey = document.getElementById('cfgPixKey');
+    const inputPixName = document.getElementById('cfgPixName');
+    const inputPixCity = document.getElementById('cfgPixCity');
+    const inputBankInfo = document.getElementById('cfgBankInfo');
+    const inputPaymentLink = document.getElementById('cfgPaymentLink');
+    const inputInstructions = document.getElementById('cfgPaymentInstructions');
+    const btnSave = document.getElementById('btnSavePaymentConfig');
 
     if (!btnSave) return;
 
-    // Carrega valores salvos
-    const savedLicenseLink = safeStorage.get('confeitex_mp_checkout_link') || safeStorage.get('confeitex_checkout_url') || 'https://mpago.la/1e6EgRS';
-    const savedUrl = safeStorage.get('confeitex_mp_worker_url') || '';
-    const savedKey = safeStorage.get('confeitex_mp_public_key') || '';
-    const savedSecret = safeStorage.get('confeitex_mp_app_secret') || '';
+    // Carrega dados salvos
+    const cfg = PaymentCharge.getConfig();
+    if (inputPixKey) inputPixKey.value = cfg.pixKey;
+    if (inputPixName) inputPixName.value = cfg.pixName;
+    if (inputPixCity) inputPixCity.value = cfg.pixCity;
+    if (inputBankInfo) inputBankInfo.value = cfg.bankInfo;
+    if (inputPaymentLink) inputPaymentLink.value = cfg.paymentLink;
+    if (inputInstructions) inputInstructions.value = cfg.instructions;
 
-    if (inputLicenseLink && savedLicenseLink) {
-      inputLicenseLink.value = savedLicenseLink;
-    }
-    if (inputUrl && savedUrl) {
-      inputUrl.value = savedUrl;
-      if (display) {
-        display.textContent = savedUrl;
-        display.style.display = 'block';
-      }
-    }
-    if (inputKey && savedKey) {
-      inputKey.value = savedKey;
-    }
-    if (inputSecret && savedSecret) {
-      inputSecret.value = '';
-      inputSecret.placeholder = '•••••••• (Configurado)';
-    }
-
-    // Salvar
     btnSave.addEventListener('click', () => {
-      const licenseLink = inputLicenseLink ? inputLicenseLink.value.trim() : '';
-      const url = inputUrl ? inputUrl.value.trim().replace(/\/+$/, '') : '';
-      const key = inputKey ? inputKey.value.trim() : '';
-
-      if (licenseLink) {
-        safeStorage.set('confeitex_mp_checkout_link', licenseLink);
-        safeStorage.set('confeitex_checkout_url', licenseLink);
-      }
-
-      if (url) {
-        safeStorage.set('confeitex_mp_worker_url', url);
-        if (typeof MercadoPagoCheckout !== 'undefined') {
-          MercadoPagoCheckout.setWorkerUrl(url);
-        }
-        if (display) {
-          display.textContent = url;
-          display.style.display = 'block';
-        }
-      }
-
-      if (key) {
-        safeStorage.set('confeitex_mp_public_key', key);
-        if (typeof MercadoPagoCheckout !== 'undefined') {
-          MercadoPagoCheckout.setPublicKey(key);
-        }
-      }
-
-      UI.toast(I18n.t('mp.toastConfigured') || 'Configurações do Mercado Pago salvas com sucesso!', 'success');
-    });
-
-    // Testar Conexão
-    if (btnTest) {
-      btnTest.addEventListener('click', async () => {
-        const url = inputUrl.value.trim().replace(/\/+$/, '');
-        if (!url) {
-          UI.alert(I18n.t('mp.alertNoWorker'));
-          return;
-        }
-
-        btnTest.disabled = true;
-        const originalText = btnTest.textContent;
-        btnTest.textContent = 'Testando...';
-
-        try {
-          const res = await fetch(`${url}/health`, { method: 'GET' });
-          if (!res.ok) throw new Error(`HTTP ${res.status}`);
-          const data = await res.json();
-
-          if (badge) {
-            badge.className = 'mp-config-status ok';
-            badge.innerHTML = `<span>${I18n.t('mp.testSuccess')} (v${data.version || '2.0.0'})</span>`;
-            badge.style.display = 'flex';
-          }
-          UI.toast(I18n.t('mp.testSuccess'), 'success');
-        } catch (err) {
-          console.warn('[MP Worker Test Error]', err);
-          if (badge) {
-            badge.className = 'mp-config-status err';
-            badge.innerHTML = `<span>${I18n.t('mp.testFail')} (${err.message})</span>`;
-            badge.style.display = 'flex';
-          }
-          UI.toast(I18n.t('mp.testFail'), 'danger');
-        } finally {
-          btnTest.disabled = false;
-          btnTest.textContent = originalText;
-        }
+      PaymentCharge.saveConfig({
+        pixKey: inputPixKey ? inputPixKey.value : '',
+        pixName: inputPixName ? inputPixName.value : '',
+        pixCity: inputPixCity ? inputPixCity.value : '',
+        bankInfo: inputBankInfo ? inputBankInfo.value : '',
+        paymentLink: inputPaymentLink ? inputPaymentLink.value : '',
+        instructions: inputInstructions ? inputInstructions.value : ''
       });
-    }
+      UI.toast('Formas de recebimento salvas com sucesso! ✨', 'success');
+    });
   }
 };
 

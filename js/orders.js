@@ -1,7 +1,7 @@
 import { Clients } from './clients.js';
 import { Dashboard } from './dashboard.js';
 import { I18n } from './i18n.js';
-import { MercadoPagoCheckout } from './mercadopago.js';
+import { PaymentCharge } from './paymentCharge.js';
 import { Plan } from './plan.js';
 import { State } from './state.js';
 import { Trash } from './trash.js';
@@ -105,6 +105,7 @@ export const Orders = {
           <div class="order-card-title">
             <span class="customer-name">${escapeHTML(o.clientName)}</span>
             <span class="badge ${badge}" style="font-size:0.65rem;padding:0.15rem 0.4rem;">${escapeHTML(I18n.value('status', o.status))}</span>
+            ${(o.paymentStatus === 'paid' || o.paymentStatus === 'Pago') ? `<span class="badge" style="font-size:0.65rem;padding:0.15rem 0.4rem;background:rgba(16,185,129,0.18);color:var(--color-success);border:1px solid rgba(16,185,129,0.35);font-weight:600;">✓ Pago</span>` : (o.paymentStatus === 'deposit' || o.paymentStatus === 'Sinal Pago') ? `<span class="badge" style="font-size:0.65rem;padding:0.15rem 0.4rem;background:rgba(245,158,11,0.18);color:var(--color-warning);border:1px solid rgba(245,158,11,0.35);font-weight:600;">⏳ Sinal</span>` : ''}
           </div>
           <div class="order-card-subtitle">
             <span style="font-weight:600;color:white;">${escapeHTML(o.flavor)}</span>
@@ -155,15 +156,11 @@ export const Orders = {
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                 ${I18n.t('orders.actEdit')}
               </button>
-              ${!o.mpPaymentId && o.status !== 'Cancelado' && o.totalValue > 0 ? `
-              <button class="btn btn-secondary btn-sm btn-charge" data-id="${o.id}" style="color:var(--color-accent-blue);border-color:rgba(59,130,246,0.2);" aria-label="${I18n.t('orders.actCharge')}: ${escapeHTML(o.clientName)}">
+              ${o.status !== 'Cancelado' ? `
+              <button class="btn btn-secondary btn-sm btn-charge" data-id="${o.id}" style="color:var(--color-accent-blue);border-color:rgba(59,130,246,0.2);" aria-label="Cobrar / Pix: ${escapeHTML(o.clientName)}">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-                ${I18n.t('orders.actCharge')}
-              </button>` : o.mpPaymentId ? `
-              <span style="font-size:0.7rem;color:var(--color-accent-blue);display:flex;align-items:center;gap:0.35rem;">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                ${I18n.t('orders.actPaid')}
-              </span>` : ''}
+                ${(o.paymentStatus === 'paid' || o.paymentStatus === 'Pago') ? 'Recibo / Cobrar' : 'Cobrar / Pix'}
+              </button>` : ''}
               ${currentStatusIdx >= 0 && currentStatusIdx < 2 ? `
               <button class="btn btn-secondary btn-sm btn-status-next" data-id="${o.id}" style="color:var(--color-success);border-color:rgba(16,185,129,0.2);" aria-label="${I18n.t('orders.actAdvance')}: ${escapeHTML(o.clientName)}">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
@@ -213,8 +210,8 @@ export const Orders = {
         } else if (btnCharge) {
           e.stopPropagation();
           const order = State.orders.find(o => o.id === btnCharge.dataset.id);
-          if (order && typeof MercadoPagoCheckout !== 'undefined') {
-            MercadoPagoCheckout.openCheckout(order);
+          if (order && typeof PaymentCharge !== 'undefined') {
+            PaymentCharge.open(order);
           }
         } else if (card && !e.target.closest('button')) {
           const id = card.dataset.id;

@@ -290,23 +290,14 @@ export const PullToRefresh = {
           await window.State.load();
         }
 
-        // Sincronização com Mercado Pago
-        let mpSyncCount = 0;
-        if (!isOffline && typeof window.MercadoPagoCheckout !== 'undefined' && typeof window.MercadoPagoCheckout.syncPendingPayments === 'function') {
-          mpSyncCount = await window.MercadoPagoCheckout.syncPendingPayments();
-        }
-
         // Calcula a diferença e exibe o Toast correspondente
         const ordersAfter = getOrdersCount();
         const diff = ordersAfter - ordersBefore;
 
-        if (diff > 0 || mpSyncCount > 0) {
+        if (diff > 0) {
           if (typeof window.UI !== 'undefined' && window.UI.toast) {
-            let msgs = [];
-            if (diff > 0) msgs.push(`${diff} novo(s) pedido(s)`);
-            if (mpSyncCount > 0) msgs.push(`${mpSyncCount} pgto(s) aprovado(s)`);
             const timeStr = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-            window.UI.toast(`🎉 ${msgs.join(' e ')} às ${timeStr}!`, 'success');
+            window.UI.toast(`🎉 ${diff} novo(s) pedido(s) às ${timeStr}!`, 'success');
           }
         } else if (!isOffline && typeof window.UI !== 'undefined' && window.UI.toast) {
           const timeStr = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
