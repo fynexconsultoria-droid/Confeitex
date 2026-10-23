@@ -1,3 +1,4 @@
+import { Auth } from './auth.js';
 import { Dashboard } from './dashboard.js';
 import { I18n } from './i18n.js';
 import { Orders } from './orders.js';
@@ -109,7 +110,8 @@ export const Notifications = {
 
   _idb() {
     if (this._db) return Promise.resolve(this._db);
-    if (!('indexedDB' in window)) return Promise.resolve(null);
+    const hasIdb = typeof window !== 'undefined' ? ('indexedDB' in window) : (typeof indexedDB !== 'undefined');
+    if (!hasIdb) return Promise.resolve(null);
     return new Promise((resolve) => {
       const req = indexedDB.open('confeitex-sw-db', 1);
       req.onupgradeneeded = () => {
@@ -636,14 +638,17 @@ export const Notifications = {
           quietHoursStart: settings.quietHoursStart,
           quietHoursEnd: settings.quietHoursEnd
         },
-        orders: (State.orders || []).map(o => ({
-          deliveryDate: o.deliveryDate,
-          deliveryTime: o.deliveryTime,
-          clientName: o.clientName,
-          flavor: o.flavor,
-          status: o.status,
-          totalValue: o.totalValue
-        }))
+        orders: (State.orders || []).map(o => {
+          const isLocked = typeof Auth !== 'undefined' && Auth.hasPassword && Auth.hasPassword();
+          return {
+            deliveryDate: o.deliveryDate,
+            deliveryTime: o.deliveryTime,
+            clientName: isLocked ? 'Cliente' : o.clientName,
+            flavor: isLocked ? 'Encomenda' : o.flavor,
+            status: o.status,
+            totalValue: o.totalValue
+          };
+        })
       };
       await this._idbSet('confeitex_snapshot', snapshot);
 

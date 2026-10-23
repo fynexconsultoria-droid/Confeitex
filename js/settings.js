@@ -311,7 +311,8 @@ export const Settings = {
       exportDate: new Date().toISOString(),
       orders: State.orders,
       catalog: State.catalog,
-      expenses: State.expenses
+      expenses: State.expenses,
+      paymentsConfig: typeof PaymentCharge !== 'undefined' ? PaymentCharge.getConfig() : null
     };
     const jsonStr = JSON.stringify(backupData, null, 2);
     const blob = new Blob([jsonStr], { type: 'application/json;charset=utf-8' });
@@ -361,7 +362,7 @@ export const Settings = {
       if (Array.isArray(parsed.expenses)) newExpenses = validated.expenses;
     }
 
-    if (newOrders.length === 0 && newCatalog.length === 0 && newExpenses.length === 0) {
+    if (newOrders.length === 0 && newCatalog.length === 0 && newExpenses.length === 0 && !validated.paymentsConfig) {
       throw new Error('Nenhum dado encontrado no arquivo JSON');
     }
 
@@ -385,6 +386,10 @@ export const Settings = {
     if (newExpenses.length > 0) {
       State.expenses = newExpenses;
       State.saveExpenses();
+    }
+    if (validated.paymentsConfig && typeof PaymentCharge !== 'undefined') {
+      PaymentCharge.saveConfig(validated.paymentsConfig);
+      this.renderPaymentChargeConfig();
     }
 
     UI.toast(I18n.t('settings.toastImported'));
@@ -665,25 +670,37 @@ export const Settings = {
   },
 
   // ─── Formas de Recebimento (Pix & Qualquer Banco) ────────────────────────
-  setupPaymentChargeConfig() {
+  renderPaymentChargeConfig() {
     const inputPixKey = document.getElementById('cfgPixKey');
     const inputPixName = document.getElementById('cfgPixName');
     const inputPixCity = document.getElementById('cfgPixCity');
     const inputBankInfo = document.getElementById('cfgBankInfo');
     const inputPaymentLink = document.getElementById('cfgPaymentLink');
     const inputInstructions = document.getElementById('cfgPaymentInstructions');
-    const btnSave = document.getElementById('btnSavePaymentConfig');
 
+    if (typeof PaymentCharge === 'undefined') return;
+    const cfg = PaymentCharge.getConfig();
+    if (inputPixKey) inputPixKey.value = cfg.pixKey || '';
+    if (inputPixName) inputPixName.value = cfg.pixName || '';
+    if (inputPixCity) inputPixCity.value = cfg.pixCity || '';
+    if (inputBankInfo) inputBankInfo.value = cfg.bankInfo || '';
+    if (inputPaymentLink) inputPaymentLink.value = cfg.paymentLink || '';
+    if (inputInstructions) inputInstructions.value = cfg.instructions || '';
+  },
+
+  setupPaymentChargeConfig() {
+    const btnSave = document.getElementById('btnSavePaymentConfig');
     if (!btnSave) return;
 
     // Carrega dados salvos
-    const cfg = PaymentCharge.getConfig();
-    if (inputPixKey) inputPixKey.value = cfg.pixKey;
-    if (inputPixName) inputPixName.value = cfg.pixName;
-    if (inputPixCity) inputPixCity.value = cfg.pixCity;
-    if (inputBankInfo) inputBankInfo.value = cfg.bankInfo;
-    if (inputPaymentLink) inputPaymentLink.value = cfg.paymentLink;
-    if (inputInstructions) inputInstructions.value = cfg.instructions;
+    this.renderPaymentChargeConfig();
+
+    const inputPixKey = document.getElementById('cfgPixKey');
+    const inputPixName = document.getElementById('cfgPixName');
+    const inputPixCity = document.getElementById('cfgPixCity');
+    const inputBankInfo = document.getElementById('cfgBankInfo');
+    const inputPaymentLink = document.getElementById('cfgPaymentLink');
+    const inputInstructions = document.getElementById('cfgPaymentInstructions');
 
     btnSave.addEventListener('click', () => {
       PaymentCharge.saveConfig({

@@ -68,16 +68,16 @@ export const State = {
           const str = JSON.stringify(sanitizeForStorage(dataObj));
           if (typeof Auth !== 'undefined' && Auth.encryptionKey) {
             const encrypted = await CryptoUtils.encrypt(str, Auth.encryptionKey);
-            await AppDB.set(key, encrypted);
-            await AppDB.set(`${key}_encrypted`, true);
+            // Salva registro atômico com flag e payload juntos
+            await AppDB.set(key, { _enc: true, payload: encrypted });
           } else {
-            await AppDB.set(key, str);
-            await AppDB.set(`${key}_encrypted`, false);
+            await AppDB.set(key, { _enc: false, payload: str });
           }
-          // Remove do localStorage para concluir a migração
+          // Limpa chave legada e localStorage
+          await AppDB.remove(`${key}_encrypted`).catch(() => {});
           safeStorage.remove(key);
         } catch (e) {
-          error(`[State] Erro ao salvar ${key} no AppDB:`, e);
+          console.error(`[State] Erro ao salvar ${key} no AppDB:`, e);
         }
       }
     } finally {
@@ -87,29 +87,43 @@ export const State = {
 
   async _loadItem(key, defaultObj) {
     let raw = await AppDB.get(key);
-    let isEncrypted = await AppDB.get(`${key}_encrypted`);
 
     // Fallback/Migração do LocalStorage
     if (raw === null || raw === undefined) {
       const lsRaw = safeStorage.get(key);
       if (lsRaw) {
-        raw = lsRaw;
-        isEncrypted = false;
-        // Agenda salvamento no IndexedDB para concluir a migração
+        raw = { _enc: false, payload: lsRaw };
         try {
           this._scheduleSave(key, JSON.parse(lsRaw));
-        } catch(e){ warn('[State] Falha ao agendar salvamento na migração:', e); }
+        } catch(e) { console.warn('[State] Falha ao agendar salvamento na migração:', e); }
       }
     }
 
     if (raw) {
       try {
+        // Novo formato atômico: { _enc: boolean, payload: string | object }
+        if (typeof raw === 'object' && raw !== null && '_enc' in raw) {
+          if (raw._enc) {
+            if (typeof Auth !== 'undefined' && Auth.encryptionKey) {
+              const dec = await CryptoUtils.decrypt(raw.payload, Auth.encryptionKey);
+              return JSON.parse(dec);
+            } else {
+              console.warn(`[State] ${key} criptografado mas sem chave!`);
+              return defaultObj;
+            }
+          } else {
+            return typeof raw.payload === 'string' ? JSON.parse(raw.payload) : raw.payload;
+          }
+        }
+
+        // Formato legado com chave ${key}_encrypted separada
+        const isEncrypted = await AppDB.get(`${key}_encrypted`);
         if (isEncrypted) {
           if (typeof Auth !== 'undefined' && Auth.encryptionKey) {
             const dec = await CryptoUtils.decrypt(raw, Auth.encryptionKey);
             return JSON.parse(dec);
           } else {
-            console.warn(`[State] ${key} criptografado mas sem chave!`);
+            console.warn(`[State] ${key} criptografado legado sem chave!`);
             return defaultObj;
           }
         } else {
@@ -295,16 +309,28 @@ export const State = {
 
   async createSnapshot(reason = 'manual') {
     try {
-      const existingStr = safeStorage.get('confeitex_snapshots');
-      // Lê lista anterior — suporta formato criptografado e texto puro
       let existing = [];
-      if (existingStr) {
-        try {
-          const parsed = JSON.parse(existingStr);
-          // Formato legado (array em texto puro)
-          if (Array.isArray(parsed)) existing = parsed;
-        } catch (_) { warn('[State] Falha ao parsear snapshot legado existente.'); }
+      const stored = await AppDB.get('confeitex_snapshots');
+      if (stored) {
+        if (Array.isArray(stored)) {
+          existing = stored;
+        } else if (stored._enc && typeof Auth !== 'undefined' && Auth.encryptionKey) {
+          try {
+            const dec = await CryptoUtils.decrypt(stored.payload, Auth.encryptionKey);
+            existing = JSON.parse(dec);
+          } catch (_) {}
+        } else if (stored.payload) {
+          try { existing = JSON.parse(stored.payload); } catch (_) {}
+        }
+      } else {
+        // Fallback localStorage legado
+        const ls = safeStorage.get('confeitex_snapshots');
+        if (ls) {
+          try { const p = JSON.parse(ls); if (Array.isArray(p)) existing = p; } catch (_) {}
+          safeStorage.remove('confeitex_snapshots');
+        }
       }
+
       const newSnapshot = {
         id: 'snap_' + Date.now(),
         timestamp: new Date().toISOString(),
@@ -318,12 +344,11 @@ export const State = {
       const updated = [newSnapshot, ...existing].slice(0, 3);
       const dataStr = JSON.stringify(updated);
 
-      // Criptografa se a chave de criptografia estiver disponível (lock ativo)
       if (typeof Auth !== 'undefined' && Auth.encryptionKey) {
         const encrypted = await CryptoUtils.encrypt(dataStr, Auth.encryptionKey);
-        safeStorage.set('confeitex_snapshots', JSON.stringify({ _enc: true, data: encrypted }));
+        await AppDB.set('confeitex_snapshots', { _enc: true, payload: encrypted });
       } else {
-        safeStorage.set('confeitex_snapshots', dataStr);
+        await AppDB.set('confeitex_snapshots', { _enc: false, payload: dataStr });
       }
       return true;
     } catch (e) {

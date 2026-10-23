@@ -14,7 +14,8 @@ export const Auth = {
   },
 
   supported() {
-    return window.crypto && window.crypto.subtle;
+    const c = typeof window !== 'undefined' ? window.crypto : globalThis.crypto;
+    return !!(c && c.subtle);
   },
 
   async _deriveKey(password, salt) {
@@ -31,12 +32,15 @@ export const Auth = {
   },
 
   async setPassword(password) {
+    if (!password || password.length < 8) {
+      throw new Error('A senha deve ter no mínimo 8 caracteres.');
+    }
     const salt = crypto.getRandomValues(new Uint8Array(16));
     const saltHex = Array.from(salt).map(b => b.toString(16).padStart(2, '0')).join('');
     
-    const { hashHex, aesKey } = await CryptoUtils.deriveKeys(password, saltHex);
+    const { hashHex, aesKey } = await CryptoUtils.deriveKeys(password, saltHex, 600000);
     
-    this.lockHash = 'v2:' + saltHex + ':' + hashHex;
+    this.lockHash = 'v3:' + saltHex + ':' + hashHex;
     safeStorage.set('confeitex_lock_hash', this.lockHash);
     this.encryptionKey = aesKey;
   },
@@ -45,13 +49,25 @@ export const Auth = {
     if (!this.supported() || !this.lockHash) return false;
     try {
       const parts = this.lockHash.split(':');
-      if (parts[0] === 'v2') {
+      if (parts[0] === 'v3') {
         const saltHex = parts[1];
         const storedHash = parts[2];
-        const { hashHex, aesKey } = await CryptoUtils.deriveKeys(password, saltHex);
+        const { hashHex, aesKey } = await CryptoUtils.deriveKeys(password, saltHex, 600000);
         
         if (hashHex === storedHash) {
           this.encryptionKey = aesKey;
+          return true;
+        }
+        return false;
+      } else if (parts[0] === 'v2') {
+        const saltHex = parts[1];
+        const storedHash = parts[2];
+        const { hashHex, aesKey } = await CryptoUtils.deriveKeys(password, saltHex, 100000);
+        
+        if (hashHex === storedHash) {
+          this.encryptionKey = aesKey;
+          // Migra automaticamente para v3 (600k iterações) em segundo plano
+          setTimeout(() => this.setPassword(password).catch(() => {}), 100);
           return true;
         }
         return false;
@@ -62,8 +78,8 @@ export const Auth = {
         const salt = new Uint8Array(saltHex.match(/.{2}/g).map(b => parseInt(b, 16)));
         const hash = await this._deriveKey(password, salt);
         if (hash === storedHash) {
-          this.encryptionKey = await CryptoUtils.deriveKey(password, saltHex);
-          this.needsMigrationToV2 = password; // Sinaliza para o app.js fazer a migração
+          this.encryptionKey = await CryptoUtils.deriveKey(password, saltHex, 100000);
+          setTimeout(() => this.setPassword(password).catch(() => {}), 100);
           return true;
         }
         return false;
@@ -80,6 +96,10 @@ export const Auth = {
     this.lockEnabled = false;
     this.encryptionKey = null;
     safeStorage.set('confeitex_lock_enabled', 'false');
+  },
+
+  hasPassword() {
+    return this.lockEnabled && !!this.lockHash;
   },
 
   isLocked() {

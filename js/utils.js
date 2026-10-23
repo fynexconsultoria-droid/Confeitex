@@ -97,22 +97,7 @@ export function sanitizeForStorage(value) {
     );
   }
   if (typeof value === 'string') {
-    const cleaned = sanitizeText(value);
-    const numeric = cleaned.trim();
-    // Preserva IDs, telefones (>=10 dígitos) e códigos com zero à esquerda como string
-    const preserveString = /^[a-zA-Z_]/.test(numeric) || /^\d{10,}$/.test(numeric) || /^0\d+$/.test(numeric);
-    if (preserveString) return cleaned;
-    if (/^-?\d+(?:[.,]\d+)?$/.test(numeric) || /^-?\d*\.\d+$/.test(numeric) || /^-?\d{1,3}(?:\.\d{3})+(?:,\d+)?$/.test(numeric)) {
-      let normalized = numeric;
-      if (numeric.includes(',') && numeric.includes('.')) {
-        normalized = numeric.replace(/\./g, '').replace(',', '.');
-      } else if (numeric.includes(',')) {
-        normalized = numeric.replace(',', '.');
-      }
-      const parsed = Number(normalized);
-      return Number.isFinite(parsed) ? parsed : cleaned;
-    }
-    return cleaned;
+    return sanitizeText(value);
   }
   if (typeof value === 'number') return Number.isFinite(value) ? value : 0;
   if (typeof value === 'boolean') return value;
@@ -145,6 +130,9 @@ export function validateStateDump(data) {
     order.notes = sanitizeText(order.notes || '');
     order.details = sanitizeText(order.details || '');
     order.clientPhone = sanitizeText(order.clientPhone || '');
+    order.paymentStatus = sanitizeText(order.paymentStatus || 'Pendente');
+    order.paidAmount = parseNumericValue(order.paidAmount, 0);
+    order.paidAt = sanitizeText(order.paidAt || '');
     order.weight = parseNumericValue(order.weight, 0);
     order.unitPrice = parseNumericValue(order.unitPrice, 0);
     order.extraCharges = parseNumericValue(order.extraCharges, 0);
@@ -183,6 +171,17 @@ export function validateStateDump(data) {
     entry.count = Number(parseInt(String(entry.count != null ? entry.count : entry.orders.length), 10) || 0);
     return entry;
   });
+
+  if (candidate.paymentsConfig && typeof candidate.paymentsConfig === 'object') {
+    safe.paymentsConfig = {
+      pixKey: sanitizeText(candidate.paymentsConfig.pixKey || ''),
+      pixName: sanitizeText(candidate.paymentsConfig.pixName || ''),
+      pixCity: sanitizeText(candidate.paymentsConfig.pixCity || ''),
+      bankInfo: sanitizeText(candidate.paymentsConfig.bankInfo || ''),
+      paymentLink: sanitizeText(candidate.paymentsConfig.paymentLink || ''),
+      instructions: sanitizeText(candidate.paymentsConfig.instructions || '')
+    };
+  }
 
   return safe;
 }
@@ -235,6 +234,8 @@ export const AppDB = {
 
   async init() {
     if (this._db) return this._db;
+    const hasIdb = typeof window !== 'undefined' ? ('indexedDB' in window) : (typeof indexedDB !== 'undefined');
+    if (!hasIdb) return null;
     return new Promise((resolve, reject) => {
       const request = indexedDB.open(this.dbName, this.version);
       request.onerror = () => reject(request.error);
@@ -262,6 +263,7 @@ export const AppDB = {
   async get(key) {
     try {
       const db = await this.init();
+      if (!db) return null;
       return new Promise((resolve, reject) => {
         const tx = db.transaction(this.storeName, 'readonly');
         const req = tx.objectStore(this.storeName).get(key);
@@ -274,6 +276,7 @@ export const AppDB = {
   async set(key, value) {
     try {
       const db = await this.init();
+      if (!db) return false;
       return new Promise((resolve, reject) => {
         const tx = db.transaction(this.storeName, 'readwrite');
         const req = tx.objectStore(this.storeName).put(value, key);
@@ -286,6 +289,7 @@ export const AppDB = {
   async remove(key) {
     try {
       const db = await this.init();
+      if (!db) return false;
       return new Promise((resolve, reject) => {
         const tx = db.transaction(this.storeName, 'readwrite');
         const req = tx.objectStore(this.storeName).delete(key);
@@ -293,6 +297,10 @@ export const AppDB = {
         req.onerror = () => reject(req.error);
       });
     } catch (e) { error('[AppDB] Erro em remove:', e); return false; }
+  },
+
+  async delete(key) {
+    return this.remove(key);
   },
 
   /**
@@ -333,15 +341,19 @@ export const AppDB = {
         req.onsuccess = async () => {
           let results = req.result || [];
           if (encryptionKey) {
-            results = await Promise.all(results.map(async (item) => {
+            const mapped = await Promise.all(results.map(async (item) => {
               if (item._encryptedData) {
                 try {
                   const dec = await CryptoUtils.decrypt(item._encryptedData, encryptionKey);
                   return JSON.parse(dec);
-                } catch(e) { error('[AppDB] Falha ao descriptografar item:', e); return item; }
+                } catch(e) {
+                  error('[AppDB] Falha ao descriptografar item (descartado):', e);
+                  return null;
+                }
               }
               return item;
             }));
+            results = mapped.filter(Boolean);
           }
           resolve(results);
         };
@@ -352,8 +364,8 @@ export const AppDB = {
 };
 
 export const CryptoUtils = {
-  // Deriva 512 bits: 256 bits para o hash de verificação e 256 bits para a chave AES-GCM (V2)
-  async deriveKeys(password, saltHex) {
+  // Deriva 512 bits: 256 bits para o hash de verificação e 256 bits para a chave AES-GCM (V3: 600.000 iterações OWASP)
+  async deriveKeys(password, saltHex, iterations = 600000) {
     const enc = new TextEncoder();
     const keyMaterial = await crypto.subtle.importKey(
       "raw", enc.encode(password), { name: "PBKDF2" }, false, ["deriveBits"]
@@ -361,7 +373,7 @@ export const CryptoUtils = {
     const salt = new Uint8Array(saltHex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
     
     const keyBuffer = await crypto.subtle.deriveBits(
-      { name: "PBKDF2", salt: salt, iterations: 100000, hash: "SHA-256" },
+      { name: "PBKDF2", salt: salt, iterations: iterations, hash: "SHA-256" },
       keyMaterial, 512
     );
     
@@ -376,7 +388,7 @@ export const CryptoUtils = {
   },
 
   // (LEGACY V1) Derives an AES-GCM 256-bit key from a password and salt using PBKDF2
-  async deriveKey(password, saltHex) {
+  async deriveKey(password, saltHex, iterations = 100000) {
     const enc = new TextEncoder();
     const keyMaterial = await crypto.subtle.importKey(
       "raw",
@@ -393,7 +405,7 @@ export const CryptoUtils = {
       {
         name: "PBKDF2",
         salt: salt,
-        iterations: 100000,
+        iterations: iterations,
         hash: "SHA-256"
       },
       keyMaterial,
@@ -414,12 +426,21 @@ export const CryptoUtils = {
       encoded
     );
 
-    // Serializa como Base64 para compatibilidade com JSON e backups exportados
-    const toBase64 = (buf) => btoa(String.fromCharCode(...new Uint8Array(buf instanceof ArrayBuffer ? buf : buf.buffer)));
+    // Converte para Base64 em blocos de 8KB para evitar estouro de pilha (call stack overflow) com dados grandes
+    const toBase64Chunked = (buf) => {
+      const bytes = new Uint8Array(buf instanceof ArrayBuffer ? buf : buf.buffer);
+      let binary = '';
+      const chunkSize = 8192;
+      for (let i = 0; i < bytes.length; i += chunkSize) {
+        binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunkSize));
+      }
+      return btoa(binary);
+    };
+
     return {
-      iv: toBase64(iv),
-      ciphertext: toBase64(ciphertext),
-      v: 2
+      iv: toBase64Chunked(iv),
+      ciphertext: toBase64Chunked(ciphertext),
+      v: 3
     };
   },
 
