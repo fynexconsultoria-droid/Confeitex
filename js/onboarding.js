@@ -177,7 +177,7 @@ export const Onboarding = {
         </svg>
       </div>`,
       title: 'Plano Anual (1 Ano de Uso)',
-      desc: 'App 100% no celular, funciona sem internet e sem mensalidades. Ative sua chave de acesso ou adquira seu plano anual de <strong>R$ 397,90/ano</strong> (em até 10x sem juros, PIX ou Boleto) no Mercado Pago. Válido por 1 ano inteiro de uso completo.',
+      desc: 'App 100% no celular, funciona sem internet e sem mensalidades. Ative sua chave de acesso ou adquira seu plano anual de <strong>R$ 397,90/ano</strong> (em até 10x sem juros no Cartão ou PIX imediato). Válido por 1 ano inteiro de uso completo.',
       color: 'pink',
       isFinal: true
     }
@@ -308,13 +308,13 @@ export const Onboarding = {
           </svg>
           Inserir Chave de Acesso
         </button>
-        <a href="${checkoutUrl}" target="_blank" rel="noopener" class="ob-btn-buy-slide" id="obBtnBuy">
+        <button type="button" class="ob-btn-buy-slide" id="obBtnBuy" style="border:none; cursor:pointer;">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
             <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/>
           </svg>
-          Comprar Plano Anual (R$ 397,90/ano — até 10x)
-        </a>
-        <div class="ob-final-price">Licença anual (1 ano de uso) · Em até 10x sem juros · PIX e Boleto · Assistente Confeitex 7 dias · 100% Reembolso</div>
+          Comprar Plano Anual (PIX ou Cartão em até 10x)
+        </button>
+        <div class="ob-final-price">Licença anual (1 ano de uso) · Em até 10x sem juros · PIX e Cartão · Assistente Confeitex 7 dias · 100% Reembolso</div>
       </div>` : '';
 
     return `
@@ -352,6 +352,17 @@ export const Onboarding = {
         btnKey.onclick = () => {
           if (typeof Plan !== 'undefined' && Plan.showKeyInputModal) {
             Plan.showKeyInputModal();
+          }
+        };
+      }
+
+      const btnBuy = document.getElementById('obBtnBuy');
+      if (btnBuy) {
+        btnBuy.onclick = () => {
+          if (typeof window !== 'undefined' && window.Checkout) {
+            window.Checkout.open('pix');
+          } else if (typeof Plan !== 'undefined' && Plan.getCheckoutUrl) {
+            window.open(Plan.getCheckoutUrl(), '_blank');
           }
         };
       }

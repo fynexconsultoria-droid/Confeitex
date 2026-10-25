@@ -23,7 +23,10 @@ const PLAN_CONFIG = {
   PLAN_TITLE: 'Confeitex — Plano Anual',
   PLAN_DESC: 'Licença Anual Confeitex - 1 Ano de Acesso Completo e Suporte Especializado',
   DURATION_DAYS: 365,
-  MAX_DEVICES_PER_KEY: 2
+  MAX_DEVICES_PER_KEY: 2,
+  MERCHANT_PIX_KEY: '16d0c3c4-3307-4db5-b81a-977901372845',
+  MERCHANT_NAME: 'JOAO ANTONIO',
+  MERCHANT_CITY: 'SAO PATRICIO'
 };
 
 // ─── Helpers Criptográficos Web Crypto ──────────────────────────────────────
@@ -246,6 +249,249 @@ export default {
           init_point: mpData.init_point,
           sandbox_init_point: mpData.sandbox_init_point
         });
+      }
+
+      // ─── 2.1 Criar Pagamento PIX Transparente (POST /create-pix) ────────
+      if (pathname === '/create-pix' && request.method === 'POST') {
+        const body = await request.json().catch(() => ({}));
+        const deviceId = (body.deviceId || '').trim();
+        const email = (body.email || '').trim();
+        const name = (body.name || '').trim();
+        const cpf = (body.cpf || '').replace(/\D/g, '');
+
+        if (!deviceId || !email || !cpf) {
+          return json({ error: 'missing_params', message: 'Dados incompletos para geração do PIX.' }, 400);
+        }
+
+        const mpToken = env.MP_ACCESS_TOKEN;
+        if (!mpToken) {
+          return json({ error: 'server_not_configured', message: 'Servidor de pagamentos em manutenção.' }, 503);
+        }
+
+        const ref = 'cftx_' + crypto.randomUUID();
+        const nameParts = name.split(' ');
+        const firstName = nameParts[0] || 'Cliente';
+        const lastName = nameParts.slice(1).join(' ') || 'Confeitex';
+
+        const pixPayload = {
+          transaction_amount: PLAN_CONFIG.PRICE_BRL,
+          description: `${PLAN_CONFIG.PLAN_TITLE} (1 Ano de Acesso)`,
+          payment_method_id: 'pix',
+          payer: {
+            email,
+            first_name: firstName,
+            last_name: lastName,
+            identification: {
+              type: 'CPF',
+              number: cpf
+            }
+          },
+          external_reference: ref
+        };
+
+        const mpRes = await fetch('https://api.mercadopago.com/v1/payments', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${mpToken}`,
+            'Content-Type': 'application/json',
+            'X-Idempotency-Key': ref
+          },
+          body: JSON.stringify(pixPayload)
+        });
+
+        const mpData = await mpRes.json();
+        if (!mpRes.ok || !mpData.id) {
+          console.error('[Worker PIX Error]:', mpData);
+          return json({ error: 'mp_pix_error', message: mpData.message || 'Erro ao gerar PIX no Mercado Pago.' }, 502);
+        }
+
+        const qrData = mpData.point_of_interaction?.transaction_data;
+        const purchaseRecord = {
+          ref,
+          paymentId: String(mpData.id),
+          deviceId,
+          email,
+          status: mpData.status || 'pending',
+          createdAt: new Date().toISOString()
+        };
+
+        if (env.CONFEITEX_KV) {
+          await env.CONFEITEX_KV.put(`ref:${ref}`, JSON.stringify(purchaseRecord), { expirationTtl: 172800 });
+        }
+
+        return json({
+          ref,
+          paymentId: mpData.id,
+          status: mpData.status,
+          qrCode: qrData?.qr_code || '',
+          qrCodeBase64: qrData?.qr_code_base64 || '',
+          ticketUrl: qrData?.ticket_url || ''
+        });
+      }
+
+      // ─── 2.2 Processar Pagamento com Cartão Transparente (POST /process-card) ───
+      if (pathname === '/process-card' && request.method === 'POST') {
+        const body = await request.json().catch(() => ({}));
+        const deviceId = (body.deviceId || '').trim();
+        const email = (body.email || '').trim();
+        const installments = Number(body.installments || 1);
+        const cpf = (body.cpf || '').replace(/\D/g, '');
+        const ref = body.ref || ('cftx_' + crypto.randomUUID());
+
+        if (!deviceId || !email) {
+          return json({ error: 'missing_params', message: 'Identificador do dispositivo e e-mail são obrigatórios.' }, 400);
+        }
+
+        const mpToken = env.MP_ACCESS_TOKEN;
+        if (!mpToken) {
+          return json({ error: 'server_not_configured', message: 'Servidor de pagamentos em manutenção.' }, 503);
+        }
+
+        let paymentPayload = {
+          transaction_amount: PLAN_CONFIG.PRICE_BRL,
+          description: `${PLAN_CONFIG.PLAN_TITLE} (1 Ano de Acesso)`,
+          installments,
+          statement_descriptor: 'CONFEITEX',
+          external_reference: ref,
+          payer: {
+            email,
+            identification: cpf ? { type: 'CPF', number: cpf } : undefined
+          }
+        };
+
+        if (body.token) {
+          paymentPayload.token = body.token;
+          paymentPayload.payment_method_id = body.paymentMethodId || 'credit_card';
+        }
+
+        const mpRes = await fetch('https://api.mercadopago.com/v1/payments', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${mpToken}`,
+            'Content-Type': 'application/json',
+            'X-Idempotency-Key': ref
+          },
+          body: JSON.stringify(paymentPayload)
+        });
+
+        const mpData = await mpRes.json();
+        if (mpRes.ok && mpData.status === 'approved') {
+          const now = new Date();
+          const expDate = new Date(now.getTime() + (PLAN_CONFIG.DURATION_DAYS * 24 * 60 * 60 * 1000));
+          const newKey = generateLicenseKey();
+
+          const licenseRecord = {
+            key: newKey,
+            plan: 'anual',
+            purchasedAt: now.toISOString(),
+            exp: expDate.getTime(),
+            paymentId: String(mpData.id),
+            payerEmail: email,
+            devices: [{ deviceId, activatedAt: now.toISOString() }]
+          };
+
+          if (env.CONFEITEX_KV) {
+            await env.CONFEITEX_KV.put(`license:${newKey}`, JSON.stringify(licenseRecord));
+            await env.CONFEITEX_KV.put(`ref:${ref}`, JSON.stringify({
+              ref,
+              key: newKey,
+              status: 'approved',
+              deviceId,
+              email,
+              exp: licenseRecord.exp
+            }), { expirationTtl: 172800 });
+          }
+
+          let token = null;
+          if (env.LICENSE_PRIVATE_KEY) {
+            token = await signToken({
+              key: newKey,
+              deviceId,
+              exp: licenseRecord.exp,
+              purchasedAt: licenseRecord.purchasedAt,
+              maxDevices: PLAN_CONFIG.MAX_DEVICES_PER_KEY
+            }, env.LICENSE_PRIVATE_KEY);
+          }
+
+          return json({
+            status: 'approved',
+            key: newKey,
+            token,
+            exp: licenseRecord.exp,
+            message: 'Pagamento aprovado com sucesso!'
+          });
+        }
+
+        const errDetail = mpData.status_detail || 'cc_rejected_other_reason';
+        let userMessage = 'Pagamento não autorizado pelo banco emissor.';
+        if (errDetail === 'cc_rejected_insufficient_amount') userMessage = 'Saldo insuficiente no cartão.';
+        else if (errDetail === 'cc_rejected_bad_filled_security_code') userMessage = 'Código de segurança (CVV) incorreto.';
+        else if (errDetail === 'cc_rejected_bad_filled_date') userMessage = 'Data de validade do cartão incorreta.';
+
+        return json({
+          status: 'rejected',
+          statusDetail: errDetail,
+          message: userMessage
+        }, 400);
+      }
+
+      // ─── 2.3 Checar Pagamento em Tempo Real (GET /check-payment/:ref) ─────
+      if (pathname.startsWith('/check-payment/')) {
+        const checkRef = pathname.replace('/check-payment/', '').trim();
+        if (!checkRef || !env.CONFEITEX_KV) {
+          return json({ status: 'pending' }, 200);
+        }
+
+        const refData = await env.CONFEITEX_KV.get(`ref:${checkRef}`, 'json');
+        if (!refData) {
+          return json({ status: 'pending' }, 200);
+        }
+
+        if (refData.status === 'approved' && refData.key) {
+          return json({
+            status: 'approved',
+            key: refData.key,
+            exp: refData.exp
+          });
+        }
+
+        if (refData.paymentId && env.MP_ACCESS_TOKEN) {
+          const mpRes = await fetch(`https://api.mercadopago.com/v1/payments/${refData.paymentId}`, {
+            headers: { 'Authorization': `Bearer ${env.MP_ACCESS_TOKEN}` }
+          });
+          if (mpRes.ok) {
+            const payment = await mpRes.json();
+            if (payment.status === 'approved') {
+              const now = new Date();
+              const expDate = new Date(now.getTime() + (PLAN_CONFIG.DURATION_DAYS * 24 * 60 * 60 * 1000));
+              const newKey = generateLicenseKey();
+
+              const licenseRecord = {
+                key: newKey,
+                plan: 'anual',
+                purchasedAt: now.toISOString(),
+                exp: expDate.getTime(),
+                paymentId: String(payment.id),
+                payerEmail: payment.payer?.email || refData.email || '',
+                devices: refData.deviceId ? [{ deviceId: refData.deviceId, activatedAt: now.toISOString() }] : []
+              };
+
+              await env.CONFEITEX_KV.put(`license:${newKey}`, JSON.stringify(licenseRecord));
+              refData.status = 'approved';
+              refData.key = newKey;
+              refData.exp = licenseRecord.exp;
+              await env.CONFEITEX_KV.put(`ref:${checkRef}`, JSON.stringify(refData), { expirationTtl: 172800 });
+
+              return json({
+                status: 'approved',
+                key: newKey,
+                exp: licenseRecord.exp
+              });
+            }
+          }
+        }
+
+        return json({ status: 'pending' });
       }
 
       // ─── 3. Webhook Oficial Mercado Pago (POST /mp-webhook) ──────────────

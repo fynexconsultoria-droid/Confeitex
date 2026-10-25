@@ -582,7 +582,7 @@ export const I18n = {
       'mp.orderValue': 'Valor Total',
       'mp.client': 'Cliente',
       'mp.method': 'Forma',
-      'mp.btnViewBoleto': 'Visualizar Boleto Bancário',
+      'mp.btnViewBoleto': 'Visualizar Comprovante',
       'mp.pixTotalLabel': 'Valor a pagar:',
       'mp.pixScanTip': 'Abra o app do seu banco e escaneie o QR Code acima ou use o Pix Copia e Cola:',
       'mp.btnCopyPix': 'Copiar Código Pix',
@@ -627,7 +627,7 @@ export const I18n = {
 
       // plan & subscription
       'plan.settingsTitle': 'Meu Plano Confeitex',
-      'plan.settingsDesc': 'Gerencie sua assinatura, consulte o período de testes, altere o cartão de crédito cadastrado ou escolha como deseja pagar a mensalidade (Cartão Automático, Pix ou Boleto).',
+      'plan.settingsDesc': 'Gerencie sua assinatura, consulte o período de testes, altere o cartão de crédito cadastrado ou escolha como deseja pagar (Cartão de Crédito ou Pix).',
       'plan.manageBtn': 'Gerenciar Meu Plano',
       'plan.trialActive': 'Teste Grátis Ativo',
       'plan.premiumActive': 'Plano Premium Ativo'
@@ -1162,7 +1162,7 @@ export const I18n = {
       'mp.orderValue': 'Total Amount',
       'mp.client': 'Customer',
       'mp.method': 'Method',
-      'mp.btnViewBoleto': 'View Bank Ticket (Boleto)',
+      'mp.btnViewBoleto': 'View Payment Receipt',
       'mp.pixTotalLabel': 'Amount to pay:',
       'mp.pixScanTip': 'Open your banking app and scan the QR Code above or copy the Pix code:',
       'mp.btnCopyPix': 'Copy Pix Code',
@@ -1207,7 +1207,7 @@ export const I18n = {
 
       // plan & subscription
       'plan.settingsTitle': 'My Confeitex Plan',
-      'plan.settingsDesc': 'Manage your subscription, check free trial period, update credit card or choose how to pay your monthly fee (Auto Card, Pix or Boleto).',
+      'plan.settingsDesc': 'Manage your subscription, check free trial period, update credit card or choose how to pay (Credit Card or Pix).',
       'plan.manageBtn': 'Manage My Plan',
       'plan.trialActive': 'Free Trial Active',
       'plan.premiumActive': 'Premium Plan Active'

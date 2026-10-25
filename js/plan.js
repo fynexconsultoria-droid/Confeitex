@@ -6,8 +6,8 @@ import { safeStorage, escapeHTML } from './utils.js';
 
 /**
  * Plan.js — Sistema de Planos Confeitex
- * - Plano Anual de R$ 397,90/ano (em até 10x sem juros, Pix ou Boleto)
- * - Checkout Pro integrado via Mercado Pago e tokens assinados ECDSA P-256
+ * - Plano Anual de R$ 397,90/ano (em até 10x sem juros no Cartão ou Pix imediato)
+ * - Checkout Transparente integrado com Mercado Pago e tokens assinados ECDSA P-256
  * - Limite rigoroso de até 2 dispositivos simultâneos por licença
  */
 
@@ -679,7 +679,7 @@ export const Plan = {
         <h2 class="startup-lock-title">Bem-vinda ao Confeitex!</h2>
         <p class="startup-lock-desc">
           Seu aplicativo profissional de confeitaria está pronto.<br>
-          Para desbloquear todas as funções de pedidos, precificação, receitas e relatórios, ative seu <strong>Plano Anual por R$ 397,90/ano (em até 10x sem juros de R$ 39,79, PIX ou Boleto no Mercado Pago)</strong>. Válido por 1 ano inteiro de uso (renovação anual).
+          Para desbloquear todas as funções de pedidos, precificação, receitas e relatórios, ative seu <strong>Plano Anual por R$ 397,90/ano (em até 10x sem juros de R$ 39,79 no Cartão ou PIX imediato)</strong>. Válido por 1 ano inteiro de uso (renovação anual).
         </p>
 
         <div class="startup-lock-benefits">
@@ -692,10 +692,10 @@ export const Plan = {
         </div>
 
         <div class="startup-lock-actions">
-          <a href="${this.getCheckoutUrl()}" target="_blank" class="btn btn-lg w-100" id="btnStartupLockBuy" style="display:flex; align-items:center; justify-content:center; gap:0.5rem; text-align:center; text-decoration:none; background:#009ee3; color:#fff; font-weight:800; border-radius:14px; padding:0.95rem 1.2rem; box-shadow:0 4px 20px rgba(0, 158, 227, 0.4);">
+          <button type="button" class="btn btn-lg w-100" id="btnStartupLockBuy" style="display:flex; align-items:center; justify-content:center; gap:0.5rem; text-align:center; background:#009ee3; color:#fff; font-weight:800; border-radius:14px; padding:0.95rem 1.2rem; box-shadow:0 4px 20px rgba(0, 158, 227, 0.4); border:none; cursor:pointer;">
             <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-            <span>Assinar Plano Anual (R$ 397,90/ano — até 10x)</span>
-          </a>
+            <span>Assinar Plano Anual (PIX ou Cartão em até 10x)</span>
+          </button>
           <button class="btn btn-primary btn-lg w-100" id="btnStartupLockKey">
             🔑 Já paguei / Digitar Chave de Ativação
           </button>
@@ -707,6 +707,17 @@ export const Plan = {
     `;
 
     document.body.appendChild(overlay);
+
+    const btnBuy = overlay.querySelector('#btnStartupLockBuy');
+    if (btnBuy) {
+      btnBuy.addEventListener('click', () => {
+        if (typeof window !== 'undefined' && window.Checkout) {
+          window.Checkout.open('pix');
+        } else {
+          window.open(this.getCheckoutUrl(), '_blank');
+        }
+      });
+    }
 
     const btnKey = overlay.querySelector('#btnStartupLockKey');
     if (btnKey) {
@@ -752,9 +763,9 @@ export const Plan = {
         <button class="btn btn-gold w-100" id="btnAppValidateKey" style="padding:0.9rem 1rem; font-size:1rem; font-weight:800; margin-bottom:0.6rem;">
           Validar e Liberar App (1 Ano)
         </button>
-        <a href="${this.getCheckoutUrl()}" target="_blank" rel="noopener" class="btn btn-secondary w-100" style="padding:0.65rem 1rem; font-size:0.85rem; margin-bottom:0.6rem; text-decoration:none; display:flex; align-items:center; justify-content:center; gap:0.4rem; border-color:rgba(0,158,227,0.5); color:#38bdf8;">
-          💳 Comprar Plano Anual no Mercado Pago (R$ 397,90)
-        </a>
+        <button type="button" id="btnAppBuyDirect" class="btn btn-secondary w-100" style="padding:0.65rem 1rem; font-size:0.85rem; margin-bottom:0.6rem; display:flex; align-items:center; justify-content:center; gap:0.4rem; border-color:rgba(0,158,227,0.5); color:#38bdf8; cursor:pointer; background:transparent;">
+          💳 Comprar Plano Anual (PIX ou Cartão em até 10x)
+        </button>
         <button class="btn btn-secondary w-100" id="btnAppCloseKey" style="padding:0.65rem 1rem; font-size:0.85rem; opacity:0.8;">
           Voltar
         </button>
@@ -762,6 +773,18 @@ export const Plan = {
     `;
 
     document.body.appendChild(overlay);
+
+    const btnBuyDirect = overlay.querySelector('#btnAppBuyDirect');
+    if (btnBuyDirect) {
+      btnBuyDirect.addEventListener('click', () => {
+        overlay.remove();
+        if (typeof window !== 'undefined' && window.Checkout) {
+          window.Checkout.open('pix');
+        } else {
+          window.open(this.getCheckoutUrl(), '_blank');
+        }
+      });
+    }
 
     const input = overlay.querySelector('#inputAppKey');
     const err = overlay.querySelector('#appKeyError');
@@ -1327,7 +1350,7 @@ export const Plan = {
             </div>
             <div class="plan-auto-debit-text">
               <strong>Plano Anual Confeitex (R$ 397,90/ano)</strong>
-              <p>Acesso completo por 1 ano inteiro a todas as funções, precificação e relatórios. Pagamento seguro via Mercado Pago (em até 10x sem juros, Pix ou Boleto).</p>
+              <p>Acesso completo por 1 ano inteiro a todas as funções, precificação e relatórios. Pagamento seguro direto no app (em até 10x sem juros no Cartão ou Pix imediato).</p>
             </div>
           </div>
 

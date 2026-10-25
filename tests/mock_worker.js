@@ -69,6 +69,89 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  // 2.1 Criar PIX Mock (POST /create-pix)
+  if (req.url === '/create-pix' && req.method === 'POST') {
+    let body = '';
+    req.on('data', chunk => body += chunk.toString());
+    req.on('end', () => {
+      try {
+        const payload = JSON.parse(body || '{}');
+        const ref = 'mock_pix_' + Date.now();
+        const key = 'CFTX-MOCK-PIX-2026';
+        refStore.set(ref, {
+          ref,
+          deviceId: payload.deviceId,
+          status: 'pending',
+          key,
+          exp: Date.now() + (365 * 86400000),
+          createdAt: new Date().toISOString()
+        });
+
+        setTimeout(() => {
+          const rec = refStore.get(ref);
+          if (rec) rec.status = 'approved';
+        }, 1500);
+
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+          ref,
+          status: 'pending',
+          paymentId: 987654321,
+          qrCode: '00020101021226840014br.gov.bcb.pixmocktest123456789',
+          qrCodeBase64: null
+        }));
+      } catch (err) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'invalid_json' }));
+      }
+    });
+    return;
+  }
+
+  // 2.2 Processar Cartão Mock (POST /process-card)
+  if (req.url === '/process-card' && req.method === 'POST') {
+    let body = '';
+    req.on('data', chunk => body += chunk.toString());
+    req.on('end', () => {
+      try {
+        const payload = JSON.parse(body || '{}');
+        const key = 'CFTX-MOCK-CARD-2026';
+        const exp = Date.now() + (365 * 86400000);
+        licenseStore.set(key, {
+          key,
+          exp,
+          devices: [{ deviceId: payload.deviceId, activatedAt: new Date().toISOString() }]
+        });
+
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+          status: 'approved',
+          key,
+          exp,
+          message: 'Pagamento aprovado!'
+        }));
+      } catch (err) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'invalid_json' }));
+      }
+    });
+    return;
+  }
+
+  // 2.3 Checar Pagamento Mock (GET /check-payment/:ref)
+  if (req.url && req.url.startsWith('/check-payment/')) {
+    const ref = req.url.replace('/check-payment/', '').trim();
+    const rec = refStore.get(ref);
+    if (rec && rec.status === 'approved') {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ status: 'approved', key: rec.key, exp: rec.exp }));
+    } else {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ status: 'pending' }));
+    }
+    return;
+  }
+
   // 3. Reivindicação Pós-compra (POST /claim)
   if (req.url === '/claim' && req.method === 'POST') {
     let body = '';

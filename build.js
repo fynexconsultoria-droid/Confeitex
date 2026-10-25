@@ -56,16 +56,20 @@ async function build() {
     }
   }
 
-  // Copia css/landing.css
-  if (fs.existsSync('css/landing.css')) {
-    fs.mkdirSync(path.join(outDir, 'css'), { recursive: true });
-    fs.copyFileSync('css/landing.css', path.join(outDir, 'css/landing.css'));
-  }
+  // Copia assets adicionais de CSS e JS
+  const extraAssets = [
+    { src: 'css/landing.css', dest: 'css/landing.css' },
+    { src: 'css/checkout.css', dest: 'css/checkout.css' },
+    { src: 'js/landing.js', dest: 'js/landing.js' },
+    { src: 'js/checkout.js', dest: 'js/checkout.js' },
+  ];
 
-  // Copia js/landing.js
-  if (fs.existsSync('js/landing.js')) {
-    fs.mkdirSync(path.join(outDir, 'js'), { recursive: true });
-    fs.copyFileSync('js/landing.js', path.join(outDir, 'js/landing.js'));
+  for (const item of extraAssets) {
+    if (fs.existsSync(item.src)) {
+      const dir = path.dirname(path.join(outDir, item.dest));
+      fs.mkdirSync(dir, { recursive: true });
+      fs.copyFileSync(item.src, path.join(outDir, item.dest));
+    }
   }
 
   console.log('Build completed successfully!');

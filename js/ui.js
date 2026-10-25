@@ -35,7 +35,11 @@ export const UI = {
     el.appendChild(iconEl);
     el.appendChild(textEl);
     document.body.appendChild(el);
-    requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('visible')));
+    if (typeof requestAnimationFrame === 'function') {
+      requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('visible')));
+    } else {
+      setTimeout(() => el.classList.add('visible'), 0);
+    }
     setTimeout(() => {
       el.classList.remove('visible');
       setTimeout(() => el.remove(), 300);

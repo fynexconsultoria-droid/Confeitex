@@ -4,6 +4,7 @@
  */
 
 import { License } from './license.js';
+import { Checkout } from './checkout.js';
 
 (() => {
   'use strict';
@@ -177,16 +178,12 @@ import { License } from './license.js';
            defaultCheckoutUrl;
   }
 
-  function openMpModal() {
-    if (mpModal) {
-      if (btnGoToMp) {
-        btnGoToMp.href = getMercadoPagoUrl();
-      }
-      mpModal.classList.add('active');
-    }
+  function openMpModal(preferredTab = 'pix') {
+    Checkout.open(preferredTab);
   }
 
   function closeMpModal() {
+    Checkout.close();
     if (mpModal) mpModal.classList.remove('active');
   }
 
@@ -194,9 +191,18 @@ import { License } from './license.js';
     btnCloseMpModal.addEventListener('click', closeMpModal);
   }
 
-  if (mpModal) {
-    mpModal.addEventListener('click', (e) => {
-      if (e.target === mpModal) closeMpModal();
+  if (btnGoToMp) {
+    btnGoToMp.addEventListener('click', (e) => {
+      e.preventDefault();
+      Checkout.open('pix');
+    });
+  }
+
+  const btnGoToCardModal = document.getElementById('btnGoToCardModal');
+  if (btnGoToCardModal) {
+    btnGoToCardModal.addEventListener('click', (e) => {
+      e.preventDefault();
+      Checkout.open('card');
     });
   }
 
@@ -216,6 +222,7 @@ import { License } from './license.js';
       unlockModal.classList.add('active');
     }
   }
+  window.openUnlockModal = openUnlockModal;
 
   function closeUnlockModal() {
     if (unlockModal) unlockModal.classList.remove('active');
@@ -280,16 +287,11 @@ import { License } from './license.js';
     });
   }
 
-  // ─── 6. Ações de Checkout Mercado Pago ───────────────────────────────────
+  // ─── 6. Ações de Checkout Transparente ───────────────────────────────────
   document.querySelectorAll('.btn-checkout-link').forEach(btn => {
-    btn.addEventListener('click', async (e) => {
+    btn.addEventListener('click', (e) => {
       e.preventDefault();
-      try {
-        await License.startPurchase();
-      } catch (err) {
-        console.warn('[Landing Checkout]:', err);
-        openMpModal();
-      }
+      Checkout.open('pix');
     });
   });
 
