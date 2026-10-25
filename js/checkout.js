@@ -57,6 +57,24 @@ export const Checkout = {
     }
   },
 
+  // Instância oficial MercadoPago.js V2
+  mpInstance: null,
+
+  getMPInstance() {
+    if (this.mpInstance) return this.mpInstance;
+    if (typeof window !== 'undefined' && typeof window.MercadoPago === 'function' && this.MP_PUBLIC_KEY) {
+      try {
+        this.mpInstance = new window.MercadoPago(this.MP_PUBLIC_KEY, {
+          locale: 'pt-BR'
+        });
+        return this.mpInstance;
+      } catch (err) {
+        console.warn('[MercadoPago.js V2 Init Warn]:', err);
+      }
+    }
+    return null;
+  },
+
   currentRef: null,
   pollTimer: null,
   countdownTimer: null,
@@ -833,7 +851,29 @@ export const Checkout = {
       const expYearRaw = (expParts[1] || '').trim();
       const expYear = parseInt(expYearRaw.length === 2 ? '20' + expYearRaw : expYearRaw, 10);
 
-      if (this.MP_PUBLIC_KEY) {
+      // 1. Tokenização oficial via SDK MercadoPago.js V2
+      const mp = this.getMPInstance();
+      if (mp && typeof mp.createCardToken === 'function') {
+        try {
+          const cardToken = await mp.createCardToken({
+            cardNumber,
+            cardholderName: cardHolder,
+            cardExpirationMonth: String(expMonth).padStart(2, '0'),
+            cardExpirationYear: String(expYear).length === 2 ? '20' + expYear : String(expYear),
+            securityCode: cardCvv,
+            identificationType: 'CPF',
+            identificationNumber: cardCpf
+          });
+          if (cardToken && cardToken.id) {
+            cardTokenId = cardToken.id;
+          }
+        } catch (sdkErr) {
+          console.warn('[MercadoPago.js SDK Tokenize Warn]:', sdkErr);
+        }
+      }
+
+      // 2. Fallback via API REST direta de tokenização PCI caso SDK externo não carregado
+      if (!cardTokenId && this.MP_PUBLIC_KEY) {
         try {
           const tokenRes = await fetch(`https://api.mercadopago.com/v1/card_tokens?public_key=${this.MP_PUBLIC_KEY}`, {
             method: 'POST',
