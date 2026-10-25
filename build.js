@@ -43,7 +43,8 @@ async function build() {
     'sw.js',
     'icons',
     'privacidade.html',
-    'termos.html'
+    'termos.html',
+    'CNAME'
   ];
 
   for (const asset of assets) {
@@ -62,6 +63,7 @@ async function build() {
     { src: 'css/checkout.css', dest: 'css/checkout.css' },
     { src: 'js/landing.js', dest: 'js/landing.js' },
     { src: 'js/checkout.js', dest: 'js/checkout.js' },
+    { src: 'js/mpErrors.js', dest: 'js/mpErrors.js' },
   ];
 
   for (const item of extraAssets) {

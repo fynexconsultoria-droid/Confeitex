@@ -3,17 +3,19 @@
  * 
  * - Pagamento direto e seguro no app (Checkout Transparente)
  * - Meios de pagamento aceitos: PIX Imediato ⚡ e Cartão de Crédito 💳 (até 10x sem juros)
+ * - Meios/bandeiras ativos consultados via Worker → GET /v1/payment_methods
  * - Remoção total de Boleto Bancário conforme solicitado
  * - Eliminação de alertas indesejados de terceiros
  * - Polling inteligente para liberação instantânea no PIX
- * - Validação matemática local e ativação automática da licença
+ * - A licença só é liberada após confirmação real do pagamento pelo Worker
+ * - O Access Token do Mercado Pago NUNCA fica no navegador (somente no Worker)
  */
 
-import { generatePixPayload } from './pix.js';
 import { generateQRCodeSVG } from './qrcode.js';
 import { License } from './license.js';
 import { Plan } from './plan.js';
 import { safeStorage, escapeHTML } from './utils.js';
+import { getFriendlyErrorMessage } from './mpErrors.js';
 
 export const Checkout = {
   PRICE_BRL: 1.00,
@@ -21,9 +23,9 @@ export const Checkout = {
   POLL_INTERVAL_MS: 3000,
   COUNTDOWN_SECONDS: 900, // 15 minutos
 
-  // Credenciais Oficiais Mercado Pago Checkout Transparente
+  // Public Key do Mercado Pago (pode ficar no front-end; usada só para tokenizar cartões)
+  // ⚠️ O Access Token NÃO deve ficar aqui — ele vive apenas no Cloudflare Worker (env.MP_ACCESS_TOKEN)
   MP_PUBLIC_KEY: 'APP_USR-eb677887-c0aa-416f-972e-fc46103fbe4c',
-  MP_ACCESS_TOKEN: 'APP_USR-7079855594959143-082419-ecbca323667e4de4eb55644fc72a0010-3637511091',
 
   // Configuração da Chave Pix do Recebedor (Mercado Pago)
   KEY_STORAGE_PIX: 'confeitex_master_pix_key',
@@ -79,6 +81,97 @@ export const Checkout = {
   pollTimer: null,
   countdownTimer: null,
   remainingSeconds: 900,
+
+  /**
+   * Meios de pagamento ativos na conta (vindos do Worker → GET /payment-methods).
+   * null = ainda não carregado / indisponível (nesse caso não escondemos nada da UI).
+   */
+  paymentMethods: null,
+  paymentMethodsPromise: null,
+
+  async loadPaymentMethods(force = false) {
+    if (this.paymentMethods && !force) return this.paymentMethods;
+    if (this.paymentMethodsPromise && !force) return this.paymentMethodsPromise;
+
+    const workerUrl = License.getWorkerUrl();
+    if (!workerUrl) return null;
+
+    this.paymentMethodsPromise = (async () => {
+      try {
+        const res = await fetch(`${workerUrl}/payment-methods`);
+        if (!res.ok) return null;
+        const data = await res.json();
+        if (!data || !Array.isArray(data.methods)) return null;
+        this.paymentMethods = data;
+        return data;
+      } catch (err) {
+        console.warn('[Checkout] Não foi possível carregar os meios de pagamento:', err);
+        return null;
+      } finally {
+        this.paymentMethodsPromise = null;
+      }
+    })();
+    return this.paymentMethodsPromise;
+  },
+
+  /**
+   * Mostra/oculta as abas conforme os meios ativos na conta do Mercado Pago
+   */
+  applyPaymentMethodsToUI(pm) {
+    if (!pm) return;
+    const modal = document.getElementById('checkoutTransparentModal');
+    if (!modal) return;
+
+    const tabPix = modal.querySelector('#tabBtnPix');
+    const tabCard = modal.querySelector('#tabBtnCard');
+    const hasCard = Array.isArray(pm.creditCards) && pm.creditCards.length > 0;
+
+    if (tabPix) tabPix.style.display = pm.pix ? '' : 'none';
+    if (tabCard) tabCard.style.display = hasCard ? '' : 'none';
+
+    // Se a aba ativa ficou indisponível, muda para a outra
+    if (!pm.pix && hasCard && tabCard) tabCard.click();
+    else if (pm.pix && !hasCard && tabPix) tabPix.click();
+
+    if (!pm.pix && !hasCard) {
+      this.showError('Nenhum meio de pagamento está disponível no momento. Tente novamente mais tarde.');
+    }
+  },
+
+  /**
+   * Identifica a bandeira (payment_method_id) e o emissor do cartão pelo BIN
+   * usando o MercadoPago.js V2. Faz fallback para a detecção local.
+   */
+  async resolveCardPaymentMethod(cardNumber) {
+    const bin = String(cardNumber || '').replace(/\D/g, '').slice(0, 8);
+    let paymentMethodId = null;
+    let issuerId = null;
+
+    const mp = this.getMPInstance();
+    if (mp && typeof mp.getPaymentMethods === 'function' && bin.length >= 6) {
+      try {
+        const { results } = await mp.getPaymentMethods({ bin });
+        const pm = (results || []).find(r => r.payment_type_id === 'credit_card') || (results || [])[0];
+        if (pm) {
+          paymentMethodId = pm.id;
+          issuerId = pm.issuer?.id ?? null;
+        }
+      } catch (err) {
+        console.warn('[MercadoPago.js getPaymentMethods Warn]:', err);
+      }
+    }
+
+    if (!paymentMethodId) {
+      const local = Plan.detectCardBrand ? Plan.detectCardBrand(cardNumber) : null;
+      paymentMethodId = local && local !== 'credit_card' ? local : null;
+    }
+
+    const allowed = this.paymentMethods?.creditCards;
+    const isAllowed = !paymentMethodId ? false
+      : (Array.isArray(allowed) && allowed.length ? allowed.includes(paymentMethodId) : true);
+
+    return { paymentMethodId, issuerId, isAllowed };
+  },
 
   /**
    * Inicializa o modal no DOM caso ainda não exista
@@ -190,6 +283,13 @@ export const Checkout = {
               <span>Aguardando pagamento... O app liberará na hora!</span>
             </div>
 
+            <div id="pixTicketLinkWrapper" style="display:none; margin-top:0.6rem; text-align:center;">
+              <a id="pixTicketLink" href="#" target="_blank" rel="noopener noreferrer" style="color:#38bdf8; font-size:0.85rem; text-decoration:underline; display:inline-flex; align-items:center; gap:0.35rem;">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                <span>Ou abra a página de pagamento no Mercado Pago</span>
+              </a>
+            </div>
+
             <div class="checkout-timer-text">
               Expira em: <strong id="pixCountdownDisplay" style="color:#fbbf24;">15:00</strong>
             </div>
@@ -280,6 +380,26 @@ export const Checkout = {
               <span>Pagar R$ 1,00 com Cartão</span>
             </button>
           </form>
+        </div>
+
+        <!-- ================= PAINEL 3DS 2.0 (CHALLENGE AUTENTICAÇÃO BANCÁRIA) ================= -->
+        <div class="checkout-panel" id="panelChallenge3ds" style="display:none; text-align:center;">
+          <div style="margin-bottom:0.8rem;">
+            <div style="display:inline-flex; align-items:center; gap:0.4rem; padding:0.35rem 0.75rem; background:rgba(56,189,248,0.12); border:1px solid rgba(56,189,248,0.3); border-radius:20px; font-size:0.75rem; color:#38bdf8; font-weight:700;">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              Autenticação Segura 3DS 2.0
+            </div>
+            <h4 style="color:#fff; font-size:1.1rem; font-weight:700; margin:0.5rem 0 0.2rem;">Confirmação com seu Banco</h4>
+            <p style="color:#94a3b8; font-size:0.82rem; margin:0;">Complete a verificação do seu banco abaixo para liberar seu acesso:</p>
+          </div>
+
+          <div id="containerIframe3ds" style="width:100%; min-height:420px; border-radius:12px; overflow:hidden; background:#0f172a; border:1px solid rgba(255,255,255,0.08); position:relative;">
+            <!-- Iframe do 3DS inserido dinamicamente aqui -->
+          </div>
+
+          <div style="margin-top:0.6rem;">
+            <small style="color:#64748b; font-size:0.75rem;">Você tem até 40 minutos para concluir a autenticação no banco.</small>
+          </div>
         </div>
 
         <!-- ================= TELA DE SUCESSO ================= -->
@@ -391,12 +511,17 @@ export const Checkout = {
     applyCpfMask(overlay.querySelector('#inputPixCpf'));
     applyCpfMask(overlay.querySelector('#inputCardCpf'));
 
-    // Máscara de Cartão de Crédito
+    // Máscara de Cartão de Crédito e Detecção Dinâmica de BIN (onBinChange)
     const inputCardNumber = overlay.querySelector('#inputCardNumber');
     const cardBadge = overlay.querySelector('#cardBrandBadge');
+    let lastQueriedBin = '';
+
     if (inputCardNumber) {
-      inputCardNumber.addEventListener('input', (e) => {
+      inputCardNumber.addEventListener('input', async (e) => {
         let v = e.target.value.replace(/\D/g, '').slice(0, 16);
+        const currentBin = v.slice(0, 6);
+
+        // Atualização visual imediata por heurística local
         let brand = Plan.detectCardBrand(v);
         if (cardBadge) {
           if (v.length >= 4) {
@@ -406,6 +531,17 @@ export const Checkout = {
             cardBadge.style.display = 'none';
           }
         }
+
+        // Quando completar 6 dígitos (BIN), consulta o SDK do Mercado Pago
+        if (currentBin.length === 6 && currentBin !== lastQueriedBin) {
+          lastQueriedBin = currentBin;
+          const { paymentMethodId } = await this.resolveCardPaymentMethod(currentBin);
+          if (paymentMethodId && cardBadge) {
+            cardBadge.textContent = paymentMethodId.toUpperCase();
+            cardBadge.style.display = 'block';
+          }
+        }
+
         e.target.value = v.replace(/(\d{4})(?=\d)/g, '$1 ');
       });
     }
@@ -492,7 +628,7 @@ export const Checkout = {
   /**
    * Abre o modal de Checkout Transparente
    */
-  open(preferredTab = 'pix') {
+  open(preferredTab = 'pix', payerData = null) {
     this.ensureModalExists();
     const modal = document.getElementById('checkoutTransparentModal');
     if (!modal) return;
@@ -503,15 +639,54 @@ export const Checkout = {
     // Reseta visualização inicial
     const pixForm = modal.querySelector('#pixFormView');
     const pixQr = modal.querySelector('#pixQrView');
+    const panel3ds = modal.querySelector('#panelChallenge3ds');
     const successView = modal.querySelector('#checkoutSuccessView');
     const trustFooter = modal.querySelector('#checkoutTrustFooter');
     const tabs = modal.querySelector('.checkout-tabs');
 
     if (pixForm) pixForm.style.display = 'block';
     if (pixQr) pixQr.style.display = 'none';
+    if (panel3ds) panel3ds.style.display = 'none';
     if (successView) successView.style.display = 'none';
     if (trustFooter) trustFooter.style.display = 'flex';
     if (tabs) tabs.style.display = 'flex';
+
+    // Pré-preenchimento opcional com dados já conhecidos do comprador (initialization.payer)
+    if (payerData && typeof payerData === 'object') {
+      const email = payerData.email || '';
+      const name = payerData.name || '';
+      const cpf = payerData.cpf || payerData.identification?.number || '';
+
+      if (email) {
+        const inputPixEmail = modal.querySelector('#inputPixEmail');
+        const inputCardEmail = modal.querySelector('#inputCardEmail');
+        if (inputPixEmail) inputPixEmail.value = email;
+        if (inputCardEmail) inputCardEmail.value = email;
+      }
+      if (name) {
+        const inputPixName = modal.querySelector('#inputPixName');
+        const inputCardHolder = modal.querySelector('#inputCardHolder');
+        if (inputPixName) inputPixName.value = name;
+        if (inputCardHolder) inputCardHolder.value = name;
+      }
+      if (cpf) {
+        const inputPixCpf = modal.querySelector('#inputPixCpf');
+        const inputCardCpf = modal.querySelector('#inputCardCpf');
+        if (inputPixCpf) inputPixCpf.value = cpf;
+        if (inputCardCpf) inputCardCpf.value = cpf;
+      }
+    } else if (this.savedDraft) {
+      // Restaura o estado anterior salvo após cancelamento/fechamento prévio (.userCancelled)
+      const d = this.savedDraft;
+      if (d.pixName) modal.querySelector('#inputPixName').value = d.pixName;
+      if (d.pixEmail) modal.querySelector('#inputPixEmail').value = d.pixEmail;
+      if (d.pixCpf) modal.querySelector('#inputPixCpf').value = d.pixCpf;
+      if (d.cardNumber) modal.querySelector('#inputCardNumber').value = d.cardNumber;
+      if (d.cardHolder) modal.querySelector('#inputCardHolder').value = d.cardHolder;
+      if (d.cardExpiry) modal.querySelector('#inputCardExpiry').value = d.cardExpiry;
+      if (d.cardCpf) modal.querySelector('#inputCardCpf').value = d.cardCpf;
+      if (d.cardEmail) modal.querySelector('#inputCardEmail').value = d.cardEmail;
+    }
 
     if (preferredTab === 'card') {
       const tabCard = modal.querySelector('#tabBtnCard');
@@ -520,14 +695,72 @@ export const Checkout = {
       const tabPix = modal.querySelector('#tabBtnPix');
       if (tabPix) tabPix.click();
     }
+
+    // Ajusta as abas conforme os meios de pagamento ativos na conta
+    this.loadPaymentMethods().then((pm) => this.applyPaymentMethodsToUI(pm));
   },
 
   /**
-   * Fecha o modal e limpa timers
+   * Armazena rascunho de preenchimento quando o usuário fecha/abandona o checkout (UserCancelled)
+   */
+  savedDraft: null,
+
+  /**
+   * Tokeniza o cartão sem efetuar cobrança imediata (CardSave)
+   * Útil para cadastros antecipados, assinaturas ou reservas de cartão
+   */
+  async tokenizeCardWithoutPayment(cardData) {
+    const mp = this.getMPInstance();
+    if (!mp) throw new Error('SDK do Mercado Pago não inicializado.');
+
+    const expParts = (cardData.cardExpiry || '').split('/');
+    const expMonth = String(parseInt(expParts[0], 10)).padStart(2, '0');
+    const expYearRaw = (expParts[1] || '').trim();
+    const expYear = expYearRaw.length === 2 ? '20' + expYearRaw : expYearRaw;
+
+    const tokenResult = await mp.createCardToken({
+      cardNumber: cardData.cardNumber.replace(/\D/g, ''),
+      cardholderName: cardData.cardHolder,
+      cardExpirationMonth: expMonth,
+      cardExpirationYear: expYear,
+      securityCode: cardData.cardCvv,
+      identificationType: 'CPF',
+      identificationNumber: cardData.cpf.replace(/\D/g, '')
+    });
+
+    const { paymentMethodId, issuerId } = await this.resolveCardPaymentMethod(cardData.cardNumber);
+
+    return {
+      token: tokenResult.id,
+      paymentMethodId,
+      paymentTypeId: 'credit_card',
+      issuerId,
+      payer: {
+        documentType: 'CPF',
+        documentNumber: cardData.cpf.replace(/\D/g, '')
+      }
+    };
+  },
+
+  /**
+   * Fecha o modal, preserva o rascunho preenchido para retomada (UserCancelled) e limpa timers
    */
   close() {
     const modal = document.getElementById('checkoutTransparentModal');
-    if (modal) modal.classList.remove('active');
+    if (modal) {
+      // Salva o estado dos campos para retomar se o usuário reabrir
+      this.savedDraft = {
+        pixName: modal.querySelector('#inputPixName')?.value || '',
+        pixEmail: modal.querySelector('#inputPixEmail')?.value || '',
+        pixCpf: modal.querySelector('#inputPixCpf')?.value || '',
+        cardNumber: modal.querySelector('#inputCardNumber')?.value || '',
+        cardHolder: modal.querySelector('#inputCardHolder')?.value || '',
+        cardExpiry: modal.querySelector('#inputCardExpiry')?.value || '',
+        cardCpf: modal.querySelector('#inputCardCpf')?.value || '',
+        cardEmail: modal.querySelector('#inputCardEmail')?.value || ''
+      };
+      modal.classList.remove('active');
+    }
     this.stopPolling();
     this.stopCountdown();
   },
@@ -582,49 +815,26 @@ export const Checkout = {
     try {
       const deviceId = License.getDeviceId();
       const workerUrl = License.getWorkerUrl();
-      let pixData = null;
-
-      if (workerUrl) {
-        // Envia requisição para a API do Cloudflare Worker
-        const res = await fetch(`${workerUrl}/create-pix`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            deviceId,
-            name,
-            email,
-            cpf: cpfRaw,
-            amount: this.PRICE_BRL
-          })
-        });
-
-        if (res.ok) {
-          pixData = await res.json();
-        }
+      if (!workerUrl) {
+        throw new Error('Servidor de pagamentos não configurado. Tente novamente mais tarde.');
       }
 
-      // Se worker offline ou em ambiente local sem worker, gera BR Code oficial do BACEN
-      if (!pixData || !pixData.qrCode) {
-        const ref = 'cftx_pix_' + Date.now();
-        const merchantCfg = this.getMerchantPixConfig();
-        const pixKey = merchantCfg.key || 'contato@confeitex.app';
-        const merchantName = merchantCfg.name || 'CONFEITEX';
-        const merchantCity = merchantCfg.city || 'SAO PAULO';
+      // Cria o pagamento PIX real no Mercado Pago via Worker
+      const res = await fetch(`${workerUrl}/create-pix`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          deviceId,
+          name,
+          email,
+          cpf: cpfRaw,
+          amount: this.PRICE_BRL
+        })
+      });
 
-        const fallbackPixCode = generatePixPayload({
-          key: pixKey,
-          name: merchantName,
-          city: merchantCity,
-          amount: this.PRICE_BRL,
-          txid: ref.slice(-20),
-          description: 'Confeitex Plano Anual'
-        });
-
-        pixData = {
-          ref,
-          qrCode: fallbackPixCode,
-          qrCodeBase64: null
-        };
+      const pixData = await res.json().catch(() => ({}));
+      if (!res.ok || !pixData.qrCode || !pixData.ref) {
+        throw new Error(pixData.message || 'Não foi possível gerar o PIX no momento.');
       }
 
       this.currentRef = pixData.ref;
@@ -644,6 +854,18 @@ export const Checkout = {
         }
       }
 
+      // Link alternativo oficial do Mercado Pago (ticket_url)
+      const ticketLinkWrapper = document.getElementById('pixTicketLinkWrapper');
+      const ticketLink = document.getElementById('pixTicketLink');
+      if (ticketLink && ticketLinkWrapper) {
+        if (pixData.ticketUrl) {
+          ticketLink.href = pixData.ticketUrl;
+          ticketLinkWrapper.style.display = 'block';
+        } else {
+          ticketLinkWrapper.style.display = 'none';
+        }
+      }
+
       // Troca para visualização do QR Code
       const pixForm = document.getElementById('pixFormView');
       const pixQr = document.getElementById('pixQrView');
@@ -656,7 +878,7 @@ export const Checkout = {
 
     } catch (err) {
       console.error('[Checkout Pix Error]:', err);
-      this.showError('Não foi possível gerar o PIX no momento. Verifique sua conexão ou tente com Cartão.');
+      this.showError(err.message || 'Não foi possível gerar o PIX no momento. Verifique sua conexão ou tente com Cartão.');
     } finally {
       btnGen.disabled = false;
       btnGen.innerHTML = originalBtnText;
@@ -730,11 +952,6 @@ export const Checkout = {
     this.pollCycles = 0;
     this.pollTimer = setInterval(() => {
       this.pollCycles++;
-      // Em modo direto/local sem worker, após ~15s (5 ciclos) de exibição do QR Code, auto-libera
-      if (this.pollCycles >= 6 && !License.getWorkerUrl()) {
-        this.checkCurrentPayment(true);
-        return;
-      }
       this.checkCurrentPayment(false);
     }, this.POLL_INTERVAL_MS);
   },
@@ -747,48 +964,44 @@ export const Checkout = {
   },
 
   /**
-   * Checa se o pagamento foi aprovado
+   * Checa no Worker se o pagamento foi realmente aprovado pelo Mercado Pago.
+   * A licença só é liberada quando o Worker confirma status "approved".
    */
   async checkCurrentPayment(isManualClick = false) {
     const ref = this.currentRef || safeStorage.get('confeitex_pending_purchase_ref');
+    const workerUrl = License.getWorkerUrl();
+    const btn = isManualClick ? document.getElementById('btnPixCheckNow') : null;
+    const originalBtnHtml = btn ? btn.innerHTML : '';
+
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = '<span>🔍 Verificando PIX no Mercado Pago...</span>';
+    }
 
     try {
-      const workerUrl = License.getWorkerUrl();
-      if (workerUrl && ref) {
-        const res = await fetch(`${workerUrl}/check-payment/${ref}`);
-        if (res.ok) {
-          const data = await res.json();
-          if (data.status === 'approved' && data.key) {
-            this.handlePaymentApproved(data.key, data.token);
-            return;
-          }
-        }
+      if (!workerUrl || !ref) {
+        if (isManualClick) this.showError('Não foi possível verificar o pagamento agora. Tente novamente em instantes.');
+        return;
       }
 
-      // Ao clicar em "Já realizei o PIX" ou auto-confirmação
-      if (isManualClick) {
-        const btn = document.getElementById('btnPixCheckNow');
-        if (btn) {
-          btn.disabled = true;
-          btn.innerHTML = '<span>🔍 Identificando PIX no Mercado Pago...</span>';
-          setTimeout(() => {
-            btn.innerHTML = '<span>✅ Pagamento Confirmado com Sucesso!</span>';
-            setTimeout(() => {
-              const approvedKey = 'CFTX-' + Math.random().toString(36).substring(2, 6).toUpperCase() + '-' + Math.random().toString(36).substring(2, 6).toUpperCase();
-              this.handlePaymentApproved(approvedKey, null);
-            }, 600);
-          }, 800);
-        } else {
-          const approvedKey = 'CFTX-' + Math.random().toString(36).substring(2, 6).toUpperCase() + '-' + Math.random().toString(36).substring(2, 6).toUpperCase();
-          this.handlePaymentApproved(approvedKey, null);
-        }
+      const res = await fetch(`${workerUrl}/check-payment/${encodeURIComponent(ref)}`);
+      const data = res.ok ? await res.json().catch(() => ({})) : {};
+
+      if (data.status === 'approved' && data.key) {
+        this.handlePaymentApproved(data.key, data.token);
         return;
+      }
+
+      if (isManualClick) {
+        this.showError('Ainda não identificamos seu PIX. Ele costuma ser confirmado em poucos segundos — aguarde e tente novamente.');
       }
     } catch (e) {
       console.warn('[Checkout Polling]:', e);
-      if (isManualClick) {
-        const approvedKey = 'CFTX-' + Math.random().toString(36).substring(2, 6).toUpperCase() + '-' + Math.random().toString(36).substring(2, 6).toUpperCase();
-        this.handlePaymentApproved(approvedKey, null);
+      if (isManualClick) this.showError('Falha ao verificar o pagamento. Confira sua conexão e tente novamente.');
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = originalBtnHtml;
       }
     }
   },
@@ -839,134 +1052,117 @@ export const Checkout = {
     try {
       const deviceId = License.getDeviceId();
       const workerUrl = License.getWorkerUrl();
-      const ref = 'cftx_card_' + Date.now();
+      const ref = 'cftx_card_' + (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Date.now());
 
-      // Tokenização segura padrão PCI-DSS via Mercado Pago API
-      let cardTokenId = null;
-      let cardBrand = Plan.detectCardBrand ? Plan.detectCardBrand(cardNumber) : 'credit_card';
-      if (cardBrand === 'credit_card') cardBrand = 'visa';
+      if (!workerUrl) {
+        throw new Error('Servidor de pagamentos não configurado. Tente novamente mais tarde.');
+      }
+
+      // Garante a lista de meios ativos (GET /v1/payment_methods via Worker)
+      await this.loadPaymentMethods();
+
+      // Obtém o Device ID de segurança antifraude do Mercado Pago (X-meli-session-id)
+      let deviceSessionId = null;
+      if (typeof window !== 'undefined') {
+        deviceSessionId = window.MP_DEVICE_SESSION_ID || window.deviceId || null;
+      }
+
+      // Identifica a bandeira (payment_method_id) e o emissor pelo BIN
+      const { paymentMethodId, issuerId, isAllowed } = await this.resolveCardPaymentMethod(cardNumber);
+      if (!paymentMethodId) {
+        throw new Error('Não reconhecemos a bandeira deste cartão. Confira o número digitado.');
+      }
+      if (!isAllowed) {
+        throw new Error('Esta bandeira de cartão não é aceita. Tente outro cartão ou pague via PIX.');
+      }
 
       const expParts = cardExpiry.split('/');
-      const expMonth = parseInt(expParts[0], 10);
+      const expMonth = String(parseInt(expParts[0], 10)).padStart(2, '0');
       const expYearRaw = (expParts[1] || '').trim();
-      const expYear = parseInt(expYearRaw.length === 2 ? '20' + expYearRaw : expYearRaw, 10);
+      const expYear = expYearRaw.length === 2 ? '20' + expYearRaw : expYearRaw;
 
-      // 1. Tokenização oficial via SDK MercadoPago.js V2
+      // Tokenização segura (PCI) — os dados do cartão vão direto ao Mercado Pago, nunca ao nosso servidor
+      let cardTokenId = null;
       const mp = this.getMPInstance();
       if (mp && typeof mp.createCardToken === 'function') {
         try {
           const cardToken = await mp.createCardToken({
             cardNumber,
             cardholderName: cardHolder,
-            cardExpirationMonth: String(expMonth).padStart(2, '0'),
-            cardExpirationYear: String(expYear).length === 2 ? '20' + expYear : String(expYear),
+            cardExpirationMonth: expMonth,
+            cardExpirationYear: expYear,
             securityCode: cardCvv,
             identificationType: 'CPF',
             identificationNumber: cardCpf
           });
-          if (cardToken && cardToken.id) {
-            cardTokenId = cardToken.id;
-          }
+          cardTokenId = cardToken?.id || null;
         } catch (sdkErr) {
           console.warn('[MercadoPago.js SDK Tokenize Warn]:', sdkErr);
         }
       }
 
-      // 2. Fallback via API REST direta de tokenização PCI caso SDK externo não carregado
+      // Fallback: API REST de tokenização com a Public Key (caso o SDK não tenha carregado)
       if (!cardTokenId && this.MP_PUBLIC_KEY) {
         try {
-          const tokenRes = await fetch(`https://api.mercadopago.com/v1/card_tokens?public_key=${this.MP_PUBLIC_KEY}`, {
+          const tokenRes = await fetch(`https://api.mercadopago.com/v1/card_tokens?public_key=${encodeURIComponent(this.MP_PUBLIC_KEY)}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              cardNumber,
+              card_number: cardNumber,
+              security_code: cardCvv,
+              expiration_month: Number(expMonth),
+              expiration_year: Number(expYear),
               cardholder: {
                 name: cardHolder,
                 identification: { type: 'CPF', number: cardCpf }
-              },
-              securityCode: cardCvv,
-              expirationMonth: expMonth,
-              expirationYear: expYear
+              }
             })
           });
           if (tokenRes.ok) {
             const tokenData = await tokenRes.json();
-            cardTokenId = tokenData.id;
+            cardTokenId = tokenData.id || null;
           }
         } catch (tokenErr) {
           console.warn('[Mercado Pago Tokenize Warning]:', tokenErr);
         }
       }
 
-      if (workerUrl) {
-        const res = await fetch(`${workerUrl}/process-card`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            deviceId,
-            ref,
-            token: cardTokenId,
-            paymentMethodId: cardBrand,
-            cardNumber,
-            cardHolder,
-            cardExpiry,
-            cardCvv,
-            cpf: cardCpf,
-            email: cardEmail,
-            installments: Number(installments),
-            amount: this.PRICE_BRL
-          })
-        });
-
-        const data = await res.json().catch(() => ({}));
-        if (res.ok && data.status === 'approved' && data.key) {
-          this.handlePaymentApproved(data.key, data.token);
-          return;
-        } else if (data.message) {
-          throw new Error(data.message);
-        }
+      if (!cardTokenId) {
+        throw new Error('Não foi possível validar os dados do cartão. Confira e tente novamente.');
       }
 
-      // Tentativa direta com Mercado Pago se não houver worker backend intermediário
-      if (this.MP_ACCESS_TOKEN && cardTokenId) {
-        try {
-          const directRes = await fetch('https://api.mercadopago.com/v1/payments', {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${this.MP_ACCESS_TOKEN}`,
-              'Content-Type': 'application/json',
-              'X-Idempotency-Key': ref
-            },
-            body: JSON.stringify({
-              token: cardTokenId,
-              transaction_amount: this.PRICE_BRL,
-              description: this.PLAN_NAME,
-              installments: Number(installments),
-              payment_method_id: cardBrand,
-              payer: {
-                email: cardEmail,
-                identification: { type: 'CPF', number: cardCpf }
-              }
-            })
-          });
-          const directData = await directRes.json().catch(() => ({}));
-          if (directRes.ok && directData.status === 'approved') {
-            const approvedKey = 'CFTX-' + Math.random().toString(36).substring(2, 6).toUpperCase() + '-' + Math.random().toString(36).substring(2, 6).toUpperCase();
-            this.handlePaymentApproved(approvedKey, null);
-            return;
-          } else if (directData.status && directData.status !== 'approved' && directData.status !== 401) {
-            throw new Error(directData.message || directData.cause?.[0]?.description || 'Transação não autorizada pelo banco emissor.');
-          }
-        } catch (mpErr) {
-          if (mpErr.message && !mpErr.message.includes('fetch')) {
-            throw mpErr;
-          }
-        }
+      // Envia somente o token (nunca número/CVV) para o Worker processar o pagamento
+      const res = await fetch(`${workerUrl}/process-card`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          deviceId,
+          deviceSessionId,
+          ref,
+          token: cardTokenId,
+          paymentMethodId,
+          issuerId,
+          cpf: cardCpf,
+          email: cardEmail,
+          installments: Number(installments),
+          amount: this.PRICE_BRL
+        })
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.status === 'approved' && data.key) {
+        this.handlePaymentApproved(data.key, data.token);
+        return;
       }
 
-      // Se em ambiente local de testes
-      const mockKey = 'CFTX-' + Math.random().toString(36).substring(2, 6).toUpperCase() + '-' + Math.random().toString(36).substring(2, 6).toUpperCase();
-      this.handlePaymentApproved(mockKey, null);
+      // Trata fluxo de autenticação 3DS 2.0 (Challenge bancário)
+      if (data.status === 'action_required' && data.challengeUrl) {
+        this.render3DSChallenge(data.challengeUrl, ref);
+        return;
+      }
+
+      const friendlyMsg = getFriendlyErrorMessage(data.error || data.statusDetail || data.code, data.message);
+      throw new Error(friendlyMsg || 'Transação não autorizada pelo banco emissor.');
 
     } catch (err) {
       console.error('[Checkout Card Error]:', err);
@@ -975,6 +1171,42 @@ export const Checkout = {
       btnSubmit.disabled = false;
       btnSubmit.innerHTML = originalText;
     }
+  },
+
+  /**
+   * Renderiza o iframe de autenticação bancária 3DS 2.0 (Challenge)
+   */
+  render3DSChallenge(challengeUrl, ref) {
+    const modal = document.getElementById('checkoutTransparentModal');
+    if (!modal) return;
+
+    this.currentRef = ref;
+    const panelPix = modal.querySelector('#panelPix');
+    const panelCard = modal.querySelector('#panelCard');
+    const panel3ds = modal.querySelector('#panelChallenge3ds');
+    const container = modal.querySelector('#containerIframe3ds');
+    const tabs = modal.querySelector('.checkout-tabs');
+
+    if (panelPix) panelPix.style.display = 'none';
+    if (panelCard) panelCard.style.display = 'none';
+    if (tabs) tabs.style.display = 'none';
+    if (panel3ds) panel3ds.style.display = 'block';
+
+    if (container) {
+      container.innerHTML = `<iframe src="${escapeHTML(challengeUrl)}" style="width:100%; height:440px; border:none; border-radius:10px;" allow="payment" title="Autenticação 3DS Mercado Pago"></iframe>`;
+    }
+
+    // Inicia verificação contínua pós-autenticação bancária
+    this.startPolling();
+
+    // Listener para o evento de conclusão do Challenge emitido pelo iframe
+    const messageListener = (e) => {
+      if (e.data && (e.data.status === 'COMPLETE' || e.data.status === 'success' || e.data === 'mp-3ds-challenge-complete')) {
+        window.removeEventListener('message', messageListener);
+        this.checkCurrentPayment(false);
+      }
+    };
+    window.addEventListener('message', messageListener);
   },
 
   /**

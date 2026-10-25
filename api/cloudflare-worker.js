@@ -139,11 +139,79 @@ async function verifyMercadoPagoWebhook(request, secret) {
   return hexSignature === hash;
 }
 
+// ─── Meios de Pagamento (GET /v1/payment_methods) ───────────────────────────
+
+const PAYMENT_METHODS_TTL_MS = 60 * 60 * 1000; // 1 hora
+let paymentMethodsCache = { data: null, fetchedAt: 0 };
+
+/**
+ * Consulta os meios de pagamento disponíveis na conta do Mercado Pago
+ * e devolve apenas os ativos e compatíveis com o valor do plano.
+ * O resultado fica em cache na memória do isolate por 1 hora.
+ */
+async function fetchActivePaymentMethods(mpToken) {
+  const now = Date.now();
+  if (paymentMethodsCache.data && (now - paymentMethodsCache.fetchedAt) < PAYMENT_METHODS_TTL_MS) {
+    return paymentMethodsCache.data;
+  }
+
+  const mpRes = await fetch('https://api.mercadopago.com/v1/payment_methods', {
+    headers: { 'Authorization': `Bearer ${mpToken}` }
+  });
+  const raw = await mpRes.json().catch(() => null);
+  if (!mpRes.ok || !Array.isArray(raw)) {
+    throw new Error((raw && raw.message) || `Mercado Pago respondeu ${mpRes.status} em /v1/payment_methods`);
+  }
+
+  const amount = PLAN_CONFIG.PRICE_BRL;
+  const methods = raw
+    .filter(m => m.status === 'active')
+    .filter(m => (m.min_allowed_amount == null || amount >= m.min_allowed_amount)
+              && (m.max_allowed_amount == null || amount <= m.max_allowed_amount))
+    .map(m => ({
+      id: m.id,
+      name: m.name,
+      paymentTypeId: m.payment_type_id,
+      thumbnail: m.secure_thumbnail || m.thumbnail || '',
+      minAmount: m.min_allowed_amount ?? null,
+      maxAmount: m.max_allowed_amount ?? null,
+      accreditationTime: m.accreditation_time ?? null
+    }));
+
+  const data = {
+    amount,
+    methods,
+    pix: methods.some(m => m.id === 'pix'),
+    creditCards: methods.filter(m => m.paymentTypeId === 'credit_card').map(m => m.id)
+  };
+
+  paymentMethodsCache = { data, fetchedAt: now };
+  return data;
+}
+
 // ─── Worker Principal ───────────────────────────────────────────────────────
 
 export default {
   async fetch(request, env, ctx) {
-    const origin = env.ALLOWED_ORIGIN || '*';
+    const reqOrigin = request.headers.get('Origin') || '';
+    const allowedList = [
+      'https://confeitex.com.br',
+      'https://www.confeitex.com.br',
+      'https://fynexconsultoria-droid.github.io',
+      env.ALLOWED_ORIGIN
+    ].filter(Boolean);
+
+    let origin = '*';
+    if (env.ALLOWED_ORIGIN && env.ALLOWED_ORIGIN !== '*') {
+      if (allowedList.includes(reqOrigin) || reqOrigin.endsWith('.confeitex.com.br') || reqOrigin.startsWith('http://localhost:')) {
+        origin = reqOrigin;
+      } else {
+        origin = env.ALLOWED_ORIGIN;
+      }
+    } else if (reqOrigin) {
+      origin = reqOrigin;
+    }
+
     const corsHeaders = {
       'Access-Control-Allow-Origin': origin,
       'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
@@ -175,6 +243,21 @@ export default {
           hasMP: Boolean(env.MP_ACCESS_TOKEN || DEFAULT_MP_ACCESS_TOKEN),
           hasKey: Boolean(env.LICENSE_PRIVATE_KEY)
         });
+      }
+
+      // ─── 1.1 Meios de Pagamento Disponíveis (GET /payment-methods) ──────
+      // Proxy seguro para /v1/payment_methods (o Access Token nunca sai do Worker)
+      if (pathname === '/payment-methods' && request.method === 'GET') {
+        const mpToken = env.MP_ACCESS_TOKEN || DEFAULT_MP_ACCESS_TOKEN;
+        if (!mpToken) {
+          return json({ error: 'server_not_configured', message: 'Servidor de pagamentos em manutenção.' }, 503);
+        }
+        try {
+          return json(await fetchActivePaymentMethods(mpToken));
+        } catch (err) {
+          console.error('[Worker Payment Methods Error]:', err);
+          return json({ error: 'mp_payment_methods_error', message: 'Não foi possível consultar os meios de pagamento.' }, 502);
+        }
       }
 
       // ─── 2. Criar Intenção de Compra (POST /purchase) ───────────────────
@@ -350,6 +433,24 @@ export default {
           return json({ error: 'server_not_configured', message: 'Servidor de pagamentos em manutenção.' }, 503);
         }
 
+        const cardToken = (body.token || '').trim();
+        const paymentMethodId = (body.paymentMethodId || '').trim();
+        if (!cardToken || !paymentMethodId) {
+          return json({ error: 'missing_card_token', message: 'Não foi possível validar o cartão. Confira os dados e tente novamente.' }, 400);
+        }
+
+        // Garante que a bandeira informada está ativa na conta (GET /v1/payment_methods)
+        try {
+          const available = await fetchActivePaymentMethods(mpToken);
+          if (!available.creditCards.includes(paymentMethodId)) {
+            return json({ error: 'payment_method_not_allowed', message: 'Esta bandeira de cartão não é aceita. Tente outro cartão ou pague via PIX.' }, 400);
+          }
+        } catch (pmErr) {
+          console.warn('[Worker] Não foi possível validar o meio de pagamento, seguindo para o Mercado Pago:', pmErr);
+        }
+
+        const deviceSessionId = (body.deviceSessionId || '').trim();
+
         let paymentPayload = {
           transaction_amount: PLAN_CONFIG.PRICE_BRL,
           description: `${PLAN_CONFIG.PLAN_TITLE} (1 Ano de Acesso)`,
@@ -359,21 +460,37 @@ export default {
           payer: {
             email,
             identification: cpf ? { type: 'CPF', number: cpf } : undefined
+          },
+          additional_info: {
+            items: [
+              {
+                id: 'plano-anual',
+                title: PLAN_CONFIG.PLAN_TITLE,
+                description: PLAN_CONFIG.PLAN_DESC,
+                quantity: 1,
+                unit_price: PLAN_CONFIG.PRICE_BRL,
+                category_id: 'services'
+              }
+            ]
           }
         };
 
-        if (body.token) {
-          paymentPayload.token = body.token;
-          paymentPayload.payment_method_id = body.paymentMethodId || 'credit_card';
+        paymentPayload.token = cardToken;
+        paymentPayload.payment_method_id = paymentMethodId;
+        if (body.issuerId) paymentPayload.issuer_id = String(body.issuerId);
+
+        const mpHeaders = {
+          'Authorization': `Bearer ${mpToken}`,
+          'Content-Type': 'application/json',
+          'X-Idempotency-Key': ref
+        };
+        if (deviceSessionId) {
+          mpHeaders['X-meli-session-id'] = deviceSessionId;
         }
 
         const mpRes = await fetch('https://api.mercadopago.com/v1/payments', {
           method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${mpToken}`,
-            'Content-Type': 'application/json',
-            'X-Idempotency-Key': ref
-          },
+          headers: mpHeaders,
           body: JSON.stringify(paymentPayload)
         });
 
@@ -425,11 +542,65 @@ export default {
           });
         }
 
+        // Verifica se o pagamento exige autenticação 3DS 2.0 (Challenge bancário)
+        const challengeUrl = mpData.point_of_interaction?.transaction_data?.ticket_url
+          || mpData.payment_method?.transaction_security?.url
+          || mpData.three_ds_info?.challenge_url
+          || null;
+
+        if (mpData.status === 'action_required' || mpData.status_detail === 'pending_challenge' || challengeUrl) {
+          if (env.CONFEITEX_KV) {
+            await env.CONFEITEX_KV.put(`ref:${ref}`, JSON.stringify({
+              ref,
+              paymentId: String(mpData.id),
+              deviceId,
+              email,
+              status: 'action_required',
+              statusDetail: 'pending_challenge',
+              createdAt: new Date().toISOString()
+            }), { expirationTtl: 172800 });
+          }
+
+          return json({
+            status: 'action_required',
+            statusDetail: 'pending_challenge',
+            paymentId: mpData.id,
+            challengeUrl,
+            message: 'Autenticação 3DS necessária no banco.'
+          }, 200);
+        }
+
         const errDetail = mpData.status_detail || 'cc_rejected_other_reason';
-        let userMessage = 'Pagamento não autorizado pelo banco emissor.';
-        if (errDetail === 'cc_rejected_insufficient_amount') userMessage = 'Saldo insuficiente no cartão.';
-        else if (errDetail === 'cc_rejected_bad_filled_security_code') userMessage = 'Código de segurança (CVV) incorreto.';
-        else if (errDetail === 'cc_rejected_bad_filled_date') userMessage = 'Data de validade do cartão incorreta.';
+        const errorMessages = {
+          // Erros de preenchimento
+          'bad_filled_card_data': 'Dados do cartão incorretos. Verifique número, validade e CVV.',
+          'cc_rejected_bad_filled_card_number': 'Número do cartão inválido.',
+          'cc_rejected_bad_filled_security_code': 'Código de segurança (CVV) incorreto.',
+          'cc_rejected_bad_filled_date': 'Data de validade do cartão incorreta.',
+          'cc_rejected_bad_filled_other': 'Confira os dados do cartão e tente novamente.',
+
+          // Recusas pelo banco emissor
+          'insufficient_amount': 'Saldo ou limite insuficiente no cartão.',
+          'cc_rejected_insufficient_amount': 'Saldo ou limite insuficiente no cartão.',
+          'card_disabled': 'Cartão desabilitado ou bloqueado para compras online. Ligue para o seu banco.',
+          'cc_rejected_card_disabled': 'Cartão desabilitado ou bloqueado para compras online. Ligue para o seu banco.',
+          'required_call_for_authorize': 'O banco requer autorização prévia. Entre em contato com seu banco para liberar a compra.',
+          'cc_rejected_call_for_authorize': 'O banco requer autorização prévia. Entre em contato com seu banco para liberar a compra.',
+          'invalid_installments': 'O número de parcelas selecionado não é permitido para este cartão.',
+          'cc_rejected_invalid_installments': 'O número de parcelas selecionado não é permitido para este cartão.',
+          'max_attempts_exceeded': 'Limite de tentativas excedido. Tente outro cartão ou pague com PIX.',
+          'cc_rejected_max_attempts': 'Limite de tentativas excedido. Tente outro cartão ou pague com PIX.',
+          'cc_rejected_duplicated_payment': 'Pagamento duplicado identificado. Se já pagou, aguarde alguns instantes.',
+
+          // Prevenção contra fraudes / Risco
+          'high_risk': 'Transação recusada por segurança. Recomendamos pagar via PIX Imediato.',
+          'cc_rejected_high_risk': 'Transação recusada por segurança. Recomendamos pagar via PIX Imediato.',
+          'rejected_by_issuer': 'Transação recusada pelo banco emissor. Tente outro cartão ou pague via PIX.',
+          'cc_rejected_blacklist': 'Cartão não autorizado. Tente outro cartão ou pague com PIX.',
+          'cc_rejected_other_reason': 'Transação não autorizada pelo banco emissor. Tente outro cartão ou conclua via PIX.'
+        };
+
+        const userMessage = errorMessages[errDetail] || mpData.message || 'Transação não autorizada pelo banco emissor. Verifique os dados ou pague via PIX.';
 
         return json({
           status: 'rejected',
@@ -510,7 +681,44 @@ export default {
 
         const body = await request.json().catch(() => ({}));
         const topic = body.type || body.topic || url.searchParams.get('topic');
+        const action = body.action || '';
         const paymentId = body.data?.id || url.searchParams.get('data.id') || url.searchParams.get('id');
+
+        // Tratamento de notificações de contestação (order.charged_back / chargebacks)
+        if (action === 'order.charged_back' || topic === 'chargebacks' || topic === 'order') {
+          const externalRef = body.data?.external_reference || body.data?.id;
+          const isChargedBack = action === 'order.charged_back' || body.data?.status === 'charged_back';
+          const chargebackItem = body.data?.transactions?.chargebacks?.[0] || null;
+          const caseId = chargebackItem?.case_id || body.data?.id || null;
+
+          if (isChargedBack && externalRef && env.CONFEITEX_KV) {
+            const refData = await env.CONFEITEX_KV.get(`ref:${externalRef}`, 'json');
+            if (refData && refData.key) {
+              const licenseRecord = await env.CONFEITEX_KV.get(`license:${refData.key}`, 'json');
+              if (licenseRecord) {
+                licenseRecord.revoked = true;
+                licenseRecord.revocationReason = 'charged_back';
+                licenseRecord.chargebackCaseId = caseId;
+                licenseRecord.revokedAt = new Date().toISOString();
+                await env.CONFEITEX_KV.put(`license:${refData.key}`, JSON.stringify(licenseRecord));
+                console.log(`[Worker] Contestação recebida (caso ${caseId}): Licença ${refData.key} revogada!`);
+              }
+              refData.status = 'charged_back';
+              refData.chargebackCaseId = caseId;
+              await env.CONFEITEX_KV.put(`ref:${externalRef}`, JSON.stringify(refData), { expirationTtl: 172800 });
+            }
+
+            // Registra o caso de contestação no KV para consulta administrativa
+            if (caseId) {
+              await env.CONFEITEX_KV.put(`chargeback:${caseId}`, JSON.stringify({
+                caseId,
+                externalRef,
+                date: new Date().toISOString(),
+                raw: body.data
+              }), { expirationTtl: 15552000 }); // 180 dias
+            }
+          }
+        }
 
         const mpWorkerToken = env.MP_ACCESS_TOKEN || DEFAULT_MP_ACCESS_TOKEN;
         if (topic === 'payment' && paymentId && mpWorkerToken) {
@@ -557,6 +765,21 @@ export default {
                 await env.CONFEITEX_KV.put(`ref:${ref}`, JSON.stringify(refData), { expirationTtl: 172800 });
 
                 console.log(`[Worker] Licença ${newKey} gerada com sucesso para ref ${ref}!`);
+              }
+            } else if (['refunded', 'cancelled', 'charged_back'].includes(payment.status) && ref && env.CONFEITEX_KV) {
+              // Se o pagamento for estornado, cancelado ou sofrer chargeback, revoga a licença imediatamente
+              const refData = await env.CONFEITEX_KV.get(`ref:${ref}`, 'json');
+              if (refData && refData.key) {
+                const licenseRecord = await env.CONFEITEX_KV.get(`license:${refData.key}`, 'json');
+                if (licenseRecord) {
+                  licenseRecord.revoked = true;
+                  licenseRecord.revocationReason = payment.status;
+                  licenseRecord.revokedAt = new Date().toISOString();
+                  await env.CONFEITEX_KV.put(`license:${refData.key}`, JSON.stringify(licenseRecord));
+                  console.log(`[Worker] Licença ${refData.key} revogada devido a status: ${payment.status}`);
+                }
+                refData.status = payment.status;
+                await env.CONFEITEX_KV.put(`ref:${ref}`, JSON.stringify(refData), { expirationTtl: 172800 });
               }
             }
           }
@@ -655,6 +878,11 @@ export default {
             exp: Date.now() + (365 * 86400000),
             devices: []
           };
+        }
+
+        // Verifica se a licença foi revogada por reembolso ou cancelamento
+        if (licenseRecord.revoked) {
+          return json({ valid: false, error: 'revoked_key', message: 'Esta licença foi cancelada devido a reembolso ou estorno do pagamento.' }, 403);
         }
 
         // Verifica se a licença expirou
