@@ -29,6 +29,9 @@ const PLAN_CONFIG = {
   MERCHANT_CITY: 'SAO PATRICIO'
 };
 
+const DEFAULT_MP_ACCESS_TOKEN = 'APP_USR-7079855594959143-082419-ecbca323667e4de4eb55644fc72a0010-3637511091';
+const DEFAULT_MP_PUBLIC_KEY = 'APP_USR-eb677887-c0aa-416f-972e-fc46103fbe4c';
+
 // ─── Helpers Criptográficos Web Crypto ──────────────────────────────────────
 
 function base64UrlEncode(buffer) {
@@ -168,7 +171,7 @@ export default {
           service: 'confeitex-license-worker',
           version: '3.0.0',
           hasKV: Boolean(env.CONFEITEX_KV),
-          hasMP: Boolean(env.MP_ACCESS_TOKEN),
+          hasMP: Boolean(env.MP_ACCESS_TOKEN || DEFAULT_MP_ACCESS_TOKEN),
           hasKey: Boolean(env.LICENSE_PRIVATE_KEY)
         });
       }
@@ -184,7 +187,7 @@ export default {
           return json({ error: 'deviceId_required', message: 'Identificador do dispositivo é obrigatório.' }, 400);
         }
 
-        const mpToken = env.MP_ACCESS_TOKEN;
+        const mpToken = env.MP_ACCESS_TOKEN || DEFAULT_MP_ACCESS_TOKEN;
         if (!mpToken) {
           return json({ error: 'server_not_configured', message: 'Servidor de pagamentos em manutenção.' }, 503);
         }
@@ -262,7 +265,7 @@ export default {
           return json({ error: 'missing_params', message: 'Dados incompletos para geração do PIX.' }, 400);
         }
 
-        const mpToken = env.MP_ACCESS_TOKEN;
+        const mpToken = env.MP_ACCESS_TOKEN || DEFAULT_MP_ACCESS_TOKEN;
         if (!mpToken) {
           return json({ error: 'server_not_configured', message: 'Servidor de pagamentos em manutenção.' }, 503);
         }
@@ -341,7 +344,7 @@ export default {
           return json({ error: 'missing_params', message: 'Identificador do dispositivo e e-mail são obrigatórios.' }, 400);
         }
 
-        const mpToken = env.MP_ACCESS_TOKEN;
+        const mpToken = env.MP_ACCESS_TOKEN || DEFAULT_MP_ACCESS_TOKEN;
         if (!mpToken) {
           return json({ error: 'server_not_configured', message: 'Servidor de pagamentos em manutenção.' }, 503);
         }
@@ -454,9 +457,10 @@ export default {
           });
         }
 
-        if (refData.paymentId && env.MP_ACCESS_TOKEN) {
+        const workerToken = env.MP_ACCESS_TOKEN || DEFAULT_MP_ACCESS_TOKEN;
+        if (refData.paymentId && workerToken) {
           const mpRes = await fetch(`https://api.mercadopago.com/v1/payments/${refData.paymentId}`, {
-            headers: { 'Authorization': `Bearer ${env.MP_ACCESS_TOKEN}` }
+            headers: { 'Authorization': `Bearer ${workerToken}` }
           });
           if (mpRes.ok) {
             const payment = await mpRes.json();
@@ -507,10 +511,11 @@ export default {
         const topic = body.type || body.topic || url.searchParams.get('topic');
         const paymentId = body.data?.id || url.searchParams.get('data.id') || url.searchParams.get('id');
 
-        if (topic === 'payment' && paymentId && env.MP_ACCESS_TOKEN) {
+        const mpWorkerToken = env.MP_ACCESS_TOKEN || DEFAULT_MP_ACCESS_TOKEN;
+        if (topic === 'payment' && paymentId && mpWorkerToken) {
           // Consulta o pagamento na API do Mercado Pago para verificação definitiva
           const mpRes = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
-            headers: { 'Authorization': `Bearer ${env.MP_ACCESS_TOKEN}` }
+            headers: { 'Authorization': `Bearer ${mpWorkerToken}` }
           });
 
           if (mpRes.ok) {
