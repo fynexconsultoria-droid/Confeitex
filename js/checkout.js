@@ -16,8 +16,8 @@ import { Plan } from './plan.js';
 import { safeStorage, escapeHTML } from './utils.js';
 
 export const Checkout = {
-  PRICE_BRL: 397.90,
-  PLAN_NAME: 'Confeitex — Plano Anual',
+  PRICE_BRL: 1.00,
+  PLAN_NAME: 'Confeitex — Plano Anual (Teste)',
   POLL_INTERVAL_MS: 3000,
   COUNTDOWN_SECONDS: 900, // 15 minutos
 
@@ -84,7 +84,7 @@ export const Checkout = {
             Ambiente 100% Criptografado & Seguro
           </div>
           <h2 class="checkout-title">Plano Anual Confeitex</h2>
-          <p class="checkout-subtitle">1 ano de acesso completo por <span class="checkout-price-highlight">R$ 397,90</span> (em até 10x sem juros no cartão ou PIX imediato).</p>
+          <p class="checkout-subtitle">1 ano de acesso completo por <span class="checkout-price-highlight">R$ 1,00 (Valor de Teste)</span>.</p>
         </div>
 
         <!-- Abas de Pagamento (Apenas PIX e Cartão) -->
@@ -138,7 +138,7 @@ export const Checkout = {
 
             <button type="button" class="btn-checkout-submit" id="btnGeneratePix">
               <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-              <span>Gerar QR Code PIX (R$ 397,90)</span>
+              <span>Gerar QR Code PIX (R$ 1,00)</span>
             </button>
           </div>
 
@@ -249,22 +249,13 @@ export const Checkout = {
             <div class="checkout-field">
               <label for="selectCardInstallments">Opções de Parcelamento</label>
               <select id="selectCardInstallments" class="checkout-select">
-                <option value="1">1x de R$ 397,90 à vista sem juros</option>
-                <option value="2">2x de R$ 198,95 sem juros</option>
-                <option value="3">3x de R$ 132,63 sem juros</option>
-                <option value="4">4x de R$ 99,47 sem juros</option>
-                <option value="5">5x de R$ 79,58 sem juros</option>
-                <option value="6">6x de R$ 66,31 sem juros</option>
-                <option value="7">7x de R$ 56,84 sem juros</option>
-                <option value="8">8x de R$ 49,73 sem juros</option>
-                <option value="9">9x de R$ 44,21 sem juros</option>
-                <option value="10" selected>10x de R$ 39,79 sem juros (Mais Escolhido)</option>
+                <option value="1" selected>1x de R$ 1,00 à vista (Valor de Teste)</option>
               </select>
             </div>
 
             <button type="submit" class="btn-checkout-submit btn-checkout-card" id="btnSubmitCard">
               <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-              <span>Pagar R$ 397,90 com Cartão</span>
+              <span>Pagar R$ 1,00 com Cartão</span>
             </button>
           </form>
         </div>

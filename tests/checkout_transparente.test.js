@@ -71,9 +71,9 @@ describe('Checkout Transparente - Confeitex (PIX e Cartão sem Boleto)', () => {
     globalThis.document = originalDocument;
   });
 
-  it('should have exact price of R$ 397.90 for annual plan and connected Mercado Pago Pix key', () => {
-    expect(Checkout.PRICE_BRL).toBe(397.90);
-    expect(Plan.PRICE_BRL).toBe(397.90);
+  it('should have exact price of R$ 1.00 for test plan and connected Mercado Pago Pix key', () => {
+    expect(Checkout.PRICE_BRL).toBe(1.00);
+    expect(Plan.PRICE_BRL).toBe(1.00);
     const pixCfg = Checkout.getMerchantPixConfig();
     expect(pixCfg.key).toBe('16d0c3c4-3307-4db5-b81a-977901372845');
     expect(pixCfg.name).toBe('JOAO ANTONIO');

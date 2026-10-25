@@ -14,7 +14,7 @@ import { safeStorage, escapeHTML } from './utils.js';
 export const Plan = {
   // ─── Configuração do Plano ────────────────────────────────────────────────
   TRIAL_DAYS: 7,
-  PRICE_BRL: 397.90,
+  PRICE_BRL: 1.00,
   PLAN_NAME: 'Confeitex Anual',
   PLAN_DURATION_DAYS: 365,
   CURRENCY: 'BRL',

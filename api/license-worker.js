@@ -19,7 +19,7 @@
  */
 
 const PLAN_CONFIG = {
-  PRICE_BRL: 397.90,
+  PRICE_BRL: 1.00,
   PLAN_TITLE: 'Confeitex — Plano Anual',
   PLAN_DESC: 'Licença Anual Confeitex - 1 Ano de Acesso Completo e Suporte Especializado',
   DURATION_DAYS: 365,

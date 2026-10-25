@@ -30,7 +30,7 @@ describe('Confeitex Lifetime Plan & Lock System', () => {
   });
 
   it('should validate activation keys correctly and reject backdoors', () => {
-    expect(Plan.PRICE_BRL).toBe(397.90);
+    expect(Plan.PRICE_BRL).toBe(1.00);
     // Chaves padrão Confeitex válidas
     expect(Plan.verifyKey('CFTX-2026-ABCD')).toBe(true);
     expect(Plan.verifyKey('CFTX-ABCD-EFGH-JKLM')).toBe(true);
