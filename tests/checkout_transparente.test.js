@@ -33,12 +33,27 @@ describe('Checkout Transparente - Confeitex (PIX e Cartão sem Boleto)', () => {
         },
         style: {},
         attributes: {},
-        innerHTML: '',
         textContent: '',
         setAttribute(k, v) { this.attributes[k] = v; },
         getAttribute(k) { return this.attributes[k]; },
         addEventListener: () => {},
-        appendChild(child) { return child; },
+        appendChild(child) {
+          if (child && child.id) elements.set(child.id, child);
+          return child;
+        },
+        get innerHTML() { return this._html || ''; },
+        set innerHTML(val) {
+          this._html = String(val);
+          const matches = this._html.matchAll(/id=["']([^"']+)["']/g);
+          for (const m of matches) {
+            const id = m[1];
+            if (!elements.has(id)) {
+              const child = createMockElement('div');
+              child.id = id;
+              elements.set(id, child);
+            }
+          }
+        },
         querySelector(selector) {
           if (selector === '.checkout-tabs') return createMockElement('div');
           if (selector.startsWith('#')) return elements.get(selector.slice(1)) || createMockElement('div');
@@ -104,5 +119,23 @@ describe('Checkout Transparente - Confeitex (PIX e Cartão sem Boleto)', () => {
     Checkout.ensureModalExists();
     const modal = document.getElementById('checkoutTransparentModal');
     expect(modal).not.toBeNull();
+  });
+
+  it('should handle Pix generation in direct mode without worker without crashing', async () => {
+    Checkout.ensureModalExists();
+    const inputName = document.getElementById('inputPixName');
+    const inputEmail = document.getElementById('inputPixEmail');
+    const inputCpf = document.getElementById('inputPixCpf');
+    const btnGen = document.getElementById('btnGeneratePix');
+
+    if (inputName) inputName.value = 'Cliente Teste';
+    if (inputEmail) inputEmail.value = 'teste@confeitex.com.br';
+    if (inputCpf) inputCpf.value = '12345678909';
+
+    await Checkout.handleGeneratePix();
+
+    const inputCode = document.getElementById('inputPixCopiaCola');
+    expect(inputCode.value).toContain('000201'); // Padrão BACEN BR Code
+    expect(Checkout.currentRef).toMatch(/^cftx_pix_/);
   });
 });

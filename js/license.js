@@ -68,7 +68,14 @@ export const License = {
   },
 
   setWorkerUrl(url) {
-    if (url) safeStorage.set(STORAGE_KEYS.WORKER_URL, url.trim().replace(/\/+$/, ''));
+    if (url && url.trim()) {
+      const clean = url.trim().replace(/\/+$/, '');
+      safeStorage.set(STORAGE_KEYS.WORKER_URL, clean);
+      safeStorage.set('confeitex_mp_worker_url', clean);
+    } else {
+      safeStorage.remove(STORAGE_KEYS.WORKER_URL);
+      safeStorage.remove('confeitex_mp_worker_url');
+    }
   },
 
   /**
@@ -174,6 +181,10 @@ export const License = {
   async startPurchase(email = '') {
     const workerUrl = this.getWorkerUrl();
     if (!workerUrl) {
+      if (typeof window !== 'undefined' && window.Checkout && typeof window.Checkout.openModal === 'function') {
+        window.Checkout.openModal();
+        return { status: 'opened_modal' };
+      }
       throw new Error('Servidor de pagamentos não configurado.');
     }
 

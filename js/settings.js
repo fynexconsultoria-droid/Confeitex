@@ -11,6 +11,8 @@ import { Trash } from './trash.js';
 import { UI } from './ui.js';
 
 import { fmt, fmtDateStr, fmtISO, safeStorage, escapeHTML, validateStateDump, csvCell } from './utils.js';
+import { License } from './license.js';
+import { Checkout } from './checkout.js';
 
 export const Settings = {
   renderCatalog() {
@@ -201,6 +203,9 @@ export const Settings = {
 
     // Formas de Recebimento (Pix / Bancos)
     this.setupPaymentChargeConfig();
+
+    // Servidor de Pagamento & Checkout (Cloudflare Worker & Licenças)
+    this.setupPaymentWorkerConfig();
 
     const btnToggleNotif = document.getElementById('btnToggleNotifications');
     if (btnToggleNotif) {
@@ -713,6 +718,122 @@ export const Settings = {
       });
       UI.toast('Formas de recebimento salvas com sucesso! ✨', 'success');
     });
+  },
+
+  // ─── Servidor de Pagamento & Checkout (Cloudflare Worker & Licenças) ───
+  setupPaymentWorkerConfig() {
+    const card = document.getElementById('cardPaymentServerConfig');
+    if (!card) return;
+
+    const inputWorkerUrl = document.getElementById('cfgWorkerUrlInput');
+    const inputPixKey = document.getElementById('cfgMerchantPixKeyInput');
+    const inputPixName = document.getElementById('cfgMerchantPixNameInput');
+    const statusDot = document.getElementById('workerStatusDot');
+    const statusText = document.getElementById('workerStatusText');
+    const btnTest = document.getElementById('btnTestWorkerConnection');
+    const btnSave = document.getElementById('btnSavePaymentServerConfig');
+    const btnReset = document.getElementById('btnResetPaymentServerConfig');
+
+    const updateStatusUI = (connected = false, message = '') => {
+      if (!statusDot || !statusText) return;
+      if (connected) {
+        statusDot.style.background = 'var(--color-success, #10b981)';
+        statusText.style.color = 'var(--color-success, #10b981)';
+        statusText.textContent = message || '🟢 Cloudflare Worker Conectado';
+      } else {
+        const url = License.getWorkerUrl();
+        if (url) {
+          statusDot.style.background = 'var(--color-warning, #f59e0b)';
+          statusText.style.color = 'var(--color-warning, #f59e0b)';
+          statusText.textContent = message || '🟡 URL Configurada (não testada)';
+        } else {
+          statusDot.style.background = 'var(--color-warning, #f59e0b)';
+          statusText.style.color = 'var(--color-warning, #f59e0b)';
+          statusText.textContent = message || '🟡 Modo Direto Ativo (Pix Local Oficial)';
+        }
+      }
+    };
+
+    // Preenche com os dados atuais
+    const currentWorker = License.getWorkerUrl();
+    const currentPix = Checkout.getMerchantPixConfig();
+
+    if (inputWorkerUrl) inputWorkerUrl.value = currentWorker || '';
+    if (inputPixKey) inputPixKey.value = currentPix.key || '';
+    if (inputPixName) inputPixName.value = currentPix.name || '';
+    updateStatusUI(false);
+
+    // Salvar configurações
+    if (btnSave) {
+      btnSave.addEventListener('click', () => {
+        const newUrl = inputWorkerUrl ? inputWorkerUrl.value.trim() : '';
+        const newKey = inputPixKey ? inputPixKey.value.trim() : '';
+        const newName = inputPixName ? inputPixName.value.trim() : '';
+
+        License.setWorkerUrl(newUrl);
+        if (newKey) Checkout.setMerchantPixConfig(newKey, newName);
+
+        updateStatusUI(false);
+        UI.toast('Configurações de pagamento salvas com sucesso! ✨', 'success');
+      });
+    }
+
+    // Testar conexão
+    if (btnTest) {
+      btnTest.addEventListener('click', async () => {
+        const url = (inputWorkerUrl?.value || License.getWorkerUrl() || '').trim().replace(/\/+$/, '');
+        if (!url) {
+          updateStatusUI(false, '🟡 Modo Direto Ativo (Sem URL do Worker)');
+          UI.toast('Modo Direto ativo: os pagamentos PIX são gerados via chave padrão.', 'info');
+          return;
+        }
+
+        const originalText = btnTest.innerHTML;
+        btnTest.disabled = true;
+        btnTest.innerHTML = '<span>Testando...</span>';
+
+        try {
+          const res = await fetch(`${url}/health`, { method: 'GET' });
+          if (res.ok) {
+            const data = await res.json().catch(() => ({}));
+            updateStatusUI(true, '🟢 Worker Online (' + (data.service || 'OK') + ')');
+            UI.toast('Conexão com Cloudflare Worker estabelecida com sucesso! 🚀', 'success');
+          } else {
+            updateStatusUI(false, '🔴 Worker respondeu status ' + res.status);
+            UI.toast('Worker respondeu com erro (' + res.status + '). Verifique os logs.', 'error');
+          }
+        } catch (err) {
+          console.warn('[Worker Health Check]:', err);
+          updateStatusUI(false, '🔴 Não foi possível conectar ao Worker');
+          UI.toast('Falha ao conectar no Worker. Confira a URL e o CORS.', 'error');
+        } finally {
+          btnTest.disabled = false;
+          btnTest.innerHTML = originalText;
+        }
+      });
+    }
+
+    // Restaurar padrões
+    if (btnReset) {
+      btnReset.addEventListener('click', async () => {
+        const ok = await UI.confirm({
+          title: 'Restaurar Configurações?',
+          message: 'Deseja redefinir para a chave Pix oficial padrão e modo direto?',
+          confirmText: 'Restaurar'
+        });
+        if (!ok) return;
+
+        License.setWorkerUrl('');
+        Checkout.setMerchantPixConfig('16d0c3c4-3307-4db5-b81a-977901372845', 'JOAO ANTONIO', 'SAO PATRICIO');
+
+        if (inputWorkerUrl) inputWorkerUrl.value = '';
+        if (inputPixKey) inputPixKey.value = '16d0c3c4-3307-4db5-b81a-977901372845';
+        if (inputPixName) inputPixName.value = 'JOAO ANTONIO';
+
+        updateStatusUI(false, '🟡 Modo Direto Ativo (Padrão Restaurado)');
+        UI.toast('Valores padrão restaurados com sucesso! ✨', 'success');
+      });
+    }
   }
 };
 

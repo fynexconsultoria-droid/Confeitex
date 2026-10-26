@@ -7,7 +7,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Confeitex - Controle de Encomendas</title>
   <meta name="description" content="Controle de encomendas para confeitaria — gerencie pedidos, clientes e entregas. 100% offline.">
-  <meta name="version" content="1.4.2">
+  <meta name="version" content="1.4.3">
 
   <!-- Google Fonts: Plus Jakarta Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -832,6 +832,63 @@
             </div>
             <div id="securitySettingsContainer">
               <!-- Populated by Auth.renderSecuritySettings() -->
+            </div>
+          </div>
+
+          <!-- Payment Server & Checkout Card -->
+          <div class="config-card" id="cardPaymentServerConfig">
+            <div class="config-card-header">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+              <span>Servidor de Pagamento & Checkout</span>
+            </div>
+            <p class="config-desc">
+              Conecte o Cloudflare Worker do Confeitex para checkout do Mercado Pago ou utilize o Modo Direto com chave Pix local.
+            </p>
+
+            <div style="margin-bottom: 1rem; padding: 0.75rem 1rem; border-radius: 8px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; flex-wrap: wrap;">
+              <div style="display:flex; align-items:center; gap:0.5rem;">
+                <span id="workerStatusDot" style="width:10px; height:10px; border-radius:50%; background:#f59e0b; display:inline-block;"></span>
+                <span id="workerStatusText" style="font-weight:600; font-size:0.85rem; color:#f59e0b;">Modo Direto Ativo (Pix Local)</span>
+              </div>
+              <button type="button" class="btn btn-secondary" id="btnTestWorkerConnection" style="font-size:0.75rem; padding:0.35rem 0.75rem;">
+                🔄 Testar Conexão
+              </button>
+            </div>
+
+            <div class="config-form" style="display: flex; flex-direction: column; gap: 0.85rem;">
+              <div>
+                <label for="cfgWorkerUrlInput" style="display:block; font-size:0.8rem; font-weight:600; margin-bottom:0.3rem; color:var(--text-muted);">
+                  URL do Servidor (Cloudflare Worker)
+                </label>
+                <input type="url" id="cfgWorkerUrlInput" class="form-input w-100" placeholder="https://confeitex-api.seu-subdominio.workers.dev" style="font-size:0.85rem; padding:0.55rem 0.75rem;">
+                <small style="display:block; color:var(--text-muted); font-size:0.72rem; margin-top:0.25rem;">
+                  Se vazio, o app opera em Modo Direto (gera QR Code Pix imediatamente com a chave oficial).
+                </small>
+              </div>
+
+              <div style="display:grid; grid-template-columns: 1fr 1fr; gap:0.6rem;">
+                <div>
+                  <label for="cfgMerchantPixKeyInput" style="display:block; font-size:0.8rem; font-weight:600; margin-bottom:0.3rem; color:var(--text-muted);">
+                    Chave Pix da Licença
+                  </label>
+                  <input type="text" id="cfgMerchantPixKeyInput" class="form-input w-100" placeholder="Chave Pix (EVP, CPF, etc)" style="font-size:0.85rem; padding:0.55rem 0.75rem;">
+                </div>
+                <div>
+                  <label for="cfgMerchantPixNameInput" style="display:block; font-size:0.8rem; font-weight:600; margin-bottom:0.3rem; color:var(--text-muted);">
+                    Nome do Recebedor
+                  </label>
+                  <input type="text" id="cfgMerchantPixNameInput" class="form-input w-100" placeholder="Ex: JOAO ANTONIO" style="font-size:0.85rem; padding:0.55rem 0.75rem;">
+                </div>
+              </div>
+
+              <div style="display:flex; gap:0.5rem; margin-top:0.3rem;">
+                <button type="button" class="btn btn-primary" id="btnSavePaymentServerConfig" style="flex:1;">
+                  Salvar Configurações
+                </button>
+                <button type="button" class="btn btn-secondary" id="btnResetPaymentServerConfig" title="Restaurar valores padrão">
+                  Padrões
+                </button>
+              </div>
             </div>
           </div>
 
