@@ -86,7 +86,7 @@ $trackedPaths = @(
     'version.txt', 'sw.js', 'package.json', 'package-lock.json',
     'index.html', 'app.html', 'privacidade.html', 'termos.html',
     'style.css', 'manifest.json', 'build.js', 'push.ps1', 'README.md',
-    'CNAME', 'js', 'css', 'api', 'tests', 'icons', 'vendor'
+    'CNAME', 'robots.txt', 'sitemap.xml', 'js', 'css', 'api', 'tests', 'icons', 'vendor'
 )
 
 foreach ($item in $trackedPaths) {

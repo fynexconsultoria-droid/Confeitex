@@ -44,7 +44,9 @@ async function build() {
     'icons',
     'privacidade.html',
     'termos.html',
-    'CNAME'
+    'CNAME',
+    'robots.txt',
+    'sitemap.xml'
   ];
 
   for (const asset of assets) {

@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://confeitex.com.br/sitemap.xml

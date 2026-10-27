@@ -1,6 +1,6 @@
 {
   "name": "confeitex",
-  "version": "1.4.3",
+  "version": "1.4.4",
   "description": "Confeitex — PWA de gestão de pedidos, clientes e finanças para confeitarias",
   "private": true,
   "scripts": {
