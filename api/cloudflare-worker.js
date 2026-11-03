@@ -864,20 +864,13 @@ export default {
 
         const maxDevices = Number(env.MAX_DEVICES_PER_KEY || PLAN_CONFIG.MAX_DEVICES_PER_KEY);
 
-        let licenseRecord = null;
-        if (env.CONFEITEX_KV) {
-          licenseRecord = await env.CONFEITEX_KV.get(`license:${rawKey}`, 'json');
+        if (!env.CONFEITEX_KV) {
+          return json({ valid: false, error: 'server_offline', message: 'Servidor de licenças indisponível (CONFEITEX_KV não configurado).' }, 503);
         }
 
+        const licenseRecord = await env.CONFEITEX_KV.get(`license:${rawKey}`, 'json');
         if (!licenseRecord) {
-          // Se KV não tiver ou for ambiente de testes, inicializa novo registro se a chave for válida
-          licenseRecord = {
-            key: rawKey,
-            createdAt: new Date().toISOString(),
-            purchasedAt: new Date().toISOString(),
-            exp: Date.now() + (365 * 86400000),
-            devices: []
-          };
+          return json({ valid: false, error: 'invalid_key', message: 'Chave de licença não encontrada ou inválida.' }, 404);
         }
 
         // Verifica se a licença foi revogada por reembolso ou cancelamento

@@ -169,4 +169,13 @@ describe('Confeitex 2-Device Limit per License Key', () => {
     expect(res.error).toBe('network_error');
     expect(res.message).toContain('Verifique sua conexão');
   });
+  it('should reject activation without bypassing if worker url is not configured', async () => {
+    globalThis.localStorage.setItem('confeitex_mp_worker_url', '');
+    globalThis.localStorage.setItem('confeitex_worker_url', '');
+
+    const res = await Plan.validateKeyWithDevice('CFTX-8990-TEST');
+    expect(res.valid).toBe(false);
+    expect(res.error).toBe('no_worker_configured');
+    expect(res.message).toContain('Servidor de licen');
+  });
 });

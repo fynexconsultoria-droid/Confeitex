@@ -625,7 +625,7 @@ export default {
       }
 
       // ─── 5. Ativação Manual (2º Aparelho ou Chave) (POST /activate) ─────
-      if (pathname === '/activate' && request.method === 'POST') {
+      if ((pathname === '/activate' || pathname === '/validate-license') && request.method === 'POST') {
         const body = await request.json().catch(() => ({}));
         const rawKey = (body.key || '').trim().toUpperCase().replace(/[^A-Z0-9-]/g, '');
         const deviceId = (body.deviceId || '').trim();
@@ -693,7 +693,7 @@ export default {
       }
 
       // ─── 6. Liberar Aparelho (POST /release) ────────────────────────────
-      if (pathname === '/release' && request.method === 'POST') {
+      if ((pathname === '/release' || pathname === '/release-license') && request.method === 'POST') {
         const body = await request.json().catch(() => ({}));
         const rawKey = (body.key || '').trim().toUpperCase().replace(/[^A-Z0-9-]/g, '');
         const deviceId = (body.deviceId || '').trim();

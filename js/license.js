@@ -59,12 +59,17 @@ export const License = {
   PUBLIC_KEY_JWK,
   STORAGE_KEYS,
   OFFLINE_GRACE_DAYS: 30,
+  DEFAULT_WORKER_URL: 'https://confeitex.joao-antonio-lg20.workers.dev',
 
   /**
    * Obtém a URL do Worker de licenças configurada (ou padrão)
    */
   getWorkerUrl() {
-    return (safeStorage.get(STORAGE_KEYS.WORKER_URL) || safeStorage.get('confeitex_mp_worker_url') || '').trim().replace(/\/+$/, '');
+    const stored = safeStorage.get(STORAGE_KEYS.WORKER_URL) || safeStorage.get('confeitex_mp_worker_url');
+    if (typeof stored === 'string') {
+      return stored.trim().replace(/\/+$/, '');
+    }
+    return this.DEFAULT_WORKER_URL;
   },
 
   setWorkerUrl(url) {

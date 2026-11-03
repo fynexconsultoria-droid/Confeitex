@@ -39,7 +39,7 @@ export const Plan = {
   MAX_DEVICES_PER_KEY:   2,
 
   getWorkerUrl() {
-    return (safeStorage.get('confeitex_worker_url') || safeStorage.get('confeitex_mp_worker_url') || '').trim().replace(/\/+$/, '');
+    return License.getWorkerUrl();
   },
 
   detectCardBrand(number) {
@@ -362,12 +362,11 @@ export const Plan = {
       }
     }
 
-    // Modo offline / demo
+    // Sem servidor de licenças configurado, não é possível validar nem vincular dispositivos com segurança
     return {
-      valid: true,
-      demo: true,
-      devicesCount: 1,
-      maxDevices: this.MAX_DEVICES_PER_KEY
+      valid: false,
+      error: 'no_worker_configured',
+      message: 'Servidor de licenças não configurado. Para validar o limite de 2 aparelhos por licença, conecte o Cloudflare Worker em Configurações › Servidor de Pagamento.'
     };
   },
 
